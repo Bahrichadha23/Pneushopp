@@ -1,0 +1,665 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PNEU SHOP - Spécialiste du pneu pas cher</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Added EmailJS CDN -->
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="container">
+            <div class="header-content">
+                <!-- Updated logo with proper styling and slogan -->
+                <div class="logo">
+                    <div class="logo-main">
+                        <span class="logo-text">PNEU SH<span class="logo-highlight">O</span>P</span>
+                        <div class="logo-icon">
+                            <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
+                                <circle cx="16" cy="16" r="14" stroke="#FFD700" stroke-width="4" fill="none"/>
+                                <circle cx="16" cy="16" r="8" fill="#FFD700"/>
+                                <circle cx="16" cy="16" r="4" fill="#2c1810"/>
+                            </svg>
+                        </div>
+                    </div>
+                    <p class="logo-slogan">Vos pneumatiques en un seul clic</p>
+                </div>
+                
+                <!-- Updated navigation with dropdown arrow for BOUTIQUE -->
+                <nav class="nav">
+                    <a href="index.html" class="nav-link active">ACCUEIL</a>
+                    <a href="#" class="nav-link">À LA UNE</a>
+                    <a href="boutique.html" class="nav-link dropdown">
+                        BOUTIQUE
+                        <svg width="12" height="8" viewBox="0 0 12 8" fill="currentColor">
+                            <path d="M1 1l5 5 5-5"/>
+                        </svg>
+                    </a>
+                    <a href="a-propos.html" class="nav-link">À PROPOS</a>
+                    <a href="contact.html" class="nav-link">CONTACT</a>
+                    <button class="auth-btn" onclick="document.getElementById('authModal').style.display='block'">CONNEXION</button>
+                    <button class="cart-btn" onclick="document.getElementById('cartModal').style.display='block'">PANIER</button>
+                </nav>
+                
+                <!-- Updated header icons to match the simple design from image -->
+                <div class="header-icons">
+                    <button class="icon-btn" aria-label="Rechercher">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="11" cy="11" r="8"/>
+                            <path d="m21 21-4.35-4.35"/>
+                        </svg>
+                    </button>
+                    <button class="icon-btn" aria-label="Favoris" onclick="openFavoritesModal()">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+                        </svg>
+                    </button>
+                    <button class="icon-btn" aria-label="Mon compte">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                            <circle cx="12" cy="12" r="10"/>
+                            <circle cx="12" cy="10" r="3"/>
+                            <path d="M7 20.662V19a2 2 0 0 1 2-2h6a2 2 0 0 1 2 2v1.662"/>
+                        </svg>
+                    </button>
+                    <button class="icon-btn" aria-label="Panier">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/>
+                            <line x1="3" y1="6" x2="21" y2="6"/>
+                            <path d="m16 10a4 4 0 0 1-8 0"/>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="hero-content">
+            <div class="hero-text">
+                <h1 class="hero-title">
+                    PNEU SH<span class="hero-highlight">O</span>P<br>
+                    <span class="hero-subtitle">Le prix, la qualité,<br>la performance</span>
+                </h1>
+                <div class="hero-badge">
+                    <svg width="40" height="40" viewBox="0 0 40 40" fill="none">
+                        <path d="M20 5L25 15L35 15L27.5 22.5L30 32.5L20 27.5L10 32.5L12.5 22.5L5 15L15 15L20 5Z" fill="#FFD700"/>
+                    </svg>
+                    <div class="badge-text">
+                        <span class="badge-title">LE PNEU FIABLE</span>
+                        <span class="badge-subtitle">À BAS PRIX</span>
+                    </div>
+                </div>
+            </div>
+            <div class="hero-diagonal"></div>
+            <div class="hero-image">
+                <!-- Replaced screenshot URL with placeholder -->
+                <img src="/placeholder.svg?height=400&width=600" alt="Voiture avec pneus performance" class="hero-car-image">
+            </div>
+        </div>
+    </section>
+
+    <!-- Price Banner -->
+    <section class="price-banner">
+        <div class="container">
+            <h2 class="price-text">PRIX <span class="highlight-yellow">MINI</span>, PERFORMANCE <span class="highlight-yellow">MAXI</span></h2>
+        </div>
+    </section>
+
+    <!-- Tire Configurator -->
+    <section class="configurator">
+        <div class="container">
+            <h2 class="configurator-title">
+                <span class="highlight-yellow">COMMENT LIRE</span> UN PNEU ?
+            </h2>
+            <p class="configurator-subtitle">On vous explique tout !</p>
+            
+            <div class="tire-selector">
+                <div class="tire-image-container">
+                    <!-- Replaced screenshot URL with annotated tire placeholder -->
+                    <img src="/placeholder.svg?height=300&width=300" alt="Pneu avec marquages détaillés" class="tire-image-detailed">
+                </div>
+                
+                <div class="selector-options">
+                    <div class="selector-header">
+                        <h3>Recherche de pneu par dimensions</h3>
+                    </div>
+                    <div class="selector-row">
+                        <div class="selector-item">
+                            <label>Largeur *</label>
+                            <select class="selector-dropdown">
+                                <option>Choisir la largeur</option>
+                            </select>
+                        </div>
+                        <div class="selector-item">
+                            <label>Hauteur *</label>
+                            <select class="selector-dropdown">
+                                <option>Choisir la hauteur</option>
+                            </select>
+                        </div>
+                        <div class="selector-item">
+                            <label>Radial</label>
+                            <select class="selector-dropdown">
+                                <option>Choisir le radial</option>
+                            </select>
+                        </div>
+                        <div class="selector-item">
+                            <label>Diamètre*</label>
+                            <select class="selector-dropdown">
+                                <option>Choisir le diamètre</option>
+                            </select>
+                        </div>
+                        <div class="selector-item">
+                            <label>Charge</label>
+                            <select class="selector-dropdown">
+                                <option>Choisir la charge</option>
+                            </select>
+                        </div>
+                        <div class="selector-item">
+                            <label>Vitesse</label>
+                            <select class="selector-dropdown">
+                                <option>Choisir la vitesse</option>
+                            </select>
+                        </div>
+                    </div>
+                    <button class="search-btn">Rechercher</button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Products Section -->
+    <section class="products-section">
+        <div class="container">
+            <h2 class="section-title">DÉCOUVREZ NOS PNEUS</h2>
+            <p class="section-subtitle">PAR CATÉGORIES</p>
+            
+            <div class="products-grid">
+                <!-- Replaced screenshot URLs with tire category placeholders -->
+                <div class="product-item">
+                    <img src="/placeholder.svg?height=200&width=200" alt="Pneu voiture" class="product-image">
+                </div>
+                <div class="product-item">
+                    <img src="/placeholder.svg?height=200&width=200" alt="Pneu 4x4" class="product-image">
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Delivery Section -->
+    <section class="delivery-section">
+        <div class="container">
+            <h2 class="delivery-title">
+                Livraison <span class="highlight-yellow">GRATUITE</span> en <span class="highlight-yellow">2 à 4 jours</span><br>
+                pour toute commande de 2 pneus ou plus
+            </h2>
+        </div>
+    </section>
+
+    <!-- Brands Section -->
+    <section class="brands-section">
+        <div class="container">
+            <h2 class="section-title">PRINCIPAUX FABRICANTS</h2>
+            <p class="section-subtitle">TOP VENTES</p>
+            
+            <!-- Replaced screenshot URL with brand logos placeholder -->
+            <div class="brands-grid">
+                <img src="/placeholder.svg?height=100&width=800" alt="Marques de pneus" class="brands-image">
+            </div>
+        </div>
+    </section>
+
+    <!-- Popular Tires Section -->
+    <section class="popular-tires">
+        <div class="container">
+            <h2 class="section-title">Pneus populaires</h2>
+            <p class="section-subtitle">Des pneus de qualité pour chaque route</p>
+            
+            <div class="tires-grid">
+                <!-- Replaced all tire product images with Bridgestone tire placeholders -->
+                <div class="tire-card">
+                    <img src="/placeholder.svg?height=150&width=150" alt="BRIDGESTONE 225/45R17" class="tire-product-image">
+                    <h3 class="tire-name">BRIDGESTONE 225/45R17 EU 91W T005</h3>
+                    <p class="tire-price">457.00 DT</p>
+                    <p class="tire-category">PNEUS 4X4 / SUV</p>
+                    <div class="tire-actions">
+                        <button class="add-to-cart-btn" onclick="addToCart('BRIDGESTONE 225/45R17 EU 91W T005', 457.00)">Ajouter au panier</button>
+                        <button class="add-to-favorites-btn" onclick="addToFavorites('BRIDGESTONE 225/45R17 EU 91W T005', 457.00, '/placeholder.svg?height=150&width=150')">♥</button>
+                    </div>
+                </div>
+                <div class="tire-card">
+                    <img src="/placeholder.svg?height=150&width=150" alt="BRIDGESTONE 225/45R17" class="tire-product-image">
+                    <h3 class="tire-name">BRIDGESTONE 225/45R17 EU 91W T005</h3>
+                    <p class="tire-price">545.02 DT</p>
+                    <p class="tire-category">BRIDGESTONE, PNEUS TOURISME</p>
+                    <div class="tire-actions">
+                        <button class="add-to-cart-btn" onclick="addToCart('BRIDGESTONE 225/45R17 EU 91W T005', 545.02)">Ajouter au panier</button>
+                        <button class="add-to-favorites-btn" onclick="addToFavorites('BRIDGESTONE 225/45R17 EU 91W T005', 545.02, '/placeholder.svg?height=150&width=150')">♥</button>
+                    </div>
+                </div>
+                <div class="tire-card">
+                    <img src="/placeholder.svg?height=150&width=150" alt="BRIDGESTONE 225/40R18" class="tire-product-image">
+                    <h3 class="tire-name">BRIDGESTONE 225/40R18 EU 92Y XL TURANZA TUR6 TL</h3>
+                    <p class="tire-price">788.97 DT</p>
+                    <p class="tire-category">BRIDGESTONE, PNEUS TOURISME</p>
+                    <div class="tire-actions">
+                        <button class="add-to-cart-btn" onclick="addToCart('BRIDGESTONE 225/40R18 EU 92Y XL TURANZA TUR6 TL', 788.97)">Ajouter au panier</button>
+                        <button class="add-to-favorites-btn" onclick="addToFavorites('BRIDGESTONE 225/40R18 EU 92Y XL TURANZA TUR6 TL', 788.97, '/placeholder.svg?height=150&width=150')">♥</button>
+                    </div>
+                </div>
+                <div class="tire-card">
+                    <img src="/placeholder.svg?height=150&width=150" alt="Bridgestone 225/50R17" class="tire-product-image">
+                    <h3 class="tire-name">Bridgestone 225/50R17 EU 94W S001</h3>
+                    <p class="tire-price">831.81 DT</p>
+                    <p class="tire-category">BRIDGESTONE, PNEUS TOURISME</p>
+                    <div class="tire-actions">
+                        <button class="add-to-cart-btn" onclick="addToCart('Bridgestone 225/50R17 EU 94W S001', 831.81)">Ajouter au panier</button>
+                        <button class="add-to-favorites-btn" onclick="addToFavorites('Bridgestone 225/50R17 EU 94W S001', 831.81, '/placeholder.svg?height=150&width=150')">♥</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- À LA UNE Section -->
+    <section class="news-section">
+        <div class="container">
+            <h2 class="section-title">À LA UNE</h2>
+            <div class="news-grid">
+                <!-- Replaced screenshot URLs with warehouse/tire storage placeholders -->
+                <div class="news-item">
+                    <img src="/placeholder.svg?height=200&width=300" alt="Événement" class="news-image">
+                    <div class="news-overlay">
+                        <h3>ÉVÉNEMENT</h3>
+                    </div>
+                </div>
+                <div class="news-item">
+                    <img src="/placeholder.svg?height=200&width=300" alt="Actualités" class="news-image">
+                    <div class="news-overlay">
+                        <h3>ACTUALITÉS</h3>
+                    </div>
+                </div>
+                <div class="news-item">
+                    <img src="/placeholder.svg?height=200&width=300" alt="Promotion" class="news-image">
+                    <div class="news-overlay">
+                        <h3>PROMOTION</h3>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Why Choose Section -->
+    <section class="why-choose">
+        <div class="container">
+            <h2 class="section-title">
+                Pourquoi acheter sur <span class="highlight-yellow">Pneushop.tn</span> ?
+            </h2>
+            <!-- Using the detailed text content from screenshot -->
+            <div class="why-choose-content">
+                <div class="why-choose-text">
+                    <p><strong>Pneushop.tn</strong>, leader en Tunisie de la vente en ligne de pneumatiques, propose un large choix de pneus pas chers : pneus pour voiture, pneus pour SUV et 4X4, pneus pour camionnette et utilitaire, des pneus agricoles et des pneus poids-lourd.</p>
+                </div>
+                <div class="why-choose-text">
+                    <p>Acheter et faire le choix de nouveaux pneus auto n'est pas toujours évident. Vous trouverez sur le site un large choix de pneus pas chers, des marques et des conseils pour trouver les pneus auto qui vous conviennent. Tous les pneus pour tous types de véhicules sont sur <strong>Pneushop.tn</strong>.</p>
+                </div>
+                <div class="why-choose-text">
+                    <p><strong>Pneushop</strong>, le meilleur e-commerçant dans la catégorie service vente pneus. <strong>Pneushop.tn</strong> propose des pneus mais également de nombreux services pour satisfaire et faciliter les achats des utilisateurs. Nous vous proposons en plus de l'achat de pneus auto, des services de livraison, SUV, 4X4, camionnette.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Final CTA Section -->
+    <section class="final-cta">
+        <div class="container">
+            <h2 class="cta-title">
+                PNEU SHOP, LE SPÉCIALISTE DU PNEU <span class="highlight-yellow">PAS CHER</span>
+            </h2>
+            
+            <div class="features-grid">
+                <div class="feature-item">
+                    <div class="feature-icon">
+                        <svg width="80" height="80" viewBox="0 0 80 80" fill="none">
+                            <circle cx="40" cy="40" r="35" stroke="#FFD700" stroke-width="4" fill="none"/>
+                            <circle cx="40" cy="40" r="20" fill="#FFD700"/>
+                            <circle cx="40" cy="40" r="10" fill="#2c1810"/>
+                        </svg>
+                    </div>
+                    <h3>CHOISISSEZ VOS PNEUS</h3>
+                </div>
+                <div class="feature-item">
+                    <div class="feature-icon">
+                        <svg width="80" height="80" viewBox="0 0 80 80" fill="none">
+                            <path d="M20 20h40v40H20z" stroke="#FFD700" stroke-width="3" fill="none"/>
+                            <circle cx="40" cy="40" r="15" stroke="#FFD700" stroke-width="2"/>
+                            <path d="M30 40h20M40 30v20" stroke="#FFD700" stroke-width="2"/>
+                        </svg>
+                    </div>
+                    <h3>LIVRAISON GRATUITE<br>24H/72H À partir de 2 pneus</h3>
+                </div>
+                <div class="feature-item">
+                    <div class="feature-icon">
+                        <svg width="80" height="80" viewBox="0 0 80 80" fill="none">
+                            <rect x="15" y="25" width="50" height="30" rx="5" stroke="#FFD700" stroke-width="3" fill="none"/>
+                            <path d="M25 35h30M25 45h20" stroke="#FFD700" stroke-width="2"/>
+                        </svg>
+                    </div>
+                    <h3>PAIEMENT SÉCURISÉ</h3>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Final Consultation Section -->
+    <section class="consultation-section">
+        <div class="container">
+            <div class="consultation-content">
+                <h2 class="consultation-title">
+                    <span class="highlight-yellow">PNEUSHOP ONLINE</span> VOUS CONSEILLE
+                </h2>
+                <div class="consultation-image">
+                    <!-- Replaced screenshot URL with expert consultation placeholder -->
+                    <img src="/placeholder.svg?height=300&width=500" alt="Expert tenant un pneu" class="consultation-tire-image">
+                    <div class="consultation-text-overlay">
+                        <h3>Tout sur les pneumatiques</h3>
+                        <p>Aide & Informations</p>
+                    </div>
+                </div>
+                <div class="consultation-bottom">
+                    <h3>Avez-vous des <span class="highlight-yellow">questions</span> ?</h3>
+                    <p>Nous sommes ravis de vous répondre et de vous accompagner avec notre expertise dans le pneumatique.</p>
+                    <button class="contact-btn" onclick="window.location.href='contact.html'">CONTACTEZ-NOUS</button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer Section -->
+    <footer class="footer">
+        <div class="container">
+            <!-- Footer Top -->
+            <div class="footer-top">
+                <div class="footer-social">
+                    <a href="#" class="social-icon" aria-label="Facebook">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
+                        </svg>
+                    </a>
+                    <a href="#" class="social-icon" aria-label="Instagram">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.689.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.073-1.689-.073-4.948 0-3.204.013-3.583.072-4.948.196-4.354 2.617-6.78 6.979-6.98 1.281-.057 1.689-.069 4.949-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.204-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/>
+                        </svg>
+                    </a>
+                    <a href="#" class="social-icon" aria-label="TikTok">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M12.525.02c1.31-.02 2.61-.01 3.91-.02.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.05-2.89-.35-4.2-.97-.57-.26-1.1-.59-1.62-.93-.01 2.92.01 5.84-.02 8.75-.08 1.4-.54 2.79-1.35 3.94-1.31 1.92-3.58 3.17-5.91 3.21-1.43.08-2.86-.31-4.08-1.03-2.02-1.19-3.44-3.37-3.65-5.71-.02-.5-.03-1-.01-1.49.18-1.9 1.12-3.72 2.58-4.96 1.66-1.44 3.98-2.13 6.15-1.72.02 1.48-.04 2.96-.04 4.44-.99-.32-2.15-.23-3.02.37-.63.41-1.11 1.04-1.36 1.75-.21.51-.15 1.07-.14 1.61.24 1.64 1.82 3.02 3.5 2.87 1.12-.01 2.19-.66 2.77-1.61.19-.33.4-.67.41-1.06.1-1.79.06-3.57.07-5.36.01-4.03-.01-8.05.02-12.07z"/>
+                        </svg>
+                    </a>
+                </div>
+                <nav class="footer-nav">
+                    <a href="index.html" class="footer-nav-link">ACCUEIL</a>
+                    <a href="boutique.html" class="footer-nav-link">BOUTIQUE</a>
+                    <a href="contact.html" class="footer-nav-link">CONTACTEZ-NOUS</a>
+                    <a href="a-propos.html" class="footer-nav-link">À PROPOS</a>
+                </nav>
+            </div>
+
+            <!-- Footer Main Content -->
+            <div class="footer-main">
+                <div class="footer-column">
+                    <h3 class="footer-title">Affiliation</h3>
+                    <p class="footer-description">Boostez Votre Revenus avec des Partenariats Efficaces</p>
+                    <div class="footer-links">
+                        <a href="#" class="footer-link">Connexion</a>
+                        <a href="#" class="footer-link">Inscription</a>
+                        <a href="#" class="footer-link">Dashboard</a>
+                    </div>
+                </div>
+
+                <div class="footer-column">
+                    <h3 class="footer-title">Liens Importants</h3>
+                    <div class="footer-links">
+                        <a href="#" class="footer-link">Conditions Générales</a>
+                        <a href="#" class="footer-link">Politique de Confidentialité</a>
+                    </div>
+                    <h4 class="footer-subtitle">Informations sur la livraison</h4>
+                    <p class="footer-text">Livraison rapide partout en Tunisie en 2 à 5 jours ouvrables. Livraison express entre 1 et 3 jours disponible.</p>
+                </div>
+
+                <div class="footer-column">
+                    <h3 class="footer-title">Contact Info</h3>
+                    <p class="footer-description">Trouvez les pneus parfaits pour votre véhicule en un clic. Qualité et prix compétitifs garantis.</p>
+                    
+                    <div class="contact-info">
+                        <div class="contact-item">
+                            <div class="contact-icon">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                                    <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
+                                </svg>
+                            </div>
+                            <div class="contact-details">
+                                <span class="contact-label">Address:</span>
+                                <span class="contact-value">9, Rue El Milaha, El Menzeh 8, Ariana.</span>
+                            </div>
+                        </div>
+
+                        <div class="contact-item">
+                            <div class="contact-icon">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                                    <path d="M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z"/>
+                                </svg>
+                            </div>
+                            <div class="contact-details">
+                                <span class="contact-label">Téléphone:</span>
+                                <span class="contact-value">26888073 / 24353666</span>
+                            </div>
+                        </div>
+
+                        <div class="contact-item">
+                            <div class="contact-icon">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                                    <path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/>
+                                </svg>
+                            </div>
+                            <div class="contact-details">
+                                <span class="contact-label">Email:</span>
+                                <span class="contact-value">service.commercial@pneusshop.tn</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Footer Bottom -->
+            <div class="footer-bottom">
+                <div class="footer-copyright">
+                    <span>Copyright © 2025 - PneuShop.tn - Tous droits réservés</span>
+                </div>
+                <div class="footer-logo">
+                    <span class="footer-logo-text">PNEU SH<span class="footer-logo-highlight">O</span>P</span>
+                    <div class="footer-logo-icon">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Authentication Modals -->
+    <div id="authModal" class="auth-modal">
+        <div class="auth-modal-content">
+            <span class="auth-close">&times;</span>
+            
+            <!-- Login Form -->
+            <div id="loginForm" class="auth-form active">
+                <h2>Connexion</h2>
+                <form id="loginFormElement">
+                    <div class="form-group">
+                        <label for="loginEmail">Email</label>
+                        <input type="email" id="loginEmail" name="email" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="loginPassword">Mot de passe</label>
+                        <input type="password" id="loginPassword" name="password" required>
+                    </div>
+                    <button type="submit" class="auth-btn">Se connecter</button>
+                </form>
+                <p class="auth-switch">
+                    <a href="#" id="showForgotPassword">Mot de passe oublié ?</a>
+                </p>
+                <p class="auth-switch">
+                    Pas encore de compte ? 
+                    <a href="#" id="showRegister">Créer un compte</a>
+                </p>
+            </div>
+
+            <!-- Register Form -->
+            <div id="registerForm" class="auth-form">
+                <h2>Créer un compte</h2>
+                <form id="registerFormElement">
+                    <div class="form-group">
+                        <label for="registerName">Nom complet</label>
+                        <input type="text" id="registerName" name="name" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="registerEmail">Email</label>
+                        <input type="email" id="registerEmail" name="email" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="registerPassword">Mot de passe</label>
+                        <input type="password" id="registerPassword" name="password" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="confirmPassword">Confirmer le mot de passe</label>
+                        <input type="password" id="confirmPassword" name="confirmPassword" required>
+                    </div>
+                    <button type="submit" class="auth-btn">Créer le compte</button>
+                </form>
+                <p class="auth-switch">
+                    Déjà un compte ? 
+                    <a href="#" id="showLogin">Se connecter</a>
+                </p>
+            </div>
+
+            <!-- Added Forgot Password Form -->
+            <div id="forgotPasswordForm" class="auth-form">
+                <h2>Mot de passe oublié</h2>
+                <p class="forgot-password-text">Entrez votre adresse email et nous vous enverrons un lien pour réinitialiser votre mot de passe.</p>
+                <form id="forgotPasswordFormElement">
+                    <div class="form-group">
+                        <label for="forgotEmail">Email</label>
+                        <input type="email" id="forgotEmail" name="email" required>
+                    </div>
+                    <button type="submit" class="auth-btn">Envoyer le lien</button>
+                </form>
+                <p class="auth-switch">
+                    <a href="#" id="backToLogin">Retour à la connexion</a>
+                </p>
+            </div>
+
+            <!-- Added Email Verification Form -->
+            <div id="emailVerificationForm" class="auth-form">
+                <h2>Vérification Email</h2>
+                <p class="verification-text">Un code de vérification a été envoyé à votre adresse email. Veuillez entrer le code ci-dessous.</p>
+                <form id="verificationFormElement">
+                    <div class="form-group">
+                        <label for="verificationCode">Code de vérification</label>
+                        <input type="text" id="verificationCode" name="code" required maxlength="6" placeholder="123456">
+                    </div>
+                    <button type="submit" class="auth-btn">Vérifier</button>
+                </form>
+                <p class="auth-switch">
+                    <a href="#" id="resendCode">Renvoyer le code</a>
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Cart Modal -->
+    <div id="cartModal" class="cart-modal">
+        <div class="cart-modal-content">
+            <div class="cart-header">
+                <h2>Mon Panier</h2>
+                <span class="cart-close">&times;</span>
+            </div>
+            
+            <!-- Empty Cart State -->
+            <div id="emptyCart" class="empty-cart">
+                <div class="empty-cart-icon">
+                    <svg width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                        <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/>
+                        <line x1="3" y1="6" x2="21" y2="6"/>
+                        <path d="m16 10a4 4 0 0 1-8 0"/>
+                    </svg>
+                </div>
+                <div class="empty-cart-message">
+                    <div class="empty-cart-alert">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M12 2L1 21h22L12 2zm0 3.99L19.53 19H4.47L12 5.99zM11 16h2v2h-2v-2zm0-6h2v4h-2v-4z"/>
+                        </svg>
+                        <span>Votre panier est actuellement vide.</span>
+                    </div>
+                </div>
+                <button class="return-to-shop-btn" onclick="document.getElementById('cartModal').style.display='none'; window.location.href='boutique.html'">
+                    Retour à la boutique
+                </button>
+            </div>
+            
+            <!-- Cart Items -->
+            <div id="cartItems" class="cart-items" style="display: none;">
+                <div class="cart-items-list"></div>
+                <div class="cart-summary">
+                    <div class="cart-total">
+                        <span>Total: <span id="cartTotal">0.00 DT</span></span>
+                    </div>
+                    <button class="checkout-btn">Procéder au paiement</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Favorites Modal -->
+    <div id="favoritesModal" class="favorites-modal">
+        <div class="favorites-modal-content">
+            <div class="favorites-header">
+                <h2>Mes Favoris</h2>
+                <span class="favorites-close">&times;</span>
+            </div>
+            
+            <!-- Empty Favorites State -->
+            <div id="emptyFavorites" class="empty-favorites">
+                <div class="empty-favorites-icon">
+                    <svg width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                        <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+                    </svg>
+                </div>
+                <div class="empty-favorites-message">
+                    <div class="empty-favorites-alert">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M12 2L1 21h22L12 2zm0 3.99L19.53 19H4.47L12 5.99zM11 16h2v2h-2v-2zm0-6h2v4h-2v-4z"/>
+                        </svg>
+                        <span>Vos favoris sont actuellement vides.</span>
+                    </div>
+                </div>
+                <button class="return-to-shop-btn" onclick="document.getElementById('favoritesModal').style.display='none'; window.location.href='boutique.html'">
+                    Retour à la boutique
+                </button>
+            </div>
+            
+            <!-- Favorites Items -->
+            <div id="favoritesItems" class="favorites-items" style="display: none;">
+                <div class="favorites-items-list"></div>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>

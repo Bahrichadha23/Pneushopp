@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Boutique - PNEU SHOP</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="container">
+            <div class="header-content">
+                <div class="logo">
+                    <div class="logo-main">
+                        <span class="logo-text">PNEU SH<span class="logo-highlight">O</span>P</span>
+                        <div class="logo-icon">
+                            <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
+                                <circle cx="16" cy="16" r="14" stroke="#FFD700" stroke-width="4" fill="none"/>
+                                <circle cx="16" cy="16" r="8" fill="#FFD700"/>
+                                <circle cx="16" cy="16" r="4" fill="#2c1810"/>
+                            </svg>
+                        </div>
+                    </div>
+                    <p class="logo-slogan">Vos pneumatiques en un seul clic</p>
+                </div>
+                
+                <nav class="nav">
+                    <a href="index.html" class="nav-link">ACCUEIL</a>
+                    <a href="#" class="nav-link">À LA UNE</a>
+                    <a href="boutique.html" class="nav-link dropdown active">
+                        BOUTIQUE
+                        <svg width="12" height="8" viewBox="0 0 12 8" fill="currentColor">
+                            <path d="M1 1l5 5 5-5"/>
+                        </svg>
+                    </a>
+                    <a href="a-propos.html" class="nav-link">À PROPOS</a>
+                    <a href="contact.html" class="nav-link">CONTACT</a>
+                </nav>
+                
+                <div class="header-icons">
+                    <button class="icon-btn" aria-label="Rechercher">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="11" cy="11" r="8"/>
+                            <path d="m21 21-4.35-4.35"/>
+                        </svg>
+                    </button>
+                    <button class="icon-btn" aria-label="Favoris">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+                        </svg>
+                    </button>
+                    <button class="icon-btn" aria-label="Mon compte">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                            <circle cx="12" cy="12" r="10"/>
+                            <circle cx="12" cy="10" r="3"/>
+                            <path d="M7 20.662V19a2 2 0 0 1 2-2h6a2 2 0 0 1 2 2v1.662"/>
+                        </svg>
+                    </button>
+                    <button class="icon-btn" aria-label="Panier">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/>
+                            <line x1="3" y1="6" x2="21" y2="6"/>
+                            <path d="m16 10a4 4 0 0 1-8 0"/>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Shop Content -->
+    <main class="shop-main">
+        <div class="container">
+            <div class="shop-layout">
+                <!-- Sidebar -->
+                <aside class="shop-sidebar">
+                    <!-- Search Section -->
+                    <div class="sidebar-section">
+                        <h3 class="sidebar-title">Recherche</h3>
+                        <div class="search-form">
+                            <input type="text" placeholder="taper..." class="search-input">
+                            <button class="search-btn">Recherche</button>
+                        </div>
+                    </div>
+
+                    <!-- Price Filter -->
+                    <div class="sidebar-section">
+                        <h3 class="sidebar-title">filtré par prix</h3>
+                        <div class="price-filter">
+                            <div class="price-slider">
+                                <input type="range" min="0" max="1525" value="0" class="slider" id="minPrice">
+                                <input type="range" min="0" max="1525" value="1525" class="slider" id="maxPrice">
+                            </div>
+                            <div class="price-labels">
+                                <span class="price-min">0 DT</span>
+                                <span class="price-max">1525 DT</span>
+                            </div>
+                            <div class="price-inputs">
+                                <span>Min. Price</span>
+                                <span>Max. Price</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Top Rated Products -->
+                    <div class="sidebar-section">
+                        <h3 class="sidebar-title">Produits les mieux notés</h3>
+                        <div class="top-products">
+                            <div class="top-product-item">
+                                <img src="/placeholder.svg?height=60&width=60" alt="WEST LAKE 195/65R15" class="top-product-image">
+                                <div class="top-product-info">
+                                    <h4 class="top-product-name">WEST LAKE 195/65R15 91V Z-107 TL</h4>
+                                    <p class="top-product-price">237.44 DT</p>
+                                </div>
+                            </div>
+                            <div class="top-product-item">
+                                <img src="/placeholder.svg?height=60&width=60" alt="NEXEN 245/40ZR18" class="top-product-image">
+                                <div class="top-product-info">
+                                    <h4 class="top-product-name">NEXEN 245/40ZR18 92Y NFERA SPORT XL</h4>
+                                    <p class="top-product-price">630.84 DT</p>
+                                </div>
+                            </div>
+                            <div class="top-product-item">
+                                <img src="/placeholder.svg?height=60&width=60" alt="LAUFENN 245/70R16" class="top-product-image">
+                                <div class="top-product-info">
+                                    <h4 class="top-product-name">LAUFENN 245/70R16 107T LC01 TL</h4>
+                                    <p class="top-product-price">601.51 DT</p>
+                                </div>
+                            </div>
+                            <div class="top-product-item">
+                                <img src="/placeholder.svg?height=60&width=60" alt="185/60R15 84V ECO DYNAMIC" class="top-product-image">
+                                <div class="top-product-info">
+                                    <h4 class="top-product-name">185/60R15 84V ECO DYNAMIC</h4>
+                                    <p class="top-product-price">252.21 DT</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Brand Filters -->
+                    <div class="sidebar-section">
+                        <div class="brand-filters">
+                            <div class="brand-category">
+                                <h4 class="brand-category-title">PNEUS 4X4 / SUV (3)</h4>
+                            </div>
+                            <div class="brand-list">
+                                <div class="brand-item">AMINE (1)</div>
+                                <div class="brand-item">BARUM (1)</div>
+                                <div class="brand-item">BRIDGESTONE (10)</div>
+                                <div class="brand-item">CONTINENTAL (2)</div>
+                                <div class="brand-item">GOOD YEAR (5)</div>
+                                <div class="brand-item">HANKOOK (3)</div>
+                                <div class="brand-item">KLEBER (1)</div>
+                                <div class="brand-item">LASSA (1)</div>
+                                <div class="brand-item">LAUFENN (3)</div>
+                                <div class="brand-item">LES PNEUS 4X4/SUV (2)</div>
+                                <div class="brand-item">MICHELIN (1)</div>
+                                <div class="brand-item">NEXEN (1)</div>
+                                <div class="brand-item">PIRELLI (1)</div>
+                                <div class="brand-item">PNEUS AGRICOLES (1)</div>
+                                <div class="brand-item">Pneus Camionnette (1)</div>
+                                <div class="brand-item">PNEUS TOURISME (12)</div>
+                                <div class="brand-item">PNEUS UTILITAIRE (1)</div>
+                                <div class="brand-item">SEMPERIT (1)</div>
+                                <div class="brand-item">WATER FALL (5)</div>
+                                <div class="brand-item">WEST LAKE (14)</div>
+                            </div>
+                        </div>
+                    </div>
+                </aside>
+
+                <!-- Main Content -->
+                <div class="shop-content">
+                    <!-- Results Header -->
+                    <div class="results-header">
+                        <div class="results-info">
+                            <span class="results-text">AFFICHAGE DE 1–9 SUR 54 RÉSULTATS</span>
+                        </div>
+                        <div class="sort-dropdown">
+                            <select class="sort-select">
+                                <option>Tri par tarif croissant</option>
+                                <option>Tri par tarif décroissant</option>
+                                <option>Tri par popularité</option>
+                                <option>Tri par note</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Products Grid -->
+                    <div class="products-grid-shop">
+                        <div class="product-card">
+                            <div class="product-badge">ÉPUISÉ</div>
+                            <img src="/placeholder.svg?height=200&width=200" alt="Pneu Amin AGRICOLE" class="product-image">
+                            <h3 class="product-name">Pneu Amin AGRICOLE 7.50X16 ST 8 -A6210</h3>
+                            <p class="product-category">PNEUS AGRICOLES</p>
+                            <button class="product-btn read-more">Lire la suite</button>
+                        </div>
+
+                        <div class="product-card">
+                            <img src="/placeholder.svg?height=200&width=200" alt="AMINE 175/70R13" class="product-image">
+                            <h3 class="product-name">AMINE 175/70R13 TL 82T – Atlas</h3>
+                            <p class="product-price">184.45 DT</p>
+                            <p class="product-category">AMINE</p>
+                            <button class="product-btn add-to-cart">Ajouter au panier</button>
+                        </div>
+
+                        <div class="product-card">
+                            <div class="product-badge">ÉPUISÉ</div>
+                            <img src="/placeholder.svg?height=200&width=200" alt="WEST LAKE 165/70R13" class="product-image">
+                            <h3 class="product-name">WEST LAKE 165/70R13 79T RP18</h3>
+                            <p class="product-price">195.02 DT</p>
+                            <p class="product-category">WEST LAKE</p>
+                            <button class="product-btn read-more">Lire la suite</button>
+                        </div>
+
+                        <div class="product-card">
+                            <div class="product-badge">ÉPUISÉ</div>
+                            <img src="/placeholder.svg?height=200&width=200" alt="WEST LAKE 175/70R14" class="product-image">
+                            <h3 class="product-name">WEST LAKE 175/70R14 84T Z-107</h3>
+                            <p class="product-price">216.33 DT</p>
+                            <p class="product-category">WEST LAKE</p>
+                            <button class="product-btn read-more">Lire la suite</button>
+                        </div>
+
+                        <div class="product-card">
+                            <img src="/placeholder.svg?height=200&width=200" alt="KLEBER 175/65R14" class="product-image">
+                            <h3 class="product-name">KLEBER 175/65R14 KLEBER</h3>
+                            <p class="product-price">218.96 DT</p>
+                            <p class="product-category">KLEBER</p>
+                            <button class="product-btn add-to-cart">Ajouter au panier</button>
+                        </div>
+
+                        <div class="product-card">
+                            <div class="product-badge">ÉPUISÉ</div>
+                            <img src="/placeholder.svg?height=200&width=200" alt="WATTER FALL 185/65R15" class="product-image">
+                            <h3 class="product-name">WATTER FALL 185/65R15 88H ECO DYNAMIC</h3>
+                            <p class="product-price">226.89 DT</p>
+                            <p class="product-category">WATER FALL</p>
+                            <button class="product-btn read-more">Lire la suite</button>
+                        </div>
+
+                        <div class="product-card">
+                            <div class="product-badge">ÉPUISÉ</div>
+                            <img src="/placeholder.svg?height=200&width=200" alt="WEST LAKE 175/65R14" class="product-image">
+                            <h3 class="product-name">WEST LAKE 175/65R14 82H Z-108</h3>
+                            <p class="product-price">201.11 DT</p>
+                            <p class="product-category">WEST LAKE</p>
+                            <button class="product-btn add-to-cart">Ajouter au panier</button>
+                        </div>
+
+                        <div class="product-card">
+                            <div class="product-badge">ÉPUISÉ</div>
+                            <img src="/placeholder.svg?height=200&width=200" alt="WEST LAKE 165/65R14" class="product-image">
+                            <h3 class="product-name">WEST LAKE 165/65R14 79H RP18</h3>
+                            <p class="product-price">206.93 DT</p>
+                            <p class="product-category">WEST LAKE</p>
+                            <button class="product-btn read-more">Lire la suite</button>
+                        </div>
+
+                        <div class="product-card">
+                            <div class="product-badge">ÉPUISÉ</div>
+                            <img src="/placeholder.svg?height=200&width=200" alt="WATTER FALL 175/70R14" class="product-image">
+                            <h3 class="product-name">WATTER FALL 175/70R14 84H ECO DYNAMIC</h3>
+                            <p class="product-price">210.00 DT</p>
+                            <p class="product-category">WATER FALL</p>
+                            <button class="product-btn read-more">Lire la suite</button>
+                        </div>
+                    </div>
+
+                    <!-- Pagination -->
+                    <div class="pagination">
+                        <span class="page-number active">1</span>
+                        <a href="#" class="page-number">2</a>
+                        <a href="#" class="page-number">3</a>
+                        <a href="#" class="page-number">4</a>
+                        <span class="page-dots">...</span>
+                        <a href="#" class="page-number">6</a>
+                        <a href="#" class="page-next">SUIVANT ></a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <!-- Footer Top -->
+            <div class="footer-top">
+                <div class="footer-social">
+                    <a href="#" class="social-icon" aria-label="Facebook">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
+                        </svg>
+                    </a>
+                    <a href="#" class="social-icon" aria-label="Instagram">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 4.354 2.617-6.78 6.979-6.98 1.281-.057 1.689-.069 4.949-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.69-.073 4.948-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/>
+                        </svg>
+                    </a>
+                    <a href="#" class="social-icon" aria-label="TikTok">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M12.525.02c1.31-.02 2.61-.01 3.91-.02.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.05-2.89-.35-4.2-.97-.57-.26-1.1-.59-1.62-.93-.01 2.92.01 5.84-.02 8.75-.08 1.4-.54 2.79-1.35 3.94-1.31 1.92-3.58 3.17-5.91 3.21-1.43.08-2.86-.31-4.08-1.03-2.02-1.19-3.44-3.37-3.65-5.71-.02-.5-.03-1-.01-1.49.18-1.9 1.12-3.72 2.58-4.96 1.66-1.44 3.98-2.13 6.15-1.72.02 1.48-.04 2.96-.04 4.44-.99-.32-2.15-.23-3.02.37-.63.41-1.11 1.04-1.36 1.75-.21.51-.15 1.07-.14 1.61.24 1.64 1.82 3.02 3.5 2.87 1.12-.01 2.19-.66 2.77-1.61.19-.33.4-.67.41-1.06.1-1.79.06-3.57.07-5.36.01-4.03-.01-8.05.02-12.07z"/>
+                        </svg>
+                    </a>
+                </div>
+                <nav class="footer-nav">
+                    <a href="index.html" class="footer-nav-link">ACCUEIL</a>
+                    <a href="boutique.html" class="footer-nav-link">BOUTIQUE</a>
+                    <a href="contact.html" class="footer-nav-link">CONTACTEZ-NOUS</a>
+                    <a href="a-propos.html" class="footer-nav-link">À PROPOS</a>
+                </nav>
+            </div>
+
+            <!-- Footer Main Content -->
+            <div class="footer-main">
+                <div class="footer-column">
+                    <h3 class="footer-title">Affiliation</h3>
+                    <p class="footer-description">Boostez Votre Revenus avec des Partenariats Efficaces</p>
+                    <div class="footer-links">
+                        <a href="#" class="footer-link">Connexion</a>
+                        <a href="#" class="footer-link">Inscription</a>
+                        <a href="#" class="footer-link">Dashboard</a>
+                    </div>
+                </div>
+
+                <div class="footer-column">
+                    <h3 class="footer-title">Liens Importants</h3>
+                    <div class="footer-links">
+                        <a href="#" class="footer-link">Conditions Générales</a>
+                        <a href="#" class="footer-link">Politique de Confidentialité</a>
+                    </div>
+                    <h4 class="footer-subtitle">Informations sur la livraison</h4>
+                    <p class="footer-text">Livraison rapide partout en Tunisie en 2 à 5 jours ouvrables. Livraison express entre 1 et 3 jours disponible.</p>
+                </div>
+
+                <div class="footer-column">
+                    <h3 class="footer-title">Contact Info</h3>
+                    <p class="footer-description">Trouvez les pneus parfaits pour votre véhicule en un clic. Qualité et prix compétitifs garantis.</p>
+                    
+                    <div class="contact-info">
+                        <div class="contact-item">
+                            <div class="contact-icon">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                                    <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
+                                </svg>
+                            </div>
+                            <div class="contact-details">
+                                <span class="contact-label">Address:</span>
+                                <span class="contact-value">9, Rue El Milaha, El Menzeh 8, Ariana.</span>
+                            </div>
+                        </div>
+
+                        <div class="contact-item">
+                            <div class="contact-icon">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                                    <path d="M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z"/>
+                                </svg>
+                            </div>
+                            <div class="contact-details">
+                                <span class="contact-label">Téléphone:</span>
+                                <span class="contact-value">26888073 / 24353666</span>
+                            </div>
+                        </div>
+
+                        <div class="contact-item">
+                            <div class="contact-icon">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                                    <path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/>
+                                </svg>
+                            </div>
+                            <div class="contact-details">
+                                <span class="contact-label">Email:</span>
+                                <span class="contact-value">service.commercial@pneusshop.tn</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Footer Bottom -->
+            <div class="footer-bottom">
+                <div class="footer-copyright">
+                    <span>Copyright © 2025 - PneuShop.tn - Tous droits réservés</span>
+                </div>
+                <div class="footer-logo">
+                    <span class="footer-logo-text">PNEU SH<span class="footer-logo-highlight">O</span>P</span>
+                    <div class="footer-logo-icon">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+</html>
