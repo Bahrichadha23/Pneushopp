@@ -45,7 +45,7 @@ export interface AuthContextType {
   isLoading: boolean
   isAuthenticated: boolean
   login: (email: string, password: string) => Promise<{ success: boolean; error?: string; user?: User }>
-  register: (userData: RegisterData) => Promise<{ success: boolean; error?: string; message?: string; userId?: string }>
+  register: (userData: RegisterData) => Promise<{ success: boolean; error?: string }>
   logout: () => void
   updateProfile: (userData: Partial<User>) => Promise<{ success: boolean; error?: string }>
   addAddress: (address: Omit<UserAddress, "id">) => Promise<{ success: boolean; error?: string }>

@@ -9,8 +9,7 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = CustomUser
-        fields = ('username', 'email', 'password', 'password_confirm', 'phone', 'address','role')
-
+        fields = ('username', 'email', 'password', 'password_confirm', 'phone', 'address')
     def validate(self, attrs):
         if attrs['password'] != attrs['password_confirm']:
             raise serializers.ValidationError("Les mots de passe ne correspondent pas.")
@@ -39,7 +38,37 @@ class UserLoginSerializer(serializers.Serializer):
         return attrs
 
 class UserSerializer(serializers.ModelSerializer):
+    role = serializers.SerializerMethodField()
+    firstName = serializers.SerializerMethodField()
+    lastName = serializers.SerializerMethodField()
+    
     class Meta:
         model = CustomUser
-        fields = ('id', 'username', 'email', 'phone', 'address', 'is_verified')
-        read_only_fields = ('id', 'is_verified')
+        fields = ('id', 'username', 'email', 'phone', 'address', 'is_verified', 
+                 'firstName', 'lastName', 'role', 'is_staff', 'is_superuser')
+        read_only_fields = ('id', 'is_verified', 'is_staff', 'is_superuser')
+        
+    def get_role(self, obj):
+        """Determine user role based on Django permissions"""
+        if obj.is_staff or obj.is_superuser:
+            return "admin"
+        return "customer"
+        
+    def get_firstName(self, obj):
+        """Extract first name from username or email"""
+        if hasattr(obj, 'first_name') and obj.first_name:
+            return obj.first_name
+        # Fallback: extract from username
+        if '_' in obj.username:
+            return obj.username.split('_')[0].title()
+        return obj.username.title()
+        
+    def get_lastName(self, obj):
+        """Extract last name from username or email"""
+        if hasattr(obj, 'last_name') and obj.last_name:
+            return obj.last_name
+        # Fallback: extract from username
+        if '_' in obj.username:
+            parts = obj.username.split('_')
+            return parts[-1].title() if len(parts) > 1 else ""
+        return ""

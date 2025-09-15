@@ -1,10 +1,8 @@
-// Barre latérale de navigation pour l'interface d'administration
 "use client"
 import { useState } from "react"
 import type React from "react"
-
 import Link from "next/link"
-import { usePathname } from "next/navigation"
+import { usePathname, useRouter } from "next/navigation" // ✅ useRouter instead of useNavigate
 import {
   LayoutDashboard,
   ShoppingCart,
@@ -20,6 +18,7 @@ import {
   UserCheck,
   ClipboardList,
   TrendingUp,
+  Upload,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible"
@@ -51,6 +50,7 @@ const menuItems: MenuItem[] = [
     icon: Package,
     children: [
       { title: "Catalogue produits", href: "/admin/produits", icon: Package },
+      { title: "Import Excel", href: "/admin/import", icon: Upload },
       { title: "Gestion stock", href: "/admin/stock", icon: Store },
       { title: "Mouvements stock", href: "/admin/stock/mouvements", icon: TrendingUp },
     ],
@@ -70,12 +70,8 @@ const menuItems: MenuItem[] = [
   },
   {
     title: "Rapports",
+    href: "/admin/rapports",
     icon: BarChart3,
-    children: [
-      { title: "Ventes", href: "/admin/rapports/ventes", icon: BarChart3 },
-      { title: "Inventaire", href: "/admin/rapports/inventaire", icon: Package },
-      { title: "Clients", href: "/admin/rapports/clients", icon: Users },
-    ],
   },
   {
     title: "Paramètres",
@@ -86,10 +82,13 @@ const menuItems: MenuItem[] = [
 
 export default function AdminSidebar() {
   const pathname = usePathname()
+  const router = useRouter() // ✅ Next.js router
   const [openMenus, setOpenMenus] = useState<string[]>(["Commandes", "Produits"])
 
   const toggleMenu = (title: string) => {
-    setOpenMenus((prev) => (prev.includes(title) ? prev.filter((item) => item !== title) : [...prev, title]))
+    setOpenMenus((prev) =>
+      prev.includes(title) ? prev.filter((item) => item !== title) : [...prev, title]
+    )
   }
 
   const isActive = (href: string) => pathname === href
@@ -105,7 +104,9 @@ export default function AdminSidebar() {
           <CollapsibleTrigger asChild>
             <Button
               variant="ghost"
-              className={`w-full justify-start px-3 py-2 h-auto text-left ${level > 0 ? "pl-8" : ""} hover:bg-gray-100`}
+              className={`w-full justify-start px-3 py-2 h-auto text-left ${
+                level > 0 ? "pl-8" : ""
+              } hover:bg-gray-100`}
             >
               <Icon className="w-4 h-4 mr-3" />
               <span className="flex-1">{item.title}</span>
@@ -123,8 +124,12 @@ export default function AdminSidebar() {
       <Link key={item.href} href={item.href || "#"}>
         <Button
           variant="ghost"
-          className={`w-full justify-start px-3 py-2 h-auto ${level > 0 ? "pl-8" : ""} ${
-            isActive(item.href || "") ? "bg-yellow-100 text-yellow-800 hover:bg-yellow-200" : "hover:bg-gray-100"
+          className={`w-full justify-start px-3 py-2 h-auto ${
+            level > 0 ? "pl-8" : ""
+          } ${
+            isActive(item.href || "")
+              ? "bg-yellow-100 text-yellow-800 hover:bg-yellow-200"
+              : "hover:bg-gray-100"
           }`}
         >
           <Icon className="w-4 h-4 mr-3" />
@@ -152,18 +157,6 @@ export default function AdminSidebar() {
       {/* Menu de navigation */}
       <nav className="p-4 space-y-1">{menuItems.map((item) => renderMenuItem(item))}</nav>
 
-      {/* Informations utilisateur */}
-      <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-gray-200 bg-gray-50">
-        <div className="flex items-center space-x-3">
-          <div className="w-8 h-8 bg-gray-300 rounded-full flex items-center justify-center">
-            <Users className="w-4 h-4 text-gray-600" />
-          </div>
-          <div className="flex-1 min-w-0">
-            <p className="text-sm font-medium text-gray-900 truncate">Admin</p>
-            <p className="text-xs text-gray-500">Administrateur</p>
-          </div>
-        </div>
-      </div>
     </div>
   )
 }

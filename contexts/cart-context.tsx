@@ -12,6 +12,41 @@ type CartAction =
   | { type: "CLEAR_CART" }
   | { type: "LOAD_CART"; items: CartItem[] }
 
+// API endpoints
+const API_BASE_URL = 'http://localhost:8000/api'
+
+// Helper function to get auth token
+const getAuthToken = () => {
+  if (typeof window !== 'undefined') {
+    return localStorage.getItem('access_token')
+  }
+  return null
+}
+
+// Helper function to make authenticated API calls
+const apiCall = async (endpoint: string, options: RequestInit = {}) => {
+  const token = getAuthToken()
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json',
+    ...(options.headers as Record<string, string>),
+  }
+  
+  if (token) {
+    headers.Authorization = `Bearer ${token}`
+  }
+
+  const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+    ...options,
+    headers,
+  })
+
+  if (!response.ok) {
+    throw new Error(`HTTP error! status: ${response.status}`)
+  }
+
+  return response.json()
+}
+
 // Reducer pour gérer les actions du panier
 function cartReducer(state: CartItem[], action: CartAction): CartItem[] {
   switch (action.type) {
@@ -45,38 +80,164 @@ const CartContext = createContext<CartContextType | undefined>(undefined)
 export function CartProvider({ children }: { children: React.ReactNode }) {
   const [items, dispatch] = useReducer(cartReducer, [])
 
-  // Charger le panier depuis localStorage au démarrage
+  // Load cart from backend on startup
   useEffect(() => {
-    const savedCart = localStorage.getItem("pneushop-cart")
-    if (savedCart) {
+    const loadCart = async () => {
       try {
-        const parsedCart = JSON.parse(savedCart)
-        dispatch({ type: "LOAD_CART", items: parsedCart })
+        const token = getAuthToken()
+        if (token) {
+          const cartData = await apiCall('/cart/')
+          // Convert backend cart data to frontend format
+          const cartItems: CartItem[] = cartData.items?.map((item: any) => ({
+            product: {
+              id: item.product.id.toString(),
+              name: item.product.name,
+              price: parseFloat(item.product.price),
+              brand: item.product.brand,
+              image: item.product.image || '/placeholder.jpg',
+              model: item.product.size,
+              category: 'auto',
+              inStock: item.product.stock > 0,
+              stock: item.product.stock,
+              // Add other required Product fields with defaults
+              originalPrice: item.product.old_price ? parseFloat(item.product.old_price) : undefined,
+              discount: item.product.discount_percentage || 0,
+              images: [item.product.image || '/placeholder.jpg'],
+              specifications: {
+                width: 225,
+                height: 45,
+                diameter: 17,
+                loadIndex: 91,
+                speedRating: 'W',
+                season: item.product.season === 'summer' ? 'ete' : item.product.season === 'winter' ? 'hiver' : 'toutes-saisons',
+                specialty: 'tourisme'
+              },
+              description: item.product.description || '',
+              features: [],
+              isPromotion: item.product.is_featured || false,
+              rating: 4.5,
+              reviewCount: 0
+            },
+            quantity: item.quantity
+          })) || []
+          
+          dispatch({ type: "LOAD_CART", items: cartItems })
+        } else {
+          // Fallback to localStorage if not authenticated
+          const savedCart = localStorage.getItem("pneushop-cart")
+          if (savedCart) {
+            try {
+              const parsedCart = JSON.parse(savedCart)
+              dispatch({ type: "LOAD_CART", items: parsedCart })
+            } catch (error) {
+              console.error("Erreur lors du chargement du panier:", error)
+            }
+          }
+        }
       } catch (error) {
-        console.error("Erreur lors du chargement du panier:", error)
+        console.error("Erreur lors du chargement du panier depuis l'API:", error)
+        // Fallback to localStorage
+        const savedCart = localStorage.getItem("pneushop-cart")
+        if (savedCart) {
+          try {
+            const parsedCart = JSON.parse(savedCart)
+            dispatch({ type: "LOAD_CART", items: parsedCart })
+          } catch (error) {
+            console.error("Erreur lors du chargement du panier:", error)
+          }
+        }
       }
     }
+
+    loadCart()
   }, [])
 
-  // Sauvegarder le panier dans localStorage à chaque modification
+  // Save cart to localStorage as backup
   useEffect(() => {
     localStorage.setItem("pneushop-cart", JSON.stringify(items))
   }, [items])
 
-  const addToCart = (product: Product, quantity = 1) => {
-    dispatch({ type: "ADD_TO_CART", product, quantity })
+  const addToCart = async (product: Product, quantity = 1) => {
+    try {
+      const token = getAuthToken()
+      if (token) {
+        // Add to backend cart
+        await apiCall('/cart/add/', {
+          method: 'POST',
+          body: JSON.stringify({
+            product_id: parseInt(product.id),
+            quantity: quantity
+          })
+        })
+      }
+      // Update local state
+      dispatch({ type: "ADD_TO_CART", product, quantity })
+    } catch (error) {
+      console.error("Erreur lors de l'ajout au panier:", error)
+      // Still update local state as fallback
+      dispatch({ type: "ADD_TO_CART", product, quantity })
+    }
   }
 
-  const removeFromCart = (productId: string) => {
-    dispatch({ type: "REMOVE_FROM_CART", productId })
+  const removeFromCart = async (productId: string) => {
+    try {
+      const token = getAuthToken()
+      if (token) {
+        // Remove from backend cart
+        await apiCall('/cart/remove/', {
+          method: 'POST',
+          body: JSON.stringify({
+            product_id: parseInt(productId)
+          })
+        })
+      }
+      // Update local state
+      dispatch({ type: "REMOVE_FROM_CART", productId })
+    } catch (error) {
+      console.error("Erreur lors de la suppression du panier:", error)
+      // Still update local state as fallback
+      dispatch({ type: "REMOVE_FROM_CART", productId })
+    }
   }
 
-  const updateQuantity = (productId: string, quantity: number) => {
-    dispatch({ type: "UPDATE_QUANTITY", productId, quantity })
+  const updateQuantity = async (productId: string, quantity: number) => {
+    try {
+      const token = getAuthToken()
+      if (token) {
+        // Update backend cart
+        await apiCall('/cart/update/', {
+          method: 'POST',
+          body: JSON.stringify({
+            product_id: parseInt(productId),
+            quantity: quantity
+          })
+        })
+      }
+      // Update local state
+      dispatch({ type: "UPDATE_QUANTITY", productId, quantity })
+    } catch (error) {
+      console.error("Erreur lors de la mise à jour du panier:", error)
+      // Still update local state as fallback
+      dispatch({ type: "UPDATE_QUANTITY", productId, quantity })
+    }
   }
 
-  const clearCart = () => {
-    dispatch({ type: "CLEAR_CART" })
+  const clearCart = async () => {
+    try {
+      const token = getAuthToken()
+      if (token) {
+        // Clear backend cart
+        await apiCall('/cart/clear/', {
+          method: 'POST'
+        })
+      }
+      // Update local state
+      dispatch({ type: "CLEAR_CART" })
+    } catch (error) {
+      console.error("Erreur lors de la vidange du panier:", error)
+      // Still update local state as fallback
+      dispatch({ type: "CLEAR_CART" })
+    }
   }
 
   const getTotalItems = () => {

@@ -1,5 +1,6 @@
 from django.urls import path
 from . import views
+from . import import_views
 
 urlpatterns = [
     path('', views.ProductListView.as_view(), name='product_list'),
@@ -7,5 +8,8 @@ urlpatterns = [
     path('categories/', views.CategoryListView.as_view(), name='categories'),
     path('search-suggestions/', views.product_search_suggestions, name='search_suggestions'),
     path('filters/', views.product_filters, name='product_filters'),
+    # Excel import endpoints
+    path('import/excel/', import_views.import_products_excel, name='import_excel'),
+    path('import/preview/', import_views.import_preview, name='import_preview'),
     path('<slug:slug>/', views.ProductDetailView.as_view(), name='product_detail'),
 ]

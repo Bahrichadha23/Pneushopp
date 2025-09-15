@@ -5,6 +5,8 @@ Django settings for pneushop project.
 from pathlib import Path
 import os
 from datetime import timedelta
+from decouple import config
+
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -15,7 +17,7 @@ SECRET_KEY = 'django-insecure-your-secret-key-here'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['localhost', '127.0.0.1']
+ALLOWED_HOSTS = ['localhost', '127.0.0.1', 'pneushop-backend.vercel.app']
 
 # Application definition
 INSTALLED_APPS = [
@@ -27,6 +29,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'rest_framework',
     'rest_framework_simplejwt',
+    'rest_framework.authtoken',
     'corsheaders',
     'accounts',
     'products',
@@ -50,7 +53,7 @@ ROOT_URLCONF = 'pneushop.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [BASE_DIR / 'templates'],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -66,16 +69,24 @@ TEMPLATES = [
 WSGI_APPLICATION = 'pneushop.wsgi.application'
 
 # Database
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.sqlite3',
+#         'NAME': BASE_DIR / 'db.sqlite3',
+#     }
+# }
+
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'pneushop',
-        'USER': 'pneuuser',
-        'PASSWORD': 'admin123',
-        'HOST': 'localhost',
-        'PORT': '5432',
+        'NAME': config('DB_NAME', default='pneushop_db'),
+        'USER': config('DB_USER', default='postgres'),
+        'PASSWORD': config('DB_PASSWORD', default=''),
+        'HOST': config('DB_HOST', default='localhost'),
+        'PORT': config('DB_PORT', default='5432'),
     }
 }
+
 
 # Password validation
 AUTH_PASSWORD_VALIDATORS = [
@@ -139,10 +150,28 @@ CORS_ALLOWED_ORIGINS = [
 
 CORS_ALLOW_CREDENTIALS = True
 
-# Email configuration (for EmailJS alternative)
-EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST = 'smtp.gmail.com'
-EMAIL_PORT = 587
-EMAIL_USE_TLS = True
-EMAIL_HOST_USER = 'your-email@gmail.com'
-EMAIL_HOST_PASSWORD = 'your-app-password'
+# Email configuration (for development/student project)
+# Email Configuration
+from decouple import config
+
+# Choose email backend - set EMAIL_BACKEND in .env file
+# EMAIL_BACKEND = config('EMAIL_BACKEND', default='django.core.mail.backends.console.EmailBackend')
+EMAIL_BACKEND = 'django.core.mail.backends.dummy.EmailBackend'
+# SMTP Configuration for real email sending
+EMAIL_HOST = config('EMAIL_HOST', default='smtp.gmail.com')
+EMAIL_PORT = config('EMAIL_PORT', default=587, cast=int)
+EMAIL_USE_TLS = config('EMAIL_USE_TLS',default=True,  cast=bool)
+EMAIL_USE_SLS = config('EMAIL_USE_SSL',default=False, cast=bool)
+
+EMAIL_HOST_USER = config('EMAIL_HOST_USER', default='simontechengineer@gmail.com')
+EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD', default='aemg gqpm sqgn iljq')
+DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL', default='simontechengineer@gmail.com')
+# Alternative SMTP providers settings (uncomment and configure as needed):
+# 
+# Gmail: EMAIL_HOST='smtp.gmail.com', EMAIL_PORT=587, EMAIL_USE_TLS=True
+# Outlook: EMAIL_HOST='smtp-mail.outlook.com', EMAIL_PORT=587, EMAIL_USE_TLS=True
+# SendGrid: EMAIL_HOST='smtp.sendgrid.net', EMAIL_PORT=587, EMAIL_USE_TLS=True
+# Yahoo: EMAIL_HOST='smtp.mail.yahoo.com', EMAIL_PORT=587, EMAIL_USE_TLS=True
+
+# Password reset token validity (in seconds)
+PASSWORD_RESET_TIMEOUT = 3600  # 1 hour

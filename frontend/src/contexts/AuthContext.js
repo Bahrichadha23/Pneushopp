@@ -71,7 +71,7 @@ export const AuthProvider = ({ children }) => {
   const register = async (userData) => {
     try {
       setError(null)
-      const response = await api.post("/api/auth/register/", userData)
+      const response = await api.post("/api/auth/register/", userData, { timeout: 30000 })
       return { success: true, data: response.data }
     } catch (error) {
       const errorMessage = error.response?.data || "Erreur d'inscription"

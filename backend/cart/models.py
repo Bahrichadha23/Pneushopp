@@ -5,9 +5,13 @@ from products.models import Product
 User = get_user_model()
 
 class Cart(models.Model):
-    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='cart')
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='cart', verbose_name="Utilisateur")
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name="Créé le")
+    updated_at = models.DateTimeField(auto_now=True, verbose_name="Modifié le")
+
+    class Meta:
+        verbose_name = "Panier"
+        verbose_name_plural = "Paniers"
 
     def __str__(self):
         return f"Panier de {self.user.email}"
@@ -21,13 +25,15 @@ class Cart(models.Model):
         return sum(item.total_price for item in self.items.all())
 
 class CartItem(models.Model):
-    cart = models.ForeignKey(Cart, on_delete=models.CASCADE, related_name='items')
-    product = models.ForeignKey(Product, on_delete=models.CASCADE)
-    quantity = models.PositiveIntegerField(default=1)
-    created_at = models.DateTimeField(auto_now_add=True)
+    cart = models.ForeignKey(Cart, on_delete=models.CASCADE, related_name='items', verbose_name="Panier")
+    product = models.ForeignKey(Product, on_delete=models.CASCADE, verbose_name="Produit")
+    quantity = models.PositiveIntegerField(default=1, verbose_name="Quantité")
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name="Créé le")
 
     class Meta:
         unique_together = ('cart', 'product')
+        verbose_name = "Article du panier"
+        verbose_name_plural = "Articles du panier"
 
     def __str__(self):
         return f"{self.quantity}x {self.product.name}"

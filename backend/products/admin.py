@@ -1,6 +1,6 @@
 from django.contrib import admin
 from django.utils.html import format_html
-from .models import Category, Product
+from .models import Category, Product, Order, OrderItem
 
 @admin.register(Category)
 class CategoryAdmin(admin.ModelAdmin):
@@ -62,3 +62,64 @@ class ProductAdmin(admin.ModelAdmin):
             from django.utils.text import slugify
             obj.slug = slugify(f"{obj.brand}-{obj.name}-{obj.size}")
         super().save_model(request, obj, form, change)
+
+
+class OrderItemInline(admin.TabularInline):
+    model = OrderItem
+    extra = 0
+    readonly_fields = ('total_price',)
+    fields = ('product', 'quantity', 'price', 'total_price')
+
+
+@admin.register(Order)
+class OrderAdmin(admin.ModelAdmin):
+    list_display = (
+        'order_number', 'user_email', 'status', 'total_amount', 
+        'total_items', 'created_at', 'updated_at'
+    )
+    list_filter = ('status', 'created_at', 'updated_at')
+    search_fields = ('order_number', 'user__email', 'user__username', 'shipping_address')
+    readonly_fields = ('order_number', 'total_items', 'created_at', 'updated_at')
+    inlines = [OrderItemInline]
+    
+    fieldsets = (
+        ('Informations commande', {
+            'fields': ('order_number', 'user', 'status', 'total_amount')
+        }),
+        ('Livraison', {
+            'fields': ('shipping_address', 'notes')
+        }),
+        ('Métadonnées', {
+            'fields': ('total_items', 'created_at', 'updated_at'),
+            'classes': ('collapse',)
+        })
+    )
+    
+    def user_email(self, obj):
+        return obj.user.email
+    user_email.short_description = 'Email client'
+    user_email.admin_order_field = 'user__email'
+    
+    def get_queryset(self, request):
+        return super().get_queryset(request).select_related('user').prefetch_related('items__product')
+
+
+@admin.register(OrderItem)
+class OrderItemAdmin(admin.ModelAdmin):
+    list_display = ('order_number', 'product_name', 'quantity', 'price', 'total_price', 'created_at')
+    list_filter = ('created_at', 'order__status', 'product__category', 'product__brand')
+    search_fields = ('order__order_number', 'product__name', 'product__brand')
+    readonly_fields = ('total_price',)
+    
+    def order_number(self, obj):
+        return obj.order.order_number
+    order_number.short_description = 'Numéro de commande'
+    order_number.admin_order_field = 'order__order_number'
+    
+    def product_name(self, obj):
+        return f"{obj.product.brand} {obj.product.name}"
+    product_name.short_description = 'Produit'
+    product_name.admin_order_field = 'product__name'
+    
+    def get_queryset(self, request):
+        return super().get_queryset(request).select_related('order', 'product')

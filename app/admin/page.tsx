@@ -1,90 +1,77 @@
 // Page principale du tableau de bord administrateur
+"use client"
+import { useState, useEffect } from "react"
 import DashboardStatsComponent from "@/components/admin/dashboard-stats"
-import type { DashboardStats } from "@/types/admin"
-
-// Données simulées pour le tableau de bord
-const mockStats: DashboardStats = {
-  totalRevenue: 125000,
-  totalOrders: 1250,
-  totalCustomers: 850,
-  totalProducts: 156,
-  pendingOrders: 12,
-  lowStockProducts: 8,
-  revenueGrowth: 15.2,
-  orderGrowth: 8.7,
-  topSellingProducts: [
-    { id: "1", name: "Pirelli P Zero 225/45R17", sales: 45, revenue: 8100 },
-    { id: "2", name: "Continental EcoContact 6", sales: 38, revenue: 5510 },
-    { id: "3", name: "Michelin Agilis CrossClimate", sales: 32, revenue: 5280 },
-  ],
-  recentOrders: [
-    {
-      id: "1",
-      orderNumber: "PN-2024-001",
-      customerId: "c1",
-      customerName: "Ahmed Ben Ali",
-      customerEmail: "ahmed@email.com",
-      customerPhone: "+216 20 123 456",
-      items: [],
-      totalAmount: 360,
-      status: "processing",
-      paymentStatus: "paid",
-      paymentMethod: "card",
-      shippingAddress: {
-        street: "123 Rue de la République",
-        city: "Tunis",
-        postalCode: "1000",
-        region: "Tunis",
-        country: "Tunisie",
-      },
-      billingAddress: {
-        street: "123 Rue de la République",
-        city: "Tunis",
-        postalCode: "1000",
-        region: "Tunis",
-        country: "Tunisie",
-      },
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    },
-    {
-      id: "2",
-      orderNumber: "PN-2024-002",
-      customerId: "c2",
-      customerName: "Fatma Trabelsi",
-      customerEmail: "fatma@email.com",
-      customerPhone: "+216 25 987 654",
-      items: [],
-      totalAmount: 290,
-      status: "shipped",
-      paymentStatus: "paid",
-      paymentMethod: "transfer",
-      shippingAddress: {
-        street: "456 Avenue Habib Bourguiba",
-        city: "Sfax",
-        postalCode: "3000",
-        region: "Sfax",
-        country: "Tunisie",
-      },
-      billingAddress: {
-        street: "456 Avenue Habib Bourguiba",
-        city: "Sfax",
-        postalCode: "3000",
-        region: "Sfax",
-        country: "Tunisie",
-      },
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    },
-  ],
-  monthlyRevenue: [
-    { month: "Jan", revenue: 95000 },
-    { month: "Fév", revenue: 108000 },
-    { month: "Mar", revenue: 125000 },
-  ],
-}
+import { adminService } from "@/lib/services/admin"
+import type { AdminStats } from "@/lib/services/admin"
+import { Alert, AlertDescription } from "@/components/ui/alert"
+import { Loader2, AlertCircle } from "lucide-react"
 
 export default function AdminDashboard() {
+  const [stats, setStats] = useState<AdminStats | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string>("")
+
+  const fetchStats = async () => {
+    setLoading(true)
+    setError("")
+    
+    try {
+      const response = await adminService.getDashboardStats()
+      
+      if (response.success && response.data) {
+        setStats(response.data)
+      } else {
+        setError(response.error || "Erreur lors du chargement des statistiques")
+      }
+    } catch (err: any) {
+      setError("Erreur de connexion au serveur")
+      console.error("Dashboard stats error:", err)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  useEffect(() => {
+    fetchStats()
+  }, [])
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="text-center">
+          <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4 text-blue-600" />
+          <p className="text-gray-600">Chargement des statistiques...</p>
+        </div>
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className="max-w-2xl mx-auto">
+        <Alert variant="destructive" className="mb-6">
+          <AlertCircle className="h-4 w-4" />
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
+        <button 
+          onClick={fetchStats}
+          className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+        >
+          Réessayer
+        </button>
+      </div>
+    )
+  }
+
+  if (!stats) {
+    return (
+      <div className="text-center py-12">
+        <p className="text-gray-600">Aucune donnée disponible</p>
+      </div>
+    )
+  }
+
   return (
     <div>
       <div className="mb-6">
@@ -92,7 +79,7 @@ export default function AdminDashboard() {
         <p className="text-gray-600">Vue d'ensemble de votre activité PNEU SHOP</p>
       </div>
 
-      <DashboardStatsComponent stats={mockStats} />
+      <DashboardStatsComponent stats={stats} />
     </div>
   )
 }

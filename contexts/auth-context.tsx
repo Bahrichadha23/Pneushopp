@@ -1,271 +1,163 @@
-"use client";
-// Contexte d'authentification avec gestion des sessions utilisateur
-import type React from "react";
-import { createContext, useContext, useReducer, useEffect } from "react";
-import type {
-  User,
-  AuthContextType,
-  RegisterData,
-  UserAddress,
-} from "@/types/auth";
-import {
-  loginUser,
-  registerUser,
-  getUserProfile,
-  refreshToken,
-} from "@/lib/api";
+"use client"
+// Contexte d'authentification avec intégration API Django
+import type React from "react"
+import { createContext, useContext, useReducer, useEffect } from "react"
+import type { User, AuthContextType, RegisterData } from "@/types/auth"
+import { authService, type LoginCredentials } from "@/lib/services/auth"
 
 // Actions pour le reducer d'authentification
 type AuthAction =
   | { type: "SET_LOADING"; loading: boolean }
   | { type: "SET_USER"; user: User | null }
   | { type: "UPDATE_USER"; userData: Partial<User> }
-  | { type: "LOGOUT" };
+  | { type: "LOGOUT" }
 
 interface AuthState {
-  user: User | null;
-  isLoading: boolean;
+  user: User | null
+  isLoading: boolean
 }
 
 // Reducer pour gérer l'état d'authentification
 function authReducer(state: AuthState, action: AuthAction): AuthState {
   switch (action.type) {
     case "SET_LOADING":
-      return { ...state, isLoading: action.loading };
+      return { ...state, isLoading: action.loading }
     case "SET_USER":
-      return { ...state, user: action.user, isLoading: false };
+      return { ...state, user: action.user, isLoading: false }
     case "UPDATE_USER":
       return {
         ...state,
         user: state.user ? { ...state.user, ...action.userData } : null,
-      };
+      }
     case "LOGOUT":
-      return { user: null, isLoading: false };
+      return { user: null, isLoading: false }
     default:
-      return state;
+      return state
   }
 }
 
-const AuthContext = createContext<AuthContextType | undefined>(undefined);
-
-// Helper function to convert Django user to frontend User type
-function mapDjangoUserToUser(djangoUser: any): User {
-  return {
-    id: djangoUser.id.toString(),
-    email: djangoUser.email,
-    firstName: djangoUser.first_name,
-    lastName: djangoUser.last_name,
-    phone: djangoUser.phone,
-    role: djangoUser.is_staff ? "admin" : "customer",
-    isEmailVerified: djangoUser.is_verified,
-    createdAt: new Date(djangoUser.date_joined || Date.now()),
-    updatedAt: new Date(djangoUser.last_login || Date.now()),
-    addresses: [],
-    preferences: {
-      newsletter: false,
-      smsNotifications: false,
-      emailNotifications: true,
-      language: "fr",
-      currency: "TND",
-    },
-    loyaltyPoints: 0,
-    totalOrders: 0,
-    totalSpent: 0,
-  };
-}
+const AuthContext = createContext<AuthContextType | undefined>(undefined)
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [state, dispatch] = useReducer(authReducer, {
     user: null,
     isLoading: true,
-  });
+  })
 
-  // Vérifier la session au démarrage
+  // Vérifier l'authentification au chargement
   useEffect(() => {
-    const checkSession = async () => {
-      try {
-        const accessToken = localStorage.getItem("pneushop-access-token");
-        const refreshTokenValue = localStorage.getItem(
-          "pneushop-refresh-token"
-        );
+    const checkAuth = async () => {
+      dispatch({ type: "SET_LOADING", loading: true })
 
-        if (accessToken) {
-          try {
-            // Try to get user profile with current token
-            const userProfile = await getUserProfile(accessToken);
-            const user = mapDjangoUserToUser(userProfile);
-            dispatch({ type: "SET_USER", user });
-          } catch (error) {
-            // Token might be expired, try to refresh
-            if (refreshTokenValue) {
-              try {
-                const tokenResponse = await refreshToken(refreshTokenValue);
-                localStorage.setItem(
-                  "pneushop-access-token",
-                  tokenResponse.access
-                );
-
-                // Get user profile with new token
-                const userProfile = await getUserProfile(tokenResponse.access);
-                const user = mapDjangoUserToUser(userProfile);
-                dispatch({ type: "SET_USER", user });
-              } catch (refreshError) {
-                // Refresh failed, clear tokens
-                localStorage.removeItem("pneushop-access-token");
-                localStorage.removeItem("pneushop-refresh-token");
-                dispatch({ type: "SET_LOADING", loading: false });
-              }
-            } else {
-              localStorage.removeItem("pneushop-access-token");
-              dispatch({ type: "SET_LOADING", loading: false });
-            }
+      if (authService.isAuthenticated()) {
+        try {
+          const response = await authService.getProfile()
+          if (response.success && response.data) {
+            dispatch({ type: "SET_USER", user: response.data })
+          } else {
+            // Token invalide, nettoyer
+            authService.logout()
+            dispatch({ type: "LOGOUT" })
           }
-        } else {
-          dispatch({ type: "SET_LOADING", loading: false });
+        } catch (error) {
+          authService.logout()
+          dispatch({ type: "LOGOUT" })
         }
-      } catch (error) {
-        console.error("Erreur lors de la vérification de session:", error);
-        dispatch({ type: "SET_LOADING", loading: false });
+      } else {
+        dispatch({ type: "SET_LOADING", loading: false })
       }
-    };
+    }
 
-    checkSession();
-  }, []);
+    checkAuth()
+  }, [])
 
   const login = async (email: string, password: string) => {
-    dispatch({ type: "SET_LOADING", loading: true });
+    dispatch({ type: "SET_LOADING", loading: true })
 
     try {
-      // Call real Django API
-      const response = await loginUser(email, password);
-
-      // Store JWT tokens
-      localStorage.setItem("pneushop-access-token", response.access);
-      localStorage.setItem("pneushop-refresh-token", response.refresh);
-
-      // Convert Django user to frontend User type
-      const user = mapDjangoUserToUser(response.user);
-      console.log("Logged in user:", user);
-      dispatch({ type: "SET_USER", user });
-      return { success: true, user };
-    } catch (error: any) {
-      dispatch({ type: "SET_LOADING", loading: false });
-      return { success: false, error: error.message || "Erreur de connexion" };
+      const credentials: LoginCredentials = { email, password }
+      const response = await authService.login(credentials)
+      
+      if (response.success && response.data) {
+        dispatch({ type: "SET_USER", user: response.data.user })
+        return { success: true, user: response.data.user }
+      } else {
+        dispatch({ type: "SET_LOADING", loading: false })
+        return { success: false, error: response.error || "Erreur de connexion" }
+      }
+    } catch (error) {
+      dispatch({ type: "SET_LOADING", loading: false })
+      return { success: false, error: "Erreur de connexion" }
     }
-  };
+  }
 
   const register = async (userData: RegisterData) => {
-    dispatch({ type: "SET_LOADING", loading: true });
+    dispatch({ type: "SET_LOADING", loading: true })
 
     try {
-      // Call real Django API
-      const response = await registerUser({
-        first_name: userData.firstName,
-        last_name: userData.lastName,
-        email: userData.email,
-        phone: userData.phone,
-        password: userData.password,
-      });
-
-      // Store user_id for email verification
-      localStorage.setItem("pneushop-pending-user-id", response.user_id);
-
-      dispatch({ type: "SET_LOADING", loading: false });
-      return {
-        success: true,
-        message: response.message,
-        userId: response.user_id,
-      };
-    } catch (error: any) {
-      dispatch({ type: "SET_LOADING", loading: false });
-      return {
-        success: false,
-        error: error.message || "Erreur lors de l'inscription",
-      };
+      const response = await authService.register(userData)
+      
+      if (response.success && response.data) {
+        // Après inscription, connecter automatiquement l'utilisateur
+        const loginResponse = await authService.login({
+          email: userData.email,
+          password: userData.password
+        })
+        
+        if (loginResponse.success && loginResponse.data) {
+          dispatch({ type: "SET_USER", user: loginResponse.data.user })
+          return { success: true }
+        } else {
+          dispatch({ type: "SET_LOADING", loading: false })
+          return { success: true, message: "Inscription réussie. Veuillez vous connecter." }
+        }
+      } else {
+        dispatch({ type: "SET_LOADING", loading: false })
+        return { success: false, error: response.error || "Erreur lors de l'inscription" }
+      }
+    } catch (error) {
+      dispatch({ type: "SET_LOADING", loading: false })
+      return { success: false, error: "Erreur lors de l'inscription" }
     }
-  };
+  }
 
   const logout = () => {
-    localStorage.removeItem("pneushop-access-token");
-    localStorage.removeItem("pneushop-refresh-token");
-    localStorage.removeItem("pneushop-pending-user-id");
-    dispatch({ type: "LOGOUT" });
-  };
+    authService.logout()
+    dispatch({ type: "LOGOUT" })
+  }
 
   const updateProfile = async (userData: Partial<User>) => {
-    if (!state.user) return { success: false, error: "Non connecté" };
+    if (!state.user) return { success: false, error: "Non connecté" }
 
     try {
-      // Simulation d'appel API
-      await new Promise((resolve) => setTimeout(resolve, 800));
-
-      const updatedUser = { ...state.user, ...userData, updatedAt: new Date() };
-
-      // Note: In real implementation, you'd call an API to update user profile
-      // For now, we'll just update local state
-
-      dispatch({ type: "UPDATE_USER", userData: updatedUser });
-      return { success: true };
+      const response = await authService.updateProfile(userData)
+      
+      if (response.success && response.data) {
+        dispatch({ type: "UPDATE_USER", userData: response.data })
+        return { success: true }
+      } else {
+        return { success: false, error: response.error || "Erreur lors de la mise à jour" }
+      }
     } catch (error) {
-      return { success: false, error: "Erreur lors de la mise à jour" };
+      return { success: false, error: "Erreur lors de la mise à jour" }
     }
-  };
+  }
 
-  const addAddress = async (address: Omit<UserAddress, "id">) => {
-    if (!state.user) return { success: false, error: "Non connecté" };
+  // Note: Address management will need separate API endpoints
+  const addAddress = async (address: any) => {
+    // TODO: Implement with Django API
+    return { success: false, error: "Fonction non implémentée" }
+  }
 
-    try {
-      const newAddress: UserAddress = {
-        ...address,
-        id: Date.now().toString(),
-      };
-
-      const updatedAddresses = [...state.user.addresses, newAddress];
-      await updateProfile({ addresses: updatedAddresses });
-
-      return { success: true };
-    } catch (error) {
-      return { success: false, error: "Erreur lors de l'ajout de l'adresse" };
-    }
-  };
-
-  const updateAddress = async (
-    addressId: string,
-    addressData: Partial<UserAddress>
-  ) => {
-    if (!state.user) return { success: false, error: "Non connecté" };
-
-    try {
-      const updatedAddresses = state.user.addresses.map((addr) =>
-        addr.id === addressId ? { ...addr, ...addressData } : addr
-      );
-
-      await updateProfile({ addresses: updatedAddresses });
-      return { success: true };
-    } catch (error) {
-      return {
-        success: false,
-        error: "Erreur lors de la mise à jour de l'adresse",
-      };
-    }
-  };
+  const updateAddress = async (addressId: string, addressData: any) => {
+    // TODO: Implement with Django API
+    return { success: false, error: "Fonction non implémentée" }
+  }
 
   const deleteAddress = async (addressId: string) => {
-    if (!state.user) return { success: false, error: "Non connecté" };
-
-    try {
-      const updatedAddresses = state.user.addresses.filter(
-        (addr) => addr.id !== addressId
-      );
-      await updateProfile({ addresses: updatedAddresses });
-      return { success: true };
-    } catch (error) {
-      return {
-        success: false,
-        error: "Erreur lors de la suppression de l'adresse",
-      };
-    }
-  };
+    // TODO: Implement with Django API
+    return { success: false, error: "Fonction non implémentée" }
+  }
 
   const value: AuthContextType = {
     user: state.user,
@@ -278,26 +170,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     addAddress,
     updateAddress,
     deleteAddress,
-  };
+  }
 
-  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
 }
 
 export function useAuth() {
-  const context = useContext(AuthContext);
+  const context = useContext(AuthContext)
   if (context === undefined) {
-    throw new Error("useAuth doit être utilisé dans un AuthProvider");
+    throw new Error("useAuth doit être utilisé dans un AuthProvider")
   }
-  return context;
-}
-
-// Add email verification function
-export async function verifyUserEmail(userId: string, code: string) {
-  try {
-    const { verifyEmail } = await import("@/lib/api");
-    const response = await verifyEmail(userId, code);
-    return { success: true, message: response.message };
-  } catch (error: any) {
-    return { success: false, error: error.message };
-  }
+  return context
 }
