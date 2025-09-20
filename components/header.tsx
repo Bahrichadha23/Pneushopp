@@ -6,6 +6,8 @@ import { usePathname } from "next/navigation"
 import { useState } from "react"
 import { useCart } from "@/contexts/cart-context"
 import UserMenu from "@/components/auth/user-menu"
+import Image from "next/image"  
+import { motion } from "framer-motion"
 
 export default function Header() {
   const pathname = usePathname()
@@ -16,139 +18,158 @@ export default function Header() {
 
   return (
     <header className="bg-white border-b border-gray-200 sticky top-0 z-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-16">
-          <div className="flex items-center">
-            <Link href="/" className="flex items-center space-x-3">
-              <div className="flex flex-col items-start">
-                <div className="flex items-center space-x-2">
-                  <h1 className="text-xl sm:text-2xl font-bold text-black">PNEU SH</h1>
-                  <div className="relative">
-                    <div className="w-8 h-8 bg-yellow-400 rounded-full flex items-center justify-center relative">
-                      <div className="w-4 h-4 bg-gray-800 rounded-full"></div>
-                      {/* Motion lines */}
-                      <div className="absolute -right-2 top-1 w-3 h-0.5 bg-yellow-400"></div>
-                      <div className="absolute -right-3 top-2 w-2 h-0.5 bg-yellow-400"></div>
-                      <div className="absolute -right-2 top-3 w-3 h-0.5 bg-yellow-400"></div>
-                    </div>
-                  </div>
-                  <h1 className="text-xl sm:text-2xl font-bold text-black">P</h1>
-                </div>
-                <p className="text-xs text-gray-600 hidden sm:block">Vos pneumatiques en un seul clic</p>
-              </div>
-            </Link>
-          </div>
+   <div className="max-w-7xl mx-auto px-2 sm:px-4 lg:px-8">
+    <div className="flex items-center justify-between h-14 sm:h-16">
+       {/* Mobile menu button */}
+       <Button
+          variant="ghost"
+          size="icon"
+          className="lg:hidden h-7 w-7 sm:h-8 sm:w-8 md:h-10 md:w-10"
+          onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+        >
+          {isMobileMenuOpen ? (
+            <X className="h-4 w-4 sm:h-5 sm:w-5" />
+          ) : (
+            <Menu className="h-4 w-4 sm:h-5 sm:w-5" />
+          )}
+        </Button>
+      {/* Logo Section */}
+      <div className="flex items-center">
+      <Link href="/" className="flex items-center space-x-2 sm:space-x-3">
+        {/* Desktop Logo with left animation */}
+        <motion.div
+          initial={{ opacity: 0, x: -50 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.8, ease: "easeOut" }}
+          className="hidden sm:block"
+        >
+          <Image
+            src="/logo.png"
+            alt="Logo"
+            width={150}
+            height={100}
+          />
+        </motion.div>
 
-          {/* Desktop Navigation */}
-          <nav className="hidden lg:flex items-center space-x-6 xl:space-x-8">
-            <Link
-              href="/"
-              className={`font-medium text-sm xl:text-base ${isActive("/") ? "text-yellow-500" : "text-gray-900 hover:text-yellow-500"} transition-colors`}
-            >
-              ACCUEIL
-            </Link>
-            <Link
-              href="/a-la-une"
-              className={`font-medium text-sm xl:text-base ${isActive("/a-la-une") ? "text-yellow-500" : "text-gray-900 hover:text-yellow-500"} transition-colors`}
-            >
-              À LA UNE
-            </Link>
-            <Link
-              href="/boutique"
-              className={`font-medium text-sm xl:text-base ${isActive("/boutique") ? "text-yellow-500" : "text-gray-900 hover:text-yellow-500"} transition-colors`}
-            >
-              BOUTIQUE
-            </Link>
-            <Link
-              href="/a-propos"
-              className={`font-medium text-sm xl:text-base ${isActive("/a-propos") ? "text-yellow-500" : "text-gray-900 hover:text-yellow-500"} transition-colors`}
-            >
-              À PROPOS
-            </Link>
-            <Link
-              href="/contact"
-              className={`font-medium text-sm xl:text-base ${isActive("/contact") ? "text-yellow-500" : "text-gray-900 hover:text-yellow-500"} transition-colors`}
-            >
-              CONTACT
-            </Link>
-          </nav>
+        {/* Mobile Logo with top animation */}
+        <motion.div
+          initial={{ opacity: 0, y: -40 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8, ease: "easeOut" }}
+          className="block sm:hidden ml-10"
+        >
+          <Image
+            src="/mobile-logo.png"
+            alt="Mobile Logo"
+            width={40}
+            height={20}
+          />
+        </motion.div>
+      </Link>
+    </div>
 
-          {/* Right side icons - Improved mobile layout */}
-          <div className="flex items-center space-x-2 sm:space-x-4">
-            <span className="text-yellow-500 font-bold text-xs sm:text-sm hidden sm:block">OFFRES</span>
-            <Button variant="ghost" size="icon" className="h-8 w-8 sm:h-10 sm:w-10">
-              <Search className="h-4 w-4 sm:h-5 sm:w-5" />
-            </Button>
+      {/* Desktop Navigation */}
+      <nav className="hidden lg:flex items-center space-x-4 xl:space-x-6">
+        {[
+          { href: "/", label: "ACCUEIL" },
+          { href: "/a-la-une", label: "À LA UNE" },
+          { href: "/boutique", label: "BOUTIQUE" },
+          { href: "/a-propos", label: "À PROPOS" },
+          { href: "/contact", label: "CONTACT" },
+        ].map((item) => (
+          <Link
+            key={item.href}
+            href={item.href}
+            className={`font-medium text-sm xl:text-base ${
+              isActive(item.href)
+                ? "text-yellow-500"
+                : "text-gray-900 hover:text-yellow-500"
+            } transition-colors`}
+          >
+            {item.label}
+          </Link>
+        ))}
+      </nav>
 
-            <UserMenu />
+      {/* Right side icons */}
+      <div className="flex items-center space-x-2 sm:space-x-3">
+  {/* UserMenu only for desktop */}
+  
 
-            <Link href="/panier">
-              <Button variant="ghost" size="icon" className="relative h-8 w-8 sm:h-10 sm:w-10">
-                <ShoppingCart className="h-4 w-4 sm:h-5 sm:w-5" />
-                <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center">
-                  {getTotalItems()}
-                </span>
-              </Button>
-            </Link>
+      <div className="hidden lg:block">
+        <UserMenu />
+     </div>
+      <Button variant="ghost" size="icon" className="h-7 w-7 sm:h-8 sm:w-8 md:h-10 md:w-10">
+           <Search className="h-4 w-4 sm:h-5 sm:w-5" />
+        </Button>   
 
-            {/* Mobile menu button - Added functional mobile menu */}
-            <Button
-              variant="ghost"
-              size="icon"
-              className="lg:hidden h-8 w-8 sm:h-10 sm:w-10"
-              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-            >
-              {isMobileMenuOpen ? <X className="h-4 w-4 sm:h-5 sm:w-5" /> : <Menu className="h-4 w-4 sm:h-5 sm:w-5" />}
-            </Button>
-          </div>
-        </div>
+        <Link href="/panier">
+          <Button
+            variant="ghost"
+            size="icon"
+            className="relative h-7 w-7 sm:h-8 sm:w-8 md:h-10 md:w-10"
+          >
+            <ShoppingCart className="h-4 w-4 sm:h-5 sm:w-5" />
+            <span className="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] rounded-full w-3.5 h-3.5 flex items-center justify-center">
+              {getTotalItems()}
+            </span>
+          </Button>
+        </Link>
 
-        {/* Mobile Navigation Menu - Added sliding mobile menu */}
-        {isMobileMenuOpen && (
-          <div className="lg:hidden border-t border-gray-200 bg-white">
-            <nav className="px-4 py-4 space-y-4">
-              <Link
-                href="/"
-                className={`block font-medium ${isActive("/") ? "text-yellow-500" : "text-gray-900"} py-2`}
-                onClick={() => setIsMobileMenuOpen(false)}
-              >
-                ACCUEIL
-              </Link>
-              <Link
-                href="/a-la-une"
-                className={`block font-medium ${isActive("/a-la-une") ? "text-yellow-500" : "text-gray-900"} py-2`}
-                onClick={() => setIsMobileMenuOpen(false)}
-              >
-                À LA UNE
-              </Link>
-              <Link
-                href="/boutique"
-                className={`block font-medium ${isActive("/boutique") ? "text-yellow-500" : "text-gray-900"} py-2`}
-                onClick={() => setIsMobileMenuOpen(false)}
-              >
-                BOUTIQUE
-              </Link>
-              <Link
-                href="/a-propos"
-                className={`block font-medium ${isActive("/a-propos") ? "text-yellow-500" : "text-gray-900"} py-2`}
-                onClick={() => setIsMobileMenuOpen(false)}
-              >
-                À PROPOS
-              </Link>
-              <Link
-                href="/contact"
-                className={`block font-medium ${isActive("/contact") ? "text-yellow-500" : "text-gray-900"} py-2`}
-                onClick={() => setIsMobileMenuOpen(false)}
-              >
-                CONTACT
-              </Link>
-              <div className="pt-4 border-t border-gray-200">
-                <span className="text-yellow-500 font-bold text-sm">OFFRES SPÉCIALES</span>
-              </div>
-            </nav>
-          </div>
-        )}
+       
       </div>
-    </header>
+    </div>
+
+   {/* Mobile Navigation Menu */}
+  {isMobileMenuOpen && (
+    <div className="lg:hidden border-t border-gray-200  bg-white">
+      <nav className="px-4 py-4 space-y-2 sm:space-y-3">
+      {[
+        { href: "/", label: "ACCUEIL" },
+        { href: "/a-la-une", label: "À LA UNE" },
+        { href: "/boutique", label: "BOUTIQUE" },
+        { href: "/a-propos", label: "À PROPOS" },
+        { href: "/contact", label: "CONTACT" },
+      ].map((item) => (
+        <Link
+          key={item.href}
+          href={item.href}
+          className={`block font-medium cursor-pointer ${
+            isActive(item.href) ? "text-yellow-500" : "text-gray-900"
+          } py-2`}
+          onClick={() => setIsMobileMenuOpen(false)}
+        >
+          {item.label}
+        </Link>
+      ))}
+
+      {/* Added Login + Signup */}
+      <div className="pt-3 border-t border-gray-200">
+        <Link
+          href="/auth/login"
+          className="block hover:cursor-pointer font-medium text-gray-900 hover:text-yellow-500 py-2"
+          onClick={() => setIsMobileMenuOpen(false)}
+        >
+          Connexion
+        </Link>
+        <Link
+          href="/auth/register"
+          className="block hover:cursor-pointer font-medium text-gray-900 hover:text-yellow-500 py-2"
+          onClick={() => setIsMobileMenuOpen(false)}
+        >
+          Inscription
+        </Link>
+      </div>
+
+      <div className="pt-3 border-t border-gray-200">
+        <span className="text-yellow-500 font-bold text-xs sm:text-sm">
+          OFFRES SPÉCIALES
+        </span>
+      </div>
+    </nav>
+  </div>
+   )}
+  </div>
+</header>
   )
 }

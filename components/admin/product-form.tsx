@@ -44,7 +44,7 @@ export default function ProductForm({ product, onSubmit, onCancel, isLoading = f
     features: [] as string[],
     inStock: true,
     isPromotion: false,
-    images: [] as string[],
+    images: [] as File[],
   })
 
   const [newFeature, setNewFeature] = useState("")
@@ -61,7 +61,15 @@ export default function ProductForm({ product, onSubmit, onCancel, isLoading = f
         price: product.price,
         originalPrice: product.originalPrice || 0,
         category: product.category,
-        specifications: product.specifications,
+        specifications: {
+          width: product.specifications.width,
+          height: product.specifications.height,
+          diameter: product.specifications.diameter,
+          loadIndex: product.specifications.loadIndex,
+          speedRating: product.specifications.speedRating,
+          season: product.specifications.season,
+          specialty: product.specifications.specialty ?? undefined,
+        },
         stock: product.stock,
         description: product.description,
         features: product.features,
@@ -108,7 +116,7 @@ export default function ProductForm({ product, onSubmit, onCancel, isLoading = f
       const productData: Partial<Product> = {
         ...formData,
         discount: discount > 0 ? discount : undefined,
-        image: formData.images[0] || "/placeholder.svg",
+        image: "/placeholder.svg",
       }
 
       const result = await onSubmit(productData)
@@ -159,7 +167,7 @@ export default function ProductForm({ product, onSubmit, onCancel, isLoading = f
     if (url) {
       setFormData((prev) => ({
         ...prev,
-        images: [...prev.images, url],
+        images: [...prev.images,],
       }))
     }
   }
@@ -493,7 +501,7 @@ export default function ProductForm({ product, onSubmit, onCancel, isLoading = f
       </Card>
 
       {/* Images */}
-      <Card>
+      {/* <Card>
         <CardHeader>
           <CardTitle>Images</CardTitle>
         </CardHeader>
@@ -524,7 +532,62 @@ export default function ProductForm({ product, onSubmit, onCancel, isLoading = f
             ))}
           </div>
         </CardContent>
-      </Card>
+      </Card> */}
+      <Card>
+  <CardHeader>
+    <CardTitle>Images</CardTitle>
+  </CardHeader>
+  <CardContent className="space-y-4">
+    <label
+      htmlFor="fileUpload"
+      className="flex items-center cursor-pointer border rounded p-2 w-fit text-gray-600 hover:text-black hover:border-black"
+    >
+      <Upload className="h-4 w-4 mr-2" />
+      Ajouter une image
+    </label>
+    <input
+      id="fileUpload"
+      type="file"
+      accept="image/*"
+      className="hidden"
+      onChange={(e) => {
+        if (e.target.files && e.target.files[0]) {
+          setFormData((prev) => ({
+            ...prev,
+            images: [...prev.images, e.target.files![0]],
+          }));
+        }
+      }}
+    />
+
+    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      {formData.images.map((file, index) => (
+        <div key={index} className="relative">
+          <img
+            src={typeof file === "string" ? file : URL.createObjectURL(file)}
+            alt={`Image ${index + 1}`}
+            className="w-full h-24 object-cover rounded border"
+          />
+          <Button
+            type="button"
+            variant="destructive"
+            size="icon"
+            className="absolute -top-2 -right-2 h-6 w-6"
+            onClick={() =>
+              setFormData((prev) => ({
+                ...prev,
+                images: prev.images.filter((_, i) => i !== index),
+              }))
+            }
+          >
+            <X className="h-3 w-3" />
+          </Button>
+        </div>
+      ))}
+    </div>
+  </CardContent>
+</Card>
+
 
       {/* Actions */}
       <div className="flex justify-end space-x-4">

@@ -103,7 +103,6 @@ export default function ProductsTable({
       }
     })
 
-  // Obtenir les marques uniques pour le filtre
   const uniqueBrands = Array.from(new Set(products.map((p) => p.brand))).sort()
 
   return (
@@ -231,16 +230,16 @@ export default function ProductsTable({
         </div>
       </div>
 
-      {/* Tableau des produits */}
-      <div className="border rounded-lg overflow-hidden">
-        <Table>
+      {/* Tableau responsive */}
+      <div className="overflow-x-auto">
+        <Table className="min-w-[700px] md:min-w-full">
           <TableHeader>
             <TableRow>
               <TableHead>Produit</TableHead>
-              <TableHead>Spécifications</TableHead>
-              <TableHead>Catégorie</TableHead>
+              <TableHead className="hidden sm:table-cell">Spécifications</TableHead>
+              <TableHead className="hidden sm:table-cell">Catégorie</TableHead>
               <TableHead>Prix</TableHead>
-              <TableHead>Stock</TableHead>
+              <TableHead className="hidden md:table-cell">Stock</TableHead>
               <TableHead>Statut</TableHead>
               <TableHead>Actions</TableHead>
             </TableRow>
@@ -265,7 +264,7 @@ export default function ProductsTable({
                       </div>
                     </div>
                   </TableCell>
-                  <TableCell>
+                  <TableCell className="hidden sm:table-cell">
                     <div className="text-sm">
                       <p className="font-medium">
                         {product.specifications.width}/{product.specifications.height}R{product.specifications.diameter}
@@ -276,7 +275,7 @@ export default function ProductsTable({
                       </p>
                     </div>
                   </TableCell>
-                  <TableCell>
+                  <TableCell className="hidden sm:table-cell">
                     <Badge variant="outline">{getCategoryLabel(product.category)}</Badge>
                   </TableCell>
                   <TableCell>
@@ -287,22 +286,20 @@ export default function ProductsTable({
                       )}
                     </div>
                   </TableCell>
-                  <TableCell>
-                    <div className="flex items-center space-x-2">
-                      <Input
-                        type="number"
-                        value={product.stock}
-                        onChange={(e) => onUpdateStock(product.id, Number.parseInt(e.target.value) || 0)}
-                        className="w-20 h-8"
-                        min="0"
-                      />
-                    </div>
+                  <TableCell className="hidden md:table-cell">
+                    <Input
+                      type="number"
+                      value={product.stock}
+                      onChange={(e) => onUpdateStock(product.id, Number.parseInt(e.target.value) || 0)}
+                      className="w-20 h-8"
+                      min="0"
+                    />
                   </TableCell>
                   <TableCell>
                     <Badge variant={stockStatus.variant}>{stockStatus.label}</Badge>
                   </TableCell>
                   <TableCell>
-                    <div className="flex items-center space-x-2">
+                    <div className="flex items-center space-x-1">
                       <Button
                         variant="ghost"
                         size="icon"

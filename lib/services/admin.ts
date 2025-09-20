@@ -103,7 +103,7 @@ export const adminService = {
   },
 
   // Products CRUD
-  async getProducts(params?: Record<string, any>): Promise<ApiResponse<{results: AdminProduct[], count: number}>> {
+  async getProducts(params?: Record<string, any>): Promise<ApiResponse<{ results: AdminProduct[], count: number }>> {
     try {
       const response = await apiClient.get('/admin/products/', { params })
       return {
@@ -142,7 +142,7 @@ export const adminService = {
       }
     } catch (error: any) {
       let errorMessage = 'Failed to create product'
-      
+
       if (error.response?.data) {
         // Handle field-specific errors
         if (typeof error.response.data === 'object') {
@@ -161,7 +161,7 @@ export const adminService = {
           errorMessage = error.response.data.detail
         }
       }
-      
+
       return {
         success: false,
         error: errorMessage
@@ -178,7 +178,7 @@ export const adminService = {
       }
     } catch (error: any) {
       let errorMessage = 'Failed to update product'
-      
+
       if (error.response?.data) {
         if (typeof error.response.data === 'object') {
           const errors = []
@@ -196,7 +196,7 @@ export const adminService = {
           errorMessage = error.response.data.detail
         }
       }
-      
+
       return {
         success: false,
         error: errorMessage
@@ -218,7 +218,7 @@ export const adminService = {
     }
   },
 
-  async bulkUpdateProducts(productIds: number[], updates: Record<string, any>): Promise<ApiResponse<{message: string, updated_count: number}>> {
+  async bulkUpdateProducts(productIds: number[], updates: Record<string, any>): Promise<ApiResponse<{ message: string, updated_count: number }>> {
     try {
       const response = await apiClient.post('/admin/products/bulk-update/', {
         product_ids: productIds,
@@ -252,7 +252,7 @@ export const adminService = {
     }
   },
 
-  async createCategory(data: {name: string, slug: string, description: string}): Promise<ApiResponse<AdminCategory>> {
+  async createCategory(data: { name: string, slug: string, description: string }): Promise<ApiResponse<AdminCategory>> {
     try {
       const response = await apiClient.post('/admin/categories/', data)
       return {
@@ -267,7 +267,7 @@ export const adminService = {
     }
   },
 
-  async updateCategory(id: number, data: Partial<{name: string, slug: string, description: string}>): Promise<ApiResponse<AdminCategory>> {
+  async updateCategory(id: number, data: Partial<{ name: string, slug: string, description: string }>): Promise<ApiResponse<AdminCategory>> {
     try {
       const response = await apiClient.patch(`/admin/categories/${id}/`, data)
       return {

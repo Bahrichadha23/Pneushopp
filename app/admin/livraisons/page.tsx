@@ -2,12 +2,11 @@
 import { useState } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { Truck, Search, MapPin, Clock, Package } from "lucide-react"
+import { Truck, Search, MapPin, Package } from "lucide-react"
 
-// Mock data pour demo académique
+// Mock data
 const mockDeliveries = [
   {
     id: "LIV-2024-001",
@@ -54,9 +53,9 @@ export default function DeliveriesPage() {
       case "prepare":
         return <Badge variant="secondary">En préparation</Badge>
       case "en_route": 
-        return <Badge className="bg-blue-500">En route</Badge>
+        return <Badge className="bg-blue-500 text-white">En route</Badge>
       case "livre":
-        return <Badge className="bg-green-500">Livré</Badge>
+        return <Badge className="bg-green-500 text-white">Livré</Badge>
       default:
         return <Badge variant="outline">{status}</Badge>
     }
@@ -82,58 +81,7 @@ export default function DeliveriesPage() {
         </Badge>
       </div>
 
-      {/* Stats rapides */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">En préparation</CardTitle>
-            <Package className="h-4 w-4 text-orange-500" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              {deliveries.filter(d => d.statut === "prepare").length}
-            </div>
-          </CardContent>
-        </Card>
-        
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">En route</CardTitle>
-            <Truck className="h-4 w-4 text-blue-500" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-blue-600">
-              {deliveries.filter(d => d.statut === "en_route").length}
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Livrées</CardTitle>
-            <MapPin className="h-4 w-4 text-green-500" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-green-600">
-              {deliveries.filter(d => d.statut === "livre").length}
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total colis</CardTitle>
-            <Package className="h-4 w-4 text-gray-500" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              {deliveries.reduce((sum, d) => sum + d.colis, 0)}
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Filtres */}
+      {/* Filters */}
       <div className="flex items-center space-x-4">
         <div className="flex items-center space-x-2">
           <Search className="h-4 w-4 text-gray-400" />
@@ -157,8 +105,28 @@ export default function DeliveriesPage() {
         </select>
       </div>
 
-      {/* Table des livraisons */}
-      <Card>
+      {/* Mobile: Stacked cards */}
+      <div className="grid gap-4 md:hidden">
+        {filteredDeliveries.map((delivery) => (
+          <Card key={delivery.id}>
+            <CardHeader>
+              <CardTitle className="text-lg">{delivery.client}</CardTitle>
+              <p className="text-sm text-gray-500">{delivery.id} • {delivery.commande}</p>
+            </CardHeader>
+            <CardContent className="space-y-2 text-sm">
+              <p><span className="font-semibold">Adresse:</span> {delivery.adresse}</p>
+              <p><span className="font-semibold">Transporteur:</span> {delivery.transporteur}</p>
+              <p><span className="font-semibold">Statut:</span> {getStatusBadge(delivery.statut)}</p>
+              <p><span className="font-semibold">Expédition:</span> {delivery.dateExpedition}</p>
+              <p><span className="font-semibold">Livraison:</span> {delivery.dateLivraison}</p>
+              <p><span className="font-semibold">Colis:</span> {delivery.colis}</p>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+
+      {/* Desktop: Table view */}
+      <Card className="hidden md:block">
         <CardHeader>
           <CardTitle>Liste des livraisons</CardTitle>
         </CardHeader>

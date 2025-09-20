@@ -1,5 +1,6 @@
 from rest_framework import generics
 from django_filters.rest_framework import DjangoFilterBackend
+from django.core.files.base import ContentFile
 from rest_framework.filters import SearchFilter, OrderingFilter
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny
@@ -7,6 +8,7 @@ from rest_framework.response import Response
 from django.db.models import Q
 from .models import Product, Category
 from .serializers import ProductSerializer, CategorySerializer
+
 
 class ProductListView(generics.ListAPIView):
     queryset = Product.objects.filter(is_active=True)
@@ -93,3 +95,4 @@ def product_filters(request):
         ],
         'price_range': price_range
     })
+

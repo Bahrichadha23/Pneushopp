@@ -1,3 +1,5 @@
+"use client";
+import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button"
 
 export default function ProductCategoriesSection() {
@@ -31,36 +33,76 @@ export default function ProductCategoriesSection() {
   return (
     <section className="bg-gray-50 py-16">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          {/* Heading with bounce animation */}
         <div className="text-center mb-12">
-          <h2 className="text-3xl font-bold text-gray-900 mb-2">
+          <motion.h2
+            className="text-3xl font-bold text-gray-900 mb-2"
+            initial={{ opacity: 0, y: -80 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{
+              type: "spring",
+              stiffness: 120,
+              damping: 10,
+              duration: 1.2,
+            }}
+            viewport={{ once: true, amount: 0.5 }}
+          >
             DÉCOUVREZ <span className="text-yellow-500">NOS PNEUS</span>
-          </h2>
-          <p className="text-lg text-gray-600">PAR CATÉGORIES</p>
-        </div>
+          </motion.h2>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-          {categories.map((category) => (
-            <div
-              key={category.id}
-              className="bg-white rounded-lg shadow-lg overflow-hidden hover:shadow-xl transition-shadow duration-300"
-            >
-              <div className="aspect-square p-6 flex items-center justify-center bg-gray-100">
-                <img
-                  src={category.image || "/placeholder.svg"}
-                  alt={category.name}
-                  className="w-full h-full object-contain"
-                />
-              </div>
-              <div className="p-6 text-center">
-                <h3 className="text-lg font-bold text-gray-900 mb-2">{category.name}</h3>
-                <p className="text-sm text-gray-600 mb-4">{category.description}</p>
-                <Button variant="outline" className="w-full bg-transparent">
-                  Voir les pneus
-                </Button>
-              </div>
-            </div>
-          ))}
+          <motion.p
+            className="text-lg text-gray-600"
+            initial={{ opacity: 0, y: -60 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{
+              type: "spring",
+              stiffness: 120,
+              damping: 12,
+              duration: 1.2,
+              delay: 0.2, // appears slightly after heading
+            }}
+            viewport={{ once: true, amount: 0.5 }}
+          >
+            PAR CATÉGORIES
+          </motion.p>
         </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+      {categories.map((category, index) => (
+        <motion.div
+          key={category.id}
+          className="bg-white rounded-lg shadow-lg overflow-hidden hover:shadow-xl transition-shadow duration-300"
+          initial={{ opacity: 0, y: 50 }} // start hidden & below
+          whileInView={{ opacity: 1, y: 0 }} // animate into place
+          viewport={{ once: true, amount: 0.2 }} // trigger when in view
+          transition={{
+            duration: 0.8,
+            delay: index * 0.15, // stagger effect
+            type: "spring",
+            stiffness: 120,
+            damping: 12,
+          }}
+        >
+          <div className="aspect-square p-6 flex items-center justify-center bg-gray-100">
+            <img
+              src={category.image || "/placeholder.svg"}
+              alt={category.name}
+              className="w-full h-full object-contain"
+            />
+          </div>
+          <div className="p-6 text-center">
+            <h3 className="text-lg font-bold text-gray-900 mb-2">
+              {category.name}
+            </h3>
+            <p className="text-sm text-gray-600 mb-4">
+              {category.description}
+            </p>
+            <Button variant="outline" className="w-full bg-transparent">
+              Voir les pneus
+            </Button>
+          </div>
+        </motion.div>
+      ))}
+    </div>
       </div>
     </section>
   )

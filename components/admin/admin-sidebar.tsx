@@ -2,7 +2,7 @@
 import { useState } from "react"
 import type React from "react"
 import Link from "next/link"
-import { usePathname, useRouter } from "next/navigation" // ✅ useRouter instead of useNavigate
+import { usePathname } from "next/navigation"
 import {
   LayoutDashboard,
   ShoppingCart,
@@ -22,6 +22,7 @@ import {
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible"
+import Image from "next/image"
 
 interface MenuItem {
   title: string
@@ -31,11 +32,7 @@ interface MenuItem {
 }
 
 const menuItems: MenuItem[] = [
-  {
-    title: "Tableau de bord",
-    href: "/admin",
-    icon: LayoutDashboard,
-  },
+  { title: "Tableau de bord", href: "/admin", icon: LayoutDashboard },
   {
     title: "Commandes",
     icon: ShoppingCart,
@@ -55,11 +52,7 @@ const menuItems: MenuItem[] = [
       { title: "Mouvements stock", href: "/admin/stock/mouvements", icon: TrendingUp },
     ],
   },
-  {
-    title: "Clients",
-    href: "/admin/clients",
-    icon: Users,
-  },
+  { title: "Clients", href: "/admin/clients", icon: Users },
   {
     title: "Fournisseurs",
     icon: UserCheck,
@@ -68,21 +61,18 @@ const menuItems: MenuItem[] = [
       { title: "Bons de commande", href: "/admin/bons-commande", icon: FileText },
     ],
   },
-  {
-    title: "Rapports",
-    href: "/admin/rapports",
-    icon: BarChart3,
-  },
-  {
-    title: "Paramètres",
-    href: "/admin/parametres",
-    icon: Settings,
-  },
+  { title: "Rapports", href: "/admin/rapports", icon: BarChart3 },
+  { title: "Paramètres", href: "/admin/parametres", icon: Settings },
 ]
 
-export default function AdminSidebar() {
+export default function AdminSidebar({
+  sidebarOpen,
+  setSidebarOpen,
+}: {
+  sidebarOpen: boolean
+  setSidebarOpen: (open: boolean) => void
+}) {
   const pathname = usePathname()
-  const router = useRouter() // ✅ Next.js router
   const [openMenus, setOpenMenus] = useState<string[]>(["Commandes", "Produits"])
 
   const toggleMenu = (title: string) => {
@@ -124,7 +114,7 @@ export default function AdminSidebar() {
       <Link key={item.href} href={item.href || "#"}>
         <Button
           variant="ghost"
-          className={`w-full justify-start px-3 py-2 h-auto ${
+          className={`w-full justify-start px-3 py-1.5 h-auto ${
             level > 0 ? "pl-8" : ""
           } ${
             isActive(item.href || "")
@@ -140,23 +130,29 @@ export default function AdminSidebar() {
   }
 
   return (
-    <div className="w-64 bg-white border-r border-gray-200 h-screen overflow-y-auto">
-      {/* Logo administrateur */}
-      <div className="p-6 border-b border-gray-200">
-        <div className="flex items-center space-x-2">
-          <div className="w-8 h-8 bg-yellow-400 rounded-full flex items-center justify-center">
-            <div className="w-4 h-4 bg-black rounded-full"></div>
-          </div>
-          <div>
-            <h2 className="font-bold text-gray-900">PNEU SHOP</h2>
-            <p className="text-xs text-gray-600">Administration</p>
-          </div>
+    <>
+      <div
+        className={`fixed inset-y-0 left-0 z-40 w-64 bg-white border-r border-gray-200 transform transition-transform duration-200 ease-in-out
+        ${sidebarOpen ? "translate-x-0" : "-translate-x-full"} md:translate-x-0`}
+      >
+        {/* Desktop logo */}
+        <div className="p-3 justify-center items-center space-x-2">
+        <Image src="/logo.png" alt="Logo" width={100} height={100} />
+        <div>
+          <p className="pl-2 pt-0.5 text-xs text-gray-600">Administration</p>
         </div>
+        </div>
+        {/* Menu */}
+        <nav className="p-4 space-y-1">{menuItems.map((item) => renderMenuItem(item))}</nav>
       </div>
 
-      {/* Menu de navigation */}
-      <nav className="p-4 space-y-1">{menuItems.map((item) => renderMenuItem(item))}</nav>
-
-    </div>
+      {/* Overlay for mobile */}
+      {sidebarOpen && (
+        <div
+          className="fixed inset-0 bg-black bg-opacity-40 z-30 md:hidden"
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
+    </>
   )
 }

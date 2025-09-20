@@ -1,10 +1,15 @@
 export default function ManufacturersSection() {
   const manufacturers = [
-    { name: "TIGAR", logo: "/tigar-tire-brand-logo.png" },
-    { name: "AMINE", logo: "/amine-tire-brand-logo.png" },
-    { name: "CONTINENTAL", logo: "/continental-tire-brand-logo.png" },
-    { name: "KLEBER", logo: "/kleber-tire-brand-logo.png" },
+    { name: "BARUM", logo: "/barum-logo.jpg" },
+    { name: "AMINE", logo: "/amine.png" },
+    { name: "BRIDGESTONE", logo: "/bridgestone.png" },
+    { name: "CONTINENTAL", logo: "/continental-logo.jpg" },
+    { name: "DAYTON", logo: "/dayton.png" },
     { name: "PIRELLI", logo: "/pirelli-tire-brand-logo.png" },
+    { name: "GENERAL", logo: "/general-tire-logo.jpg" },
+    { name: "GOODYEAR", logo: "/goodyear-logo.jpg" },
+    { name: "NEXEN", logo: "/nexen-logo.png" },
+    { name: "Waterfall", logo: "logo_waterfall.png" }
   ]
 
   return (
@@ -22,7 +27,7 @@ export default function ManufacturersSection() {
               className="flex items-center justify-center p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors duration-300"
             >
               <img
-                src={manufacturer.logo || "/placeholder.svg"}
+                src={manufacturer.logo}
                 alt={`${manufacturer.name} logo`}
                 className="max-h-12 w-auto object-contain"
               />

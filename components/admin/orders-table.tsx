@@ -1,5 +1,5 @@
-// Composant tableau de gestion des commandes
 "use client"
+
 import { useState } from "react"
 import type { Order } from "@/types/admin"
 import { Badge } from "@/components/ui/badge"
@@ -21,23 +21,21 @@ export default function OrdersTable({ orders, onViewOrder, onEditOrder, onUpdate
   const [statusFilter, setStatusFilter] = useState<string>("all")
   const [paymentFilter, setPaymentFilter] = useState<string>("all")
 
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat("fr-TN", {
+  const formatCurrency = (amount: number) =>
+    new Intl.NumberFormat("fr-TN", {
       style: "currency",
       currency: "TND",
       minimumFractionDigits: 0,
     }).format(amount)
-  }
 
-  const formatDate = (date: Date) => {
-    return new Intl.DateTimeFormat("fr-FR", {
+  const formatDate = (date: Date) =>
+    new Intl.DateTimeFormat("fr-FR", {
       day: "2-digit",
       month: "2-digit",
       year: "numeric",
       hour: "2-digit",
       minute: "2-digit",
     }).format(date)
-  }
 
   const getStatusBadge = (status: Order["status"]) => {
     const variants = {
@@ -83,7 +81,7 @@ export default function OrdersTable({ orders, onViewOrder, onEditOrder, onUpdate
     )
   }
 
-  // Filtrage des commandes
+  // Filtrage
   const filteredOrders = orders.filter((order) => {
     const matchesSearch =
       order.orderNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -98,10 +96,10 @@ export default function OrdersTable({ orders, onViewOrder, onEditOrder, onUpdate
 
   return (
     <div className="space-y-4">
-      {/* Filtres et recherche */}
+      {/* Filters */}
       <div className="flex flex-col sm:flex-row gap-4">
         <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 h-4 w-4" />
           <Input
             placeholder="Rechercher par numéro, client, email..."
             value={searchTerm}
@@ -139,8 +137,8 @@ export default function OrdersTable({ orders, onViewOrder, onEditOrder, onUpdate
         </Select>
       </div>
 
-      {/* Tableau des commandes */}
-      <div className="border rounded-lg overflow-hidden">
+      {/* Desktop Table */}
+      <div className="hidden md:block border rounded-lg overflow-hidden">
         <Table>
           <TableHeader>
             <TableRow>
@@ -193,8 +191,44 @@ export default function OrdersTable({ orders, onViewOrder, onEditOrder, onUpdate
         </Table>
       </div>
 
+      {/* Mobile Card View */}
+      <div className="space-y-4 md:hidden">
+        {filteredOrders.map((order) => (
+          <div key={order.id} className="border rounded-lg p-4 bg-white shadow-sm">
+            <div className="flex justify-between items-center mb-2">
+              <span className="font-bold">#{order.orderNumber}</span>
+              {getStatusBadge(order.status)}
+            </div>
+            <div className="text-sm text-gray-700">
+              <p className="font-medium">{order.customerName}</p>
+              <p className="text-gray-500">{order.customerEmail}</p>
+            </div>
+            <div className="mt-2 text-sm text-gray-600">
+              <p>Date: {formatDate(order.createdAt)}</p>
+              <p>Montant: {formatCurrency(order.totalAmount)}</p>
+              <p>Paiement: {getPaymentStatusBadge(order.paymentStatus)}</p>
+            </div>
+            <div className="flex items-center gap-2 mt-3">
+              <Button variant="ghost" size="icon" onClick={() => onViewOrder(order.id)}>
+                <Eye className="h-4 w-4" />
+              </Button>
+              <Button variant="ghost" size="icon" onClick={() => onEditOrder(order.id)}>
+                <Edit className="h-4 w-4" />
+              </Button>
+              {order.status === "confirmed" && (
+                <Button variant="ghost" size="icon" onClick={() => onUpdateStatus(order.id, "shipped")}>
+                  <Truck className="h-4 w-4" />
+                </Button>
+              )}
+            </div>
+          </div>
+        ))}
+      </div>
+
       {filteredOrders.length === 0 && (
-        <div className="text-center py-8 text-gray-500">Aucune commande trouvée avec les critères sélectionnés.</div>
+        <div className="text-center py-8 text-gray-500">
+          Aucune commande trouvée avec les critères sélectionnés.
+        </div>
       )}
     </div>
   )

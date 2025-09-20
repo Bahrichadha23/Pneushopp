@@ -123,3 +123,55 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* Background reveal */
+@keyframes revealZoom {
+  0% {
+    transform: translateY(-100%) scale(1.2);
+    opacity: 0;
+  }
+  50% {
+    opacity: 0.6;
+  }
+  100% {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+  }
+}
+.animate-reveal-zoom {
+  animation: revealZoom 1.8s ease-out forwards;
+}
+
+/* Badge fade + bounce */
+@keyframes badgeIn {
+  0% {
+    transform: translate(-50%, 100%);
+    opacity: 0;
+  }
+  60% {
+    transform: translate(-50%, -10%);
+    opacity: 1;
+  }
+  100% {
+    transform: translate(-50%, 0);
+  }
+}
+.animate-badge-in {
+  animation: badgeIn 1.2s ease-out 1.5s forwards;
+}
+
+/* Speedometer spin */
+@keyframes spinOnce {
+  0% {
+    transform: rotate(0deg);
+  }
+  80% {
+    transform: rotate(300deg);
+  }
+  100% {
+    transform: rotate(270deg);
+  }
+}
+.animate-spin-once {
+  animation: spinOnce 1.2s ease-out 2.5s forwards;
+}

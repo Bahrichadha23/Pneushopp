@@ -1,13 +1,16 @@
+import Image from "next/image";
+import { FaFacebookF, FaInstagram, FaWhatsapp } from "react-icons/fa";
+
 export default function Footer() {
   return (
     <footer className="bg-black text-white">
       {/* Main footer content */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
           {/* Contact Information */}
           <div>
             <h3 className="text-xl font-bold mb-6">NOUS CONTACTER :</h3>
-            <div className="space-y-3">
+            <div className="space-y-3 text-sm sm:text-base">
               <p>
                 <strong>Tél. :</strong> +216 29 353 666
               </p>
@@ -24,37 +27,46 @@ export default function Footer() {
           </div>
 
           {/* Social Media and Logo */}
-          <div className="flex flex-col items-center lg:items-end">
-            <div className="mb-6">
+          <div className="flex flex-col items-center lg:items-end space-y-6">
+            <div className="text-center lg:text-right">
               <h3 className="text-lg font-bold mb-4">SUIVEZ-NOUS</h3>
-              <div className="flex space-x-4">
-                <div className="w-8 h-8 bg-white rounded"></div>
-                <div className="w-8 h-8 bg-white rounded"></div>
-                <div className="w-8 h-8 bg-white rounded"></div>
+              <div className="flex space-x-4 justify-center lg:justify-end">
+                {/* Facebook */}
+                <a
+                  href="https://www.facebook.com"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-10 h-10 flex items-center justify-center bg-white text-black rounded-full hover:bg-yellow-400 transition"
+                >
+                  <FaFacebookF size={18} />
+                </a>
+
+                {/* Instagram */}
+                <a
+                  href="https://www.instagram.com"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-10 h-10 flex items-center justify-center bg-white text-black rounded-full hover:bg-yellow-400 transition"
+                >
+                  <FaInstagram size={18} />
+                </a>
+
+                {/* WhatsApp */}
+                <a
+                  href="https://wa.me/21629353666"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-10 h-10 flex items-center justify-center bg-white text-black rounded-full hover:bg-yellow-400 transition"
+                >
+                  <FaWhatsapp size={18} />
+                </a>
               </div>
             </div>
 
             {/* Logo */}
-            <div className="flex items-center space-x-2 mb-4">
-              <div className="relative">
-                <div className="w-8 h-8 bg-yellow-400 rounded-full flex items-center justify-center">
-                  <div className="w-4 h-4 bg-black rounded-full"></div>
-                </div>
-              </div>
-              <div>
-                <h4 className="text-lg font-bold">PNEU SHOP</h4>
-                <p className="text-xs text-gray-400">Vos pneumatiques en un seul clic</p>
-              </div>
-            </div>
-
-            {/* Social media icons */}
-            <div className="flex space-x-2">
-              <div className="w-8 h-8 bg-white rounded"></div>
-              <div className="w-8 h-8 bg-white rounded"></div>
-              <div className="w-8 h-8 bg-white rounded"></div>
-              <div className="w-8 h-8 bg-white rounded"></div>
-              <div className="w-8 h-8 bg-white rounded"></div>
-            </div>
+            <div>
+           <Image src="/black-logo.png" alt="Logo" width={200} height={200} />
+           </div>
           </div>
         </div>
       </div>
@@ -62,13 +74,13 @@ export default function Footer() {
       {/* Bottom copyright */}
       <div className="bg-gray-100 text-black py-4">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <p className="text-sm">
-            © Droits d'auteur 2024 pneushop.
-            <br />
+          <p className="text-sm leading-relaxed">
+            © Droits d&apos;auteur 2024 pneushop.
+            <br className="block sm:hidden" />
             par Innovation-wep.pro Tunisie
           </p>
         </div>
       </div>
     </footer>
-  )
+  );
 }

@@ -18,6 +18,7 @@ yarn-error.log*
 
 # env files
 .env*
+*.env
 
 # vercel
 .vercel
@@ -25,3 +26,17 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Python / Django backend
+venv/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.sqlite3
+db.sqlite3
+*.log
+
+# Django specific
+media/
+staticfiles/

@@ -14,8 +14,50 @@ export default function ContactPage() {
           <h1 className="text-4xl font-bold text-gray-900 mb-8 text-center">Contactez-Nous</h1>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
-            {/* Contact Information */}
+
+
+            {/* Contact Form */}
             <div>
+              <h2 className="text-2xl font-semibold mb-6">Envoyez-nous un Message</h2>
+
+              <form className="space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Nom</label>
+                    <Input placeholder="Votre nom" />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Prénom</label>
+                    <Input placeholder="Votre prénom" />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Email</label>
+                  <Input type="email" placeholder="votre.email@exemple.com" />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Téléphone</label>
+                  <Input placeholder="+216 XX XXX XXX" />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Sujet</label>
+                  <Input placeholder="Sujet de votre message" />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Message</label>
+                  <Textarea placeholder="Votre message..." rows={6} />
+                </div>
+
+                <Button className="w-full bg-red-600 hover:bg-red-700">Envoyer le Message</Button>
+              </form>
+            </div>
+
+                        {/* Contact Information */}
+                        <div>
               <h2 className="text-2xl font-semibold mb-6">Nos Coordonnées</h2>
 
               <div className="space-y-6">
@@ -59,46 +101,6 @@ export default function ContactPage() {
                   </div>
                 </div>
               </div>
-            </div>
-
-            {/* Contact Form */}
-            <div>
-              <h2 className="text-2xl font-semibold mb-6">Envoyez-nous un Message</h2>
-
-              <form className="space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Nom</label>
-                    <Input placeholder="Votre nom" />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Prénom</label>
-                    <Input placeholder="Votre prénom" />
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Email</label>
-                  <Input type="email" placeholder="votre.email@exemple.com" />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Téléphone</label>
-                  <Input placeholder="+216 XX XXX XXX" />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Sujet</label>
-                  <Input placeholder="Sujet de votre message" />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Message</label>
-                  <Textarea placeholder="Votre message..." rows={6} />
-                </div>
-
-                <Button className="w-full bg-red-600 hover:bg-red-700">Envoyer le Message</Button>
-              </form>
             </div>
           </div>
         </div>

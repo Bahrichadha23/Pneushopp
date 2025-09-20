@@ -93,25 +93,27 @@ export default function OrdersPage() {
 
   const handleViewOrder = (orderId: string) => {
     console.log("Voir commande:", orderId)
-    // Redirection vers la page de détail de la commande
   }
 
   const handleEditOrder = (orderId: string) => {
     console.log("Modifier commande:", orderId)
-    // Redirection vers la page d'édition de la commande
   }
 
   const handleUpdateStatus = (orderId: string, status: Order["status"]) => {
     setOrders((prevOrders) =>
-      prevOrders.map((order) => (order.id === orderId ? { ...order, status, updatedAt: new Date() } : order)),
+      prevOrders.map((order) =>
+        order.id === orderId ? { ...order, status, updatedAt: new Date() } : order,
+      ),
     )
   }
 
   return (
-    <div>
-      <div className="mb-6">
-        <h1 className="text-3xl font-bold text-gray-900">Gestion des commandes</h1>
-        <p className="text-gray-600">Gérez toutes les commandes de votre boutique</p>
+    <div className="space-y-6">
+      <div>
+        <h1 className="text-2xl md:text-3xl font-bold text-gray-900">Gestion des commandes</h1>
+        <p className="text-gray-600 text-sm md:text-base">
+          Gérez toutes les commandes de votre boutique
+        </p>
       </div>
 
       <OrdersTable

@@ -8,7 +8,7 @@ export interface Product {
   originalPrice?: number
   discount?: number
   image: string
-  images: string[]
+  images: File[],
   category: "auto" | "suv" | "camionnette" | "agricole" | "poids-lourd" | "utilitaire" | "4x4"
   specifications: {
     width: number // Largeur (ex: 225)

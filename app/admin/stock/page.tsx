@@ -4,10 +4,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { Package, AlertTriangle, TrendingUp, TrendingDown, Plus, Minus } from "lucide-react"
+import { Package, AlertTriangle, TrendingUp, Plus, Minus } from "lucide-react"
 
-// Mock data basé sur nos vrais produits pour cohérence
 const mockStockData = [
   {
     id: 1,
@@ -54,12 +52,7 @@ export default function StockManagementPage() {
   const [stock, setStock] = useState(mockStockData)
   const [searchTerm, setSearchTerm] = useState("")
 
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat("fr-TN", {
-      style: "currency", 
-      currency: "TND",
-    }).format(amount)
-  }
+  const formatCurrency = (amount: number) => new Intl.NumberFormat("fr-TN", { style: "currency", currency: "TND" }).format(amount)
 
   const getStockStatus = (current: number, min: number, max: number) => {
     if (current <= min) return { status: "critique", color: "bg-red-500" }
@@ -69,13 +62,7 @@ export default function StockManagementPage() {
   }
 
   const updateStock = (id: number, change: number) => {
-    setStock(prevStock => 
-      prevStock.map(item => 
-        item.id === id 
-          ? { ...item, stock: Math.max(0, item.stock + change) }
-          : item
-      )
-    )
+    setStock(prev => prev.map(item => item.id === id ? { ...item, stock: Math.max(0, item.stock + change) } : item))
   }
 
   const filteredStock = stock.filter(item =>
@@ -88,167 +75,130 @@ export default function StockManagementPage() {
   const totalValue = stock.reduce((sum, item) => sum + (item.stock * item.prixAchat), 0)
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
+    <div className="space-y-6 p-4">
+      {/* Header */}
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-2 md:gap-0">
         <h1 className="text-2xl font-bold text-gray-900">Gestion du stock</h1>
-        <Badge variant="secondary" className="text-sm">
-          {filteredStock.length} produits
-        </Badge>
+        <Badge variant="secondary" className="text-sm">{filteredStock.length} produits</Badge>
       </div>
 
-      {/* Stats du stock */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      {/* Stats */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+          <CardHeader className="flex justify-between items-center">
             <CardTitle className="text-sm font-medium">Produits en stock</CardTitle>
             <Package className="h-4 w-4 text-blue-500" />
           </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stock.length}</div>
-          </CardContent>
+          <CardContent><div className="text-2xl font-bold">{stock.length}</div></CardContent>
         </Card>
-        
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+          <CardHeader className="flex justify-between items-center">
             <CardTitle className="text-sm font-medium">Stock faible</CardTitle>
             <AlertTriangle className="h-4 w-4 text-red-500" />
           </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-red-600">{lowStockItems.length}</div>
-          </CardContent>
+          <CardContent><div className="text-2xl font-bold text-red-600">{lowStockItems.length}</div></CardContent>
         </Card>
-
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+          <CardHeader className="flex justify-between items-center">
             <CardTitle className="text-sm font-medium">Valeur stock</CardTitle>
             <TrendingUp className="h-4 w-4 text-green-500" />
           </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-green-600">
-              {formatCurrency(totalValue)}
-            </div>
-          </CardContent>
+          <CardContent><div className="text-2xl font-bold text-green-600">{formatCurrency(totalValue)}</div></CardContent>
         </Card>
-
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+          <CardHeader className="flex justify-between items-center">
             <CardTitle className="text-sm font-medium">Unités totales</CardTitle>
             <Package className="h-4 w-4 text-gray-500" />
           </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              {stock.reduce((sum, item) => sum + item.stock, 0)}
-            </div>
-          </CardContent>
+          <CardContent><div className="text-2xl font-bold">{stock.reduce((sum, item) => sum + item.stock, 0)}</div></CardContent>
         </Card>
       </div>
 
-      {/* Recherche */}
-      <div className="flex items-center space-x-2">
-        <Input
-          placeholder="Rechercher un produit..."
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          className="max-w-sm"
-        />
-      </div>
+      {/* Search */}
+      <Input
+        placeholder="Rechercher un produit..."
+        value={searchTerm}
+        onChange={e => setSearchTerm(e.target.value)}
+        className="max-w-sm"
+      />
 
-      {/* Table du stock */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Inventaire détaillé</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Produit</TableHead>
-                <TableHead>Marque</TableHead>
-                <TableHead>Taille</TableHead>
-                <TableHead>Catégorie</TableHead>
-                <TableHead>Stock actuel</TableHead>
-                <TableHead>Statut</TableHead>
-                <TableHead>Min/Max</TableHead>
-                <TableHead>Prix achat</TableHead>
-                <TableHead>Prix vente</TableHead>
-                <TableHead>Emplacement</TableHead>
-                <TableHead>Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {filteredStock.map((item) => {
-                const stockStatus = getStockStatus(item.stock, item.stockMin, item.stockMax)
-                return (
-                  <TableRow key={item.id}>
-                    <TableCell className="font-medium">{item.name}</TableCell>
-                    <TableCell>{item.brand}</TableCell>
-                    <TableCell>{item.size}</TableCell>
-                    <TableCell>{item.category}</TableCell>
-                    <TableCell className="text-center font-bold">{item.stock}</TableCell>
-                    <TableCell>
-                      <Badge className={stockStatus.color}>
-                        {stockStatus.status}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>{item.stockMin} / {item.stockMax}</TableCell>
-                    <TableCell>{formatCurrency(item.prixAchat)}</TableCell>
-                    <TableCell>{formatCurrency(item.prixVente)}</TableCell>
-                    <TableCell>{item.emplacement}</TableCell>
-                    <TableCell>
-                      <div className="flex space-x-1">
-                        <Button 
-                          size="sm" 
-                          variant="outline"
-                          onClick={() => updateStock(item.id, -1)}
-                          disabled={item.stock <= 0}
-                        >
-                          <Minus className="h-3 w-3" />
-                        </Button>
-                        <Button 
-                          size="sm" 
-                          variant="outline"
-                          onClick={() => updateStock(item.id, 1)}
-                        >
-                          <Plus className="h-3 w-3" />
-                        </Button>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                )
-              })}
-            </TableBody>
-          </Table>
-        </CardContent>
-      </Card>
+      {/* Responsive table or cards */}
+      <div className="space-y-4">
+        {filteredStock.length === 0 && <p>Aucun produit trouvé</p>}
 
-      {/* Alertes stock faible */}
-      {lowStockItems.length > 0 && (
-        <Card className="border-red-200">
-          <CardHeader>
-            <CardTitle className="text-red-700 flex items-center">
-              <AlertTriangle className="h-5 w-5 mr-2" />
-              Produits nécessitant un réapprovisionnement
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {lowStockItems.map((item) => (
-                <div key={item.id} className="p-3 bg-red-50 rounded-lg border border-red-200">
+        {/* Desktop Table */}
+        <div className="hidden md:block">
+          <div className="overflow-x-auto">
+            <table className="w-full table-auto border border-gray-200">
+              <thead className="bg-gray-50">
+                <tr>
+                  <th className="px-2 py-1 text-left">Produit</th>
+                  <th className="px-2 py-1 text-left">Marque</th>
+                  <th className="px-2 py-1 text-left">Taille</th>
+                  <th className="px-2 py-1 text-left">Catégorie</th>
+                  <th className="px-2 py-1 text-center">Stock</th>
+                  <th className="px-2 py-1 text-left">Statut</th>
+                  <th className="px-2 py-1">Min/Max</th>
+                  <th className="px-2 py-1">Prix achat</th>
+                  <th className="px-2 py-1">Prix vente</th>
+                  <th className="px-2 py-1">Emplacement</th>
+                  <th className="px-2 py-1">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filteredStock.map(item => {
+                  const stockStatus = getStockStatus(item.stock, item.stockMin, item.stockMax)
+                  return (
+                    <tr key={item.id} className="border-t">
+                      <td className="px-2 py-1 font-medium">{item.name}</td>
+                      <td className="px-2 py-1">{item.brand}</td>
+                      <td className="px-2 py-1">{item.size}</td>
+                      <td className="px-2 py-1">{item.category}</td>
+                      <td className="px-2 py-1 text-center font-bold">{item.stock}</td>
+                      <td className="px-2 py-1"><Badge className={stockStatus.color}>{stockStatus.status}</Badge></td>
+                      <td className="px-2 py-1">{item.stockMin} / {item.stockMax}</td>
+                      <td className="px-2 py-1">{formatCurrency(item.prixAchat)}</td>
+                      <td className="px-2 py-1">{formatCurrency(item.prixVente)}</td>
+                      <td className="px-2 py-1">{item.emplacement}</td>
+                      <td className="px-2 py-1">
+                        <div className="flex space-x-1">
+                          <Button size="sm" variant="outline" onClick={() => updateStock(item.id, -1)} disabled={item.stock <= 0}><Minus className="h-3 w-3"/></Button>
+                          <Button size="sm" variant="outline" onClick={() => updateStock(item.id, 1)}><Plus className="h-3 w-3"/></Button>
+                        </div>
+                      </td>
+                    </tr>
+                  )
+                })}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        {/* Mobile Cards */}
+        <div className="md:hidden space-y-3">
+          {filteredStock.map(item => {
+            const stockStatus = getStockStatus(item.stock, item.stockMin, item.stockMax)
+            return (
+              <Card key={item.id}>
+                <CardContent className="space-y-1">
                   <div className="flex justify-between items-center">
-                    <div>
-                      <p className="font-medium">{item.brand} {item.name}</p>
-                      <p className="text-sm text-gray-600">{item.size}</p>
-                    </div>
-                    <Badge variant="destructive">
-                      {item.stock} / {item.stockMin}
-                    </Badge>
+                    <p className="font-medium">{item.brand} {item.name}</p>
+                    <Badge className={stockStatus.color}>{stockStatus.status}</Badge>
                   </div>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-      )}
+                  <p className="text-sm text-gray-600">Taille: {item.size} | Catégorie: {item.category}</p>
+                  <p className="text-sm text-gray-600">Stock: {item.stock} / {item.stockMin} - {item.stockMax}</p>
+                  <p className="text-sm text-gray-600">Prix achat: {formatCurrency(item.prixAchat)} | Prix vente: {formatCurrency(item.prixVente)}</p>
+                  <p className="text-sm text-gray-600">Emplacement: {item.emplacement}</p>
+                  <div className="flex space-x-2 mt-1">
+                    <Button size="sm" variant="outline" onClick={() => updateStock(item.id, -1)} disabled={item.stock <= 0}><Minus className="h-3 w-3"/></Button>
+                    <Button size="sm" variant="outline" onClick={() => updateStock(item.id, 1)}><Plus className="h-3 w-3"/></Button>
+                  </div>
+                </CardContent>
+              </Card>
+            )
+          })}
+        </div>
+      </div>
     </div>
   )
 }

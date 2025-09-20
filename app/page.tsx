@@ -23,13 +23,6 @@ export default function HomePage() {
       {/* Section hero principale avec bannière, titre et formulaire de recherche */}
       <HeroSection />
 
-      {/* Bannière promotionnelle noire avec slogan accrocheur */}
-      <div className="bg-black text-white py-4 text-center">
-        <h2 className="text-xl font-bold tracking-wider">
-          PRIX <span className="text-yellow-400">MINI</span>, PERFORMANCES <span className="text-yellow-400">MAXI</span>
-        </h2>
-      </div>
-
       {/* Section éducative expliquant comment lire les dimensions d'un pneu */}
       <TireGuideSection />
 

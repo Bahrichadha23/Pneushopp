@@ -341,18 +341,12 @@ export default function ProductsPage() {
         </div>
 
         <div className="flex gap-2">
-          <Button variant="outline" onClick={handleImportProducts}>
-            <Upload className="h-4 w-4 mr-2" />
-            Importer
-          </Button>
+        
           <Button variant="outline" onClick={handleExportProducts}>
             <Download className="h-4 w-4 mr-2" />
             Exporter
           </Button>
-          <Button onClick={handleCreateProduct} className="bg-yellow-500 hover:bg-yellow-600 text-black">
-            <Plus className="h-4 w-4 mr-2" />
-            Nouveau produit
-          </Button>
+          
         </div>
       </div>
 

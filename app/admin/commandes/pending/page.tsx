@@ -7,39 +7,38 @@ import { Input } from "@/components/ui/input"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Clock, Search, CheckCircle, XCircle, AlertTriangle } from "lucide-react"
 
-// Mock data pour demo académique
 const mockPendingOrders = [
   {
     id: "CMD-2024-001",
     client: "Ahmed Ben Ali",
     email: "ahmed@email.com",
-    total: 450.00,
+    total: 450.0,
     items: 3,
     date: "2024-09-14",
-    urgence: "normale"
+    urgence: "normale",
   },
   {
-    id: "CMD-2024-002", 
+    id: "CMD-2024-002",
     client: "Fatima Trabelsi",
     email: "fatima@email.com",
-    total: 680.00,
+    total: 680.0,
     items: 2,
     date: "2024-09-14",
-    urgence: "haute"
+    urgence: "haute",
   },
   {
     id: "CMD-2024-003",
     client: "Mohamed Gharbi",
-    email: "mohamed@email.com", 
-    total: 320.00,
+    email: "mohamed@email.com",
+    total: 320.0,
     items: 4,
     date: "2024-09-13",
-    urgence: "normale"
-  }
+    urgence: "normale",
+  },
 ]
 
 export default function PendingOrdersPage() {
-  const [orders, setOrders] = useState(mockPendingOrders)
+  const [orders] = useState(mockPendingOrders)
   const [searchTerm, setSearchTerm] = useState("")
 
   const formatCurrency = (amount: number) => {
@@ -57,13 +56,15 @@ export default function PendingOrdersPage() {
     alert(`Commande ${orderId} rejetée (demo)`)
   }
 
-  const filteredOrders = orders.filter(order => 
-    order.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    order.client.toLowerCase().includes(searchTerm.toLowerCase())
+  const filteredOrders = orders.filter(
+    (order) =>
+      order.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      order.client.toLowerCase().includes(searchTerm.toLowerCase())
   )
 
   return (
     <div className="space-y-6">
+      {/* Header */}
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold text-gray-900">Commandes en attente</h1>
         <Badge variant="secondary" className="text-sm">
@@ -71,7 +72,7 @@ export default function PendingOrdersPage() {
         </Badge>
       </div>
 
-      {/* Stats rapides */}
+      {/* Quick stats */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -82,7 +83,7 @@ export default function PendingOrdersPage() {
             <div className="text-2xl font-bold">{orders.length}</div>
           </CardContent>
         </Card>
-        
+
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Haute priorité</CardTitle>
@@ -90,7 +91,7 @@ export default function PendingOrdersPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-red-600">
-              {orders.filter(o => o.urgence === "haute").length}
+              {orders.filter((o) => o.urgence === "haute").length}
             </div>
           </CardContent>
         </Card>
@@ -108,7 +109,7 @@ export default function PendingOrdersPage() {
         </Card>
       </div>
 
-      {/* Recherche */}
+      {/* Search */}
       <div className="flex items-center space-x-2">
         <Search className="h-4 w-4 text-gray-400" />
         <Input
@@ -119,65 +120,104 @@ export default function PendingOrdersPage() {
         />
       </div>
 
-      {/* Table des commandes */}
-      <Card>
+      {/* Mobile view: Cards */}
+      <div className="grid gap-4 md:hidden">
+        {filteredOrders.map((order) => (
+          <Card key={order.id}>
+            <CardContent className="p-4 space-y-2">
+              <div className="flex justify-between items-center">
+                <span className="font-bold">{order.id}</span>
+                <Badge variant={order.urgence === "haute" ? "destructive" : "secondary"}>
+                  {order.urgence}
+                </Badge>
+              </div>
+              <div>
+                <p className="text-sm font-medium">{order.client}</p>
+                <p className="text-xs text-gray-500 truncate">{order.email}</p>
+              </div>
+              <div className="flex justify-between text-sm">
+                <span>{order.items} articles</span>
+                <span className="font-medium">{formatCurrency(order.total)}</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-xs text-gray-500">{order.date}</span>
+                <div className="flex space-x-2">
+                  <Button size="sm" variant="outline" onClick={() => handleApprove(order.id)}>
+                    <CheckCircle className="h-4 w-4 mr-1" />
+                    Approuver
+                  </Button>
+                  <Button size="sm" variant="outline" onClick={() => handleReject(order.id)}>
+                    <XCircle className="h-4 w-4 mr-1" />
+                    Rejeter
+                  </Button>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+
+      {/* Desktop view: Table */}
+      <Card className="hidden md:block">
         <CardHeader>
           <CardTitle>Commandes à traiter</CardTitle>
         </CardHeader>
         <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>ID Commande</TableHead>
-                <TableHead>Client</TableHead>
-                <TableHead>Email</TableHead>
-                <TableHead>Articles</TableHead>
-                <TableHead>Total</TableHead>
-                <TableHead>Date</TableHead>
-                <TableHead>Urgence</TableHead>
-                <TableHead>Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {filteredOrders.map((order) => (
-                <TableRow key={order.id}>
-                  <TableCell className="font-medium">{order.id}</TableCell>
-                  <TableCell>{order.client}</TableCell>
-                  <TableCell>{order.email}</TableCell>
-                  <TableCell>{order.items} articles</TableCell>
-                  <TableCell className="font-medium">{formatCurrency(order.total)}</TableCell>
-                  <TableCell>{order.date}</TableCell>
-                  <TableCell>
-                    <Badge variant={order.urgence === "haute" ? "destructive" : "secondary"}>
-                      {order.urgence}
-                    </Badge>
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex space-x-2">
-                      <Button 
-                        size="sm" 
-                        variant="outline"
-                        onClick={() => handleApprove(order.id)}
-                        className="text-green-600 hover:text-green-700"
-                      >
-                        <CheckCircle className="h-4 w-4 mr-1" />
-                        Approuver
-                      </Button>
-                      <Button 
-                        size="sm" 
-                        variant="outline"
-                        onClick={() => handleReject(order.id)}
-                        className="text-red-600 hover:text-red-700"
-                      >
-                        <XCircle className="h-4 w-4 mr-1" />
-                        Rejeter
-                      </Button>
-                    </div>
-                  </TableCell>
+          <div className="border rounded-lg overflow-x-auto">
+            <Table className="min-w-[800px]">
+              <TableHeader>
+                <TableRow>
+                  <TableHead>ID Commande</TableHead>
+                  <TableHead>Client</TableHead>
+                  <TableHead>Email</TableHead>
+                  <TableHead>Articles</TableHead>
+                  <TableHead>Total</TableHead>
+                  <TableHead>Date</TableHead>
+                  <TableHead>Urgence</TableHead>
+                  <TableHead>Actions</TableHead>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+              </TableHeader>
+              <TableBody>
+                {filteredOrders.map((order) => (
+                  <TableRow key={order.id}>
+                    <TableCell className="font-medium">{order.id}</TableCell>
+                    <TableCell>{order.client}</TableCell>
+                    <TableCell className="truncate max-w-[150px]">{order.email}</TableCell>
+                    <TableCell>{order.items} articles</TableCell>
+                    <TableCell className="font-medium">{formatCurrency(order.total)}</TableCell>
+                    <TableCell>{order.date}</TableCell>
+                    <TableCell>
+                      <Badge variant={order.urgence === "haute" ? "destructive" : "secondary"}>
+                        {order.urgence}
+                      </Badge>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex space-x-2">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => handleApprove(order.id)}
+                          className="text-green-600 hover:text-green-700"
+                        >
+                          <CheckCircle className="h-4 w-4 mr-1" />
+                          Approuver
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => handleReject(order.id)}
+                          className="text-red-600 hover:text-red-700"
+                        >
+                          <XCircle className="h-4 w-4 mr-1" />
+                          Rejeter
+                        </Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
         </CardContent>
       </Card>
     </div>
