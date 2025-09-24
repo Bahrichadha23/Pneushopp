@@ -71,7 +71,7 @@ export interface Supplier {
 export interface StockMovement {
   id: string
   productId: string
-  productName: string
+  product_name: string
   type: "in" | "out" | "adjustment"
   quantity: number
   reason: string

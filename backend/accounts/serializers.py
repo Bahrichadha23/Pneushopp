@@ -72,3 +72,8 @@ class UserSerializer(serializers.ModelSerializer):
             parts = obj.username.split('_')
             return parts[-1].title() if len(parts) > 1 else ""
         return ""
+
+    def get_role(self, obj):
+        if obj.is_staff or obj.is_superuser:
+            return "admin"
+        return "customer"

@@ -1,39 +1,46 @@
 // Page de confirmation de commande avec détails et suivi
-import { notFound } from "next/navigation"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import Link from "next/link"
-import { CheckCircle, Package, Truck, CreditCard } from "lucide-react"
+import { notFound } from "next/navigation";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import Link from "next/link";
+import { CheckCircle, Package, Truck, CreditCard } from "lucide-react";
+import { API_URL } from "@/lib/config";
 
 // Simulation de récupération de commande (à remplacer par API)
 async function getOrder(orderId: string) {
-  // Simulation d'une commande
+  const res = await fetch(`${API_URL}/orders/${orderId}/`);
+  if (!res.ok) return null;
+  const o = await res.json();
+
   return {
-    id: orderId,
-    status: "confirmed",
-    createdAt: new Date(),
-    items: [{ product: { name: "Pneu Michelin 225/45R17", price: 120 }, quantity: 4 }],
+    id: o.id,
+    status: o.status,
+    createdAt: new Date(o.created_at),
+    items: o.items.map((item: any) => ({
+      product: { name: item.product_name, price: item.unit_price },
+      quantity: item.quantity,
+    })),
     shippingAddress: {
-      firstName: "Ahmed",
-      lastName: "Ben Ali",
-      address: "123 Avenue Habib Bourguiba",
-      city: "Tunis",
-      postalCode: "1000",
+      firstName: o.shipping_address.first_name,
+      lastName: o.shipping_address.last_name,
+      address: o.shipping_address.address,
+      city: o.shipping_address.city,
+      postalCode: o.shipping_address.postal_code,
     },
-    total: 480,
-    trackingNumber: "TN" + Math.random().toString(36).substr(2, 9).toUpperCase(),
-  }
+    total: o.total_amount,
+    trackingNumber: o.tracking_number,
+  };
 }
 
 export default async function OrderConfirmationPage({
   params,
 }: {
-  params: { orderId: string }
+  params: { orderId: string };
 }) {
-  const order = await getOrder(params.orderId)
+  const order = await getOrder(params.orderId);
 
   if (!order) {
-    notFound()
+    notFound();
   }
 
   return (
@@ -41,8 +48,13 @@ export default async function OrderConfirmationPage({
       <div className="max-w-2xl mx-auto">
         <div className="text-center mb-8">
           <CheckCircle className="h-16 w-16 text-green-500 mx-auto mb-4" />
-          <h1 className="text-3xl font-bold text-green-600 mb-2">Commande confirmée !</h1>
-          <p className="text-gray-600">Merci pour votre commande. Vous recevrez un email de confirmation sous peu.</p>
+          <h1 className="text-3xl font-bold text-green-600 mb-2">
+            Commande confirmée !
+          </h1>
+          <p className="text-gray-600">
+            Merci pour votre commande. Vous recevrez un email de confirmation
+            sous peu.
+          </p>
         </div>
 
         <Card className="mb-6">
@@ -84,7 +96,8 @@ export default async function OrderConfirmationPage({
           <CardContent>
             <div className="text-sm">
               <p className="font-semibold">
-                {order.shippingAddress.firstName} {order.shippingAddress.lastName}
+                {order.shippingAddress.firstName}{" "}
+                {order.shippingAddress.lastName}
               </p>
               <p>{order.shippingAddress.address}</p>
               <p>
@@ -103,14 +116,25 @@ export default async function OrderConfirmationPage({
           </CardHeader>
           <CardContent>
             <div className="space-y-3">
-              {order.items.map((item, index) => (
-                <div key={index} className="flex justify-between">
-                  <span>
-                    {item.product.name} x {item.quantity}
-                  </span>
-                  <span>{(item.product.price * item.quantity).toFixed(2)} DT</span>
-                </div>
-              ))}
+              {order.items.map(
+                (
+                  item: {
+                    product: { name: string; price: number };
+                    quantity: number;
+                  },
+                  index: number
+                ) => (
+                  <div key={index} className="flex justify-between">
+                    <span>
+                      {item.product.name} x {item.quantity}
+                    </span>
+                    <span>
+                      {(item.product.price * item.quantity).toFixed(2)} DT
+                    </span>
+                  </div>
+                )
+              )}
+
               <div className="border-t pt-3">
                 <div className="flex justify-between font-bold text-lg">
                   <span>Total:</span>
@@ -123,8 +147,8 @@ export default async function OrderConfirmationPage({
 
         <div className="text-center space-y-4">
           <p className="text-sm text-gray-600">
-            Vous recevrez un email de confirmation avec tous les détails de votre commande. La livraison se fera sous
-            24-72h selon votre région.
+            Vous recevrez un email de confirmation avec tous les détails de
+            votre commande. La livraison se fera sous 24-72h selon votre région.
           </p>
 
           <div className="flex gap-4 justify-center">
@@ -138,5 +162,5 @@ export default async function OrderConfirmationPage({
         </div>
       </div>
     </div>
-  )
+  );
 }

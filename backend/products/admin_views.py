@@ -1,6 +1,6 @@
 from rest_framework import generics, status
 from rest_framework.decorators import api_view, permission_classes
-from rest_framework.permissions import IsAdminUser
+from rest_framework.permissions import IsAdminUser, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.filters import SearchFilter, OrderingFilter
 from django_filters.rest_framework import DjangoFilterBackend
@@ -9,8 +9,8 @@ from django.db.models.functions import TruncMonth
 from django.utils import timezone
 from datetime import timedelta
 
-from .models import Product, Category, Order, OrderItem
-from .admin_serializers import AdminProductSerializer, AdminCategorySerializer, AdminProductCreateUpdateSerializer
+from .models import Product, Category, Order, OrderItem, StockMovement
+from .admin_serializers import AdminProductSerializer, AdminCategorySerializer, AdminProductCreateUpdateSerializer, StockMovementSerializer
 from accounts.models import CustomUser
 
 class AdminProductListCreateView(generics.ListCreateAPIView):
@@ -204,3 +204,9 @@ def bulk_update_products(request):
             {'error': f'Erreur lors de la mise à jour: {str(e)}'}, 
             status=status.HTTP_400_BAD_REQUEST
         )
+    
+
+class StockMovementListCreateView(generics.ListCreateAPIView):
+    queryset = StockMovement.objects.all().select_related('product')
+    serializer_class = StockMovementSerializer
+    permission_classes = [IsAuthenticated]

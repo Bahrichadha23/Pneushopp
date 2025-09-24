@@ -7,11 +7,13 @@ import type { AdminStats } from "@/lib/services/admin"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Loader2, AlertCircle } from "lucide-react"
 
+
 export default function AdminDashboard() {
   const [stats, setStats] = useState<AdminStats | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string>("")
 
+  
   const fetchStats = async () => {
     setLoading(true)
     setError("")
@@ -74,12 +76,19 @@ export default function AdminDashboard() {
 
   return (
     <div>
-      <div className="mb-6">
+    {/* Header Row */}
+    <div className="mb-6 flex items-center justify-between">
+      <div>
         <h1 className="text-3xl font-bold text-gray-900">Tableau de bord</h1>
-        <p className="text-gray-600">Vue d'ensemble de votre activité PNEU SHOP</p>
+        <p className="text-gray-600">
+          Vue d'ensemble de votre activité PNEU SHOP
+        </p>
       </div>
-
-      <DashboardStatsComponent stats={stats} />
     </div>
+  
+    {/* Main Dashboard Content */}
+    <DashboardStatsComponent stats={stats} />
+  </div>
+  
   )
 }

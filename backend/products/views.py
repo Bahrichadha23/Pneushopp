@@ -22,20 +22,37 @@ class ProductListView(generics.ListAPIView):
 
     def get_queryset(self):
         queryset = super().get_queryset()
-        
-        # Custom filters
+
         min_price = self.request.query_params.get('min_price')
         max_price = self.request.query_params.get('max_price')
         on_sale = self.request.query_params.get('on_sale')
-        
+
+        width = self.request.query_params.get('width')
+        height = self.request.query_params.get('height')
+        diameter = self.request.query_params.get('diameter')
+        speed_rating = self.request.query_params.get('speedRating')
+        load_index = self.request.query_params.get('loadIndex')
+
         if min_price:
             queryset = queryset.filter(price__gte=min_price)
         if max_price:
             queryset = queryset.filter(price__lte=max_price)
         if on_sale == 'true':
             queryset = queryset.filter(old_price__isnull=False, old_price__gt=0)
-            
+
+        # Filter by size string "205/55R16"
+        if width:
+            queryset = queryset.filter(size__startswith=width + "/")
+        if height:
+            queryset = queryset.filter(size__icontains="/" + height)
+        if diameter:
+            queryset = queryset.filter(size__iendswith=str(diameter))
+        if speed_rating:
+            queryset = queryset.filter(size__icontains=speed_rating)
+        # load_index not stored yet unless you add a field
+
         return queryset
+
 
 class ProductDetailView(generics.RetrieveAPIView):
     queryset = Product.objects.filter(is_active=True)

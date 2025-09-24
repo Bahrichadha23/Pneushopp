@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Product, Category
+from .models import Product, Category, StockMovement
 
 class AdminCategorySerializer(serializers.ModelSerializer):
     product_count = serializers.SerializerMethodField()
@@ -49,3 +49,10 @@ class AdminProductCreateUpdateSerializer(serializers.ModelSerializer):
                     'old_price': 'L\'ancien prix doit être supérieur au prix actuel'
                 })
         return data
+    
+class StockMovementSerializer(serializers.ModelSerializer):
+    product_name = serializers.CharField(source='product.name', read_only=True)
+
+    class Meta:
+        model = StockMovement
+        fields = '__all__'

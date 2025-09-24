@@ -1,20 +1,40 @@
 // Tableau de gestion des produits avec filtres avancés
-"use client"
-import { useState } from "react"
-import type { Product } from "@/types/product"
-import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { Eye, Edit, Trash2, Search, AlertTriangle, Package } from "lucide-react"
+"use client";
+import { useState } from "react";
+import type { Product } from "@/types/product";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import {
+  Eye,
+  Edit,
+  Trash2,
+  Search,
+  AlertTriangle,
+  Package,
+} from "lucide-react";
 
 interface ProductsTableProps {
-  products: Product[]
-  onViewProduct: (productId: string) => void
-  onEditProduct: (productId: string) => void
-  onDeleteProduct: (productId: string) => void
-  onUpdateStock: (productId: string, newStock: number) => void
+  products: Product[];
+  onViewProduct: (productId: string) => void;
+  onEditProduct: (productId: string) => void;
+  onDeleteProduct: (productId: string) => void;
+  onUpdateStock: (productId: string, newStock: number) => void;
 }
 
 export default function ProductsTable({
@@ -24,32 +44,45 @@ export default function ProductsTable({
   onDeleteProduct,
   onUpdateStock,
 }: ProductsTableProps) {
-  const [searchTerm, setSearchTerm] = useState("")
-  const [categoryFilter, setCategoryFilter] = useState<string>("all")
-  const [brandFilter, setBrandFilter] = useState<string>("all")
-  const [stockFilter, setStockFilter] = useState<string>("all")
-  const [sortBy, setSortBy] = useState<string>("name")
-  const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc")
+  const [searchTerm, setSearchTerm] = useState("");
+  const [categoryFilter, setCategoryFilter] = useState<string>("all");
+  const [brandFilter, setBrandFilter] = useState<string>("all");
+  const [stockFilter, setStockFilter] = useState<string>("all");
+  const [sortBy, setSortBy] = useState<string>("name");
+  const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
+  const [promoFilter, setPromoFilter] = useState<string>("all");
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat("fr-TN", {
       style: "currency",
       currency: "TND",
       minimumFractionDigits: 0,
-    }).format(amount)
-  }
+    }).format(amount);
+  };
 
   const getStockStatus = (product: Product) => {
     if (!product.inStock || product.stock === 0) {
-      return { status: "out", label: "Rupture", variant: "destructive" as const }
+      return {
+        status: "out",
+        label: "Rupture",
+        variant: "destructive" as const,
+      };
     } else if (product.stock <= 5) {
-      return { status: "low", label: "Stock faible", variant: "destructive" as const }
+      return {
+        status: "low",
+        label: "Stock faible",
+        variant: "destructive" as const,
+      };
     } else if (product.stock <= 10) {
-      return { status: "medium", label: "Stock moyen", variant: "secondary" as const }
+      return {
+        status: "medium",
+        label: "Stock moyen",
+        variant: "secondary" as const,
+      };
     } else {
-      return { status: "good", label: "En stock", variant: "default" as const }
+      return { status: "good", label: "En stock", variant: "default" as const };
     }
-  }
+  };
 
   const getCategoryLabel = (category: Product["category"]) => {
     const labels = {
@@ -60,9 +93,9 @@ export default function ProductsTable({
       "poids-lourd": "Poids lourd",
       utilitaire: "Utilitaire",
       "4x4": "4X4",
-    }
-    return labels[category] || category
-  }
+    };
+    return labels[category] || category;
+  };
 
   // Filtrage et tri des produits
   const filteredAndSortedProducts = products
@@ -70,40 +103,56 @@ export default function ProductsTable({
       const matchesSearch =
         product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
         product.brand.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        product.model.toLowerCase().includes(searchTerm.toLowerCase())
+        product.model.toLowerCase().includes(searchTerm.toLowerCase());
 
-      const matchesCategory = categoryFilter === "all" || product.category === categoryFilter
-      const matchesBrand = brandFilter === "all" || product.brand === brandFilter
+      const matchesCategory =
+        categoryFilter === "all" || product.category === categoryFilter;
+      const matchesBrand =
+        brandFilter === "all" || product.brand === brandFilter;
 
-      let matchesStock = true
-      if (stockFilter === "in-stock") matchesStock = product.inStock && product.stock > 0
-      else if (stockFilter === "low-stock") matchesStock = product.stock <= 5 && product.stock > 0
-      else if (stockFilter === "out-of-stock") matchesStock = !product.inStock || product.stock === 0
+      let matchesStock = true;
+      if (stockFilter === "in-stock")
+        matchesStock = product.inStock && product.stock > 0;
+      else if (stockFilter === "low-stock")
+        matchesStock = product.stock <= 5 && product.stock > 0;
+      else if (stockFilter === "out-of-stock")
+        matchesStock = !product.inStock || product.stock === 0;
 
-      return matchesSearch && matchesCategory && matchesBrand && matchesStock
+      const matchesPromo =
+        promoFilter === "all" ||
+        (promoFilter === "on-sale" && product.is_on_sale) ||
+        (promoFilter === "not-on-sale" && !product.is_on_sale);
+
+      return (
+        matchesSearch &&
+        matchesCategory &&
+        matchesBrand &&
+        matchesStock &&
+        matchesPromo
+      );
     })
     .sort((a, b) => {
-      let aValue: any = a[sortBy as keyof Product]
-      let bValue: any = b[sortBy as keyof Product]
+      let aValue: any = a[sortBy as keyof Product];
+      let bValue: any = b[sortBy as keyof Product];
 
       if (sortBy === "specifications") {
-        aValue = `${a.specifications.width}/${a.specifications.height}R${a.specifications.diameter}`
-        bValue = `${b.specifications.width}/${b.specifications.height}R${b.specifications.diameter}`
+        aValue = `${a.specifications.width}/${a.specifications.height}R${a.specifications.diameter}`;
+        bValue = `${b.specifications.width}/${b.specifications.height}R${b.specifications.diameter}`;
       }
 
       if (typeof aValue === "string") {
-        aValue = aValue.toLowerCase()
-        bValue = bValue.toLowerCase()
+        aValue = aValue.toLowerCase();
+        bValue = bValue.toLowerCase();
       }
 
       if (sortOrder === "asc") {
-        return aValue < bValue ? -1 : aValue > bValue ? 1 : 0
+        return aValue < bValue ? -1 : aValue > bValue ? 1 : 0;
       } else {
-        return aValue > bValue ? -1 : aValue < bValue ? 1 : 0
+        return aValue > bValue ? -1 : aValue < bValue ? 1 : 0;
       }
-    })
+    });
 
-  const uniqueBrands = Array.from(new Set(products.map((p) => p.brand))).sort()
+  const uniqueBrands = Array.from(new Set(products.map((p) => p.brand))).sort();
 
   return (
     <div className="space-y-4">
@@ -161,6 +210,16 @@ export default function ProductsTable({
               <SelectItem value="out-of-stock">Rupture</SelectItem>
             </SelectContent>
           </Select>
+          <Select value={promoFilter} onValueChange={setPromoFilter}>
+            <SelectTrigger className="w-40">
+              <SelectValue placeholder="Promotion" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Toutes</SelectItem>
+              <SelectItem value="on-sale">En promotion</SelectItem>
+              <SelectItem value="not-on-sale">Hors promotion</SelectItem>
+            </SelectContent>
+          </Select>
 
           <Select value={sortBy} onValueChange={setSortBy}>
             <SelectTrigger className="w-40">
@@ -175,7 +234,10 @@ export default function ProductsTable({
             </SelectContent>
           </Select>
 
-          <Button variant="outline" onClick={() => setSortOrder(sortOrder === "asc" ? "desc" : "asc")}>
+          <Button
+            variant="outline"
+            onClick={() => setSortOrder(sortOrder === "asc" ? "desc" : "asc")}
+          >
             {sortOrder === "asc" ? "↑" : "↓"}
           </Button>
         </div>
@@ -187,8 +249,12 @@ export default function ProductsTable({
           <div className="flex items-center">
             <Package className="h-8 w-8 text-blue-500" />
             <div className="ml-3">
-              <p className="text-sm font-medium text-gray-500">Total produits</p>
-              <p className="text-2xl font-bold text-gray-900">{filteredAndSortedProducts.length}</p>
+              <p className="text-sm font-medium text-gray-500">
+                Total produits
+              </p>
+              <p className="text-2xl font-bold text-gray-900">
+                {filteredAndSortedProducts.length}
+              </p>
             </div>
           </div>
         </div>
@@ -199,7 +265,11 @@ export default function ProductsTable({
             <div className="ml-3">
               <p className="text-sm font-medium text-gray-500">Stock faible</p>
               <p className="text-2xl font-bold text-gray-900">
-                {filteredAndSortedProducts.filter((p) => p.stock <= 5 && p.stock > 0).length}
+                {
+                  filteredAndSortedProducts.filter(
+                    (p) => p.stock <= 5 && p.stock > 0
+                  ).length
+                }
               </p>
             </div>
           </div>
@@ -211,7 +281,11 @@ export default function ProductsTable({
             <div className="ml-3">
               <p className="text-sm font-medium text-gray-500">Ruptures</p>
               <p className="text-2xl font-bold text-gray-900">
-                {filteredAndSortedProducts.filter((p) => !p.inStock || p.stock === 0).length}
+                {
+                  filteredAndSortedProducts.filter(
+                    (p) => !p.inStock || p.stock === 0
+                  ).length
+                }
               </p>
             </div>
           </div>
@@ -223,7 +297,26 @@ export default function ProductsTable({
             <div className="ml-3">
               <p className="text-sm font-medium text-gray-500">Valeur stock</p>
               <p className="text-2xl font-bold text-gray-900">
-                {formatCurrency(filteredAndSortedProducts.reduce((sum, p) => sum + p.price * p.stock, 0))}
+                {formatCurrency(
+                  filteredAndSortedProducts.reduce(
+                    (sum, p) => sum + p.price * p.stock,
+                    0
+                  )
+                )}
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-white p-4 rounded-lg border">
+          <div className="flex items-center">
+            <Package className="h-8 w-8 text-purple-500" />
+            <div className="ml-3">
+              <p className="text-sm font-medium text-gray-500">
+                Produits en promo
+              </p>
+              <p className="text-2xl font-bold text-gray-900">
+                {filteredAndSortedProducts.filter((p) => p.is_on_sale).length}
               </p>
             </div>
           </div>
@@ -236,7 +329,9 @@ export default function ProductsTable({
           <TableHeader>
             <TableRow>
               <TableHead>Produit</TableHead>
-              <TableHead className="hidden sm:table-cell">Spécifications</TableHead>
+              <TableHead className="hidden sm:table-cell">
+                Spécifications
+              </TableHead>
               <TableHead className="hidden sm:table-cell">Catégorie</TableHead>
               <TableHead>Prix</TableHead>
               <TableHead className="hidden md:table-cell">Stock</TableHead>
@@ -246,7 +341,7 @@ export default function ProductsTable({
           </TableHeader>
           <TableBody>
             {filteredAndSortedProducts.map((product) => {
-              const stockStatus = getStockStatus(product)
+              const stockStatus = getStockStatus(product);
               return (
                 <TableRow key={product.id}>
                   <TableCell>
@@ -267,36 +362,63 @@ export default function ProductsTable({
                   <TableCell className="hidden sm:table-cell">
                     <div className="text-sm">
                       <p className="font-medium">
-                        {product.specifications.width}/{product.specifications.height}R{product.specifications.diameter}
+                        {product.specifications.width}/
+                        {product.specifications.height}R
+                        {product.specifications.diameter}
                       </p>
                       <p className="text-gray-500">
                         {product.specifications.loadIndex}
-                        {product.specifications.speedRating} - {product.specifications.season}
+                        {product.specifications.speedRating} -{" "}
+                        {product.specifications.season}
                       </p>
                     </div>
                   </TableCell>
                   <TableCell className="hidden sm:table-cell">
-                    <Badge variant="outline">{getCategoryLabel(product.category)}</Badge>
+                    <Badge variant="outline">
+                      {getCategoryLabel(product.category)}
+                    </Badge>
                   </TableCell>
+
                   <TableCell>
                     <div>
-                      <p className="font-medium">{formatCurrency(product.price)}</p>
-                      {product.originalPrice && product.originalPrice > product.price && (
-                        <p className="text-sm text-gray-500 line-through">{formatCurrency(product.originalPrice)}</p>
+                      {product.is_on_sale ? (
+                        <>
+                          <p className="text-red-600 font-bold">
+                            {formatCurrency(product.price)}
+                          </p>
+                          <p className="text-sm text-gray-500 line-through">
+                            {formatCurrency(product.old_price || 0)}
+                          </p>
+                          <p className="text-xs text-green-600">
+                            -{product.discount_percentage}%
+                          </p>
+                        </>
+                      ) : (
+                        <p className="font-medium">
+                          {formatCurrency(product.price)}
+                        </p>
                       )}
                     </div>
                   </TableCell>
+
                   <TableCell className="hidden md:table-cell">
                     <Input
                       type="number"
                       value={product.stock}
-                      onChange={(e) => onUpdateStock(product.id, Number.parseInt(e.target.value) || 0)}
+                      onChange={(e) =>
+                        onUpdateStock(
+                          product.id,
+                          Number.parseInt(e.target.value) || 0
+                        )
+                      }
                       className="w-20 h-8"
                       min="0"
                     />
                   </TableCell>
                   <TableCell>
-                    <Badge variant={stockStatus.variant}>{stockStatus.label}</Badge>
+                    <Badge variant={stockStatus.variant}>
+                      {stockStatus.label}
+                    </Badge>
                   </TableCell>
                   <TableCell>
                     <div className="flex items-center space-x-1">
@@ -308,7 +430,12 @@ export default function ProductsTable({
                       >
                         <Eye className="h-4 w-4" />
                       </Button>
-                      <Button variant="ghost" size="icon" onClick={() => onEditProduct(product.id)} title="Modifier">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => onEditProduct(product.id)}
+                        title="Modifier"
+                      >
                         <Edit className="h-4 w-4" />
                       </Button>
                       <Button
@@ -323,15 +450,17 @@ export default function ProductsTable({
                     </div>
                   </TableCell>
                 </TableRow>
-              )
+              );
             })}
           </TableBody>
         </Table>
       </div>
 
       {filteredAndSortedProducts.length === 0 && (
-        <div className="text-center py-8 text-gray-500">Aucun produit trouvé avec les critères sélectionnés.</div>
+        <div className="text-center py-8 text-gray-500">
+          Aucun produit trouvé avec les critères sélectionnés.
+        </div>
       )}
     </div>
-  )
+  );
 }

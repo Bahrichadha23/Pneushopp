@@ -1,116 +1,107 @@
 // Page de gestion des commandes
-"use client"
-import { useState } from "react"
-import OrdersTable from "@/components/admin/orders-table"
-import type { Order } from "@/types/admin"
-
-// Données simulées des commandes
-const mockOrders: Order[] = [
-  {
-    id: "1",
-    orderNumber: "PN-2024-001",
-    customerId: "c1",
-    customerName: "Ahmed Ben Ali",
-    customerEmail: "ahmed@email.com",
-    customerPhone: "+216 20 123 456",
-    items: [
-      {
-        productId: "1",
-        productName: "Pirelli P Zero 225/45R17",
-        productImage: "/images/pirelli-p-zero.jpg",
-        quantity: 2,
-        unitPrice: 180,
-        totalPrice: 360,
-        specifications: "225/45R17 91W",
-      },
-    ],
-    totalAmount: 360,
-    status: "processing",
-    paymentStatus: "paid",
-    paymentMethod: "card",
-    shippingAddress: {
-      street: "123 Rue de la République",
-      city: "Tunis",
-      postalCode: "1000",
-      region: "Tunis",
-      country: "Tunisie",
-    },
-    billingAddress: {
-      street: "123 Rue de la République",
-      city: "Tunis",
-      postalCode: "1000",
-      region: "Tunis",
-      country: "Tunisie",
-    },
-    createdAt: new Date("2024-01-15T10:30:00"),
-    updatedAt: new Date("2024-01-15T14:20:00"),
-    trackingNumber: "TN123456789",
-  },
-  {
-    id: "2",
-    orderNumber: "PN-2024-002",
-    customerId: "c2",
-    customerName: "Fatma Trabelsi",
-    customerEmail: "fatma@email.com",
-    customerPhone: "+216 25 987 654",
-    items: [
-      {
-        productId: "2",
-        productName: "Continental EcoContact 6",
-        productImage: "/images/continental-ecocontact.jpg",
-        quantity: 2,
-        unitPrice: 145,
-        totalPrice: 290,
-        specifications: "205/55R16 91V",
-      },
-    ],
-    totalAmount: 290,
-    status: "shipped",
-    paymentStatus: "paid",
-    paymentMethod: "transfer",
-    shippingAddress: {
-      street: "456 Avenue Habib Bourguiba",
-      city: "Sfax",
-      postalCode: "3000",
-      region: "Sfax",
-      country: "Tunisie",
-    },
-    billingAddress: {
-      street: "456 Avenue Habib Bourguiba",
-      city: "Sfax",
-      postalCode: "3000",
-      region: "Sfax",
-      country: "Tunisie",
-    },
-    createdAt: new Date("2024-01-14T15:45:00"),
-    updatedAt: new Date("2024-01-15T09:15:00"),
-    trackingNumber: "TN987654321",
-  },
-]
-
+"use client";
+import { useEffect, useState } from "react";
+import OrdersTable from "@/components/admin/orders-table";
+import type { Order } from "@/types/admin";
+import { fetchOrders } from "@/lib/services/order";
+import { API_URL } from "@/lib/config";
 export default function OrdersPage() {
-  const [orders, setOrders] = useState<Order[]>(mockOrders)
+  const [orders, setOrders] = useState<Order[]>([]);
+
+  useEffect(() => {
+    const loadOrders = async () => {
+      try {
+        const data = await fetchOrders(); // fetchOrders should return your raw order array
+
+        // map raw orders to admin.Order type
+        const mappedOrders: Order[] = data.map((o: any) => ({
+          id: o.id,
+          orderNumber: o.order_number,
+          customerId: o.userId,
+          customerName:
+            o.shippingAddress.firstName + " " + o.shippingAddress.lastName,
+          customerEmail: o.shippingAddress.email || "",
+          customerPhone: o.shippingAddress.phone,
+          items: o.items.map((i: any) => ({
+            productId: i.productId,
+            productName: i.productName,
+            productImage: i.image,
+            quantity: i.quantity,
+            unitPrice: i.price,
+            totalPrice: i.price * i.quantity,
+            specifications: i.specifications || "",
+          })),
+          totalAmount: o.total,
+          status: o.status,
+          paymentStatus: "pending", // adjust based on backend
+          paymentMethod: o.paymentMethod.type,
+          shippingAddress: {
+            street: o.shippingAddress.address,
+            city: o.shippingAddress.city,
+            postalCode: o.shippingAddress.postalCode,
+            region: "",
+            country: o.shippingAddress.country,
+          },
+          billingAddress: {
+            street: o.shippingAddress.address,
+            city: o.shippingAddress.city,
+            postalCode: o.shippingAddress.postalCode,
+            region: "",
+            country: o.shippingAddress.country,
+          },
+          createdAt: new Date(o.createdAt),
+          updatedAt: new Date(o.updatedAt),
+          trackingNumber: o.trackingNumber,
+          notes: o.notes,
+        }));
+
+        setOrders(mappedOrders);
+      } catch (error) {
+        console.error("Failed to fetch orders:", error);
+      }
+    };
+
+    loadOrders();
+  }, []);
 
   const handleViewOrder = (orderId: string) => {
-    console.log("Voir commande:", orderId)
-  }
+    console.log("Voir commande:", orderId);
+  };
 
   const handleEditOrder = (orderId: string) => {
-    console.log("Modifier commande:", orderId)
-  }
+    console.log("Modifier commande:", orderId);
+  };
 
-  const handleUpdateStatus = (orderId: string, status: Order["status"]) => {
-    setOrders((prevOrders) =>
-      prevOrders.map((order) =>
-        order.id === orderId ? { ...order, status, updatedAt: new Date() } : order,
-      ),
-    )
-  }
+  const handleUpdateStatus = async (
+    orderId: string,
+    status: Order["status"]
+  ) => {
+    if (!API_URL) return;
 
+    try {
+      await fetch(`${API_URL}/orders/${orderId}/`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status }),
+      });
+
+      setOrders((prev) =>
+        prev.map((order) =>
+          order.id === orderId
+            ? { ...order, status, updatedAt: new Date() }
+            : order
+        )
+      );
+    } catch (error) {
+      console.error("Failed to update status:", error);
+    }
+  };
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl md:text-3xl font-bold text-gray-900">Gestion des commandes</h1>
+        <h1 className="text-2xl md:text-3xl font-bold text-gray-900">
+          Gestion des commandes
+        </h1>
         <p className="text-gray-600 text-sm md:text-base">
           Gérez toutes les commandes de votre boutique
         </p>
@@ -123,5 +114,5 @@ export default function OrdersPage() {
         onUpdateStatus={handleUpdateStatus}
       />
     </div>
-  )
+  );
 }

@@ -1,81 +1,86 @@
-"use client"
-import { useState } from "react"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { Input } from "@/components/ui/input"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { Truck, Search, MapPin, Package } from "lucide-react"
+"use client";
+import { useEffect, useState } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import {
+  fetchDeliveries,
+  updateDeliveryStatus,
+} from "@/lib/services/deliveries";
+import type { Livraison } from "@/types/livraison";
 
-// Mock data
-const mockDeliveries = [
-  {
-    id: "LIV-2024-001",
-    commande: "CMD-2024-005",
-    client: "Salon Auto Tunis",
-    adresse: "Avenue Habib Bourguiba, Tunis",
-    transporteur: "Rapid Delivery",
-    statut: "en_route",
-    dateExpedition: "2024-09-13",
-    dateLivraison: "2024-09-15",
-    colis: 2
-  },
-  {
-    id: "LIV-2024-002", 
-    commande: "CMD-2024-006",
-    client: "Garage Central Sfax",
-    adresse: "Route de Tunis, Sfax",
-    transporteur: "Tunisia Express",
-    statut: "livre",
-    dateExpedition: "2024-09-12",
-    dateLivraison: "2024-09-14",
-    colis: 1
-  },
-  {
-    id: "LIV-2024-003",
-    commande: "CMD-2024-007",
-    client: "Auto Service Sousse", 
-    adresse: "Zone Industrielle, Sousse",
-    transporteur: "Rapid Delivery",
-    statut: "prepare",
-    dateExpedition: "2024-09-14",
-    dateLivraison: "2024-09-16",
-    colis: 3
-  }
-]
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { Truck, Search, MapPin, Package } from "lucide-react";
 
 export default function DeliveriesPage() {
-  const [deliveries, setDeliveries] = useState(mockDeliveries)
-  const [searchTerm, setSearchTerm] = useState("")
-  const [statusFilter, setStatusFilter] = useState("tous")
+  const [deliveries, setDeliveries] = useState<Livraison[]>([]);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [statusFilter, setStatusFilter] = useState("tous");
+  useEffect(() => {
+    const loadDeliveries = async () => {
+      try {
+        const data = await fetchDeliveries();
+        setDeliveries(data);
+      } catch (err) {
+        console.error("Erreur lors du fetch des livraisons:", err);
+      }
+    };
+    loadDeliveries();
+  }, []);
 
   const getStatusBadge = (status: string) => {
     switch (status) {
       case "prepare":
-        return <Badge variant="secondary">En préparation</Badge>
-      case "en_route": 
-        return <Badge className="bg-blue-500 text-white">En route</Badge>
+        return <Badge variant="secondary">En préparation</Badge>;
+      case "en_route":
+        return <Badge className="bg-blue-500 text-white">En route</Badge>;
       case "livre":
-        return <Badge className="bg-green-500 text-white">Livré</Badge>
+        return <Badge className="bg-green-500 text-white">Livré</Badge>;
       default:
-        return <Badge variant="outline">{status}</Badge>
+        return <Badge variant="outline">{status}</Badge>;
     }
-  }
+  };
+  const handleUpdateStatus = async (
+    id: string,
+    statut: "prepare" | "en_route" | "livre"
+  ) => {
+    try {
+      await updateDeliveryStatus(id, statut);
+      setDeliveries((prev) =>
+        prev.map((delivery) =>
+          delivery.id === id ? { ...delivery, statut } : delivery
+        )
+      );
+    } catch (error) {
+      console.error(error);
+    }
+  };
 
-  const filteredDeliveries = deliveries.filter(delivery => {
-    const matchesSearch = 
+  const filteredDeliveries = deliveries.filter((delivery) => {
+    const matchesSearch =
       delivery.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
       delivery.client.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      delivery.commande.toLowerCase().includes(searchTerm.toLowerCase())
-    
-    const matchesStatus = statusFilter === "tous" || delivery.statut === statusFilter
-    
-    return matchesSearch && matchesStatus
-  })
+      delivery.commande.toLowerCase().includes(searchTerm.toLowerCase());
+
+    const matchesStatus =
+      statusFilter === "tous" || delivery.statut === statusFilter;
+
+    return matchesSearch && matchesStatus;
+  });
 
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-gray-900">Gestion des livraisons</h1>
+        <h1 className="text-2xl font-bold text-gray-900">
+          Gestion des livraisons
+        </h1>
         <Badge variant="secondary" className="text-sm">
           {filteredDeliveries.length} livraisons
         </Badge>
@@ -92,8 +97,8 @@ export default function DeliveriesPage() {
             className="max-w-sm"
           />
         </div>
-        
-        <select 
+
+        <select
           className="rounded border border-gray-300 px-3 py-2"
           value={statusFilter}
           onChange={(e) => setStatusFilter(e.target.value)}
@@ -111,15 +116,34 @@ export default function DeliveriesPage() {
           <Card key={delivery.id}>
             <CardHeader>
               <CardTitle className="text-lg">{delivery.client}</CardTitle>
-              <p className="text-sm text-gray-500">{delivery.id} • {delivery.commande}</p>
+              <p className="text-sm text-gray-500">
+                {delivery.id} • {delivery.commande}
+              </p>
             </CardHeader>
             <CardContent className="space-y-2 text-sm">
-              <p><span className="font-semibold">Adresse:</span> {delivery.adresse}</p>
-              <p><span className="font-semibold">Transporteur:</span> {delivery.transporteur}</p>
-              <p><span className="font-semibold">Statut:</span> {getStatusBadge(delivery.statut)}</p>
-              <p><span className="font-semibold">Expédition:</span> {delivery.dateExpedition}</p>
-              <p><span className="font-semibold">Livraison:</span> {delivery.dateLivraison}</p>
-              <p><span className="font-semibold">Colis:</span> {delivery.colis}</p>
+              <p>
+                <span className="font-semibold">Adresse:</span>{" "}
+                {delivery.adresse}
+              </p>
+              <p>
+                <span className="font-semibold">Transporteur:</span>{" "}
+                {delivery.transporteur}
+              </p>
+              <p>
+                <span className="font-semibold">Statut:</span>{" "}
+                {getStatusBadge(delivery.statut)}
+              </p>
+              <p>
+                <span className="font-semibold">Expédition:</span>{" "}
+                {delivery.dateExpedition}
+              </p>
+              <p>
+                <span className="font-semibold">Livraison:</span>{" "}
+                {delivery.dateLivraison}
+              </p>
+              <p>
+                <span className="font-semibold">Colis:</span> {delivery.colis}
+              </p>
             </CardContent>
           </Card>
         ))}
@@ -151,9 +175,45 @@ export default function DeliveriesPage() {
                   <TableCell className="font-medium">{delivery.id}</TableCell>
                   <TableCell>{delivery.commande}</TableCell>
                   <TableCell>{delivery.client}</TableCell>
-                  <TableCell className="max-w-xs truncate">{delivery.adresse}</TableCell>
+                  <TableCell className="max-w-xs truncate">
+                    {delivery.adresse}
+                  </TableCell>
                   <TableCell>{delivery.transporteur}</TableCell>
-                  <TableCell>{getStatusBadge(delivery.statut)}</TableCell>
+                  <TableCell>
+                    {getStatusBadge(delivery.statut)}
+                    <div className="flex gap-1 mt-1">
+                      {delivery.statut !== "prepare" && (
+                        <button
+                          className="px-2 py-1 bg-yellow-200 rounded"
+                          onClick={() =>
+                            handleUpdateStatus(delivery.id, "prepare")
+                          }
+                        >
+                          Préparer
+                        </button>
+                      )}
+                      {delivery.statut !== "en_route" && (
+                        <button
+                          className="px-2 py-1 bg-blue-200 rounded"
+                          onClick={() =>
+                            handleUpdateStatus(delivery.id, "en_route")
+                          }
+                        >
+                          En route
+                        </button>
+                      )}
+                      {delivery.statut !== "livre" && (
+                        <button
+                          className="px-2 py-1 bg-green-200 rounded"
+                          onClick={() =>
+                            handleUpdateStatus(delivery.id, "livre")
+                          }
+                        >
+                          Livré
+                        </button>
+                      )}
+                    </div>
+                  </TableCell>
                   <TableCell>{delivery.dateExpedition}</TableCell>
                   <TableCell>{delivery.dateLivraison}</TableCell>
                   <TableCell>{delivery.colis} colis</TableCell>
@@ -164,5 +224,5 @@ export default function DeliveriesPage() {
         </CardContent>
       </Card>
     </div>
-  )
+  );
 }

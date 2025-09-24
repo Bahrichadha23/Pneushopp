@@ -1,8 +1,8 @@
-"use client"
-import { useState } from "react"
-import type React from "react"
-import Link from "next/link"
-import { usePathname } from "next/navigation"
+"use client";
+import { useState } from "react";
+import type React from "react";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
 import {
   LayoutDashboard,
   ShoppingCart,
@@ -19,16 +19,20 @@ import {
   ClipboardList,
   TrendingUp,
   Upload,
-} from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible"
-import Image from "next/image"
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
+import Image from "next/image";
 
 interface MenuItem {
-  title: string
-  href?: string
-  icon: React.ComponentType<any>
-  children?: MenuItem[]
+  title: string;
+  href?: string;
+  icon: React.ComponentType<any>;
+  children?: MenuItem[];
 }
 
 const menuItems: MenuItem[] = [
@@ -37,8 +41,16 @@ const menuItems: MenuItem[] = [
     title: "Commandes",
     icon: ShoppingCart,
     children: [
-      { title: "Toutes les commandes", href: "/admin/commandes", icon: ShoppingCart },
-      { title: "Commandes en attente", href: "/admin/commandes/pending", icon: ClipboardList },
+      {
+        title: "Toutes les commandes",
+        href: "/admin/commandes",
+        icon: ShoppingCart,
+      },
+      {
+        title: "Commandes en attente",
+        href: "/admin/commandes/pending",
+        icon: ClipboardList,
+      },
       { title: "Livraisons", href: "/admin/livraisons", icon: Truck },
     ],
   },
@@ -49,7 +61,11 @@ const menuItems: MenuItem[] = [
       { title: "Catalogue produits", href: "/admin/produits", icon: Package },
       { title: "Import Excel", href: "/admin/import", icon: Upload },
       { title: "Gestion stock", href: "/admin/stock", icon: Store },
-      { title: "Mouvements stock", href: "/admin/stock/mouvements", icon: TrendingUp },
+      {
+        title: "Mouvements stock",
+        href: "/admin/stock/mouvements",
+        icon: TrendingUp,
+      },
     ],
   },
   { title: "Clients", href: "/admin/clients", icon: Users },
@@ -57,40 +73,57 @@ const menuItems: MenuItem[] = [
     title: "Fournisseurs",
     icon: UserCheck,
     children: [
-      { title: "Liste fournisseurs", href: "/admin/fournisseurs", icon: UserCheck },
-      { title: "Bons de commande", href: "/admin/bons-commande", icon: FileText },
+      {
+        title: "Liste fournisseurs",
+        href: "/admin/fournisseurs",
+        icon: UserCheck,
+      },
+      {
+        title: "Bons de commande",
+        href: "/admin/bons-commande",
+        icon: FileText,
+      },
     ],
   },
   { title: "Rapports", href: "/admin/rapports", icon: BarChart3 },
   { title: "Paramètres", href: "/admin/parametres", icon: Settings },
-]
+];
 
 export default function AdminSidebar({
   sidebarOpen,
   setSidebarOpen,
 }: {
-  sidebarOpen: boolean
-  setSidebarOpen: (open: boolean) => void
+  sidebarOpen: boolean;
+  setSidebarOpen: (open: boolean) => void;
 }) {
-  const pathname = usePathname()
-  const [openMenus, setOpenMenus] = useState<string[]>(["Commandes", "Produits"])
+  const pathname = usePathname();
+  const [openMenus, setOpenMenus] = useState<string[]>([
+    "Commandes",
+    "Produits",
+  ]);
 
   const toggleMenu = (title: string) => {
     setOpenMenus((prev) =>
-      prev.includes(title) ? prev.filter((item) => item !== title) : [...prev, title]
-    )
-  }
+      prev.includes(title)
+        ? prev.filter((item) => item !== title)
+        : [...prev, title]
+    );
+  };
 
-  const isActive = (href: string) => pathname === href
+  const isActive = (href: string) => pathname === href;
 
   const renderMenuItem = (item: MenuItem, level = 0) => {
-    const hasChildren = item.children && item.children.length > 0
-    const isOpen = openMenus.includes(item.title)
-    const Icon = item.icon
+    const hasChildren = item.children && item.children.length > 0;
+    const isOpen = openMenus.includes(item.title);
+    const Icon = item.icon;
 
     if (hasChildren) {
       return (
-        <Collapsible key={item.title} open={isOpen} onOpenChange={() => toggleMenu(item.title)}>
+        <Collapsible
+          key={item.title}
+          open={isOpen}
+          onOpenChange={() => toggleMenu(item.title)}
+        >
           <CollapsibleTrigger asChild>
             <Button
               variant="ghost"
@@ -100,14 +133,18 @@ export default function AdminSidebar({
             >
               <Icon className="w-4 h-4 mr-3" />
               <span className="flex-1">{item.title}</span>
-              {isOpen ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
+              {isOpen ? (
+                <ChevronDown className="w-4 h-4" />
+              ) : (
+                <ChevronRight className="w-4 h-4" />
+              )}
             </Button>
           </CollapsibleTrigger>
           <CollapsibleContent className="space-y-1">
             {item.children?.map((child) => renderMenuItem(child, level + 1))}
           </CollapsibleContent>
         </Collapsible>
-      )
+      );
     }
 
     return (
@@ -126,24 +163,28 @@ export default function AdminSidebar({
           {item.title}
         </Button>
       </Link>
-    )
-  }
+    );
+  };
 
   return (
     <>
       <div
         className={`fixed inset-y-0 left-0 z-40 w-64 bg-white border-r border-gray-200 transform transition-transform duration-200 ease-in-out
-        ${sidebarOpen ? "translate-x-0" : "-translate-x-full"} md:translate-x-0`}
+        ${
+          sidebarOpen ? "translate-x-0" : "-translate-x-full"
+        } md:translate-x-0`}
       >
         {/* Desktop logo */}
         <div className="p-3 justify-center items-center space-x-2">
-        <Image src="/logo.png" alt="Logo" width={100} height={100} />
-        <div>
-          <p className="pl-2 pt-0.5 text-xs text-gray-600">Administration</p>
-        </div>
+          <Image src="/logo.png" alt="Logo" width={100} height={100} />
+          <div>
+            <p className="pl-2 pt-0.5 text-xs text-gray-600">Administration</p>
+          </div>
         </div>
         {/* Menu */}
-        <nav className="p-4 space-y-1">{menuItems.map((item) => renderMenuItem(item))}</nav>
+        <nav className="p-4 space-y-1">
+          {menuItems.map((item) => renderMenuItem(item))}
+        </nav>
       </div>
 
       {/* Overlay for mobile */}
@@ -154,5 +195,5 @@ export default function AdminSidebar({
         />
       )}
     </>
-  )
+  );
 }

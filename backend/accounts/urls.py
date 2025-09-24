@@ -10,5 +10,6 @@ urlpatterns = [
     path('verify-reset-token/', views.verify_reset_token, name='verify_reset_token'),
     path('reset-password/', views.reset_password, name='reset_password'),
     path('user/', views.user_profile, name='user_profile'),
+    path('clients/', views.clients_list, name='clients_list'),  # new endpoint
     path('token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
 ]

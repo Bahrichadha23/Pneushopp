@@ -1,68 +1,90 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import StockMovements from "@/components/admin/stock-movements"
-import type { StockMovement } from "@/types/admin"
-
-// Mock data for stock movements
-const mockMovements: StockMovement[] = [
-  {
-    id: "1",
-    productId: "1",
-    productName: "Pirelli P Zero 225/45R17",
-    type: "in",
-    quantity: 20,
-    reason: "Réception commande fournisseur",
-    reference: "BC-2024-001",
-    createdAt: new Date("2024-01-15T09:30:00"),
-    createdBy: "Admin",
-  },
-  {
-    id: "2",
-    productId: "1",
-    productName: "Pirelli P Zero 225/45R17",
-    type: "out",
-    quantity: 2,
-    reason: "Vente client",
-    reference: "PN-2024-001",
-    createdAt: new Date("2024-01-15T14:20:00"),
-    createdBy: "Système",
-  },
-  {
-    id: "3",
-    productId: "2",
-    productName: "Continental EcoContact 6",
-    type: "adjustment",
-    quantity: 5,
-    reason: "Correction inventaire",
-    createdAt: new Date("2024-01-14T16:45:00"),
-    createdBy: "Admin",
-  },
-]
+import { useEffect, useState } from "react";
+import StockMovements from "@/components/admin/stock-movements";
+import type { StockMovement } from "@/types/admin";
 
 export default function StockMovementsPage() {
-  const [movements, setMovements] = useState<StockMovement[]>(mockMovements)
+  const [movements, setMovements] = useState<StockMovement[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  // Function to add a new stock movement
-  const handleAddMovement = (movementData: Omit<StockMovement, "id" | "createdAt">) => {
-    const newMovement: StockMovement = {
-      ...movementData,
-      id: Date.now().toString(),
-      createdAt: new Date(),
+  const handleAddMovement = async (
+    movementData: Omit<StockMovement, "id" | "createdAt" | "createdBy">
+  ) => {
+    try {
+      const response = await fetch(
+        "http://localhost:8000/api/admin/stock-movements/",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${localStorage.getItem("access_token")}`,
+          },
+          body: JSON.stringify({
+            product: movementData.productId, // ✅ backend expects "product"
+            type: movementData.type,
+            quantity: movementData.quantity,
+            reason: movementData.reason,
+            reference: movementData.reference,
+          }),
+        }
+      );
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        console.error("API error:", errorData); // ✅ see backend validation errors
+        throw new Error(
+          `Erreur lors de la création du mouvement: ${response.status}`
+        );
+      }
+
+      const newMovement: StockMovement = await response.json();
+
+      setMovements((prev) => [newMovement, ...prev]);
+    } catch (err) {
+      console.error("❌ Échec de l'ajout du mouvement de stock:", err);
     }
-    setMovements((prev) => [newMovement, ...prev])
-  }
+  };
+
+  useEffect(() => {
+    const fetchMovements = async () => {
+      try {
+        const res = await fetch(
+          "http://localhost:8000/api/admin/stock-movements/",
+          {
+            headers: {
+              Authorization: `Bearer ${localStorage.getItem("access_token")}`,
+              "Content-Type": "application/json",
+            },
+          }
+        );
+        if (!res.ok)
+          throw new Error("Erreur lors du chargement des mouvements");
+        const data = await res.json();
+        setMovements(data.results || data); // adjust if your API is paginated
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchMovements();
+  }, []);
 
   return (
     <div className="space-y-6 p-4">
       {/* Page header */}
       <div className="mb-6">
-        <h1 className="text-3xl font-bold text-gray-900">Mouvements de stock</h1>
+        <h1 className="text-3xl font-bold text-gray-900">
+          Mouvements de stock
+        </h1>
         <p className="text-gray-600">Suivez tous les mouvements d'inventaire</p>
       </div>
 
       {/* Stock movements table or cards */}
       <StockMovements movements={movements} onAddMovement={handleAddMovement} />
+      {loading && <p>Chargement des mouvements...</p>}
     </div>
-  )
+  );
 }

@@ -15,4 +15,7 @@ urlpatterns = [
     # Categories CRUD
     path('categories/', admin_views.AdminCategoryListCreateView.as_view(), name='category_list_create'),
     path('categories/<int:pk>/', admin_views.AdminCategoryDetailView.as_view(), name='category_detail'),
+
+    # Stock movements API
+    path('stock-movements/', admin_views.StockMovementListCreateView.as_view(), name='stock_movements'),
 ]

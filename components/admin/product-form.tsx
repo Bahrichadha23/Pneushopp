@@ -1,28 +1,41 @@
 // Formulaire d'ajout/modification de produits
-"use client"
-import { useState, useEffect } from "react"
-import type React from "react"
+"use client";
+import { useState, useEffect } from "react";
+import type React from "react";
 
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Textarea } from "@/components/ui/textarea"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Checkbox } from "@/components/ui/checkbox"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { Alert, AlertDescription } from "@/components/ui/alert"
-import { Loader2, Upload, X, Plus } from "lucide-react"
-import type { Product } from "@/types/product"
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Loader2, Upload, X, Plus } from "lucide-react";
+import type { Product } from "@/types/product";
 
 interface ProductFormProps {
-  product?: Product
-  onSubmit: (productData: Partial<Product>) => Promise<{ success: boolean; error?: string }>
-  onCancel: () => void
-  isLoading?: boolean
+  product?: Product;
+  onSubmit: (
+    productData: Partial<Product>
+  ) => Promise<{ success: boolean; error?: string }>;
+  onCancel: () => void;
+  isLoading?: boolean;
 }
 
-export default function ProductForm({ product, onSubmit, onCancel, isLoading = false }: ProductFormProps) {
+export default function ProductForm({
+  product,
+  onSubmit,
+  onCancel,
+  isLoading = false,
+}: ProductFormProps) {
   const [formData, setFormData] = useState({
     name: "",
     brand: "",
@@ -45,11 +58,11 @@ export default function ProductForm({ product, onSubmit, onCancel, isLoading = f
     inStock: true,
     isPromotion: false,
     images: [] as File[],
-  })
+  });
 
-  const [newFeature, setNewFeature] = useState("")
-  const [errors, setErrors] = useState<Record<string, string>>({})
-  const [submitError, setSubmitError] = useState("")
+  const [newFeature, setNewFeature] = useState("");
+  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [submitError, setSubmitError] = useState("");
 
   // Initialiser le formulaire avec les données du produit existant
   useEffect(() => {
@@ -59,7 +72,7 @@ export default function ProductForm({ product, onSubmit, onCancel, isLoading = f
         brand: product.brand,
         model: product.model,
         price: product.price,
-        originalPrice: product.originalPrice || 0,
+        originalPrice: product.old_price || 0,
         category: product.category,
         specifications: {
           width: product.specifications.width,
@@ -74,110 +87,122 @@ export default function ProductForm({ product, onSubmit, onCancel, isLoading = f
         description: product.description,
         features: product.features,
         inStock: product.inStock,
-        isPromotion: product.isPromotion || false,
+        isPromotion: product.is_on_sale || false,
         images: product.images,
-      })
+      });
     }
-  }, [product])
+  }, [product]);
 
   const validateForm = () => {
-    const newErrors: Record<string, string> = {}
+    const newErrors: Record<string, string> = {};
 
-    if (!formData.name.trim()) newErrors.name = "Le nom est requis"
-    if (!formData.brand.trim()) newErrors.brand = "La marque est requise"
-    if (!formData.model.trim()) newErrors.model = "Le modèle est requis"
-    if (formData.price <= 0) newErrors.price = "Le prix doit être supérieur à 0"
-    if (formData.stock < 0) newErrors.stock = "Le stock ne peut pas être négatif"
-    if (!formData.description.trim()) newErrors.description = "La description est requise"
+    if (!formData.name.trim()) newErrors.name = "Le nom est requis";
+    if (!formData.brand.trim()) newErrors.brand = "La marque est requise";
+    if (!formData.model.trim()) newErrors.model = "Le modèle est requis";
+    if (formData.price <= 0)
+      newErrors.price = "Le prix doit être supérieur à 0";
+    if (formData.stock < 0)
+      newErrors.stock = "Le stock ne peut pas être négatif";
+    if (!formData.description.trim())
+      newErrors.description = "La description est requise";
 
     // Validation des spécifications
-    if (formData.specifications.width <= 0) newErrors.width = "La largeur est requise"
-    if (formData.specifications.height <= 0) newErrors.height = "La hauteur est requise"
-    if (formData.specifications.diameter <= 0) newErrors.diameter = "Le diamètre est requis"
-    if (formData.specifications.loadIndex <= 0) newErrors.loadIndex = "L'indice de charge est requis"
-    if (!formData.specifications.speedRating.trim()) newErrors.speedRating = "L'indice de vitesse est requis"
+    if (formData.specifications.width <= 0)
+      newErrors.width = "La largeur est requise";
+    if (formData.specifications.height <= 0)
+      newErrors.height = "La hauteur est requise";
+    if (formData.specifications.diameter <= 0)
+      newErrors.diameter = "Le diamètre est requis";
+    if (formData.specifications.loadIndex <= 0)
+      newErrors.loadIndex = "L'indice de charge est requis";
+    if (!formData.specifications.speedRating.trim())
+      newErrors.speedRating = "L'indice de vitesse est requis";
 
-    setErrors(newErrors)
-    return Object.keys(newErrors).length === 0
-  }
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setSubmitError("")
+    e.preventDefault();
+    setSubmitError("");
 
-    if (!validateForm()) return
+    if (!validateForm()) return;
 
     try {
       const discount =
         formData.originalPrice > formData.price
-          ? Math.round(((formData.originalPrice - formData.price) / formData.originalPrice) * 100)
-          : 0
+          ? Math.round(
+              ((formData.originalPrice - formData.price) /
+                formData.originalPrice) *
+                100
+            )
+          : 0;
 
       const productData: Partial<Product> = {
         ...formData,
-        discount: discount > 0 ? discount : undefined,
+        discount_percentage: discount > 0 ? discount : undefined,
         image: "/placeholder.svg",
-      }
+      };
 
-      const result = await onSubmit(productData)
+      const result = await onSubmit(productData);
       if (!result.success) {
-        setSubmitError(result.error || "Erreur lors de la sauvegarde")
+        setSubmitError(result.error || "Erreur lors de la sauvegarde");
       }
     } catch (error) {
-      setSubmitError("Erreur lors de la sauvegarde")
+      setSubmitError("Erreur lors de la sauvegarde");
     }
-  }
+  };
 
   const handleInputChange = (field: string, value: any) => {
-    setFormData((prev) => ({ ...prev, [field]: value }))
+    setFormData((prev) => ({ ...prev, [field]: value }));
     if (errors[field]) {
-      setErrors((prev) => ({ ...prev, [field]: "" }))
+      setErrors((prev) => ({ ...prev, [field]: "" }));
     }
-  }
+  };
 
   const handleSpecificationChange = (field: string, value: any) => {
     setFormData((prev) => ({
       ...prev,
       specifications: { ...prev.specifications, [field]: value },
-    }))
+    }));
     if (errors[field]) {
-      setErrors((prev) => ({ ...prev, [field]: "" }))
+      setErrors((prev) => ({ ...prev, [field]: "" }));
     }
-  }
+  };
 
   const addFeature = () => {
     if (newFeature.trim()) {
       setFormData((prev) => ({
         ...prev,
         features: [...prev.features, newFeature.trim()],
-      }))
-      setNewFeature("")
+      }));
+      setNewFeature("");
     }
-  }
+  };
 
   const removeFeature = (index: number) => {
     setFormData((prev) => ({
       ...prev,
       features: prev.features.filter((_, i) => i !== index),
-    }))
-  }
+    }));
+  };
 
   const addImage = () => {
-    const url = prompt("URL de l'image:")
+    const url = prompt("URL de l'image:");
     if (url) {
       setFormData((prev) => ({
         ...prev,
-        images: [...prev.images,],
-      }))
+        images: [...prev.images],
+      }));
     }
-  }
+  };
 
   const removeImage = (index: number) => {
     setFormData((prev) => ({
       ...prev,
       images: prev.images.filter((_, i) => i !== index),
-    }))
-  }
+    }));
+  };
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
@@ -203,12 +228,17 @@ export default function ProductForm({ product, onSubmit, onCancel, isLoading = f
                 placeholder="Ex: Pirelli P Zero"
                 className={errors.name ? "border-red-500" : ""}
               />
-              {errors.name && <p className="text-red-500 text-xs mt-1">{errors.name}</p>}
+              {errors.name && (
+                <p className="text-red-500 text-xs mt-1">{errors.name}</p>
+              )}
             </div>
 
             <div>
               <Label htmlFor="brand">Marque *</Label>
-              <Select value={formData.brand} onValueChange={(value) => handleInputChange("brand", value)}>
+              <Select
+                value={formData.brand}
+                onValueChange={(value) => handleInputChange("brand", value)}
+              >
                 <SelectTrigger className={errors.brand ? "border-red-500" : ""}>
                   <SelectValue placeholder="Sélectionner une marque" />
                 </SelectTrigger>
@@ -224,7 +254,9 @@ export default function ProductForm({ product, onSubmit, onCancel, isLoading = f
                   <SelectItem value="Tigar">Tigar</SelectItem>
                 </SelectContent>
               </Select>
-              {errors.brand && <p className="text-red-500 text-xs mt-1">{errors.brand}</p>}
+              {errors.brand && (
+                <p className="text-red-500 text-xs mt-1">{errors.brand}</p>
+              )}
             </div>
 
             <div>
@@ -236,12 +268,17 @@ export default function ProductForm({ product, onSubmit, onCancel, isLoading = f
                 placeholder="Ex: P Zero"
                 className={errors.model ? "border-red-500" : ""}
               />
-              {errors.model && <p className="text-red-500 text-xs mt-1">{errors.model}</p>}
+              {errors.model && (
+                <p className="text-red-500 text-xs mt-1">{errors.model}</p>
+              )}
             </div>
 
             <div>
               <Label htmlFor="category">Catégorie *</Label>
-              <Select value={formData.category} onValueChange={(value) => handleInputChange("category", value)}>
+              <Select
+                value={formData.category}
+                onValueChange={(value) => handleInputChange("category", value)}
+              >
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
@@ -268,7 +305,9 @@ export default function ProductForm({ product, onSubmit, onCancel, isLoading = f
               rows={3}
               className={errors.description ? "border-red-500" : ""}
             />
-            {errors.description && <p className="text-red-500 text-xs mt-1">{errors.description}</p>}
+            {errors.description && (
+              <p className="text-red-500 text-xs mt-1">{errors.description}</p>
+            )}
           </div>
         </CardContent>
       </Card>
@@ -286,11 +325,18 @@ export default function ProductForm({ product, onSubmit, onCancel, isLoading = f
                 id="width"
                 type="number"
                 value={formData.specifications.width || ""}
-                onChange={(e) => handleSpecificationChange("width", Number.parseInt(e.target.value) || 0)}
+                onChange={(e) =>
+                  handleSpecificationChange(
+                    "width",
+                    Number.parseInt(e.target.value) || 0
+                  )
+                }
                 placeholder="225"
                 className={errors.width ? "border-red-500" : ""}
               />
-              {errors.width && <p className="text-red-500 text-xs mt-1">{errors.width}</p>}
+              {errors.width && (
+                <p className="text-red-500 text-xs mt-1">{errors.width}</p>
+              )}
             </div>
 
             <div>
@@ -299,11 +345,18 @@ export default function ProductForm({ product, onSubmit, onCancel, isLoading = f
                 id="height"
                 type="number"
                 value={formData.specifications.height || ""}
-                onChange={(e) => handleSpecificationChange("height", Number.parseInt(e.target.value) || 0)}
+                onChange={(e) =>
+                  handleSpecificationChange(
+                    "height",
+                    Number.parseInt(e.target.value) || 0
+                  )
+                }
                 placeholder="45"
                 className={errors.height ? "border-red-500" : ""}
               />
-              {errors.height && <p className="text-red-500 text-xs mt-1">{errors.height}</p>}
+              {errors.height && (
+                <p className="text-red-500 text-xs mt-1">{errors.height}</p>
+              )}
             </div>
 
             <div>
@@ -312,11 +365,18 @@ export default function ProductForm({ product, onSubmit, onCancel, isLoading = f
                 id="diameter"
                 type="number"
                 value={formData.specifications.diameter || ""}
-                onChange={(e) => handleSpecificationChange("diameter", Number.parseInt(e.target.value) || 0)}
+                onChange={(e) =>
+                  handleSpecificationChange(
+                    "diameter",
+                    Number.parseInt(e.target.value) || 0
+                  )
+                }
                 placeholder="17"
                 className={errors.diameter ? "border-red-500" : ""}
               />
-              {errors.diameter && <p className="text-red-500 text-xs mt-1">{errors.diameter}</p>}
+              {errors.diameter && (
+                <p className="text-red-500 text-xs mt-1">{errors.diameter}</p>
+              )}
             </div>
 
             <div>
@@ -325,11 +385,18 @@ export default function ProductForm({ product, onSubmit, onCancel, isLoading = f
                 id="loadIndex"
                 type="number"
                 value={formData.specifications.loadIndex || ""}
-                onChange={(e) => handleSpecificationChange("loadIndex", Number.parseInt(e.target.value) || 0)}
+                onChange={(e) =>
+                  handleSpecificationChange(
+                    "loadIndex",
+                    Number.parseInt(e.target.value) || 0
+                  )
+                }
                 placeholder="91"
                 className={errors.loadIndex ? "border-red-500" : ""}
               />
-              {errors.loadIndex && <p className="text-red-500 text-xs mt-1">{errors.loadIndex}</p>}
+              {errors.loadIndex && (
+                <p className="text-red-500 text-xs mt-1">{errors.loadIndex}</p>
+              )}
             </div>
           </div>
 
@@ -338,9 +405,13 @@ export default function ProductForm({ product, onSubmit, onCancel, isLoading = f
               <Label htmlFor="speedRating">Indice vitesse *</Label>
               <Select
                 value={formData.specifications.speedRating}
-                onValueChange={(value) => handleSpecificationChange("speedRating", value)}
+                onValueChange={(value) =>
+                  handleSpecificationChange("speedRating", value)
+                }
               >
-                <SelectTrigger className={errors.speedRating ? "border-red-500" : ""}>
+                <SelectTrigger
+                  className={errors.speedRating ? "border-red-500" : ""}
+                >
                   <SelectValue placeholder="Sélectionner" />
                 </SelectTrigger>
                 <SelectContent>
@@ -353,14 +424,20 @@ export default function ProductForm({ product, onSubmit, onCancel, isLoading = f
                   <SelectItem value="R">R (170 km/h)</SelectItem>
                 </SelectContent>
               </Select>
-              {errors.speedRating && <p className="text-red-500 text-xs mt-1">{errors.speedRating}</p>}
+              {errors.speedRating && (
+                <p className="text-red-500 text-xs mt-1">
+                  {errors.speedRating}
+                </p>
+              )}
             </div>
 
             <div>
               <Label htmlFor="season">Saison</Label>
               <Select
                 value={formData.specifications.season}
-                onValueChange={(value) => handleSpecificationChange("season", value)}
+                onValueChange={(value) =>
+                  handleSpecificationChange("season", value)
+                }
               >
                 <SelectTrigger>
                   <SelectValue />
@@ -377,7 +454,9 @@ export default function ProductForm({ product, onSubmit, onCancel, isLoading = f
               <Label htmlFor="specialty">Spécialité</Label>
               <Select
                 value={formData.specifications.specialty}
-                onValueChange={(value) => handleSpecificationChange("specialty", value)}
+                onValueChange={(value) =>
+                  handleSpecificationChange("specialty", value)
+                }
               >
                 <SelectTrigger>
                   <SelectValue />
@@ -407,11 +486,18 @@ export default function ProductForm({ product, onSubmit, onCancel, isLoading = f
                 type="number"
                 step="0.01"
                 value={formData.price || ""}
-                onChange={(e) => handleInputChange("price", Number.parseFloat(e.target.value) || 0)}
+                onChange={(e) =>
+                  handleInputChange(
+                    "price",
+                    Number.parseFloat(e.target.value) || 0
+                  )
+                }
                 placeholder="180.00"
                 className={errors.price ? "border-red-500" : ""}
               />
-              {errors.price && <p className="text-red-500 text-xs mt-1">{errors.price}</p>}
+              {errors.price && (
+                <p className="text-red-500 text-xs mt-1">{errors.price}</p>
+              )}
             </div>
 
             <div>
@@ -421,7 +507,12 @@ export default function ProductForm({ product, onSubmit, onCancel, isLoading = f
                 type="number"
                 step="0.01"
                 value={formData.originalPrice || ""}
-                onChange={(e) => handleInputChange("originalPrice", Number.parseFloat(e.target.value) || 0)}
+                onChange={(e) =>
+                  handleInputChange(
+                    "originalPrice",
+                    Number.parseFloat(e.target.value) || 0
+                  )
+                }
                 placeholder="220.00"
               />
               <p className="text-xs text-gray-500 mt-1">Pour les promotions</p>
@@ -433,11 +524,18 @@ export default function ProductForm({ product, onSubmit, onCancel, isLoading = f
                 id="stock"
                 type="number"
                 value={formData.stock || ""}
-                onChange={(e) => handleInputChange("stock", Number.parseInt(e.target.value) || 0)}
+                onChange={(e) =>
+                  handleInputChange(
+                    "stock",
+                    Number.parseInt(e.target.value) || 0
+                  )
+                }
                 placeholder="25"
                 className={errors.stock ? "border-red-500" : ""}
               />
-              {errors.stock && <p className="text-red-500 text-xs mt-1">{errors.stock}</p>}
+              {errors.stock && (
+                <p className="text-red-500 text-xs mt-1">{errors.stock}</p>
+              )}
             </div>
           </div>
 
@@ -446,7 +544,9 @@ export default function ProductForm({ product, onSubmit, onCancel, isLoading = f
               <Checkbox
                 id="inStock"
                 checked={formData.inStock}
-                onCheckedChange={(checked) => handleInputChange("inStock", checked)}
+                onCheckedChange={(checked) =>
+                  handleInputChange("inStock", checked)
+                }
               />
               <Label htmlFor="inStock">En stock</Label>
             </div>
@@ -455,7 +555,9 @@ export default function ProductForm({ product, onSubmit, onCancel, isLoading = f
               <Checkbox
                 id="isPromotion"
                 checked={formData.isPromotion}
-                onCheckedChange={(checked) => handleInputChange("isPromotion", checked)}
+                onCheckedChange={(checked) =>
+                  handleInputChange("isPromotion", checked)
+                }
               />
               <Label htmlFor="isPromotion">En promotion</Label>
             </div>
@@ -474,7 +576,9 @@ export default function ProductForm({ product, onSubmit, onCancel, isLoading = f
               value={newFeature}
               onChange={(e) => setNewFeature(e.target.value)}
               placeholder="Ajouter une caractéristique..."
-              onKeyPress={(e) => e.key === "Enter" && (e.preventDefault(), addFeature())}
+              onKeyPress={(e) =>
+                e.key === "Enter" && (e.preventDefault(), addFeature())
+              }
             />
             <Button type="button" onClick={addFeature} variant="outline">
               <Plus className="h-4 w-4" />
@@ -483,7 +587,11 @@ export default function ProductForm({ product, onSubmit, onCancel, isLoading = f
 
           <div className="flex flex-wrap gap-2">
             {formData.features.map((feature, index) => (
-              <Badge key={index} variant="secondary" className="flex items-center gap-1">
+              <Badge
+                key={index}
+                variant="secondary"
+                className="flex items-center gap-1"
+              >
                 {feature}
                 <Button
                   type="button"
@@ -534,67 +642,77 @@ export default function ProductForm({ product, onSubmit, onCancel, isLoading = f
         </CardContent>
       </Card> */}
       <Card>
-  <CardHeader>
-    <CardTitle>Images</CardTitle>
-  </CardHeader>
-  <CardContent className="space-y-4">
-    <label
-      htmlFor="fileUpload"
-      className="flex items-center cursor-pointer border rounded p-2 w-fit text-gray-600 hover:text-black hover:border-black"
-    >
-      <Upload className="h-4 w-4 mr-2" />
-      Ajouter une image
-    </label>
-    <input
-      id="fileUpload"
-      type="file"
-      accept="image/*"
-      className="hidden"
-      onChange={(e) => {
-        if (e.target.files && e.target.files[0]) {
-          setFormData((prev) => ({
-            ...prev,
-            images: [...prev.images, e.target.files![0]],
-          }));
-        }
-      }}
-    />
-
-    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-      {formData.images.map((file, index) => (
-        <div key={index} className="relative">
-          <img
-            src={typeof file === "string" ? file : URL.createObjectURL(file)}
-            alt={`Image ${index + 1}`}
-            className="w-full h-24 object-cover rounded border"
-          />
-          <Button
-            type="button"
-            variant="destructive"
-            size="icon"
-            className="absolute -top-2 -right-2 h-6 w-6"
-            onClick={() =>
-              setFormData((prev) => ({
-                ...prev,
-                images: prev.images.filter((_, i) => i !== index),
-              }))
-            }
+        <CardHeader>
+          <CardTitle>Images</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <label
+            htmlFor="fileUpload"
+            className="flex items-center cursor-pointer border rounded p-2 w-fit text-gray-600 hover:text-black hover:border-black"
           >
-            <X className="h-3 w-3" />
-          </Button>
-        </div>
-      ))}
-    </div>
-  </CardContent>
-</Card>
+            <Upload className="h-4 w-4 mr-2" />
+            Ajouter une image
+          </label>
+          <input
+            id="fileUpload"
+            type="file"
+            accept="image/*"
+            className="hidden"
+            onChange={(e) => {
+              if (e.target.files && e.target.files[0]) {
+                setFormData((prev) => ({
+                  ...prev,
+                  images: [...prev.images, e.target.files![0]],
+                }));
+              }
+            }}
+          />
 
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            {formData.images.map((file, index) => (
+              <div key={index} className="relative">
+                <img
+                  src={
+                    typeof file === "string" ? file : URL.createObjectURL(file)
+                  }
+                  alt={`Image ${index + 1}`}
+                  className="w-full h-24 object-cover rounded border"
+                />
+                <Button
+                  type="button"
+                  variant="destructive"
+                  size="icon"
+                  className="absolute -top-2 -right-2 h-6 w-6"
+                  onClick={() =>
+                    setFormData((prev) => ({
+                      ...prev,
+                      images: prev.images.filter((_, i) => i !== index),
+                    }))
+                  }
+                >
+                  <X className="h-3 w-3" />
+                </Button>
+              </div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Actions */}
       <div className="flex justify-end space-x-4">
-        <Button type="button" variant="outline" onClick={onCancel} disabled={isLoading}>
+        <Button
+          type="button"
+          variant="outline"
+          onClick={onCancel}
+          disabled={isLoading}
+        >
           Annuler
         </Button>
-        <Button type="submit" disabled={isLoading} className="bg-yellow-500 hover:bg-yellow-600 text-black">
+        <Button
+          type="submit"
+          disabled={isLoading}
+          className="bg-yellow-500 hover:bg-yellow-600 text-black"
+        >
           {isLoading ? (
             <>
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -608,5 +726,5 @@ export default function ProductForm({ product, onSubmit, onCancel, isLoading = f
         </Button>
       </div>
     </form>
-  )
+  );
 }

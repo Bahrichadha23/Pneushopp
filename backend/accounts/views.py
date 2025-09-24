@@ -1,6 +1,6 @@
 from rest_framework import status, generics
 from rest_framework.decorators import api_view, permission_classes
-from rest_framework.permissions import AllowAny
+from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.core.mail import send_mail
@@ -14,6 +14,42 @@ import string
 from .models import CustomUser
 from .serializers import UserRegistrationSerializer, UserLoginSerializer, UserSerializer
 from .email_utils import send_welcome_email, send_password_reset_email
+# from django.core.mail import send_mail
+# from django.conf import settings
+
+# def index(request):
+#     if request.method == 'POST':
+#         message = request.POST['This is testing email for SMTP Verification for registeration fro pneushop.tn']
+#         email = request.POST['zmarketingcompany@gmail.com']
+#         name = request.POST['Muhammad Sufian']
+#         send_mail(
+#             'Registeration Testing',
+#             message,
+#             'settings.EMAIL_HOST_USER',
+#             [email],
+#             fail_silently=False,
+
+#         )
+    
+#     return Response(request)
+
+from django.core.mail import send_mail
+from django.conf import settings
+from django.http import HttpResponse
+
+def index(request):
+    if request.method == 'GET':  # trigger email on GET for testing
+        send_mail(
+            subject='Registration Testing',
+            message='This is a testing email for SMTP verification.',
+            from_email=settings.EMAIL_HOST_USER,
+            recipient_list=['zmarketingcompany@gmail.com'],  # hardcoded test recipient
+            fail_silently=False,
+        )
+        return HttpResponse("Test email sent!")
+
+    return HttpResponse("Go to /?test=1 to trigger test email.")
+ 
 
 class RegisterView(generics.CreateAPIView):
     queryset = CustomUser.objects.all()
@@ -184,3 +220,11 @@ def verify_reset_token(request):
             'valid': False,
             'message': 'Token invalide'
         }, status=status.HTTP_404_NOT_FOUND)
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])  # only logged-in users
+def clients_list(request):
+    # Only non-admin users
+    clients = CustomUser.objects.filter(is_staff=False, is_superuser=False)
+    serializer = UserSerializer(clients, many=True)
+    return Response(serializer.data)

@@ -35,6 +35,8 @@ INSTALLED_APPS = [
     'products',
     'cart',
     'favorites',
+    'orders',
+    "suppliers",
 ]
 
 MIDDLEWARE = [
@@ -155,17 +157,14 @@ CORS_ALLOW_CREDENTIALS = True
 from decouple import config
 
 # Choose email backend - set EMAIL_BACKEND in .env file
-# EMAIL_BACKEND = config('EMAIL_BACKEND', default='django.core.mail.backends.console.EmailBackend')
-EMAIL_BACKEND = 'django.core.mail.backends.dummy.EmailBackend'
-# SMTP Configuration for real email sending
-EMAIL_HOST = config('EMAIL_HOST', default='smtp.gmail.com')
-EMAIL_PORT = config('EMAIL_PORT', default=587, cast=int)
-EMAIL_USE_TLS = config('EMAIL_USE_TLS',default=True,  cast=bool)
-EMAIL_USE_SLS = config('EMAIL_USE_SSL',default=False, cast=bool)
+DEBUG=True
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_HOST_USER = 'simontechengineer@gmail.com'
+EMAIL_HOST_PASSWORD = 'okrb rvmi rhky tjz               '
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 
-EMAIL_HOST_USER = config('EMAIL_HOST_USER', default='simontechengineer@gmail.com')
-EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD', default='aemg gqpm sqgn iljq')
-DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL', default='simontechengineer@gmail.com')
 # Alternative SMTP providers settings (uncomment and configure as needed):
 # 
 # Gmail: EMAIL_HOST='smtp.gmail.com', EMAIL_PORT=587, EMAIL_USE_TLS=True

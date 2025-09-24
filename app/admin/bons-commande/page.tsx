@@ -1,92 +1,197 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { Calendar, Package, Truck, ShoppingCart, Check } from "lucide-react"
-
-// Mock data
-const mockBonsCommande = [
-  {
-    id: "BC001",
-    fournisseur: "Michelin Tunisie",
-    dateCommande: "2024-01-15",
-    dateLivraisonPrevue: "2024-01-20",
-    articles: [
-      { nom: "Michelin Energy Saver 195/65R15", quantite: 50, prixUnitaire: 85 },
-      { nom: "Michelin Pilot Sport 225/45R17", quantite: 30, prixUnitaire: 120 },
-    ],
-    totalHT: 7650,
-    totalTTC: 9198,
-    statut: "confirmé",
-    priorite: "normale",
-  },
-  {
-    id: "BC002",
-    fournisseur: "Continental Distribution",
-    dateCommande: "2024-01-16",
-    dateLivraisonPrevue: "2024-01-19",
-    articles: [
-      { nom: "Continental EcoContact 205/55R16", quantite: 40, prixUnitaire: 95 },
-      { nom: "Continental WinterContact 195/65R15", quantite: 25, prixUnitaire: 110 },
-    ],
-    totalHT: 6550,
-    totalTTC: 7871,
-    statut: "en_attente",
-    priorite: "urgent",
-  },
-  {
-    id: "BC003",
-    fournisseur: "Pirelli Maghreb",
-    dateCommande: "2024-01-17",
-    dateLivraisonPrevue: "2024-01-24",
-    articles: [
-      { nom: "Pirelli P Zero 245/40R18", quantite: 20, prixUnitaire: 180 },
-      { nom: "Pirelli Cinturato P7 225/50R17", quantite: 35, prixUnitaire: 140 },
-    ],
-    totalHT: 8500,
-    totalTTC: 10200,
-    statut: "livré",
-    priorite: "normale",
-  },
-]
+import { useState, useEffect } from "react";
+import type { BonCommande } from "@/types/bonCommande";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { Calendar, Package, Truck, ShoppingCart, Check } from "lucide-react";
+import { API_URL } from "@/lib/config";
 
 export default function BonsCommandePage() {
-  const [bonsCommande] = useState(mockBonsCommande)
-  const [searchTerm, setSearchTerm] = useState("")
+  const [bonsCommande, setBonsCommande] = useState<BonCommande[]>([]);
+
+  const [selectedBon, setSelectedBon] = useState<BonCommande | null>(null);
+  const [showForm, setShowForm] = useState(false);
+
+  const handleViewBon = (bon: BonCommande) => {
+    setSelectedBon(bon);
+    setShowForm(true);
+  };
+
+  const [searchTerm, setSearchTerm] = useState("");
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const token = localStorage.getItem("access_token");
+        const res = await fetch(`${API_URL}/purchase-orders`, {
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        if (!res.ok) {
+          console.error("HTTP Error:", res.status, await res.text());
+          throw new Error("Erreur API");
+        }
+
+        const data = await res.json();
+        console.log("API Response:", data);
+
+        const normalizedData = (data.results ?? data ?? []).map((bon: any) => ({
+          id: bon.id,
+          order_id: bon.order?.id ?? null, // 👈 make sure this exists
+          order: bon.order?.id ?? null, // 👈 keep order in sync
+          fournisseur: bon.fournisseur ?? "",
+          dateCommande: bon.date_commande ?? "",
+          dateLivraisonPrevue: bon.date_livraison_prevue ?? "",
+          articles: bon.articles ?? [],
+          totalHT: bon.totalHT ?? 0,
+          totalTTC: bon.totalTTC ?? 0,
+          statut: bon.statut ?? "en_attente",
+          priorite: bon.priorite ?? "normale",
+        }));
+
+        console.log("Normalized Data:", normalizedData);
+        setBonsCommande(normalizedData);
+      } catch (err) {
+        console.error("Erreur lors du fetch:", err);
+      }
+    };
+
+    fetchData();
+  }, []);
+
+  // const handleConfirmBon = async (id: number) => {
+  //   try {
+  //     const token = localStorage.getItem("access_token");
+  //     const res = await fetch(`${API_URL}/purchase-orders/${id}/`, {
+  //       method: "PUT", // or PATCH
+  //       headers: {
+  //         "Content-Type": "application/json",
+  //         Authorization: `Bearer ${token}`,
+  //       },
+  //       body: JSON.stringify({ statut: "confirmé" }),
+  //     });
+
+  //     if (!res.ok) throw new Error("Erreur lors de la confirmation");
+
+  //     // Update state
+  //     setBonsCommande((prev) =>
+  //       prev.map((bon) =>
+  //         bon.id === id ? { ...bon, statut: "confirmé" } : bon
+  //       )
+  //     );
+  //   } catch (err) {
+  //     console.error(err);
+  //   }
+  // };
+  const handleConfirmBon = async (id: number, order_id: number) => {
+    console.log("Confirm click:", id, order_id); // 🔍 Check this
+    console.log("PATCH request data:", {
+      id,
+      order: order_id,
+      statut: "confirmé",
+    });
+
+    try {
+      const token = localStorage.getItem("access_token");
+      const res = await fetch(`${API_URL}/purchase-orders/${id}/`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          statut: "confirmé",
+          order: order_id, // required by backend
+        }),
+      });
+
+      if (!res.ok) {
+        const errorData = await res.json();
+        console.error("Erreur lors de la confirmation:", errorData);
+        throw new Error("Erreur lors de la confirmation");
+      }
+      console.log("Confirm Bon:", id, order_id);
+
+      const updatedBon = await res.json();
+
+      setBonsCommande((prev) =>
+        prev.map((bon) =>
+          bon.id === id ? { ...bon, statut: updatedBon.statut } : bon
+        )
+      );
+    } catch (err) {
+      console.error(err);
+    }
+  };
 
   const getStatutBadge = (statut: string) => {
     switch (statut) {
       case "en_attente":
-        return <Badge variant="secondary" className="bg-yellow-100 text-yellow-800">En attente</Badge>
+        return (
+          <Badge variant="secondary" className="bg-yellow-100 text-yellow-800">
+            En attente
+          </Badge>
+        );
       case "confirmé":
-        return <Badge variant="secondary" className="bg-blue-100 text-blue-800">Confirmé</Badge>
+        return (
+          <Badge variant="secondary" className="bg-blue-100 text-blue-800">
+            Confirmé
+          </Badge>
+        );
       case "livré":
-        return <Badge variant="secondary" className="bg-green-100 text-green-800">Livré</Badge>
+        return (
+          <Badge variant="secondary" className="bg-green-100 text-green-800">
+            Livré
+          </Badge>
+        );
       default:
-        return <Badge variant="outline">{statut}</Badge>
+        return <Badge variant="outline">{statut}</Badge>;
     }
-  }
+  };
 
   const getPrioriteBadge = (priorite: string) => {
-    return priorite === "urgent" ? 
-      <Badge variant="destructive">Urgent</Badge> : 
+    return priorite === "urgent" ? (
+      <Badge variant="destructive">Urgent</Badge>
+    ) : (
       <Badge variant="outline">Normale</Badge>
-  }
+    );
+  };
 
-  const filteredBons = bonsCommande.filter(
-    (bon) =>
-      bon.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      bon.fournisseur.toLowerCase().includes(searchTerm.toLowerCase())
-  )
+  const filteredBons = bonsCommande.filter((bon) => {
+    const idMatch = bon.id
+      ? bon.id.toString().toLowerCase().includes(searchTerm.toLowerCase())
+      : false;
 
-  const totalCommandes = bonsCommande.length
-  const commandesEnAttente = bonsCommande.filter((b) => b.statut === "en_attente").length
-  const commandesConfirmees = bonsCommande.filter((b) => b.statut === "confirmé").length
-  const commandesLivrees = bonsCommande.filter((b) => b.statut === "livré").length
+    const fournisseurMatch = (bon.fournisseur ?? "")
+      .toLowerCase()
+      .includes(searchTerm.toLowerCase());
+
+    return idMatch || fournisseurMatch;
+  });
+
+  const totalCommandes = bonsCommande.length;
+  const commandesEnAttente = bonsCommande.filter(
+    (b) => b.statut === "en_attente"
+  ).length;
+  const commandesConfirmees = bonsCommande.filter(
+    (b) => b.statut === "confirmé"
+  ).length;
+  const commandesLivrees = bonsCommande.filter(
+    (b) => b.statut === "livré"
+  ).length;
 
   return (
     <div className="space-y-6">
@@ -103,7 +208,9 @@ export default function BonsCommandePage() {
       <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
         <Card>
           <CardHeader className="flex justify-between items-center">
-            <CardTitle className="text-sm font-medium">Total commandes</CardTitle>
+            <CardTitle className="text-sm font-medium">
+              Total commandes
+            </CardTitle>
             <Package className="h-4 w-4 text-blue-500" />
           </CardHeader>
           <CardContent>
@@ -117,7 +224,9 @@ export default function BonsCommandePage() {
             <Calendar className="h-4 w-4 text-yellow-500" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-yellow-600">{commandesEnAttente}</div>
+            <div className="text-2xl font-bold text-yellow-600">
+              {commandesEnAttente}
+            </div>
           </CardContent>
         </Card>
 
@@ -127,7 +236,9 @@ export default function BonsCommandePage() {
             <Check className="h-4 w-4 text-blue-500" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-blue-600">{commandesConfirmees}</div>
+            <div className="text-2xl font-bold text-blue-600">
+              {commandesConfirmees}
+            </div>
           </CardContent>
         </Card>
 
@@ -137,7 +248,9 @@ export default function BonsCommandePage() {
             <Truck className="h-4 w-4 text-green-500" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-green-600">{commandesLivrees}</div>
+            <div className="text-2xl font-bold text-green-600">
+              {commandesLivrees}
+            </div>
           </CardContent>
         </Card>
       </div>
@@ -161,21 +274,54 @@ export default function BonsCommandePage() {
               {getStatutBadge(bon.statut)}
             </div>
             <div className="text-sm space-y-1">
-              <div><strong>Fournisseur:</strong> {bon.fournisseur}</div>
-              <div><strong>Date commande:</strong> {new Date(bon.dateCommande).toLocaleDateString()}</div>
-              <div><strong>Livraison prévue:</strong> {new Date(bon.dateLivraisonPrevue).toLocaleDateString()}</div>
+              <div>
+                <strong>Fournisseur:</strong> {bon.fournisseur}
+              </div>
+              <div>
+                <strong>Date commande:</strong>{" "}
+                {new Date(bon.dateCommande).toLocaleDateString()}
+              </div>
+              <div>
+                <strong>Livraison prévue:</strong>{" "}
+                {new Date(bon.dateLivraisonPrevue).toLocaleDateString()}
+              </div>
               <div>
                 <strong>Articles:</strong>
                 {bon.articles.map((article, idx) => (
-                  <div key={idx}>{article.quantite}x {article.nom}</div>
+                  <div key={idx}>
+                    {article.quantite}x {article.nom}
+                  </div>
                 ))}
               </div>
-              <div><strong>Total TTC:</strong> {bon.totalTTC.toLocaleString()} DT</div>
-              <div><strong>Priorité:</strong> {getPrioriteBadge(bon.priorite)}</div>
+              <div>
+                <strong>Total TTC:</strong>{" "}
+                {(bon.totalTTC ?? 0).toLocaleString()} DT
+              </div>
+              <div>
+                <strong>Priorité:</strong> {getPrioriteBadge(bon.priorite)}
+              </div>
             </div>
             <div className="mt-2 flex flex-wrap gap-2">
-              <Button size="sm" variant="outline">Voir</Button>
-              {bon.statut === "en_attente" && <Button size="sm" variant="default">Confirmer</Button>}
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => handleViewBon(bon)}
+              >
+                Voir
+              </Button>
+
+              {bon.statut === "en_attente" && (
+                <Button
+                  size="sm"
+                  variant="default"
+                  onClick={() =>
+                    bon.order_id &&
+                    handleConfirmBon(Number(bon.id), Number(bon.order_id))
+                  }
+                >
+                  Confirmer
+                </Button>
+              )}
             </div>
           </Card>
         ))}
@@ -207,21 +353,50 @@ export default function BonsCommandePage() {
                   <TableRow key={bon.id}>
                     <TableCell className="font-medium">{bon.id}</TableCell>
                     <TableCell>{bon.fournisseur}</TableCell>
-                    <TableCell>{new Date(bon.dateCommande).toLocaleDateString()}</TableCell>
-                    <TableCell>{new Date(bon.dateLivraisonPrevue).toLocaleDateString()}</TableCell>
+                    <TableCell>
+                      {new Date(bon.dateCommande).toLocaleDateString()}
+                    </TableCell>
+                    <TableCell>
+                      {new Date(bon.dateLivraisonPrevue).toLocaleDateString()}
+                    </TableCell>
                     <TableCell>
                       <div className="space-y-1">
                         {bon.articles.map((article, idx) => (
-                          <div key={idx} className="text-sm">{article.quantite}x {article.nom}</div>
+                          <div key={idx} className="text-sm">
+                            {article.quantite}x {article.nom}
+                          </div>
                         ))}
                       </div>
                     </TableCell>
-                    <TableCell className="font-medium">{bon.totalTTC.toLocaleString()} DT</TableCell>
+                    <TableCell className="font-medium">
+                      {(bon.totalTTC ?? 0).toLocaleString()} DT
+                    </TableCell>
                     <TableCell>{getPrioriteBadge(bon.priorite)}</TableCell>
                     <TableCell>{getStatutBadge(bon.statut)}</TableCell>
                     <TableCell className="space-x-2 flex flex-wrap">
-                      <Button size="sm" variant="outline">Voir</Button>
-                      {bon.statut === "en_attente" && <Button size="sm" variant="default">Confirmer</Button>}
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => handleViewBon(bon)}
+                      >
+                        Voir
+                      </Button>
+
+                      {bon.statut === "en_attente" && (
+                        <Button
+                          size="sm"
+                          variant="default"
+                          onClick={() =>
+                            bon.order_id &&
+                            handleConfirmBon(
+                              Number(bon.id),
+                              Number(bon.order_id)
+                            )
+                          }
+                        >
+                          Confirmer
+                        </Button>
+                      )}
                     </TableCell>
                   </TableRow>
                 ))}
@@ -230,6 +405,55 @@ export default function BonsCommandePage() {
           </CardContent>
         </Card>
       </div>
+
+      {showForm && selectedBon && (
+        <div className="fixed inset-0 shadow-2xl flex justify-center items-center z-50">
+          <div className="bg-white p-6 rounded-lg w-96">
+            <h2 className="text-xl font-bold mb-4">Détails de la commande</h2>
+
+            <div className="space-y-2">
+              <div>
+                <strong>N° Bon:</strong> {selectedBon!.id}
+              </div>
+              <div>
+                <strong>Fournisseur:</strong> {selectedBon!.fournisseur}
+              </div>
+              <div>
+                <strong>Date commande:</strong>{" "}
+                {new Date(selectedBon!.dateCommande).toLocaleDateString()}
+              </div>
+              <div>
+                <strong>Livraison prévue:</strong>{" "}
+                {new Date(
+                  selectedBon!.dateLivraisonPrevue
+                ).toLocaleDateString()}
+              </div>
+              <div>
+                <strong>Articles:</strong>
+                {selectedBon!.articles.map((article, idx) => (
+                  <div key={idx}>
+                    {article.quantite}x {article.nom}
+                  </div>
+                ))}
+              </div>
+              <div>
+                <strong>Total TTC:</strong>{" "}
+                {(selectedBon!.totalTTC ?? 0).toLocaleString()} DT
+              </div>
+              <div>
+                <strong>Priorité:</strong> {selectedBon!.priorite}
+              </div>
+              <div>
+                <strong>Status:</strong> {selectedBon!.statut}
+              </div>
+            </div>
+
+            <div className="mt-4 flex justify-end gap-2">
+              <Button onClick={() => setShowForm(false)}>Fermer</Button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
-  )
+  );
 }

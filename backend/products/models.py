@@ -119,3 +119,29 @@ class OrderItem(models.Model):
     @property
     def total_price(self):
         return self.quantity * self.price
+
+
+### Adding Movement Stock Model ###
+class StockMovement(models.Model):
+    MOVEMENT_TYPE_CHOICES = [
+        ('in', 'Entrée'),          # Stock added
+        ('out', 'Sortie'),         # Stock removed (sale or adjustment)
+        ('adjustment', 'Ajustement')  # Manual adjustment
+    ]
+
+    product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='movements')
+    product_name = models.CharField(max_length=200, blank=True)  # Store product name at time of movement
+    type = models.CharField(max_length=20, choices=MOVEMENT_TYPE_CHOICES)
+    quantity = models.PositiveIntegerField()
+    reason = models.CharField(max_length=255, blank=True)  # optional
+    reference = models.CharField(max_length=100, blank=True)  # e.g., order number or invoice
+    created_by = models.CharField(max_length=100, blank=True)  # optional user/admin
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-created_at']
+        verbose_name = "Mouvement de stock"
+        verbose_name_plural = "Mouvements de stock"
+
+    def __str__(self):
+        return f"{self.get_type_display()} {self.quantity} x {self.product.name}"

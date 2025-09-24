@@ -33,6 +33,11 @@ export interface Order {
   updatedAt: Date
   trackingNumber?: string
   notes?: string
+  client: string
+  email?: string
+  date?: string
+  urgence?: "normale" | "haute"
+  
 }
 
 export interface OrderContextType {
