@@ -174,29 +174,6 @@ export default function DashboardStatsComponent({ stats }: DashboardStatsProps) 
           </div>
         </CardContent>
       </Card>
-
-      {/* Actions rapides */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Actions rapides</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="flex flex-wrap gap-3">
-            <button className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm">
-              <Plus className="h-4 w-4 mr-2" />
-              Nouveau produit
-            </button>
-            <button className="flex items-center px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 text-sm">
-              <Package className="h-4 w-4 mr-2" />
-              Gérer le stock
-            </button>
-            <button className="flex items-center px-4 py-2 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700 text-sm">
-              <Star className="h-4 w-4 mr-2" />
-              Produits vedettes
-            </button>
-          </div>
-        </CardContent>
-      </Card>
     </div>
   )
 }

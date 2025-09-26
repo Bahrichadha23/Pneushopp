@@ -65,10 +65,9 @@ export default function DeliveriesPage() {
 
   const filteredDeliveries = deliveries.filter((delivery) => {
     const matchesSearch =
-      delivery.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      delivery.client.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      delivery.commande.toLowerCase().includes(searchTerm.toLowerCase());
-
+      (delivery.id?.toString().toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
+      (delivery.client?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
+      (delivery.commande?.toLowerCase() || '').includes(searchTerm.toLowerCase());
     const matchesStatus =
       statusFilter === "tous" || delivery.statut === statusFilter;
 
@@ -135,11 +134,11 @@ export default function DeliveriesPage() {
               </p>
               <p>
                 <span className="font-semibold">Expédition:</span>{" "}
-                {delivery.dateExpedition}
+                {delivery.dateExpedition ? new Date(delivery.dateExpedition).toLocaleDateString() : "Non définie"}
               </p>
               <p>
                 <span className="font-semibold">Livraison:</span>{" "}
-                {delivery.dateLivraison}
+                {delivery.dateLivraison ? new Date(delivery.dateLivraison).toLocaleDateString() : "Non définie"}
               </p>
               <p>
                 <span className="font-semibold">Colis:</span> {delivery.colis}
@@ -214,8 +213,12 @@ export default function DeliveriesPage() {
                       )}
                     </div>
                   </TableCell>
-                  <TableCell>{delivery.dateExpedition}</TableCell>
-                  <TableCell>{delivery.dateLivraison}</TableCell>
+                  <TableCell>
+                    {delivery.dateExpedition ? new Date(delivery.dateExpedition).toLocaleDateString() : "Non définie"}
+                  </TableCell>
+                  <TableCell>
+                    {delivery.dateLivraison ? new Date(delivery.dateLivraison).toLocaleDateString() : "Non définie"}
+                  </TableCell>
                   <TableCell>{delivery.colis} colis</TableCell>
                 </TableRow>
               ))}

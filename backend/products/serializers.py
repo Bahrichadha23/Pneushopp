@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Product, Category
+from .models import Product, Category, SiteSettings
 
 class CategorySerializer(serializers.ModelSerializer):
     product_count = serializers.SerializerMethodField()
@@ -45,3 +45,11 @@ class ProductDetailSerializer(ProductSerializer):
         ).exclude(id=obj.id)[:4]
         
         return ProductSerializer(related, many=True, context=self.context).data
+
+
+
+
+class SiteSettingsSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = SiteSettings
+        fields = '__all__'

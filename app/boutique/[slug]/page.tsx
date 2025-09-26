@@ -4,13 +4,15 @@ import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import Header from "@/components/header";
 import Footer from "@/components/footer";
-import { Loader2 } from "lucide-react";
+import { Loader2, ShoppingCart } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import type { Product } from "@/types/product";
-// import { API_URL } from "@/lib/config";
-// Fetch a single product by slug
+import { API_URL } from "@/lib/config";
+import { useCart } from "@/contexts/cart-context";
+
+
 async function fetchProduct(slug: string) {
-  const res = await fetch(`http://localhost:8000/products/${slug}/`);
+  const res = await fetch(`${API_URL}/products/${slug}`);
   if (!res.ok) {
     throw new Error("Erreur lors du chargement du produit");
   }
@@ -22,6 +24,7 @@ export default function ProductDetailsPage() {
   const [product, setProduct] = useState<Product | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const { addToCart } = useCart();
 
   useEffect(() => {
     if (!slug) return;
@@ -34,6 +37,7 @@ export default function ProductDetailsPage() {
         // Convert API product into your frontend type
         const converted: Product = {
           id: data.id.toString(),
+          slug: data.slug,
           name: data.name,
           brand: data.brand,
           model: data.size,
@@ -72,6 +76,18 @@ export default function ProductDetailsPage() {
 
     loadProduct();
   }, [slug]);
+
+  const handleAddToCart = async () => {
+    if (product) {
+      try {
+        await addToCart(product);
+        // Optionally show success message
+        console.log("Product added to cart successfully!");
+      } catch (error) {
+        console.error("Error adding to cart:", error);
+      }
+    }
+  };
 
   if (loading) {
     return (
@@ -131,7 +147,7 @@ export default function ProductDetailsPage() {
                 {product.price} €
               </p>
               {product.old_price && (
-                <p className="text-lg text-gray-400 line-through">
+                <p className="text-lg text-red-400 line-through">
                   {product.old_price} €
                 </p>
               )}
@@ -139,9 +155,16 @@ export default function ProductDetailsPage() {
 
             <p className="text-gray-700 mb-6">{product.description}</p>
 
-            <Button disabled={!product.inStock}>
-              {product.inStock ? "Ajouter au panier" : "Rupture de stock"}
-            </Button>
+            <div className="flex gap-4">
+              <Button
+                onClick={handleAddToCart}
+                disabled={!product.inStock}
+                className="flex-1 bg-yellow-500 hover:bg-yellow-600 text-black font-medium"
+              >
+                <ShoppingCart className="w-4 h-4 mr-2" />
+                {product.inStock ? "Ajouter au panier" : "Rupture de stock"}
+              </Button>
+            </div>
           </div>
         </div>
       </main>

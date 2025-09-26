@@ -7,6 +7,7 @@ class Order(models.Model):
         ('processing', 'Processing'),
         ('shipped', 'Shipped'),
         ('delivered', 'Delivered'),
+        ('completed', 'Completed'),
         ('cancelled', 'Cancelled'),
     ]
     
@@ -89,7 +90,9 @@ class PurchaseOrderItem(models.Model):
 
 
 class Delivery(models.Model):
-    order = models.ForeignKey("Order", on_delete=models.CASCADE, related_name="deliveries")
+    # order = models.ForeignKey("Order", on_delete=models.CASCADE, related_name="deliveries")
+    purchase_order = models.ForeignKey("PurchaseOrder", on_delete=models.CASCADE, related_name="deliveries", null=True, blank=True)
+    order = models.ForeignKey("Order", on_delete=models.CASCADE, related_name="deliveries", null=True, blank=True)
     client = models.CharField(max_length=255)
     adresse = models.TextField()
     transporteur = models.CharField(max_length=255)
@@ -103,4 +106,8 @@ class Delivery(models.Model):
     colis = models.IntegerField(default=0)
 
     def __str__(self):
-        return f"Delivery {self.id} for Order {self.order.id}"
+        if self.purchase_order:
+            return f"Delivery {self.id} for PO {self.purchase_order.id}"
+        elif self.order:
+            return f"Delivery {self.id} for Order {self.order.id}"
+        return f"Delivery {self.id}"

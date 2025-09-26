@@ -124,8 +124,8 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
                     item.product.season === "summer"
                       ? "ete"
                       : item.product.season === "winter"
-                      ? "hiver"
-                      : "toutes-saisons",
+                        ? "hiver"
+                        : "toutes-saisons",
                   specialty: "tourisme",
                 },
                 description: item.product.description || "",
@@ -247,7 +247,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       if (token) {
         // Clear backend cart
         await apiCall("/cart/clear/", {
-          method: "POST",
+          method: "DELETE",
         });
       }
       // Update local state

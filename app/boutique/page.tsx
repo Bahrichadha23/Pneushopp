@@ -42,14 +42,17 @@ interface ApiProduct {
 // Convert API product to frontend Product type
 const convertApiProduct = (apiProduct: ApiProduct): Product => ({
   id: apiProduct.id.toString(),
+  slug: apiProduct.slug,
   name: apiProduct.name,
   brand: apiProduct.brand,
   model: apiProduct.size,
   price: parseFloat(apiProduct.price),
-  originalPrice: apiProduct.old_price
+  is_on_sale: apiProduct.is_on_sale,
+
+  old_price: apiProduct.old_price
     ? parseFloat(apiProduct.old_price)
     : undefined,
-  discount: apiProduct.discount_percentage,
+  discount_percentage: apiProduct.discount_percentage,
   image: apiProduct.image || "/placeholder.jpg",
   images: [apiProduct.image || "/placeholder.jpg"],
   category: "auto",
@@ -124,6 +127,9 @@ export default function BoutiquePage() {
 
     fetchProducts();
   }, []);
+
+
+  
 
   // Filter and sort products
   const filteredProducts = products

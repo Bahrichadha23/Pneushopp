@@ -41,13 +41,53 @@ class UserSerializer(serializers.ModelSerializer):
     role = serializers.SerializerMethodField()
     firstName = serializers.SerializerMethodField()
     lastName = serializers.SerializerMethodField()
-    
+    telephone = serializers.SerializerMethodField()
+    adresse = serializers.SerializerMethodField()
+    dateInscription = serializers.SerializerMethodField()
+    type = serializers.SerializerMethodField()
+    totalCommandes = serializers.SerializerMethodField()
+    montantTotal = serializers.SerializerMethodField()
+    derniereCommande = serializers.SerializerMethodField()
     class Meta:
         model = CustomUser
         fields = ('id', 'username', 'email', 'phone', 'address', 'is_verified', 
-                 'firstName', 'lastName', 'role', 'is_staff', 'is_superuser')
+                'firstName', 'lastName', 'role', 'is_staff', 'is_superuser',
+                'telephone', 'adresse', 'dateInscription', 'type', 
+                'totalCommandes', 'montantTotal', 'derniereCommande')
         read_only_fields = ('id', 'is_verified', 'is_staff', 'is_superuser')
-        
+    
+
+
+    def get_telephone(self, obj):
+        return obj.phone
+
+    def get_adresse(self, obj):
+        return obj.address
+
+    def get_dateInscription(self, obj):
+        return obj.created_at.strftime('%d/%m/%Y') if obj.created_at else ""
+
+    def get_type(self, obj):
+        # You can determine this based on business logic
+        # For now, default to "particulier"
+        return "particulier"  # or implement your logic
+
+    def get_totalCommandes(self, obj):
+        # Count orders for this user
+        return obj.user_orders.count() if hasattr(obj, 'user_orders') else 0
+
+    def get_montantTotal(self, obj):
+        # Sum total amount from user's orders
+        if hasattr(obj, 'user_orders'):
+            return sum(order.total_amount for order in obj.user_orders.all())
+        return 0
+
+    def get_derniereCommande(self, obj):
+        # Get last order date
+        if hasattr(obj, 'user_orders'):
+            last_order = obj.user_orders.order_by('-created_at').first()
+            return last_order.created_at.strftime('%d/%m/%Y') if last_order else "Aucune"
+        return "Aucune"
     def get_role(self, obj):
         """Determine user role based on Django permissions"""
         if obj.is_staff or obj.is_superuser:

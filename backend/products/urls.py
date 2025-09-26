@@ -10,5 +10,9 @@ urlpatterns = [
     # Excel import endpoints
     path('import/excel/', import_views.import_products_excel, name='import_excel'),
     path('import/preview/', import_views.import_preview, name='import_preview'),
-    path('<slug:slug>/', views.ProductDetailView.as_view(), name='product_detail'),
+    path('site-settings/', views.site_settings, name='site_settings'),
+
+    path('<slug:slug>/', views.ProductDetailView.as_view(), name='product_detail'), 
+    path('<int:id>/', views.ProductDetailView.as_view(), name='product_detail'),
+
 ]

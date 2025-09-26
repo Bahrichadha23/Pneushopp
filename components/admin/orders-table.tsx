@@ -7,8 +7,8 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { Eye, Edit, Truck, Search } from "lucide-react"
-
+import { Eye, Edit, Truck, Search, Package } from "lucide-react"
+import { createPurchaseOrder } from "@/lib/services/purchase-order"
 interface OrdersTableProps {
   orders: Order[]
   onViewOrder: (orderId: string) => void
@@ -20,7 +20,7 @@ export default function OrdersTable({ orders, onViewOrder, onEditOrder, onUpdate
   const [searchTerm, setSearchTerm] = useState("")
   const [statusFilter, setStatusFilter] = useState<string>("all")
   const [paymentFilter, setPaymentFilter] = useState<string>("all")
-
+  const [expandedOrderId, setExpandedOrderId] = useState<string | null>(null);
   const formatCurrency = (amount: number) =>
     new Intl.NumberFormat("fr-TN", {
       style: "currency",
@@ -153,75 +153,143 @@ export default function OrdersTable({ orders, onViewOrder, onEditOrder, onUpdate
           </TableHeader>
           <TableBody>
             {filteredOrders.map((order) => (
-              <TableRow key={order.id}>
-                <TableCell className="font-medium">#{order.orderNumber}</TableCell>
-                <TableCell>
-                  <div>
-                    <p className="font-medium">{order.customerName}</p>
-                    <p className="text-sm text-gray-500">{order.customerEmail}</p>
-                  </div>
-                </TableCell>
-                <TableCell>{formatDate(order.createdAt)}</TableCell>
-                <TableCell className="font-medium">{formatCurrency(order.totalAmount)}</TableCell>
-                <TableCell>{getStatusBadge(order.status)}</TableCell>
-                <TableCell>{getPaymentStatusBadge(order.paymentStatus)}</TableCell>
-                <TableCell>
-                  <div className="flex items-center gap-2">
-                    <Button variant="ghost" size="icon" onClick={() => onViewOrder(order.id)} title="Voir détails">
-                      <Eye className="h-4 w-4" />
-                    </Button>
-                    <Button variant="ghost" size="icon" onClick={() => onEditOrder(order.id)} title="Modifier">
-                      <Edit className="h-4 w-4" />
-                    </Button>
-                    {order.status === "confirmed" && (
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => onUpdateStatus(order.id, "shipped")}
-                        title="Marquer comme expédiée"
-                      >
-                        <Truck className="h-4 w-4" />
+              <>
+                <TableRow key={order.id}>
+                  <TableCell className="font-medium">#{order.orderNumber}</TableCell>
+                  <TableCell>
+                    <div>
+                      <p className="font-medium">{order.customerName}</p>
+                      <p className="text-sm text-gray-500">{order.customerEmail}</p>
+                    </div>
+                  </TableCell>
+                  <TableCell>{formatDate(order.createdAt)}</TableCell>
+                  <TableCell className="font-medium">{formatCurrency(order.totalAmount)}</TableCell>
+                  <TableCell>{getStatusBadge(order.status)}</TableCell>
+                  <TableCell>{getPaymentStatusBadge(order.paymentStatus)}</TableCell>
+                  <TableCell>
+                    <div className="flex items-center gap-2">
+                      <Button variant="ghost" size="icon" // Replace the onViewOrder prop with this inline function
+                        onClick={() => setExpandedOrderId(expandedOrderId === order.id ? null : order.id)} title="Voir détails">
+                        <Eye className="h-4 w-4" />
                       </Button>
-                    )}
-                  </div>
-                </TableCell>
-              </TableRow>
+
+                      {order.status === "confirmed" && (
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => onUpdateStatus(order.id, "shipped")}
+                          title="Marquer comme expédiée"
+                        >
+                          <Truck className="h-4 w-4" />
+                        </Button>
+                      )}
+
+                      {order.status === "processing" && (
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => createPurchaseOrder(order.id)}
+                          title="Créer bon de commande"
+                        >
+                          <Package className="h-4 w-4" />
+                        </Button>
+                      )}
+                    </div>
+                  </TableCell>
+                </TableRow>
+                {/* ADD THIS PART HERE - INSIDE the map but AFTER the TableRow */}
+                {expandedOrderId === order.id && (
+                  <TableRow>
+                    <TableCell colSpan={7} className="bg-gray-50 p-6">
+                      <div className="space-y-4">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div>
+                            <h4 className="font-semibold mb-2">Informations client</h4>
+                            <p><strong>Nom:</strong> {order.customerName}</p>
+                            <p><strong>Email:</strong> {order.customerEmail}</p>
+                            <p><strong>Téléphone:</strong> {order.customerPhone}</p>
+                          </div>
+                          <div>
+                            <h4 className="font-semibold mb-2">Détails commande</h4>
+                            <p><strong>Numéro:</strong> {order.orderNumber}</p>
+                            <p><strong>Date:</strong> {formatDate(order.createdAt)}</p>
+                            <p><strong>Suivi:</strong> {order.trackingNumber}</p>
+                          </div>
+                        </div>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                )}
+              </>
             ))}
-          </TableBody>
+          </TableBody >
         </Table>
       </div>
 
       {/* Mobile Card View */}
       <div className="space-y-4 md:hidden">
         {filteredOrders.map((order) => (
-          <div key={order.id} className="border rounded-lg p-4 bg-white shadow-sm">
-            <div className="flex justify-between items-center mb-2">
-              <span className="font-bold">#{order.orderNumber}</span>
-              {getStatusBadge(order.status)}
-            </div>
-            <div className="text-sm text-gray-700">
-              <p className="font-medium">{order.customerName}</p>
-              <p className="text-gray-500">{order.customerEmail}</p>
-            </div>
-            <div className="mt-2 text-sm text-gray-600">
-              <p>Date: {formatDate(order.createdAt)}</p>
-              <p>Montant: {formatCurrency(order.totalAmount)}</p>
-              <p>Paiement: {getPaymentStatusBadge(order.paymentStatus)}</p>
-            </div>
-            <div className="flex items-center gap-2 mt-3">
-              <Button variant="ghost" size="icon" onClick={() => onViewOrder(order.id)}>
-                <Eye className="h-4 w-4" />
-              </Button>
-              <Button variant="ghost" size="icon" onClick={() => onEditOrder(order.id)}>
-                <Edit className="h-4 w-4" />
-              </Button>
-              {order.status === "confirmed" && (
-                <Button variant="ghost" size="icon" onClick={() => onUpdateStatus(order.id, "shipped")}>
-                  <Truck className="h-4 w-4" />
+          <>
+            <div key={order.id} className="border rounded-lg p-4 bg-white shadow-sm">
+              <div className="flex justify-between items-center mb-2">
+                <span className="font-bold">#{order.orderNumber}</span>
+                {getStatusBadge(order.status)}
+              </div>
+              <div className="text-sm text-gray-700">
+                <p className="font-medium">{order.customerName}</p>
+                <p className="text-gray-500">{order.customerEmail}</p>
+              </div>
+              <div className="mt-2 text-sm text-gray-600">
+                <p>Date: {formatDate(order.createdAt)}</p>
+                <p>Montant: {formatCurrency(order.totalAmount)}</p>
+                <p>Paiement: {getPaymentStatusBadge(order.paymentStatus)}</p>
+              </div>
+              <div className="flex items-center gap-2 mt-3">
+                <Button variant="ghost" size="icon" // Replace the onViewOrder prop with this inline function
+                  onClick={() => setExpandedOrderId(expandedOrderId === order.id ? null : order.id)}>
+                  <Eye className="h-4 w-4" />
                 </Button>
-              )}
+
+                {order.status === "confirmed" && (
+                  <Button variant="ghost" size="icon" onClick={() => onUpdateStatus(order.id, "shipped")}>
+                    <Truck className="h-4 w-4" />
+                  </Button>
+                )}
+
+                {order.status === "processing" && (
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => createPurchaseOrder(order.id)}
+                    title="Créer bon de commande"
+                  >
+                    <Package className="h-4 w-4" />
+                  </Button>
+                )}
+              </div>
             </div>
-          </div>
+
+            {/* ADD THIS PART HERE - AFTER the card div */}
+            {expandedOrderId === order.id && (
+              <div className="mt-4 p-4 bg-gray-50 rounded-lg">
+                <div className="space-y-3">
+                  <div>
+                    <h4 className="font-semibold mb-2">Informations client</h4>
+                    <p><strong>Nom:</strong> {order.customerName}</p>
+                    <p><strong>Email:</strong> {order.customerEmail}</p>
+                    <p><strong>Téléphone:</strong> {order.customerPhone}</p>
+                  </div>
+                  <div>
+                    <h4 className="font-semibold mb-2">Détails commande</h4>
+                    <p><strong>Numéro:</strong> {order.orderNumber}</p>
+                    <p><strong>Date:</strong> {formatDate(order.createdAt)}</p>
+                    <p><strong>Suivi:</strong> {order.trackingNumber}</p>
+                  </div>
+                </div>
+              </div>
+            )}
+
+          </>
         ))}
       </div>
 

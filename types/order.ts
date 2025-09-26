@@ -19,7 +19,9 @@ export interface PaymentMethod {
 }
 
 export interface Order {
+
   id: string
+  numericId: number 
   userId?: string
   items: CartItem[]
   shippingAddress: ShippingAddress

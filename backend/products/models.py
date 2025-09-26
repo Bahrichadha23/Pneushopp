@@ -145,3 +145,37 @@ class StockMovement(models.Model):
 
     def __str__(self):
         return f"{self.get_type_display()} {self.quantity} x {self.product.name}"
+
+
+class SiteSettings(models.Model):
+    # Boutique settings
+    nom_boutique = models.CharField(max_length=255, default="PneuShop Tunisia")
+    description = models.TextField(default="Votre spécialiste en pneumatiques")
+    adresse = models.TextField(default="Avenue Habib Bourguiba, Tunis")
+    telephone = models.CharField(max_length=20, default="+216 71 123 456")
+    email = models.EmailField(default="contact@pneushop.tn")
+    horaires = models.CharField(max_length=255, default="Lun-Sam: 8h-18h")
+    
+    # Notifications
+    email_commandes = models.BooleanField(default=True)
+    email_stock = models.BooleanField(default=True)
+    sms_clients = models.BooleanField(default=False)
+    push_admin = models.BooleanField(default=True)
+    
+    # Security
+    session_timeout = models.IntegerField(default=30)
+    mot_de_passe_force = models.BooleanField(default=True)
+    authentification_double = models.BooleanField(default=False)
+    journalisation = models.BooleanField(default=True)
+    
+    # System
+    maintenance_mode = models.BooleanField(default=False)
+    sauvegarde_auto = models.BooleanField(default=True)
+    langue_principale = models.CharField(max_length=10, default="fr")
+    
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        verbose_name = "Paramètres du site"
+        verbose_name_plural = "Paramètres du site"

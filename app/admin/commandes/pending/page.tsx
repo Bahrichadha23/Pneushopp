@@ -25,10 +25,25 @@ import { API_URL } from "@/lib/config";
 
 export default function PendingOrdersPage() {
   const [orders, setOrders] = useState<Order[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
   const [searchTerm, setSearchTerm] = useState("");
   useEffect(() => {
-    fetchPendingOrders().then(setOrders);
+    const loadOrders = async () => {
+      try {
+        const data = await fetchPendingOrders();
+        console.log("🔍 Pending orders fetched:", data); // Add this
+        console.log("🔍 Count:", data.length); // Add this
+        setOrders(data);
+      } catch (err) {
+        setError("Impossible de charger les commandes.");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadOrders();
   }, []);
 
   async function fetchPendingOrders() {
@@ -45,13 +60,15 @@ export default function PendingOrdersPage() {
     const data = await res.json();
 
     // map backend data to frontend Order type
-    return data.map((o: any) => ({
-      id: o.id,
-      client: o.shippingAddress.firstName + " " + o.shippingAddress.lastName,
-      email: o.shippingAddress.email || "",
-      total: o.total,
+    return data.results.map((o: any) => ({
+      id: o.order_number, // or o.id if you prefer
+      numericId: o.id, // ✅ numeric backend ID for PATCH
+      client:
+        o.shipping_address.first_name + " " + o.shipping_address.last_name,
+      email: o.user.email || "",
+      total: parseFloat(o.total_amount), // convert to number
       items: o.items.length,
-      date: new Date(o.createdAt).toLocaleDateString("fr-FR"),
+      date: new Date(o.created_at).toLocaleDateString("fr-FR"),
       urgence: o.urgence || "normale",
     }));
   }
@@ -63,19 +80,50 @@ export default function PendingOrdersPage() {
     }).format(amount);
   };
 
-  const handleApprove = (orderId: string) => {
-    alert(`Commande ${orderId} approuvée (demo)`);
-  };
-
-  const handleReject = (orderId: string) => {
-    alert(`Commande ${orderId} rejetée (demo)`);
-  };
+  const handleApprove = (numericId: number) =>
+    updateOrderStatus(numericId, "processing");
+  const handleReject = (numericId: number) =>
+    updateOrderStatus(numericId, "cancelled");
 
   const filteredOrders = orders.filter(
     (order) =>
       order.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
       order.client.toLowerCase().includes(searchTerm.toLowerCase())
   );
+  // const updateOrderStatus = async (orderId: string, status: string) => {
+  //   const token = localStorage.getItem("access_token");
+  //   const res = await fetch(`${API_URL}/orders/${orderId}/`, {
+  //     method: "PATCH",
+  //     headers: {
+  //       "Content-Type": "application/json",
+  //       Authorization: `Bearer ${token}`,
+  //     },
+  //     body: JSON.stringify({ status }),
+  //   });
+  //   if (res.ok) {
+  //     setOrders((prev) => prev.filter((o) => o.id !== orderId));
+  //   }
+  // };
+  const updateOrderStatus = async (
+    numericId: number,
+    status: Order["status"]
+  ) => {
+    const token = localStorage.getItem("access_token");
+    const res = await fetch(`${API_URL}/orders/${numericId}/`, {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({ status }),
+    });
+    if (res.ok) {
+      setOrders((prev) => prev.filter((o) => o.numericId !== numericId));
+    }
+  };
+
+  if (loading) return <div>Chargement des commandes...</div>;
+  if (error) return <div className="text-red-500">{error}</div>;
 
   return (
     <div className="space-y-6">
@@ -174,7 +222,7 @@ export default function PendingOrdersPage() {
                   <Button
                     size="sm"
                     variant="outline"
-                    onClick={() => handleApprove(order.id)}
+                    onClick={() => handleApprove(order.numericId)}
                   >
                     <CheckCircle className="h-4 w-4 mr-1" />
                     Approuver
@@ -182,7 +230,7 @@ export default function PendingOrdersPage() {
                   <Button
                     size="sm"
                     variant="outline"
-                    onClick={() => handleReject(order.id)}
+                    onClick={() => handleReject(order.numericId)}
                   >
                     <XCircle className="h-4 w-4 mr-1" />
                     Rejeter
@@ -243,7 +291,7 @@ export default function PendingOrdersPage() {
                         <Button
                           size="sm"
                           variant="outline"
-                          onClick={() => handleApprove(order.id)}
+                          onClick={() => handleApprove(order.numericId)}
                           className="text-green-600 hover:text-green-700"
                         >
                           <CheckCircle className="h-4 w-4 mr-1" />
@@ -252,7 +300,7 @@ export default function PendingOrdersPage() {
                         <Button
                           size="sm"
                           variant="outline"
-                          onClick={() => handleReject(order.id)}
+                          onClick={() => handleReject(order.numericId)}
                           className="text-red-600 hover:text-red-700"
                         >
                           <XCircle className="h-4 w-4 mr-1" />

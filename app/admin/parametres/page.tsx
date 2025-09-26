@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -9,42 +9,186 @@ import { Switch } from "@/components/ui/switch"
 import { Textarea } from "@/components/ui/textarea"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Settings, Store, Bell, Shield, Database, Users } from "lucide-react"
-
-const mockParametres = {
-  boutique: {
-    nom: "PneuShop Tunisia",
-    description: "Votre spécialiste en pneumatiques en Tunisie",
-    adresse: "Avenue Habib Bourguiba, Tunis 1000",
-    telephone: "+216 71 123 456",
-    email: "contact@pneushop.tn",
-    horaires: "Lun-Sam: 8h-18h, Dim: 9h-13h"
-  },
-  notifications: {
-    emailCommandes: true,
-    emailStock: true,
-    smsClients: false,
-    pushAdmin: true
-  },
-  securite: {
-    sessionTimeout: 30,
-    motDePasseForce: true,
-    authentificationDouble: false,
-    journalisation: true
-  },
-  systeme: {
-    maintenanceMode: false,
-    sauvegaudeAuto: true,
-    frequenceSauvegarde: "quotidienne",
-    languePrincipale: "fr"
-  }
-}
+import { API_URL } from "@/lib/config"
 
 export default function ParametresPage() {
-  const [parametres, setParametres] = useState(mockParametres)
+  const [parametres, setParametres] = useState<any>(null)
+  const [loading, setLoading] = useState(true)
   const [activeTab, setActiveTab] = useState("boutique")
 
-  const handleSave = () => {
-    alert("Paramètres sauvegardés avec succès !")
+  // Fetch settings from backend
+  useEffect(() => {
+    const fetchSettings = async () => {
+      try {
+        const token = localStorage.getItem("access_token")
+        const response = await fetch(`${API_URL}/api/products/site-settings/`, {
+          headers: {
+            "Authorization": `Bearer ${token}`,
+            "Content-Type": "application/json"
+          }
+        })
+
+        if (response.ok) {
+          const data = await response.json()
+          // Transform backend data to frontend format
+          setParametres({
+            boutique: {
+              nom: data.nom_boutique,
+              description: data.description,
+              adresse: data.adresse,
+              telephone: data.telephone,
+              email: data.email,
+              horaires: data.horaires
+            },
+            notifications: {
+              emailCommandes: data.email_commandes,
+              emailStock: data.email_stock,
+              smsClients: data.sms_clients,
+              pushAdmin: data.push_admin
+            },
+            securite: {
+              sessionTimeout: data.session_timeout,
+              motDePasseForce: data.mot_de_passe_force,
+              authentificationDouble: data.authentification_double,
+              journalisation: data.journalisation
+            },
+            systeme: {
+              maintenanceMode: data.maintenance_mode,
+              sauvegaudeAuto: data.sauvegarde_auto,
+              languePrincipale: data.langue_principale
+            }
+          })
+        }
+      } catch (error) {
+        console.error("Error fetching settings:", error)
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchSettings()
+  }, [])
+
+  // Handle database backup
+  const handleBackup = async () => {
+    try {
+      const token = localStorage.getItem("access_token")
+      const response = await fetch(`${API_URL}/admin/backup/`, {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${token}`,
+          "Content-Type": "application/json"
+        }
+      })
+
+      if (response.ok) {
+        // Create download link
+        const blob = await response.blob()
+        const url = window.URL.createObjectURL(blob)
+        const a = document.createElement('a')
+        a.style.display = 'none'
+        a.href = url
+        a.download = `backup_${new Date().toISOString().slice(0, 19).replace(/:/g, '-')}.json`
+        document.body.appendChild(a)
+        a.click()
+        window.URL.revokeObjectURL(url)
+        document.body.removeChild(a)
+        console.log("Sauvegarde téléchargée avec succès !")
+      } else {
+        console.error("Erreur lors de la création de la sauvegarde")
+      }
+    } catch (error) {
+      console.error("Backup error:", error)
+      console.error("Erreur lors de la création de la sauvegarde")
+    }
+  }
+
+  // Handle customer data export
+  const handleExportCustomers = async () => {
+    try {
+      const token = localStorage.getItem("access_token")
+      const response = await fetch(`${API_URL}/admin/export-customers/`, {
+        headers: {
+          "Authorization": `Bearer ${token}`,
+          "Content-Type": "application/json"
+        }
+      })
+
+      if (response.ok) {
+        // Create download link
+        const blob = await response.blob()
+        const url = window.URL.createObjectURL(blob)
+        const a = document.createElement('a')
+        a.style.display = 'none'
+        a.href = url
+        a.download = `customers_export_${new Date().toISOString().slice(0, 19).replace(/:/g, '-')}.csv`
+        document.body.appendChild(a)
+        a.click()
+        window.URL.revokeObjectURL(url)
+        document.body.removeChild(a)
+        console.log("Données clients exportées avec succès !")
+      } else {
+        console.error("Erreur lors de l'export des données clients")
+      }
+    } catch (error) {
+      console.error("Export error:", error)
+      console.error("Erreur lors de l'export des données clients")
+    }
+  }
+  const handleSave = async () => {
+    if (!parametres) return;
+
+    try {
+      const token = localStorage.getItem("access_token")
+      // Transform frontend data to backend format
+      const backendData = {
+        nom_boutique: parametres.boutique.nom,
+        description: parametres.boutique.description,
+        adresse: parametres.boutique.adresse,
+        telephone: parametres.boutique.telephone,
+        email: parametres.boutique.email,
+        horaires: parametres.boutique.horaires,
+        email_commandes: parametres.notifications.emailCommandes,
+        email_stock: parametres.notifications.emailStock,
+        sms_clients: parametres.notifications.smsClients,
+        push_admin: parametres.notifications.pushAdmin,
+        session_timeout: parametres.securite.sessionTimeout,
+        mot_de_passe_force: parametres.securite.motDePasseForce,
+        authentification_double: parametres.securite.authentificationDouble,
+        journalisation: parametres.securite.journalisation,
+        maintenance_mode: parametres.systeme.maintenanceMode,
+        sauvegarde_auto: parametres.systeme.sauvegaudeAuto,
+        langue_principale: parametres.systeme.languePrincipale
+      }
+
+      const response = await fetch(`${API_URL}/products/site-settings/`, {
+        method: "PUT",
+        headers: {
+          "Authorization": `Bearer ${token}`,
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(backendData)
+      })
+
+      if (response.ok) {
+        console.log("Paramètres sauvegardés avec succès !")
+      } else {
+        alert("Erreur lors de la sauvegarde")
+      }
+    } catch (error) {
+      console.error("Error saving settings:", error)
+      alert("Erreur lors de la sauvegarde")
+    }
+  }
+  // Save settings to backend
+
+
+  if (loading) {
+    return <div className="flex justify-center items-center h-64">Chargement...</div>
+  }
+
+  if (!parametres) {
+    return <div className="flex justify-center items-center h-64">Erreur de chargement</div>
   }
 
   // Helper function to render switches
@@ -191,7 +335,7 @@ export default function ParametresPage() {
                 smsClients: "Envoyer des SMS de confirmation aux clients",
                 pushAdmin: "Notifications push dans l'interface admin",
               }
-              return renderSwitch(labels[key], descriptions[key], value, (checked) => setParametres({
+              return renderSwitch(labels[key], descriptions[key], Boolean(value), (checked) => setParametres({
                 ...parametres,
                 notifications: { ...parametres.notifications, [key]: checked }
               }))
@@ -226,13 +370,14 @@ export default function ParametresPage() {
                 authentificationDouble: "Sécurité renforcée avec 2FA",
                 journalisation: "Enregistrer toutes les actions administratives"
               }
-              return renderSwitch(labels[key], descriptions[key], parametres.securite.authentificationDouble, (checked) => setParametres({
+              return renderSwitch(labels[key], descriptions[key], parametres.securite[key], (checked) => setParametres({
                 ...parametres,
                 securite: { ...parametres.securite, [key]: checked }
               }))
             })}
           </div>
         </TabsContent>
+
 
         {/* Système */}
         <TabsContent value="systeme" className="space-y-6 pt-6">
@@ -261,10 +406,18 @@ export default function ParametresPage() {
             </div>
 
             <div className="flex flex-wrap gap-4 pt-4">
-              <Button variant="outline" className="flex items-center px-4 py-2">
+              <Button
+                variant="outline"
+                className="flex items-center px-4 py-2"
+                onClick={handleBackup}
+              >
                 <Database className="h-5 w-5 mr-2" /> Sauvegarder maintenant
               </Button>
-              <Button variant="outline" className="flex items-center px-4 py-2">
+              <Button
+                variant="outline"
+                className="flex items-center px-4 py-2"
+                onClick={handleExportCustomers}
+              >
                 <Users className="h-5 w-5 mr-2" /> Exporter données clients
               </Button>
               <Button variant="destructive" disabled className="flex items-center px-4 py-2">

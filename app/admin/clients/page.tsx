@@ -19,7 +19,8 @@ export default function ClientsPage() {
   const [clients, setClients] = useState<any[]>([]); // 👈 start empty
   const [searchTerm, setSearchTerm] = useState("");
   const [typeFilter, setTypeFilter] = useState("tous");
-
+  const [selectedClient, setSelectedClient] = useState<any>(null);
+  const [showClientDetails, setShowClientDetails] = useState(false);
   useEffect(() => {
     const fetchClients = async () => {
       try {
@@ -73,6 +74,15 @@ export default function ClientsPage() {
     return matchesSearch && matchesType;
   });
 
+  const handleViewClient = (client: any) => {
+    setSelectedClient(client);
+    setShowClientDetails(true);
+  };
+
+  const handleCloseClientDetails = () => {
+    setSelectedClient(null);
+    setShowClientDetails(false);
+  };
   const professionnels = clients.filter(
     (c) => c.type === "professionnel"
   ).length;
@@ -195,7 +205,11 @@ export default function ClientsPage() {
               </div>
             </div>
             <div className="mt-2 flex justify-end">
-              <Button size="sm" variant="outline">
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => handleViewClient(client)}
+              >
                 Voir détails
               </Button>
             </div>
@@ -256,7 +270,11 @@ export default function ClientsPage() {
                     </TableCell>
                     <TableCell>{client.derniereCommande}</TableCell>
                     <TableCell>
-                      <Button size="sm" variant="outline">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => handleViewClient(client)}
+                      >
                         Voir détails
                       </Button>
                     </TableCell>
@@ -267,6 +285,127 @@ export default function ClientsPage() {
           </CardContent>
         </Card>
       </div>
+      {/* Client Details Modal */}
+      {showClientDetails && selectedClient && (
+        <div className="fixed inset-0  bg-opacity-50 flex justify-center items-center z-50">
+          <div className="bg-white rounded-lg p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-2xl font-bold text-gray-900">
+                Détails du client
+              </h2>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleCloseClientDetails}
+              >
+                ✕
+              </Button>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Personal Information */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-lg">Informations personnelles</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  <div>
+                    <label className="text-sm font-medium text-gray-500">Nom complet</label>
+                    <p className="text-lg">{`${selectedClient.firstName} ${selectedClient.lastName}`.trim()}</p>
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium text-gray-500">Email</label>
+                    <p className="flex items-center">
+                      <Mail className="h-4 w-4 mr-2" />
+                      {selectedClient.email}
+                    </p>
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium text-gray-500">Téléphone</label>
+                    <p className="flex items-center">
+                      <Phone className="h-4 w-4 mr-2" />
+                      {selectedClient.telephone || "Non renseigné"}
+                    </p>
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium text-gray-500">Type de client</label>
+                    <p>{getClientTypeBadge(selectedClient.type)}</p>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Address Information */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-lg">Adresse</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="flex items-start">
+                    <MapPin className="h-4 w-4 mr-2 mt-1" />
+                    <p>{selectedClient.adresse || "Adresse non renseignée"}</p>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Account Information */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-lg">Informations du compte</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  <div>
+                    <label className="text-sm font-medium text-gray-500">Date d'inscription</label>
+                    <p>{selectedClient.dateInscription}</p>
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium text-gray-500">Statut du compte</label>
+                    <p>
+                      {selectedClient.is_verified ? (
+                        <Badge className="bg-green-500">Vérifié</Badge>
+                      ) : (
+                        <Badge variant="secondary">Non vérifié</Badge>
+                      )}
+                    </p>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Order Statistics */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-lg">Statistiques des commandes</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  <div>
+                    <label className="text-sm font-medium text-gray-500">Nombre de commandes</label>
+                    <p className="text-2xl font-bold text-blue-600">
+                      {selectedClient.totalCommandes}
+                    </p>
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium text-gray-500">Chiffre d'affaires total</label>
+                    <p className="text-2xl font-bold text-green-600">
+                      {formatCurrency(selectedClient.montantTotal)}
+                    </p>
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium text-gray-500">Dernière commande</label>
+                    <p>{selectedClient.derniereCommande}</p>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Action Buttons */}
+            <div className="flex justify-end gap-3 mt-6">
+              <Button variant="outline" onClick={handleCloseClientDetails}>
+                Fermer
+              </Button>
+
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

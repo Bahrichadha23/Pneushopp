@@ -3,35 +3,49 @@ from .models import Delivery, Order, PurchaseOrder
 from .serializers import DeliverySerializer, OrderSerializer, PurchaseOrderSerializer
 from rest_framework.permissions import IsAuthenticated
 
-
-class OrderListCreateView(generics.ListCreateAPIView):
-    queryset = Order.objects.all().order_by('-created_at')
-    serializer_class = OrderSerializer
-    permission_classes = [permissions.IsAuthenticated]
-
-    def perform_create(self, serializer):
-        serializer.save(user=self.request.user)
-
-
 class OrderDetailView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Order.objects.all()
     serializer_class = OrderSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.AllowAny]
 
 
 class OrderListCreateView(generics.ListCreateAPIView):
     serializer_class = OrderSerializer
+    # queryset = Order.objects.all().order_by('-created_at')
+
     permission_classes = [permissions.IsAuthenticated]
 
+    # def get_queryset(self):
+    #     # Admins see all orders, normal users only see theirs
+    #     user = self.request.user
+    #     if user.is_staff or user.is_superuser:
+    #         return Order.objects.all().order_by('-created_at')
+    #     return Order.objects.filter(user=user).order_by('-created_at')
     def get_queryset(self):
-        # Admins see all orders, normal users only see theirs
+    # Admins see all orders, normal users only see theirs
         user = self.request.user
         if user.is_staff or user.is_superuser:
-            return Order.objects.all().order_by('-created_at')
-        return Order.objects.filter(user=user).order_by('-created_at')
-
+            queryset = Order.objects.all().order_by('-created_at')
+        else:
+            queryset = Order.objects.filter(user=user).order_by('-created_at')
+        
+        # Filter by status if provided
+        status = self.request.query_params.get('status', None)
+        if status:
+            queryset = queryset.filter(status=status)
+        
+        return queryset
     def perform_create(self, serializer):
-        serializer.save(user=self.request.user)
+        # Generate order number if not provided
+        order = serializer.save(user=self.request.user)
+        if not order.order_number:
+            order.order_number = f'PN-{order.id:06d}'
+            order.save()
+        
+        # Generate tracking number
+        if not order.tracking_number:
+            order.tracking_number = f'TRK-{order.id:06d}'
+            order.save()
 
 
 

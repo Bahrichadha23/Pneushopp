@@ -6,7 +6,7 @@ export interface Livraison {
   adresse: string
   transporteur: string
   statut: "prepare" | "en_route" | "livre"
-  dateExpedition: string
-  dateLivraison: string
+  dateExpedition: string | null
+  dateLivraison: string | null
   colis: number
 }

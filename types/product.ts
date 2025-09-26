@@ -58,6 +58,7 @@
 // Types de données pour les produits et le système e-commerce
 export interface Product {
   id: string
+   slug: string
   name: string
   brand: string
   model: string

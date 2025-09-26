@@ -26,7 +26,7 @@ export default function ProductCard({
   };
 
   return (
-    <Link href={`/boutique/${product.id}`}>
+    <Link href={`/boutique/${product.slug}`}>
       <div
         className={`bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300 overflow-hidden ${className}`}
       >
@@ -40,11 +40,12 @@ export default function ProductCard({
 
           {/* Badges promotions et stock */}
           <div className="absolute top-2 left-2 flex flex-col gap-1">
-            {product.isPromotion && (
+            {product.is_on_sale && (
               <Badge className="bg-red-500 text-white">
-                -{product.discount}%
+                -{product.discount_percentage}%
               </Badge>
             )}
+
             {!product.inStock && (
               <Badge variant="destructive">Rupture de stock</Badge>
             )}
@@ -100,11 +101,11 @@ export default function ProductCard({
           {/* Prix */}
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-2">
-              <span className="text-lg font-bold text-gray-900">
+              <span className="text-2xl font-bold text-green-600">
                 {product.price} DT
               </span>
               {product.old_price && (
-                <span className="text-sm text-gray-500 line-through">
+                <span className="text-sm text-red-500 line-through">
                   {product.old_price} DT
                 </span>
               )}

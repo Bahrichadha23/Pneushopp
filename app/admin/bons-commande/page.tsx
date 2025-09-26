@@ -33,7 +33,7 @@ export default function BonsCommandePage() {
     const fetchData = async () => {
       try {
         const token = localStorage.getItem("access_token");
-        const res = await fetch(`${API_URL}/purchase-orders`, {
+        const res = await fetch(`${API_URL}/purchase-orders/`, {
           headers: {
             "Content-Type": "application/json",
             Authorization: `Bearer ${token}`,
@@ -56,8 +56,8 @@ export default function BonsCommandePage() {
           dateCommande: bon.date_commande ?? "",
           dateLivraisonPrevue: bon.date_livraison_prevue ?? "",
           articles: bon.articles ?? [],
-          totalHT: bon.totalHT ?? 0,
-          totalTTC: bon.totalTTC ?? 0,
+          totalHT: bon.total_ht ?? 0,
+          totalTTC: bon.total_ttc ?? 0,
           statut: bon.statut ?? "en_attente",
           priorite: bon.priorite ?? "normale",
         }));
@@ -96,47 +96,48 @@ export default function BonsCommandePage() {
   //     console.error(err);
   //   }
   // };
-  const handleConfirmBon = async (id: number, order_id: number) => {
-    console.log("Confirm click:", id, order_id); // 🔍 Check this
-    console.log("PATCH request data:", {
-      id,
-      order: order_id,
-      statut: "confirmé",
-    });
-
+  const handleConfirmBon = async (id: number, order_id: number | null) => {
+    console.log("🔍 Confirming:", { id, order_id });
+    console.log("🔍 Request URL:", `${API_URL}/purchase-orders/${id}/`);
     try {
       const token = localStorage.getItem("access_token");
+      
+      // Prepare the request body - only include order if it's valid
+      const requestBody: any = { statut: "confirmé" };
+      if (order_id && order_id > 0) {
+        requestBody.order = order_id;
+      }
+      
       const res = await fetch(`${API_URL}/purchase-orders/${id}/`, {
         method: "PATCH",
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({
-          statut: "confirmé",
-          order: order_id, // required by backend
-        }),
+        body: JSON.stringify(requestBody),
       });
 
       if (!res.ok) {
-        const errorData = await res.json();
-        console.error("Erreur lors de la confirmation:", errorData);
-        throw new Error("Erreur lors de la confirmation");
+        console.log("🔍 Response status:", res.status);
+        const errorText = await res.text();
+        console.error("Error response:", errorText);
+        alert("Erreur lors de la confirmation: " + errorText);
+        return;
       }
-      console.log("Confirm Bon:", id, order_id);
 
-      const updatedBon = await res.json();
-
+      // Update the local state
       setBonsCommande((prev) =>
         prev.map((bon) =>
-          bon.id === id ? { ...bon, statut: updatedBon.statut } : bon
+          bon.id === id ? { ...bon, statut: "confirmé" } : bon
         )
       );
+
+      alert("Bon de commande confirmé avec succès!");
     } catch (err) {
-      console.error(err);
+      console.error("Error:", err);
+      alert("Erreur lors de la confirmation");
     }
   };
-
   const getStatutBadge = (statut: string) => {
     switch (statut) {
       case "en_attente":
@@ -314,10 +315,7 @@ export default function BonsCommandePage() {
                 <Button
                   size="sm"
                   variant="default"
-                  onClick={() =>
-                    bon.order_id &&
-                    handleConfirmBon(Number(bon.id), Number(bon.order_id))
-                  }
+                  onClick={() => handleConfirmBon(Number(bon.id), bon.order_id)}
                 >
                   Confirmer
                 </Button>
@@ -386,13 +384,7 @@ export default function BonsCommandePage() {
                         <Button
                           size="sm"
                           variant="default"
-                          onClick={() =>
-                            bon.order_id &&
-                            handleConfirmBon(
-                              Number(bon.id),
-                              Number(bon.order_id)
-                            )
-                          }
+                          onClick={() => handleConfirmBon(Number(bon.id), bon.order_id)}
                         >
                           Confirmer
                         </Button>

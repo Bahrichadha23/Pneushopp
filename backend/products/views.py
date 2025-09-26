@@ -5,10 +5,12 @@ from rest_framework.filters import SearchFilter, OrderingFilter
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
-from django.db.models import Q
-from .models import Product, Category
-from .serializers import ProductSerializer, CategorySerializer
 
+from .models import Product, Category, SiteSettings
+from .serializers import ProductSerializer, CategorySerializer, SiteSettingsSerializer
+from rest_framework.permissions import IsAuthenticated, AllowAny
+from django.db.models import Q
+from django.db import models
 
 class ProductListView(generics.ListAPIView):
     queryset = Product.objects.filter(is_active=True)
@@ -113,3 +115,19 @@ def product_filters(request):
         'price_range': price_range
     })
 
+
+@api_view(['GET', 'PUT'])
+@permission_classes([AllowAny])
+def site_settings(request):
+    settings, created = SiteSettings.objects.get_or_create(pk=1)
+    
+    if request.method == 'GET':
+        serializer = SiteSettingsSerializer(settings)
+        return Response(serializer.data)
+    
+    elif request.method == 'PUT':
+        serializer = SiteSettingsSerializer(settings, data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=400)

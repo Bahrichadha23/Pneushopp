@@ -58,25 +58,29 @@ export default function AdminLayout({
             <Button
               onClick={handleLogout}
               size="icon"
-              className="bg-white text-red-600 cursor-pointer hover:bg-red-700 hover:text-white"
+              className="bg-white text-red-600 cursor-pointer hover:bg-red-700 hover:text-white sm:hidden"
             >
               <LogOutIcon className="w-4 h-4" />
             </Button>
+
           </div>
         </div>
         {/* Page content */}
-        <main className="flex-1 overflow-y-auto pt-14 md:pt-0">
+        <main className="flex-1 overflow-y-auto  pt-14 md:pt-0">
           {/* Logout button aligned right */}
           <div className="flex w-full justify-end pt-8 px-6 cursor-pointer">
-            <Button
-              onClick={handleLogout}
-              variant="outline"
-              className="flex items-center gap-2 text-red-600 hover:text-red-700 hover:bg-red-50 "
-            >
-              <LogOutIcon className="w-4 h-4" />
-              <span className="hidden sm:inline">Déconnexion</span>
-            </Button>
+            <div className="hidden sm:flex">
+              <Button
+                onClick={handleLogout}
+                variant="outline"
+                className="flex items-center gap-2 text-red-600 hover:text-red-700 hover:bg-red-50"
+              >
+                <LogOutIcon className="w-4 h-4" />
+                <span>Déconnexion</span>
+              </Button>
+            </div>
           </div>
+
 
           {/* Page Content */}
           <div className="p-4">{children}</div>

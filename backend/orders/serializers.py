@@ -5,7 +5,8 @@ from accounts.serializers import UserSerializer  # import your CustomUser serial
 class OrderItemSerializer(serializers.ModelSerializer):
     class Meta:
         model = OrderItem
-        fields = "__all__"
+        fields = ['product_name', 'product_id', 'quantity', 'unit_price', 'total_price', 'specifications']
+        # Exclude 'order' field - it will be set automatically
 
 
 class OrderSerializer(serializers.ModelSerializer):
@@ -51,7 +52,7 @@ class PurchaseOrderItemSerializer(serializers.ModelSerializer):
 #         return purchase_order
 class PurchaseOrderSerializer(serializers.ModelSerializer):
     articles = PurchaseOrderItemSerializer(many=True)
-    order = serializers.PrimaryKeyRelatedField(queryset=Order.objects.all(), required=True)
+    order = serializers.PrimaryKeyRelatedField(queryset=Order.objects.all(), required=False)
     order_id = serializers.IntegerField(source="order.id", read_only=True)
 
     class Meta:
@@ -94,25 +95,86 @@ class PurchaseOrderSerializer(serializers.ModelSerializer):
                     prix_unitaire=article_data.get("prix_unitaire")
                 )
         
-        if instance.statut == "confirmé" and instance.order:
-                Delivery.objects.create(
-                    order=instance.order,
-                    client=instance.fournisseur,
-                    adresse="",
-                    transporteur="",
-                    statut="prepare",
-                    colis=sum(item.quantite for item in instance.articles.all())
-                )
+        # Create delivery when purchase order is confirmed
+        print(f"DEBUG: PO {instance.id} - Status: {instance.statut}, Order: {instance.order}")
+        
+        # if instance.statut == "confirmé":
+        #     if instance.order:
+        #         # Check if delivery already exists for this specific purchase order
+        #         delivery_identifier = f"PO-{instance.id}"
+                
+        #         existing_delivery = Delivery.objects.filter(
+        #             order=instance.order,
+        #             client__contains=delivery_identifier
+        #         ).first()
+                
+        #         print(f"DEBUG: PO {instance.id} - Existing delivery: {existing_delivery}")
+                
+        #         if not existing_delivery:
+        #             try:
+        #                 new_delivery = Delivery.objects.create(
+        #                     order=instance.order,
+        #                     client=f"{instance.fournisseur} ({delivery_identifier})",
+        #                     adresse="Adresse à définir",
+        #                     transporteur="Transporteur à assigner",
+        #                     statut="prepare",
+        #                     colis=sum(item.quantite for item in instance.articles.all())
+        #                 )
+        #                 print(f"SUCCESS: Created delivery {new_delivery.id} for PO {instance.id}")
+        #             except Exception as e:
+        #                 print(f"ERROR: Failed to create delivery for PO {instance.id}: {e}")
+        #         else:
+        #             print(f"SKIP: Delivery already exists for PO {instance.id}")
+        #     else:
+        #         print(f"ERROR: PO {instance.id} has no associated order - cannot create delivery")
+        # else:
+        #     print(f"SKIP: PO {instance.id} status is '{instance.statut}', not 'confirmé'")
 
+        if instance.statut == "confirmé":
+            # Check if delivery already exists for this purchase order
+            delivery_identifier = f"PO-{instance.id}"
+            
+            existing_delivery = Delivery.objects.filter(
+                purchase_order=instance,
+                client__contains=delivery_identifier
+            ).first()
+            
+            print(f"DEBUG: PO {instance.id} - Existing delivery: {existing_delivery}")
+            
+            if not existing_delivery:
+                try:
+                    new_delivery = Delivery.objects.create(
+                        purchase_order=instance,
+                        order=instance.order,  # This can be null
+                        client=f"{instance.fournisseur} ({delivery_identifier})",
+                        adresse="Entrepôt principal",  # Your warehouse address
+                        transporteur="À assigner",
+                        statut="prepare",
+                        colis=sum(item.quantite for item in instance.articles.all())
+                    )
+                    print(f"SUCCESS: Created delivery {new_delivery.id} for PO {instance.id}")
+                except Exception as e:
+                    print(f"ERROR: Failed to create delivery for PO {instance.id}: {e}")
+            else:
+                print(f"SKIP: Delivery already exists for PO {instance.id}")
 
         return instance
 
 class DeliverySerializer(serializers.ModelSerializer):
-    commande = serializers.CharField(source="order.id", read_only=True)
+    commande = serializers.SerializerMethodField()
+    
+    def get_commande(self, obj):
+        if obj.purchase_order:
+            return f"PO-{obj.purchase_order.id}"
+        elif obj.order:
+            return str(obj.order.id)
+        return "N/A"
+    dateExpedition = serializers.DateField(source="date_expedition", allow_null=True)
+    dateLivraison = serializers.DateField(source="date_livraison", allow_null=True)
 
     class Meta:
         model = Delivery
         fields = [
             "id", "commande", "client", "adresse", "transporteur",
-            "statut", "date_expedition", "date_livraison", "colis"
+            "statut", "dateExpedition", "dateLivraison", "colis"
         ]
