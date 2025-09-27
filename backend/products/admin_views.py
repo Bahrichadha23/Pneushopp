@@ -14,8 +14,8 @@ from django.http import HttpResponse, Http404
 from django.conf import settings
 from django.core.management import call_command
 from io import StringIO
-
-from .models import Product, Category, Order, OrderItem, StockMovement
+from orders.models import Order as o, OrderItem as oi
+from .models import Product, Category, StockMovement, OrderItem, Order
 from .admin_serializers import AdminProductSerializer, AdminCategorySerializer, AdminProductCreateUpdateSerializer, StockMovementSerializer
 from accounts.models import CustomUser
 
@@ -118,7 +118,7 @@ def admin_dashboard_stats(request):
     
     # Top selling products (by quantity in completed orders)
     top_selling_products = OrderItem.objects.filter(
-        order__status='completed'
+        order__status='delivered'
     ).values(
         'product__id', 'product__name', 'product__brand'
     ).annotate(
@@ -218,40 +218,43 @@ def reports_data(request):
     """Get comprehensive reports data for the reports page"""
     from django.db.models import Sum, Count
     from datetime import datetime, timedelta
-
+    
     # Get current date and calculate periods
     today = timezone.now().date()
     start_of_month = today.replace(day=1)
     start_of_week = today - timedelta(days=today.weekday())
     start_of_day = today
 
+
+    included_statuses = ['completed', 'delivered', 'processing', 'shipped']
+
     # Sales statistics
-    total_revenue = Order.objects.filter(status='completed').aggregate(
+    total_revenue = o.objects.filter(status__in=included_statuses).aggregate(
         total=Sum('total_amount')
     )['total'] or 0
 
     # Monthly stats
-    monthly_orders = Order.objects.filter(
-        created_at__date__gte=start_of_month,
-        status='completed'
+    monthly_orders = o.objects.filter(
+        created_at__date__gte=start_of_month    ,
+        status__in=included_statuses
     ).aggregate(
         total_orders=Count('id'),
         total_revenue=Sum('total_amount')
     )
 
     # Weekly stats
-    weekly_orders = Order.objects.filter(
+    weekly_orders = o.objects.filter(
         created_at__date__gte=start_of_week,
-        status='completed'
+        status__in=included_statuses
     ).aggregate(
         total_orders=Count('id'),
         total_revenue=Sum('total_amount')
     )
 
     # Daily stats
-    daily_orders = Order.objects.filter(
+    daily_orders = o.objects.filter(
         created_at__date=start_of_day,
-        status='completed'
+        status__in=included_statuses
     ).aggregate(
         total_orders=Count('id'),
         total_revenue=Sum('total_amount')
@@ -260,7 +263,7 @@ def reports_data(request):
     # Client and product stats
     total_customers = CustomUser.objects.filter(is_staff=False).count()
     total_products_sold = OrderItem.objects.filter(
-        order__status='completed'
+        order__status__in=included_statuses
     ).aggregate(total=Sum('quantity'))['total'] or 0
 
     # Debug: Print some stats
@@ -279,10 +282,10 @@ def reports_data(request):
         else:
             month_end = month_date.replace(month=month_date.month + 1, day=1) - timedelta(days=1)
 
-        month_orders = Order.objects.filter(
+        month_orders = o.objects.filter(
             created_at__date__gte=month_start,
             created_at__date__lte=month_end,
-            status='completed'
+            status__in=included_statuses
         ).aggregate(
             total_revenue=Sum('total_amount'),  # Use total_amount from Order model
             total_orders=Count('id')
@@ -295,18 +298,18 @@ def reports_data(request):
         })
 
     # Top products by revenue
-    top_products = OrderItem.objects.filter(
-        order__status='completed'
+    top_products = oi.objects.filter(
+    order__status__in=included_statuses
     ).values(
-        'product__name', 'product__brand'
+        'product_name'  # Direct field from OrderItem
     ).annotate(
         quantity=Sum('quantity'),
-        total_revenue=Sum('price')  # Use price field instead of total_amount
+        total_revenue=Sum('unit_price')  # Changed from 'price' to 'unit_price'
     ).order_by('-total_revenue')[:5]
 
     # Top clients by total spent
-    top_clients = Order.objects.filter(
-        status='completed'
+    top_clients = o.objects.filter(
+        status__in=included_statuses
     ).values(
         'user__username', 'user__first_name', 'user__last_name'
     ).annotate(
@@ -328,12 +331,12 @@ def reports_data(request):
         },
         'ventes_par_mois': monthly_evolution,
         'top_produits': [
-            {
-                'nom': f"{product['product__brand']} {product['product__name']}",
-                'ventes': product['quantity'],
-                'chiffre': float(product['total_revenue'])
-            } for product in top_products
-        ],
+        {
+            'nom': product['product_name'],  # Changed from f-string with brand
+            'ventes': product['quantity'],
+            'chiffre': float(product['total_revenue'])
+        } for product in top_products
+            ],
         'top_clients': [
             {
                 'nom': f"{client['user__first_name']} {client['user__last_name']}" if client['user__first_name'] and client['user__last_name'] else client['user__username'],

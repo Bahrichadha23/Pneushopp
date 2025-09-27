@@ -326,9 +326,8 @@ export default function ProductsPage() {
     const dataUri =
       "data:application/json;charset=utf-8," + encodeURIComponent(dataStr);
 
-    const exportFileDefaultName = `produits-${
-      new Date().toISOString().split("T")[0]
-    }.json`;
+    const exportFileDefaultName = `produits-${new Date().toISOString().split("T")[0]
+      }.json`;
 
     const linkElement = document.createElement("a");
     linkElement.setAttribute("href", dataUri);
@@ -359,33 +358,73 @@ export default function ProductsPage() {
   };
 
   return (
-    <div>
-      <div className="flex justify-between items-center mb-6">
+    <div className="p-4 sm:p-6">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6 gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">
+          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">
             Gestion des produits
           </h1>
-          <p className="text-gray-600">Gérez votre catalogue de pneumatiques</p>
+          <p className="text-gray-600 text-sm sm:text-base">
+            Gérez votre catalogue de pneumatiques
+          </p>
         </div>
 
-        <div className="flex gap-2">
-          <Button variant="outline" onClick={handleExportProducts}>
+        <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+          <Button
+            variant="outline"
+            onClick={handleExportProducts}
+            className="w-full sm:w-auto"
+          >
             <Download className="h-4 w-4 mr-2" />
             Exporter
           </Button>
+          {/* You can add Import button here too if needed */}
         </div>
       </div>
 
-      <ProductsTable
-        products={products}
-        onViewProduct={handleViewProduct}
-        onEditProduct={handleEditProduct}
-        onDeleteProduct={handleDeleteProduct}
-        onUpdateStock={handleUpdateStock}
-      />
+      {/* Products Table with scroll for mobile */}
+      <div className="overflow-x-auto">
+        <ProductsTable
+          products={products}
+          onViewProduct={handleViewProduct}
+          onEditProduct={handleEditProduct}
+          onDeleteProduct={handleDeleteProduct}
+          onUpdateStock={handleUpdateStock}
+        />
+      </div>
 
+      {/* Pagination */}
+      <div className="flex flex-wrap justify-center gap-2 mt-6 text-sm sm:text-base">
+        <Button
+          variant="outline"
+          disabled={pagination.page === 1}
+          onClick={() => loadProducts(pagination.page - 1)}
+          className="w-full sm:w-auto"
+        >
+          Previous
+        </Button>
+
+        <span className="text-gray-700 self-center">
+          Page {pagination.page} /{" "}
+          {Math.ceil(pagination.total / pagination.limit)}
+        </span>
+
+        <Button
+          variant="outline"
+          disabled={
+            pagination.page >= Math.ceil(pagination.total / pagination.limit)
+          }
+          onClick={() => loadProducts(pagination.page + 1)}
+          className="w-full sm:w-auto"
+        >
+          Next
+        </Button>
+      </div>
+
+      {/* Dialog */}
       <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="w-full max-w-4xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>
               {editingProduct ? "Modifier le produit" : "Nouveau produit"}

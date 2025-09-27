@@ -122,7 +122,7 @@ export default function RapportsPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold text-gray-900">Rapports & Analyses</h1>
-        <div className="flex space-x-2">
+        {/* <div className="flex space-x-2">
           <Button variant={periodeSelectionnee === "jour" ? "default" : "outline"}
             onClick={() => setPeriodeSelectionnee("jour")}>
             Jour
@@ -139,7 +139,7 @@ export default function RapportsPage() {
             <Calendar className="h-4 w-4 mr-2" />
             Actualiser
           </Button>
-        </div>
+        </div> */}
       </div>
 
       {!hasData && (

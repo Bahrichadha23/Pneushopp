@@ -250,7 +250,7 @@ export default function ProductsTable({
             <Package className="h-8 w-8 text-blue-500" />
             <div className="ml-3">
               <p className="text-sm font-medium text-gray-500">
-                Total produits
+                Produits Per Page
               </p>
               <p className="text-2xl font-bold text-gray-900">
                 {filteredAndSortedProducts.length}

@@ -164,7 +164,7 @@ EMAIL_HOST_PASSWORD = 'okrb rvmi rhky tjz               '
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-
+DEFAULT_FROM_EMAIL = 'simontechengineer@gmail.com'
 # Alternative SMTP providers settings (uncomment and configure as needed):
 # 
 # Gmail: EMAIL_HOST='smtp.gmail.com', EMAIL_PORT=587, EMAIL_USE_TLS=True

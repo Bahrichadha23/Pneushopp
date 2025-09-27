@@ -1,24 +1,27 @@
 // Formulaire d'inscription utilisateur
-"use client"
-import { useState } from "react"
-import type React from "react"
+"use client";
+import { useState } from "react";
+import type React from "react";
 
-import { useRouter } from "next/navigation"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Checkbox } from "@/components/ui/checkbox"
-import { Alert, AlertDescription } from "@/components/ui/alert"
-import { Eye, EyeOff, Loader2, AlertCircle } from "lucide-react"
-import { useAuth } from "@/contexts/auth-context"
-import Link from "next/link"
+import { useRouter } from "next/navigation";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Eye, EyeOff, Loader2, AlertCircle } from "lucide-react";
+import { useAuth } from "@/contexts/auth-context";
+import Link from "next/link";
 
 interface RegisterFormProps {
-  redirectTo?: string
-  onSuccess?: () => void
+  redirectTo?: string;
+  onSuccess?: () => void;
 }
 
-export default function RegisterForm({ redirectTo = "/", onSuccess }: RegisterFormProps) {
+export default function RegisterForm({
+  redirectTo = "/",
+  onSuccess,
+}: RegisterFormProps) {
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
@@ -28,64 +31,68 @@ export default function RegisterForm({ redirectTo = "/", onSuccess }: RegisterFo
     confirmPassword: "",
     acceptTerms: false,
     newsletter: false,
-  })
-  const [showPassword, setShowPassword] = useState(false)
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false)
-  const [errors, setErrors] = useState<Record<string, string>>({})
-  const [isLoading, setIsLoading] = useState(false)
+  });
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [isLoading, setIsLoading] = useState(false);
   // const [debugInfo, setDebugInfo] = useState<any>(null)
 
-  const { register } = useAuth()
-  const router = useRouter()
+  const { register } = useAuth();
+  const router = useRouter();
 
   const validateForm = () => {
-    const newErrors: Record<string, string> = {}
+    const newErrors: Record<string, string> = {};
 
     if (!formData.firstName.trim()) {
-      newErrors.firstName = "Le prénom est requis"
+      newErrors.firstName = "Le prénom est requis";
     }
 
     if (!formData.lastName.trim()) {
-      newErrors.lastName = "Le nom est requis"
+      newErrors.lastName = "Le nom est requis";
     }
 
     if (!formData.email.trim()) {
-      newErrors.email = "L'email est requis"
+      newErrors.email = "L'email est requis";
     } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
-      newErrors.email = "Format d'email invalide"
+      newErrors.email = "Format d'email invalide";
     }
 
     if (!formData.password) {
-      newErrors.password = "Le mot de passe est requis"
+      newErrors.password = "Le mot de passe est requis";
     } else if (formData.password.length < 6) {
-      newErrors.password = "Le mot de passe doit contenir au moins 6 caractères"
+      newErrors.password =
+        "Le mot de passe doit contenir au moins 6 caractères";
     }
 
     if (formData.password !== formData.confirmPassword) {
-      newErrors.confirmPassword = "Les mots de passe ne correspondent pas"
+      newErrors.confirmPassword = "Les mots de passe ne correspondent pas";
     }
 
     if (!formData.acceptTerms) {
-      newErrors.acceptTerms = "Vous devez accepter les conditions d'utilisation"
+      newErrors.acceptTerms =
+        "Vous devez accepter les conditions d'utilisation";
     }
 
-    if (formData.phone && !/^(\+216|216)?[0-9]{8}$/.test(formData.phone.replace(/\s/g, ""))) {
-      newErrors.phone = "Format de téléphone invalide (ex: +216 20 123 456)"
+    if (
+      formData.phone &&
+      !/^(\+216|216)?[0-9]{8}$/.test(formData.phone.replace(/\s/g, ""))
+    ) {
+      newErrors.phone = "Format de téléphone invalide (ex: +216 20 123 456)";
     }
 
-    setErrors(newErrors)
-    return Object.keys(newErrors).length === 0
-  }
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
+    e.preventDefault();
     // setDebugInfo(null)
 
-    if (!validateForm()) return
+    if (!validateForm()) return;
 
-    setIsLoading(true)
-    
-    
+    setIsLoading(true);
+
     try {
       const registerData = {
         firstName: formData.firstName.trim(),
@@ -95,77 +102,77 @@ export default function RegisterForm({ redirectTo = "/", onSuccess }: RegisterFo
         password: formData.password,
         acceptTerms: formData.acceptTerms,
         newsletter: formData.newsletter,
+      };
+
+      const result = await register(registerData);
+
+      console.log("📝 Registration result:", result);
+
+      if (result.success) {
+        console.log("✅ Registration successful");
+        if (onSuccess) {
+          onSuccess();
+        } else {
+          router.push(redirectTo);
+        }
+      } else {
+        console.log("❌ Registration failed:", result.error);
+        setErrors({ general: result.error || "Erreur lors de l'inscription" });
       }
-
-      const result = await register(registerData)
-      
-      console.log("📝 Registration result:", result)
-
-      // // if (result.success) {
-      // //   console.log("✅ Registration successful")
-      // //   if (onSuccess) {
-      // //     onSuccess()
-      // //   } else {
-      // //     router.push(redirectTo)
-      // //   }
-      // // } else {
-      // //   console.log("❌ Registration failed:", result.error)
-      // //   setErrors({ general: result.error || "Erreur lors de l'inscription" })
-      // // }
-
 
       // if (result.success) {
       //   console.log("✅ Registration successful")
-        
+
       //   // Show success message
       //   setErrors({ success: "Compte créé avec succès! Redirection vers la connexion..." })
-        
+
       //   // Auto-redirect to login after 2 seconds
       //   setTimeout(() => {
       //     router.push('/auth/login')
       //   }, 2000)
-        
+
       // } else {
       //   console.log("❌ Registration failed:", result.error)
       //   setErrors({ general: result.error || "Erreur lors de l'inscription" })
       // }
 
       // Skip validation - always show success and redirect
-console.log("✅ Registration successful (forced)")
+      console.log("✅ Registration successful (forced)");
 
-// Show success message
-setErrors({ success: "Compte créé avec succès! Redirection vers la connexion..." })
+      /// Successful LOGIN--------------------------------------------
+      // // Show success message
+      // setErrors({ success: "Compte créé avec succès! Redirection vers la connexion..." })
 
-// Auto-redirect to login after 2 seconds
-setTimeout(() => {
-  router.push('/auth/login')
-}, 2000)
+      // // Auto-redirect to login after 2 seconds
+      // setTimeout(() => {
+      //   router.push('/auth/login')
+      // }, 2000)
     } catch (err: any) {
-      console.error("💥 Registration error:", err)
-      setErrors({ general: "Erreur lors de l'inscription" })
+      console.error("💥 Registration error:", err);
+      setErrors({ general: "Erreur lors de l'inscription" });
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target
-    setFormData((prev) => ({ ...prev, [name]: value }))
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
 
     // Effacer l'erreur du champ modifié
     if (errors[name]) {
-      setErrors((prev) => ({ ...prev, [name]: "" }))
+      setErrors((prev) => ({ ...prev, [name]: "" }));
     }
-  }
+  };
 
   return (
     <div className="w-full max-w-md mx-auto">
       <div className="text-center mb-6">
         <h2 className="text-2xl font-bold text-gray-900">Créer un compte</h2>
-        <p className="text-gray-600 mt-2">Rejoignez PNEU SHOP pour des offres exclusives</p>
+        <p className="text-gray-600 mt-2">
+          Rejoignez PNEU SHOP pour des offres exclusives
+        </p>
       </div>
-
-      
 
       <form onSubmit={handleSubmit} className="space-y-4">
         <div className="grid grid-cols-2 gap-4">
@@ -181,7 +188,9 @@ setTimeout(() => {
               disabled={isLoading}
               className={errors.firstName ? "border-red-500" : ""}
             />
-            {errors.firstName && <p className="text-red-500 text-xs mt-1">{errors.firstName}</p>}
+            {errors.firstName && (
+              <p className="text-red-500 text-xs mt-1">{errors.firstName}</p>
+            )}
           </div>
 
           <div>
@@ -196,10 +205,11 @@ setTimeout(() => {
               disabled={isLoading}
               className={errors.lastName ? "border-red-500" : ""}
             />
-            {errors.lastName && <p className="text-red-500 text-xs mt-1">{errors.lastName}</p>}
+            {errors.lastName && (
+              <p className="text-red-500 text-xs mt-1">{errors.lastName}</p>
+            )}
           </div>
         </div>
-
         <div>
           <Label htmlFor="email">Email *</Label>
           <Input
@@ -213,9 +223,10 @@ setTimeout(() => {
             disabled={isLoading}
             className={errors.email ? "border-red-500" : ""}
           />
-          {errors.email && <p className="text-red-500 text-xs mt-1">{errors.email}</p>}
+          {errors.email && (
+            <p className="text-red-500 text-xs mt-1">{errors.email}</p>
+          )}
         </div>
-
         <div>
           <Label htmlFor="phone">Téléphone</Label>
           <Input
@@ -228,9 +239,10 @@ setTimeout(() => {
             disabled={isLoading}
             className={errors.phone ? "border-red-500" : ""}
           />
-          {errors.phone && <p className="text-red-500 text-xs mt-1">{errors.phone}</p>}
+          {errors.phone && (
+            <p className="text-red-500 text-xs mt-1">{errors.phone}</p>
+          )}
         </div>
-
         <div>
           <Label htmlFor="password">Mot de passe *</Label>
           <div className="relative">
@@ -253,14 +265,22 @@ setTimeout(() => {
               onClick={() => setShowPassword(!showPassword)}
               disabled={isLoading}
             >
-              {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+              {showPassword ? (
+                <EyeOff className="h-4 w-4" />
+              ) : (
+                <Eye className="h-4 w-4" />
+              )}
             </Button>
           </div>
-          {errors.password && <p className="text-red-500 text-xs mt-1">{errors.password}</p>}
+          {errors.password && (
+            <p className="text-red-500 text-xs mt-1">{errors.password}</p>
+          )}
           <p className="text-xs text-gray-500 mt-1">
-            Le mot de passe doit être suffisamment fort (évitez les mots courants comme "password123")
+            Le mot de passe doit être suffisamment fort (évitez les mots
+            courants comme "password123")
           </p>
-        </div>        <div>
+        </div>{" "}
+        <div>
           <Label htmlFor="confirmPassword">Confirmer le mot de passe *</Label>
           <div className="relative">
             <Input
@@ -282,39 +302,58 @@ setTimeout(() => {
               onClick={() => setShowConfirmPassword(!showConfirmPassword)}
               disabled={isLoading}
             >
-              {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+              {showConfirmPassword ? (
+                <EyeOff className="h-4 w-4" />
+              ) : (
+                <Eye className="h-4 w-4" />
+              )}
             </Button>
           </div>
-          {errors.confirmPassword && <p className="text-red-500 text-xs mt-1">{errors.confirmPassword}</p>}
+          {errors.confirmPassword && (
+            <p className="text-red-500 text-xs mt-1">
+              {errors.confirmPassword}
+            </p>
+          )}
         </div>
-
         <div className="space-y-3">
           <div className="flex items-start space-x-2">
             <Checkbox
               id="acceptTerms"
               checked={formData.acceptTerms}
-              onCheckedChange={(checked: boolean) => setFormData((prev) => ({ ...prev, acceptTerms: checked }))}
+              onCheckedChange={(checked: boolean) =>
+                setFormData((prev) => ({ ...prev, acceptTerms: checked }))
+              }
               disabled={isLoading}
               className={errors.acceptTerms ? "border-red-500" : ""}
             />
             <Label htmlFor="acceptTerms" className="text-sm leading-5">
               J'accepte les{" "}
-              <Link href="/conditions" className="text-yellow-600 hover:text-yellow-500">
+              <Link
+                href="/conditions"
+                className="text-yellow-600 hover:text-yellow-500"
+              >
                 conditions d'utilisation
               </Link>{" "}
               et la{" "}
-              <Link href="/confidentialite" className="text-yellow-600 hover:text-yellow-500">
+              <Link
+                href="/confidentialite"
+                className="text-yellow-600 hover:text-yellow-500"
+              >
                 politique de confidentialité
               </Link>
             </Label>
           </div>
-          {errors.acceptTerms && <p className="text-red-500 text-xs">{errors.acceptTerms}</p>}
+          {errors.acceptTerms && (
+            <p className="text-red-500 text-xs">{errors.acceptTerms}</p>
+          )}
 
           <div className="flex items-center space-x-2">
             <Checkbox
               id="newsletter"
               checked={formData.newsletter}
-              onCheckedChange={(checked: boolean) => setFormData((prev) => ({ ...prev, newsletter: checked }))}
+              onCheckedChange={(checked: boolean) =>
+                setFormData((prev) => ({ ...prev, newsletter: checked }))
+              }
               disabled={isLoading}
             />
             <Label htmlFor="newsletter" className="text-sm">
@@ -323,14 +362,18 @@ setTimeout(() => {
           </div>
         </div>
         {errors.success && (
-  <Alert className="border-green-500 bg-green-50">
-    <AlertCircle className="h-4 w-4 text-green-600" />
-    <AlertDescription className="text-green-700">
-      {errors.success}
-    </AlertDescription>
-  </Alert>
-)}
-        <Button type="submit" className="w-full bg-yellow-500 hover:bg-yellow-600 text-black" disabled={isLoading}>
+          <Alert className="border-green-500 bg-green-50">
+            <AlertCircle className="h-4 w-4 text-green-600" />
+            <AlertDescription className="text-green-700">
+              {errors.success}
+            </AlertDescription>
+          </Alert>
+        )}
+        <Button
+          type="submit"
+          className="w-full bg-yellow-500 hover:bg-yellow-600 text-black"
+          disabled={isLoading}
+        >
           {isLoading ? (
             <>
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -345,11 +388,14 @@ setTimeout(() => {
       <div className="mt-6 text-center">
         <p className="text-gray-600">
           Déjà un compte ?{" "}
-          <Link href="/auth/login" className="text-yellow-600 hover:text-yellow-500 font-medium">
+          <Link
+            href="/auth/login"
+            className="text-yellow-600 hover:text-yellow-500 font-medium"
+          >
             Se connecter
           </Link>
         </p>
       </div>
     </div>
-  )
+  );
 }
