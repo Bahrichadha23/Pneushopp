@@ -16,14 +16,14 @@ export default function NewsSection() {
       title: "ACTUALITÉS",
       image: "/industrial-tire-warehouse-with-shelving-and-lighti.jpg",
       description: "Restez informé des dernières actualités du secteur",
-      link: "/a-la-une",
+      link: "/a-propos",
     },
     {
       id: 3,
       title: "PROMOTION",
       image: "/modern-tire-storage-facility-with-industrial-light.jpg",
       description: "Profitez de nos offres promotionnelles exceptionnelles",
-      link: "/boutique",
+      link: "/promotion",
     },
   ];
 

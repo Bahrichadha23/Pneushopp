@@ -41,7 +41,7 @@ export default function ProductForm({
     brand: "",
     model: "",
     price: 0,
-    originalPrice: 0,
+    old_price: 0,
     category: "auto" as Product["category"],
     specifications: {
       width: 0,
@@ -72,7 +72,7 @@ export default function ProductForm({
         brand: product.brand,
         model: product.model,
         price: product.price,
-        originalPrice: product.old_price || 0,
+        old_price: product.old_price || 0,
         category: product.category,
         specifications: {
           width: product.specifications.width,
@@ -130,16 +130,15 @@ export default function ProductForm({
 
     try {
       const discount =
-        formData.originalPrice > formData.price
+        formData.old_price > formData.price
           ? Math.round(
-              ((formData.originalPrice - formData.price) /
-                formData.originalPrice) *
-                100
+              ((formData.old_price - formData.price) / formData.old_price) * 100
             )
           : 0;
 
       const productData: Partial<Product> = {
         ...formData,
+        old_price: formData.old_price,
         discount_percentage: discount > 0 ? discount : undefined,
         image: "/placeholder.svg",
       };
@@ -501,15 +500,15 @@ export default function ProductForm({
             </div>
 
             <div>
-              <Label htmlFor="originalPrice">Prix original (DT)</Label>
+              <Label htmlFor="old_price">Prix original (DT)</Label>
               <Input
-                id="originalPrice"
+                id="old_price"
                 type="number"
                 step="0.01"
-                value={formData.originalPrice || ""}
+                value={formData.old_price || ""}
                 onChange={(e) =>
                   handleInputChange(
-                    "originalPrice",
+                    "old_price",
                     Number.parseFloat(e.target.value) || 0
                   )
                 }

@@ -87,7 +87,7 @@ export interface Product {
   description: string
   features: string[]
   inStock: boolean
-
+  isPromotion?: boolean 
   rating?: number
   reviewCount?: number
 }

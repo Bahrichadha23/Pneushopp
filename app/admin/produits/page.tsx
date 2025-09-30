@@ -326,8 +326,9 @@ export default function ProductsPage() {
     const dataUri =
       "data:application/json;charset=utf-8," + encodeURIComponent(dataStr);
 
-    const exportFileDefaultName = `produits-${new Date().toISOString().split("T")[0]
-      }.json`;
+    const exportFileDefaultName = `produits-${
+      new Date().toISOString().split("T")[0]
+    }.json`;
 
     const linkElement = document.createElement("a");
     linkElement.setAttribute("href", dataUri);

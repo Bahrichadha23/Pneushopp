@@ -1,4 +1,3 @@
-
 "use client";
 import { useState } from "react";
 import { motion } from "framer-motion";
@@ -37,7 +36,7 @@ export default function TireGuideSection() {
   };
 
   return (
-    <section className="bg-white bg-white mt-2 lg:ml-58 lg:mr-58 m-14">
+    <section className="bg-white mt-2 lg:ml-58 lg:mr-58 m-14">
       <Image
         src={"/tire-guide-image.jpeg"}
         alt="Tire Guide"

@@ -49,7 +49,6 @@ const convertApiProduct = (apiProduct: ApiProduct): Product => ({
   model: apiProduct.size,
   price: parseFloat(apiProduct.price),
   is_on_sale: apiProduct.is_on_sale,
-
   old_price: apiProduct.old_price
     ? parseFloat(apiProduct.old_price)
     : undefined,
@@ -75,95 +74,51 @@ const convertApiProduct = (apiProduct: ApiProduct): Product => ({
   description: apiProduct.description,
   features: [],
   inStock: apiProduct.stock > 0,
-  isPromotion: apiProduct.is_featured,
+  isPromotion: apiProduct.is_featured || apiProduct.is_on_sale, // 👈 Mark as promotional
   rating: 4.5,
   reviewCount: 0,
 });
 
-export default function BoutiquePage() {
+export default function PromotionsPage() {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [brandFilter, setBrandFilter] = useState("all");
   const [categoryFilter, setCategoryFilter] = useState("all");
-  const [priceFilter, setPriceFilter] = useState("");
   const [sortBy, setSortBy] = useState("name");
-  const [nextPage, setNextPage] = useState<string | null>(null);
-  const [loadingMore, setLoadingMore] = useState(false);
 
-  const fetchProducts = async (url: string, append = false) => {
-    try {
-      if (!append) setLoading(true);
-      else setLoadingMore(true);
-
-      const response = await fetch(url);
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-
-      const data = await response.json();
-
-      const apiProducts = data.results || [];
-      const convertedProducts = apiProducts.map(convertApiProduct);
-
-      setProducts((prev) =>
-        append ? [...prev, ...convertedProducts] : convertedProducts
-      );
-      setNextPage(data.next || null);
-      setError(null);
-    } catch (err) {
-      console.error("❌ Error fetching products:", err);
-      setError(`Erreur lors du chargement des produits: ${err}`);
-    } finally {
-      if (!append) setLoading(false);
-      else setLoadingMore(false);
-    }
-  };
-
-  // useEffect(() => {
-  //   const fetchProducts = async () => {
-  //     try {
-  //       setLoading(true);
-  //       console.log("🚀 Starting to fetch products from API...");
-
-  //       // Direct API call since the service wrapper seems to have type issues
-  //       const response = await fetch(`${API_URL}/products/`);
-  //       console.log("📡 API Response status:", response.status);
-
-  //       if (!response.ok) {
-  //         throw new Error(`HTTP error! status: ${response.status}`);
-  //       }
-
-  //       const data = await response.json();
-  //       console.log("📦 Raw API data:", data);
-  //       console.log(
-  //         "📊 Number of products received:",
-  //         data.results?.length || 0
-  //       );
-
-  //       const apiProducts = data.results || [];
-  //       const convertedProducts = apiProducts.map(convertApiProduct);
-  //       console.log("✅ Converted products:", convertedProducts.length);
-
-  //       setProducts(convertedProducts);
-  //       setError(null);
-  //       console.log("🎉 Products successfully loaded!");
-  //     } catch (err) {
-  //       console.error("❌ Error fetching products:", err);
-  //       setError(`Erreur lors du chargement des produits: ${err}`);
-  //     } finally {
-  //       setLoading(false);
-  //     }
-  //   };
-
-  //   fetchProducts();
-  // }, []);
   useEffect(() => {
-    fetchProducts(`${API_URL}/products/`);
+    const fetchProducts = async () => {
+      try {
+        setLoading(true);
+        const response = await fetch(`${API_URL}/products/`);
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const data = await response.json();
+        const apiProducts = data.results || [];
+        const convertedProducts = apiProducts.map(convertApiProduct);
+
+        // ✅ Only keep promotional products
+        const promoProducts = convertedProducts.filter(
+          (p: Product) => p.isPromotion === true
+        );
+
+        setProducts(promoProducts);
+        setError(null);
+      } catch (err) {
+        setError(`Erreur lors du chargement des produits: ${err}`);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProducts();
   }, []);
 
-  // Filter and sort products
+  // Apply filters + sorting on promo products
   const filteredProducts = products
     .filter((product) => {
       const matchesSearch =
@@ -204,7 +159,7 @@ export default function BoutiquePage() {
           <div className="flex items-center justify-center min-h-[400px]">
             <div className="text-center">
               <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4" />
-              <p className="text-gray-600">Chargement des produits...</p>
+              <p className="text-gray-600">Chargement des promotions...</p>
             </div>
           </div>
         </main>
@@ -239,16 +194,16 @@ export default function BoutiquePage() {
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900 mb-4">
-            Notre Boutique
+            Nos Promotions
           </h1>
           <p className="text-gray-600">
-            Découvrez notre large gamme de pneumatiques
+            Découvrez nos offres spéciales et produits en promotion
           </p>
         </div>
 
         {/* Filters */}
         <div className="bg-gray-50 p-6 rounded-lg mb-8">
-          <h2 className="text-lg font-semibold mb-4">Filtrer les produits</h2>
+          <h2 className="text-lg font-semibold mb-4">Filtrer les promotions</h2>
           <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
             <div className="relative">
               <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
@@ -306,7 +261,6 @@ export default function BoutiquePage() {
                 setSearchTerm("");
                 setBrandFilter("all");
                 setCategoryFilter("all");
-                setPriceFilter("");
                 setSortBy("name");
               }}
               className="flex items-center gap-2"
@@ -321,8 +275,8 @@ export default function BoutiquePage() {
         <div className="mb-6">
           <div className="flex items-center justify-between mb-4">
             <p className="text-gray-600">
-              {filteredProducts.length} produit
-              {filteredProducts.length !== 1 ? "s" : ""} trouvé
+              {filteredProducts.length} promotion
+              {filteredProducts.length !== 1 ? "s" : ""} trouvée
               {filteredProducts.length !== 1 ? "s" : ""}
             </p>
           </div>
@@ -337,14 +291,13 @@ export default function BoutiquePage() {
         {filteredProducts.length === 0 && (
           <div className="text-center py-12">
             <p className="text-gray-500 text-lg">
-              Aucun produit trouvé avec ces critères
+              Aucune promotion trouvée avec ces critères
             </p>
             <Button
               onClick={() => {
                 setSearchTerm("");
                 setBrandFilter("all");
                 setCategoryFilter("all");
-                setPriceFilter("");
                 setSortBy("name");
               }}
               className="mt-4"
@@ -354,17 +307,6 @@ export default function BoutiquePage() {
           </div>
         )}
       </main>
-      {nextPage && (
-        <div className="flex justify-center mt-8 mb-8">
-          <Button
-            onClick={() => fetchProducts(nextPage, true)}
-            disabled={loadingMore}
-          >
-            {loadingMore && <Loader2 className="h-4 w-4 animate-spin mr-2" />}
-            Charger plus
-          </Button>
-        </div>
-      )}
 
       <Footer />
     </div>
