@@ -98,18 +98,72 @@ export default function Header() {
           <div className="hidden lg:flex items-center space-x-4">
             {user ? (
               <>
-                <Link
-                  href="/profile"
-                  className="text-gray-900 hover:text-yellow-500 font-medium"
-                >
-                  Mon Profil
-                </Link>
-                <button
-                  onClick={logout}
-                  className="text-gray-900 hover:text-yellow-500 font-medium"
-                >
-                  Déconnexion
-                </button>
+                {/* Desktop User Menu (with dropdown) */}
+                <div className="relative hidden lg:inline-block text-left">
+                  <button
+                    onClick={() => setIsOpen(!isOpen)}
+                    className="flex items-center font-medium text-gray-900 hover:text-yellow-500"
+                  >
+                    <UserCircle className="h-6 w-6 mr-1" />
+                    <ChevronDown
+                      className={`h-4 w-4 transform transition-transform ${
+                        isOpen ? "rotate-180" : ""
+                      }`}
+                    />
+                  </button>
+
+                  {/* Dropdown */}
+                  <AnimatePresence>
+                    {isOpen && (
+                      <motion.div
+                        initial={{ opacity: 0, y: -10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -10 }}
+                        transition={{ duration: 0.2 }}
+                        className="absolute right-0 mt-2 w-40 rounded-lg bg-white shadow-lg border border-gray-200 z-20"
+                      >
+                        {user ? (
+                          <>
+                            <Link
+                              href="/profile"
+                              className="block px-4 py-2 text-gray-900 hover:text-yellow-500 hover:bg-gray-100"
+                              onClick={() => setIsOpen(false)}
+                            >
+                              Mon Profil
+                            </Link>
+                            <button
+                              onClick={() => {
+                                logout();
+                                setIsOpen(false);
+                                window.location.reload();
+                              }}
+                              className="w-full text-left px-4 py-2 text-gray-900 hover:text-yellow-500 hover:bg-gray-100"
+                            >
+                              Déconnexion
+                            </button>
+                          </>
+                        ) : (
+                          <>
+                            <Link
+                              href="/auth/login"
+                              className="block px-4 py-2 text-gray-900 hover:text-yellow-500 hover:bg-gray-100"
+                              onClick={() => setIsOpen(false)}
+                            >
+                              Connexion
+                            </Link>
+                            <Link
+                              href="/auth/register"
+                              className="block px-4 py-2 text-gray-900 hover:text-yellow-500 hover:bg-gray-100"
+                              onClick={() => setIsOpen(false)}
+                            >
+                              Inscription
+                            </Link>
+                          </>
+                        )}
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </div>
               </>
             ) : (
               <>
@@ -167,6 +221,7 @@ export default function Header() {
                           onClick={() => {
                             logout();
                             setIsOpen(false);
+                            window.location.reload();
                           }}
                           className="w-full text-left px-4 py-2 text-gray-900 hover:text-yellow-500 hover:bg-gray-100"
                         >

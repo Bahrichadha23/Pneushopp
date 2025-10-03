@@ -7,25 +7,31 @@ export default function ProductCategoriesSection() {
     {
       id: 1,
       name: "PNEU AGRICOLE",
-      image: "/agricultural-tire-with-deep-treads.png",
+      image: "/AGRICOLE.jpeg",
       description: "Pneus spécialisés pour tracteurs et machines agricoles",
     },
     {
       id: 2,
-      name: "PNEU AUTO",
-      image: "/car-tire-with-modern-design.png",
+      name: "PNEU 4*4",
+      image: "/4X4.jpeg",
       description: "Pneus pour voitures particulières et berlines",
     },
     {
       id: 3,
-      name: "PNEU CAMIONNETTE",
-      image: "/van-tire-with-reinforced-sidewalls.png",
+      name: "PNEU MOTO",
+      image: "/MOTO.jpeg",
       description: "Pneus renforcés pour utilitaires et camionnettes",
     },
     {
       id: 4,
-      name: "PNEU POIDS LOURD",
-      image: "/truck-tire-heavy-duty-commercial.png",
+      name: "PNEU TOURISM",
+      image: "/TOURISM.jpeg",
+      description: "Pneus haute résistance pour camions et poids lourds",
+    },
+    {
+      id: 5,
+      name: "PNEU UTILITAIRE",
+      image: "/UTILITAIRE.jpeg",
       description: "Pneus haute résistance pour camions et poids lourds",
     },
   ];

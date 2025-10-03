@@ -162,12 +162,40 @@ def forgot_password(request):
         return Response({'error': 'Email non trouvé.'}, 
                       status=status.HTTP_404_NOT_FOUND)
 
-@api_view(['GET'])
-def user_profile(request):
-    """Get current user profile information"""
-    serializer = UserSerializer(request.user)
-    return Response(serializer.data)
+# @api_view(['GET'])
+# def user_profile(request):
+#     """Get current user profile information"""
+#     serializer = UserSerializer(request.user)
+#     return Response(serializer.data)
 
+
+@api_view(['GET', 'PATCH'])
+@permission_classes([IsAuthenticated])  # Add this line to ensure only authenticated users can access
+def user_profile(request):
+    """Get or update current user profile information"""
+    user = request.user
+    
+    if request.method == 'PATCH':
+        serializer = UserSerializer(user, data=request.data, partial=True)
+        if serializer.is_valid():
+            # Handle first_name and last_name from the request
+            if 'firstName' in request.data:
+                user.first_name = request.data['firstName']
+            if 'lastName' in request.data:
+                user.last_name = request.data['lastName']
+            if 'phone' in request.data:
+                user.phone = request.data['phone']
+            if 'address' in request.data:
+                user.address = request.data['address']
+            if 'email' in request.data:
+                user.email = request.data['email']
+            user.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+    # GET request handling remains the same
+    serializer = UserSerializer(user)
+    return Response(serializer.data)
 @api_view(['POST'])
 @permission_classes([AllowAny])
 def reset_password(request):
