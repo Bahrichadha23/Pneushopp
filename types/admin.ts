@@ -18,6 +18,7 @@ export interface Order {
   deliveryDate?: Date
   trackingNumber?: string
   notes?: string
+
 }
 
 export interface OrderItem {

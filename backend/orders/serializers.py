@@ -11,11 +11,14 @@ class OrderItemSerializer(serializers.ModelSerializer):
 
 class OrderSerializer(serializers.ModelSerializer):
     user = UserSerializer(read_only=True)
-    items = OrderItemSerializer(many=True)
+    # items = OrderItemSerializer(many=True)
+    items = OrderItemSerializer(many=True, read_only=True)
 
     class Meta:
         model = Order
         fields = "__all__"
+
+   
 
     def create(self, validated_data):
         items_data = validated_data.pop('items')

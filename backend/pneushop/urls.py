@@ -7,7 +7,9 @@ from accounts import views
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('api/auth/', include('accounts.urls')),
+    # path('api/auth/', include('accounts.urls')),
+    path('api/accounts/', include('accounts.urls')),  # Single include for all account URLs
+
     path('api/products/', include('products.urls')),
     path('api/admin/', include('products.admin_urls')),
     path('api/cart/', include('cart.urls')),

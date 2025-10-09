@@ -6,6 +6,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { useAuth } from "@/contexts/auth-context";
+import { useRouter } from "next/navigation";
+
 import {
   Table,
   TableBody,
@@ -19,7 +22,12 @@ import { API_URL } from "@/lib/config";
 
 export default function BonsCommandePage() {
   const [bonsCommande, setBonsCommande] = useState<BonCommande[]>([]);
-
+  const { user } = useAuth();
+  const router = useRouter();
+  if (user && user.role !== "admin" && user.role !== "purchasing") {
+    router.push("/admin"); // or show "Access Denied"
+    return null;
+  }
   const [selectedBon, setSelectedBon] = useState<BonCommande | null>(null);
   const [showForm, setShowForm] = useState(false);
 
@@ -101,13 +109,13 @@ export default function BonsCommandePage() {
     console.log("🔍 Request URL:", `${API_URL}/purchase-orders/${id}/`);
     try {
       const token = localStorage.getItem("access_token");
-      
+
       // Prepare the request body - only include order if it's valid
       const requestBody: any = { statut: "confirmé" };
       if (order_id && order_id > 0) {
         requestBody.order = order_id;
       }
-      
+
       const res = await fetch(`${API_URL}/purchase-orders/${id}/`, {
         method: "PATCH",
         headers: {
@@ -384,7 +392,9 @@ export default function BonsCommandePage() {
                         <Button
                           size="sm"
                           variant="default"
-                          onClick={() => handleConfirmBon(Number(bon.id), bon.order_id)}
+                          onClick={() =>
+                            handleConfirmBon(Number(bon.id), bon.order_id)
+                          }
                         >
                           Confirmer
                         </Button>

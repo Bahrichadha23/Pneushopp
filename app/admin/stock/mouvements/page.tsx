@@ -3,11 +3,20 @@
 import { useEffect, useState } from "react";
 import StockMovements from "@/components/admin/stock-movements";
 import type { StockMovement } from "@/types/admin";
+import { useAuth } from "@/contexts/auth-context";
+import { useRouter } from "next/navigation";
 
 export default function StockMovementsPage() {
   const [movements, setMovements] = useState<StockMovement[]>([]);
   const [loading, setLoading] = useState(true);
+  const { user } = useAuth();
+  const router = useRouter();
 
+  // Only allow admin or purchasing
+  if (user && user.role !== "admin" && user.role !== "purchasing") {
+    router.push("/admin"); // or show "Access Denied"
+    return null;
+  }
   const handleAddMovement = async (
     movementData: Omit<StockMovement, "id" | "createdAt" | "createdBy">
   ) => {

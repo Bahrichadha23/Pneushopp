@@ -14,13 +14,54 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Users, Search, Mail, Phone, MapPin, Star } from "lucide-react";
+import { useAuth } from "@/contexts/auth-context";
+import { useRouter } from "next/navigation";
 
 export default function ClientsPage() {
+  const { user } = useAuth();
+  const router = useRouter();
+
+  // Only allow admin or sales
+  if (user && user.role !== "admin" && user.role !== "sales") {
+    router.push("/admin"); // or show "Access Denied"
+    return null;
+  }
   const [clients, setClients] = useState<any[]>([]); // 👈 start empty
   const [searchTerm, setSearchTerm] = useState("");
   const [typeFilter, setTypeFilter] = useState("tous");
   const [selectedClient, setSelectedClient] = useState<any>(null);
   const [showClientDetails, setShowClientDetails] = useState(false);
+  // useEffect(() => {
+  //   const fetchClients = async () => {
+  //     try {
+  //       const token = localStorage.getItem("access_token");
+  //       if (!token) {
+  //         console.error("No access token found");
+  //         return;
+  //       }
+
+  //       const res = await fetch("http://127.0.0.1:8000/api/clients/", {
+  //         method: "GET",
+  //         headers: {
+  //           "Content-Type": "application/json",
+  //           Authorization: `Bearer ${token}`,
+  //         },
+  //       });
+
+
+  //       if (!res.ok) {
+  //         throw new Error(`Erreur: ${res.status} ${res.statusText}`);
+  //       }
+
+  //       const data = await res.json();
+  //       console.log(data);
+  //       setClients(data);
+  //     } catch (error) {
+  //       console.error("Erreur lors du chargement des clients:", error);
+  //     }
+  //   };
+  //   fetchClients();
+  // }, []);
   useEffect(() => {
     const fetchClients = async () => {
       try {
@@ -43,7 +84,13 @@ export default function ClientsPage() {
         }
 
         const data = await res.json();
-        setClients(data);
+        console.log("All users:", data);
+
+        // ✅ Filter only users with role = "customer"
+        const customers = data.filter((user) => user.role === "customer");
+        console.log("Filtered customers:", customers);
+
+        setClients(customers);
       } catch (error) {
         console.error("Erreur lors du chargement des clients:", error);
       }
@@ -306,29 +353,41 @@ export default function ClientsPage() {
               {/* Personal Information */}
               <Card>
                 <CardHeader>
-                  <CardTitle className="text-lg">Informations personnelles</CardTitle>
+                  <CardTitle className="text-lg">
+                    Informations personnelles
+                  </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-3">
                   <div>
-                    <label className="text-sm font-medium text-gray-500">Nom complet</label>
-                    <p className="text-lg">{`${selectedClient.firstName} ${selectedClient.lastName}`.trim()}</p>
+                    <label className="text-sm font-medium text-gray-500">
+                      Nom complet
+                    </label>
+                    <p className="text-lg">
+                      {`${selectedClient.firstName} ${selectedClient.lastName}`.trim()}
+                    </p>
                   </div>
                   <div>
-                    <label className="text-sm font-medium text-gray-500">Email</label>
+                    <label className="text-sm font-medium text-gray-500">
+                      Email
+                    </label>
                     <p className="flex items-center">
                       <Mail className="h-4 w-4 mr-2" />
                       {selectedClient.email}
                     </p>
                   </div>
                   <div>
-                    <label className="text-sm font-medium text-gray-500">Téléphone</label>
+                    <label className="text-sm font-medium text-gray-500">
+                      Téléphone
+                    </label>
                     <p className="flex items-center">
                       <Phone className="h-4 w-4 mr-2" />
                       {selectedClient.telephone || "Non renseigné"}
                     </p>
                   </div>
                   <div>
-                    <label className="text-sm font-medium text-gray-500">Type de client</label>
+                    <label className="text-sm font-medium text-gray-500">
+                      Type de client
+                    </label>
                     <p>{getClientTypeBadge(selectedClient.type)}</p>
                   </div>
                 </CardContent>
@@ -350,15 +409,21 @@ export default function ClientsPage() {
               {/* Account Information */}
               <Card>
                 <CardHeader>
-                  <CardTitle className="text-lg">Informations du compte</CardTitle>
+                  <CardTitle className="text-lg">
+                    Informations du compte
+                  </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-3">
                   <div>
-                    <label className="text-sm font-medium text-gray-500">Date d'inscription</label>
+                    <label className="text-sm font-medium text-gray-500">
+                      Date d'inscription
+                    </label>
                     <p>{selectedClient.dateInscription}</p>
                   </div>
                   <div>
-                    <label className="text-sm font-medium text-gray-500">Statut du compte</label>
+                    <label className="text-sm font-medium text-gray-500">
+                      Statut du compte
+                    </label>
                     <p>
                       {selectedClient.is_verified ? (
                         <Badge className="bg-green-500">Vérifié</Badge>
@@ -373,23 +438,31 @@ export default function ClientsPage() {
               {/* Order Statistics */}
               <Card>
                 <CardHeader>
-                  <CardTitle className="text-lg">Statistiques des commandes</CardTitle>
+                  <CardTitle className="text-lg">
+                    Statistiques des commandes
+                  </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-3">
                   <div>
-                    <label className="text-sm font-medium text-gray-500">Nombre de commandes</label>
+                    <label className="text-sm font-medium text-gray-500">
+                      Nombre de commandes
+                    </label>
                     <p className="text-2xl font-bold text-blue-600">
                       {selectedClient.totalCommandes}
                     </p>
                   </div>
                   <div>
-                    <label className="text-sm font-medium text-gray-500">Chiffre d'affaires total</label>
+                    <label className="text-sm font-medium text-gray-500">
+                      Chiffre d'affaires total
+                    </label>
                     <p className="text-2xl font-bold text-green-600">
                       {formatCurrency(selectedClient.montantTotal)}
                     </p>
                   </div>
                   <div>
-                    <label className="text-sm font-medium text-gray-500">Dernière commande</label>
+                    <label className="text-sm font-medium text-gray-500">
+                      Dernière commande
+                    </label>
                     <p>{selectedClient.derniereCommande}</p>
                   </div>
                 </CardContent>
@@ -401,7 +474,6 @@ export default function ClientsPage() {
               <Button variant="outline" onClick={handleCloseClientDetails}>
                 Fermer
               </Button>
-
             </div>
           </div>
         </div>

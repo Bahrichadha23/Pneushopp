@@ -30,7 +30,6 @@ class Order(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     tracking_number = models.CharField(max_length=50, blank=True, null=True)
-
     def __str__(self):
         return f"{self.order_number} - {self.user.email}"
 
@@ -111,3 +110,5 @@ class Delivery(models.Model):
         elif self.order:
             return f"Delivery {self.id} for Order {self.order.id}"
         return f"Delivery {self.id}"
+
+

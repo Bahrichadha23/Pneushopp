@@ -13,14 +13,13 @@ export default function AdminDashboard() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string>("")
 
-  
   const fetchStats = async () => {
     setLoading(true)
     setError("")
-    
+
     try {
       const response = await adminService.getDashboardStats()
-      
+
       if (response.success && response.data) {
         setStats(response.data)
       } else {
@@ -56,7 +55,7 @@ export default function AdminDashboard() {
           <AlertCircle className="h-4 w-4" />
           <AlertDescription>{error}</AlertDescription>
         </Alert>
-        <button 
+        <button
           onClick={fetchStats}
           className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
         >
@@ -76,19 +75,19 @@ export default function AdminDashboard() {
 
   return (
     <div>
-    {/* Header Row */}
-    <div className="mb-6 flex items-center justify-between">
-      <div>
-        <h1 className="text-3xl font-bold text-gray-900">Tableau de bord</h1>
-        <p className="text-gray-600">
-          Vue d'ensemble de votre activité PNEU SHOP
-        </p>
+      {/* Header Row */}
+      <div className="mb-6 flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900">Tableau de bord</h1>
+          <p className="text-gray-600">
+            Vue d'ensemble de votre activité PNEU SHOP
+          </p>
+        </div>
       </div>
+
+      {/* Main Dashboard Content */}
+      <DashboardStatsComponent stats={stats} />
     </div>
-  
-    {/* Main Dashboard Content */}
-    <DashboardStatsComponent stats={stats} />
-  </div>
-  
+
   )
 }

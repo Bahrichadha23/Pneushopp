@@ -8,6 +8,8 @@ import {
   updateDeliveryStatus,
 } from "@/lib/services/deliveries";
 import type { Livraison } from "@/types/livraison";
+import { useAuth } from "@/contexts/auth-context";
+import { useRouter } from "next/navigation";
 
 import {
   Table,
@@ -20,6 +22,14 @@ import {
 import { Truck, Search, MapPin, Package } from "lucide-react";
 
 export default function DeliveriesPage() {
+  const { user } = useAuth();
+  const router = useRouter();
+
+  // Only allow admin or sales
+  if (user && user.role !== "admin" && user.role !== "sales") {
+    router.push("/admin"); // or show "Access Denied"
+    return null;
+  }
   const [deliveries, setDeliveries] = useState<Livraison[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("tous");
@@ -65,9 +75,15 @@ export default function DeliveriesPage() {
 
   const filteredDeliveries = deliveries.filter((delivery) => {
     const matchesSearch =
-      (delivery.id?.toString().toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
-      (delivery.client?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
-      (delivery.commande?.toLowerCase() || '').includes(searchTerm.toLowerCase());
+      (delivery.id?.toString().toLowerCase() || "").includes(
+        searchTerm.toLowerCase()
+      ) ||
+      (delivery.client?.toLowerCase() || "").includes(
+        searchTerm.toLowerCase()
+      ) ||
+      (delivery.commande?.toLowerCase() || "").includes(
+        searchTerm.toLowerCase()
+      );
     const matchesStatus =
       statusFilter === "tous" || delivery.statut === statusFilter;
 
@@ -134,11 +150,15 @@ export default function DeliveriesPage() {
               </p>
               <p>
                 <span className="font-semibold">Expédition:</span>{" "}
-                {delivery.dateExpedition ? new Date(delivery.dateExpedition).toLocaleDateString() : "Non définie"}
+                {delivery.dateExpedition
+                  ? new Date(delivery.dateExpedition).toLocaleDateString()
+                  : "Non définie"}
               </p>
               <p>
                 <span className="font-semibold">Livraison:</span>{" "}
-                {delivery.dateLivraison ? new Date(delivery.dateLivraison).toLocaleDateString() : "Non définie"}
+                {delivery.dateLivraison
+                  ? new Date(delivery.dateLivraison).toLocaleDateString()
+                  : "Non définie"}
               </p>
               <p>
                 <span className="font-semibold">Colis:</span> {delivery.colis}
@@ -214,10 +234,14 @@ export default function DeliveriesPage() {
                     </div>
                   </TableCell>
                   <TableCell>
-                    {delivery.dateExpedition ? new Date(delivery.dateExpedition).toLocaleDateString() : "Non définie"}
+                    {delivery.dateExpedition
+                      ? new Date(delivery.dateExpedition).toLocaleDateString()
+                      : "Non définie"}
                   </TableCell>
                   <TableCell>
-                    {delivery.dateLivraison ? new Date(delivery.dateLivraison).toLocaleDateString() : "Non définie"}
+                    {delivery.dateLivraison
+                      ? new Date(delivery.dateLivraison).toLocaleDateString()
+                      : "Non définie"}
                   </TableCell>
                   <TableCell>{delivery.colis} colis</TableCell>
                 </TableRow>

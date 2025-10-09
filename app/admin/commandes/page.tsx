@@ -4,10 +4,22 @@ import OrdersTable from "@/components/admin/orders-table";
 import type { Order } from "@/types/admin"; // keep this if table expects admin Order type
 import { fetchOrders } from "@/lib/services/order";
 import { API_URL } from "@/lib/config";
+import { useAuth } from "@/contexts/auth-context";
+import { useRouter } from "next/navigation";
+import ProtectedRoute from '@/components/protected-route';
 
 export default function OrdersPage() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
+  const { user } = useAuth();
+  const router = useRouter();
+
+  // Only allow admin or purchasing
+  useEffect(() => {
+    if (user && !["admin", "sales"].includes(user.role)) {
+      router.push("/admin");
+    }
+  }, [user]);
 
   useEffect(() => {
     const loadOrders = async () => {
@@ -29,13 +41,13 @@ export default function OrdersPage() {
   }
 
   const handleViewOrder = (orderId: string) => {
-    const order = orders.find(o => o.id === orderId);
+    const order = orders.find((o) => o.id === orderId);
     if (order) {
       const details = `
   Commande: ${order.orderNumber}
   Client: ${order.customerName}
   Email: ${order.customerEmail}
-  Total: ${(order.totalAmount)}
+  Total: ${order.totalAmount}
   Statut: ${order.status}
   Date: ${order.createdAt.toLocaleDateString()}
   Articles: ${order.items.length} produit(s)
@@ -47,28 +59,30 @@ export default function OrdersPage() {
     try {
       const token = localStorage.getItem("access_token");
       const response = await fetch(`${API_URL}/purchase-orders/`, {
-        method: 'POST',
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
           order: parseInt(orderId),
-          fournisseur: 'Fournisseur par défaut',
-          date_commande: new Date().toISOString().split('T')[0],
-          date_livraison_prevue: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+          fournisseur: "Fournisseur par défaut",
+          date_commande: new Date().toISOString().split("T")[0],
+          date_livraison_prevue: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
+            .toISOString()
+            .split("T")[0],
           total_ht: 0,
           total_ttc: 0,
-          statut: 'en_attente',
-          priorite: 'normale'
-        })
+          statut: "en_attente",
+          priorite: "normale",
+        }),
       });
 
       if (response.ok) {
-        alert('Bon de commande créé avec succès!');
+        alert("Bon de commande créé avec succès!");
       }
     } catch (error) {
-      console.error('Erreur:', error);
+      console.error("Erreur:", error);
     }
   };
   const handleEditOrder = (orderId: string) => {
@@ -86,7 +100,7 @@ export default function OrdersPage() {
         method: "PATCH",
         headers: {
           "Content-Type": "application/json",
-          "Authorization": `Bearer ${localStorage.getItem("access_token")}` // ✅ Add this line
+          Authorization: `Bearer ${localStorage.getItem("access_token")}`, // ✅ Add this line
         },
         body: JSON.stringify({ status }),
       });
@@ -104,6 +118,7 @@ export default function OrdersPage() {
   };
 
   return (
+
     <div className="space-y-6">
       <div>
         <h1 className="text-2xl md:text-3xl font-bold text-gray-900">
@@ -121,5 +136,6 @@ export default function OrdersPage() {
         onUpdateStatus={handleUpdateStatus}
       />
     </div>
+
   );
 }

@@ -9,7 +9,7 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = CustomUser
-        fields = ('username', 'email', 'password', 'password_confirm', 'phone', 'address')
+        fields = ('username', 'email', 'password', 'password_confirm', 'phone', 'address', 'role')
     def validate(self, attrs):
         if attrs['password'] != attrs['password_confirm']:
             raise serializers.ValidationError("Les mots de passe ne correspondent pas.")
@@ -88,11 +88,9 @@ class UserSerializer(serializers.ModelSerializer):
             last_order = obj.user_orders.order_by('-created_at').first()
             return last_order.created_at.strftime('%d/%m/%Y') if last_order else "Aucune"
         return "Aucune"
-    def get_role(self, obj):
-        """Determine user role based on Django permissions"""
-        if obj.is_staff or obj.is_superuser:
-            return "admin"
-        return "customer"
+    # def get_role(self, obj):
+    #     """Return the role directly from the model"""
+    #     return obj.role
         
     def get_firstName(self, obj):
         """Extract first name from username or email"""
@@ -113,7 +111,16 @@ class UserSerializer(serializers.ModelSerializer):
             return parts[-1].title() if len(parts) > 1 else ""
         return ""
 
+    # def get_role(self, obj):
+    #     if obj.is_staff or obj.is_superuser:
+    #         return "admin"
+    #     return "customer"
     def get_role(self, obj):
-        if obj.is_staff or obj.is_superuser:
+        if obj.is_superuser or obj.is_staff:
             return "admin"
-        return "customer"
+        elif obj.role == "sales":
+            return "sales"
+        elif obj.role == "purchasing":
+            return "purchasing"
+        else:
+            return "customer"

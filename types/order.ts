@@ -21,7 +21,7 @@ export interface PaymentMethod {
 export interface Order {
 
   id: string
-  numericId: number 
+  numericId: number
   userId?: string
   items: CartItem[]
   shippingAddress: ShippingAddress
@@ -39,7 +39,8 @@ export interface Order {
   email?: string
   date?: string
   urgence?: "normale" | "haute"
-  
+
+
 }
 
 export interface OrderContextType {

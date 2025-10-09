@@ -15,6 +15,8 @@ import { adminService } from "@/lib/services/admin";
 import type { AdminProduct, ProductCreateData } from "@/lib/services/admin";
 import type { Product } from "@/types/product";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { useAuth } from "@/contexts/auth-context";
+import { useRouter } from "next/navigation";
 
 // Fonction pour convertir AdminProduct vers Product pour l'affichage
 const adminProductToProduct = (adminProduct: AdminProduct): Product => {
@@ -164,6 +166,14 @@ const productToCreateData = (product: Partial<Product>): ProductCreateData => {
 };
 
 export default function ProductsPage() {
+  const { user } = useAuth();
+  const router = useRouter();
+
+  // Only allow admin
+  if (user && user.role !== "admin" && user.role !== "purchasing") {
+    router.push("/admin"); // or show "Access Denied"
+    return null;
+  }
   const [adminProducts, setAdminProducts] = useState<AdminProduct[]>([]);
   const [products, setProducts] = useState<Product[]>([]); // Version convertie pour l'affichage
   const [isFormOpen, setIsFormOpen] = useState(false);
@@ -326,9 +336,8 @@ export default function ProductsPage() {
     const dataUri =
       "data:application/json;charset=utf-8," + encodeURIComponent(dataStr);
 
-    const exportFileDefaultName = `produits-${
-      new Date().toISOString().split("T")[0]
-    }.json`;
+    const exportFileDefaultName = `produits-${new Date().toISOString().split("T")[0]
+      }.json`;
 
     const linkElement = document.createElement("a");
     linkElement.setAttribute("href", dataUri);

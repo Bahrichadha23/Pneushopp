@@ -18,11 +18,11 @@ from orders.models import Order as o, OrderItem as oi
 from .models import Product, Category, StockMovement, OrderItem, Order
 from .admin_serializers import AdminProductSerializer, AdminCategorySerializer, AdminProductCreateUpdateSerializer, StockMovementSerializer
 from accounts.models import CustomUser
-
+from .permissions import IsAdminOrPurchasing
 class AdminProductListCreateView(generics.ListCreateAPIView):
     """Admin view for listing and creating products"""
     queryset = Product.objects.all().select_related('category')
-    permission_classes = [IsAdminUser]
+    permission_classes = [IsAdminOrPurchasing]
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
     filterset_fields = ['category', 'brand', 'season', 'is_featured', 'is_active']
     search_fields = ['name', 'brand', 'description', 'size']
@@ -85,8 +85,14 @@ def admin_dashboard_stats(request):
     total_products = Product.objects.count()
     active_products = Product.objects.filter(is_active=True).count()
     total_categories = Category.objects.count()
-    total_customers = CustomUser.objects.filter(is_staff=False).count()
-    
+    # total_customers = CustomUser.objects.filter(is_staff=False).count()
+    total_customers = CustomUser.objects.filter(
+    is_staff=False,
+    is_superuser=False
+).exclude(
+    role__in=["sales", "purchasing"]
+).count()
+
     # Order statistics
     total_orders = Order.objects.count()
     pending_orders = Order.objects.filter(status='pending').count()

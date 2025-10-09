@@ -1,97 +1,131 @@
-"use client"
-import { useState } from "react"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Progress } from "@/components/ui/progress"
-import { Alert, AlertDescription } from "@/components/ui/alert"
-import { Upload, Download, FileSpreadsheet, CheckCircle, AlertCircle, Info } from "lucide-react"
+"use client";
+import { useState } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Progress } from "@/components/ui/progress";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import {
+  Upload,
+  Download,
+  FileSpreadsheet,
+  CheckCircle,
+  AlertCircle,
+  Info,
+} from "lucide-react";
+import { useAuth } from "@/contexts/auth-context";
+import { useRouter } from "next/navigation";
 
 interface ImportResult {
-  message: string
+  message: string;
   summary: {
-    total_rows: number
-    created: number
-    updated: number
-    errors: number
-  }
-  created_products: string[]
-  updated_products: string[]
-  errors: string[]
+    total_rows: number;
+    created: number;
+    updated: number;
+    errors: number;
+  };
+  created_products: string[];
+  updated_products: string[];
+  errors: string[];
 }
 
 export default function ImportPage() {
-  const [file, setFile] = useState<File | null>(null)
-  const [isUploading, setIsUploading] = useState(false)
-  const [uploadProgress, setUploadProgress] = useState(0)
-  const [importResult, setImportResult] = useState<ImportResult | null>(null)
-  const [error, setError] = useState<string | null>(null)
+  const [file, setFile] = useState<File | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const [importResult, setImportResult] = useState<ImportResult | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const { user } = useAuth();
+  const router = useRouter();
 
-  const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const selectedFile = event.target.files?.[0]
-    if (selectedFile) {
-      setFile(selectedFile)
-      setImportResult(null)
-      setError(null)
-    }
+  // Only allow admin
+  if (user && user.role !== "admin") {
+    router.push("/admin"); // or show "Access Denied"
+    return null;
   }
+  const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const selectedFile = event.target.files?.[0];
+    if (selectedFile) {
+      setFile(selectedFile);
+      setImportResult(null);
+      setError(null);
+    }
+  };
 
   const handleImport = async () => {
-    if (!file) return
+    if (!file) return;
 
-    setIsUploading(true)
-    setUploadProgress(0)
-    setError(null)
+    setIsUploading(true);
+    setUploadProgress(0);
+    setError(null);
 
     try {
-      const formData = new FormData()
-      formData.append('file', file)
+      const formData = new FormData();
+      formData.append("file", file);
 
       // Simulate progress
       const progressInterval = setInterval(() => {
-        setUploadProgress(prev => Math.min(prev + 10, 90))
-      }, 200)
+        setUploadProgress((prev) => Math.min(prev + 10, 90));
+      }, 200);
 
-      const response = await fetch('http://localhost:8000/api/products/import/excel/', {
-        method: 'POST',
-        body: formData,
-      })
+      const response = await fetch(
+        "http://localhost:8000/api/products/import/excel/",
+        {
+          method: "POST",
+          body: formData,
+        }
+      );
 
-      clearInterval(progressInterval)
-      setUploadProgress(100)
+      clearInterval(progressInterval);
+      setUploadProgress(100);
 
       if (!response.ok) {
-        const errorData = await response.json()
-        throw new Error(errorData.error || 'Import failed')
+        const errorData = await response.json();
+        throw new Error(errorData.error || "Import failed");
       }
 
-      const result = await response.json()
-      setImportResult(result)
-      
+      const result = await response.json();
+      setImportResult(result);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'An error occurred during import')
+      setError(
+        err instanceof Error ? err.message : "An error occurred during import"
+      );
     } finally {
-      setIsUploading(false)
-      setTimeout(() => setUploadProgress(0), 1000)
+      setIsUploading(false);
+      setTimeout(() => setUploadProgress(0), 1000);
     }
-  }
+  };
 
   const downloadTemplate = () => {
     // Create sample Excel template data
     const templateData = [
-      ['Product Name', 'PRIX TTC', 'DESCRIPTION', 'IMAGE'],
-      ['Pneu CONTINENTAL 195/65R15 91H ULTRA CONTACT', '299.238', 'Points forts: Kilométrage ultra-élevé...', ''],
-      ['Pneu CONTINENTAL 205/55 R16 91V Conti Premium Contact2', '310.474', 'Points forts: Freinage réactif...', '']
-    ]
-    
-    alert('Template download would start here. For now, use the Excel file format: Product Name, PRIX TTC, DESCRIPTION, IMAGE')
-  }
+      ["Product Name", "PRIX TTC", "DESCRIPTION", "IMAGE"],
+      [
+        "Pneu CONTINENTAL 195/65R15 91H ULTRA CONTACT",
+        "299.238",
+        "Points forts: Kilométrage ultra-élevé...",
+        "",
+      ],
+      [
+        "Pneu CONTINENTAL 205/55 R16 91V Conti Premium Contact2",
+        "310.474",
+        "Points forts: Freinage réactif...",
+        "",
+      ],
+    ];
+
+    alert(
+      "Template download would start here. For now, use the Excel file format: Product Name, PRIX TTC, DESCRIPTION, IMAGE"
+    );
+  };
 
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-gray-900">Import des produits</h1>
+        <h1 className="text-2xl font-bold text-gray-900">
+          Import des produits
+        </h1>
         <Button variant="outline" onClick={downloadTemplate}>
           <Download className="h-4 w-4 mr-2" />
           Télécharger modèle
@@ -118,19 +152,28 @@ export default function ImportPage() {
             <div>
               <h3 className="font-medium mb-2">Colonnes requises:</h3>
               <ul className="text-sm text-gray-600 space-y-1">
-                <li>• <strong>Nom du produit</strong> (première colonne)</li>
-                <li>• <strong>PRIX TTC</strong> (prix en dinars)</li>
-                <li>• <strong>DESCRIPTION</strong> (description détaillée)</li>
-                <li>• <strong>IMAGE</strong> (optionnel)</li>
+                <li>
+                  • <strong>Nom du produit</strong> (première colonne)
+                </li>
+                <li>
+                  • <strong>PRIX TTC</strong> (prix en dinars)
+                </li>
+                <li>
+                  • <strong>DESCRIPTION</strong> (description détaillée)
+                </li>
+                <li>
+                  • <strong>IMAGE</strong> (optionnel)
+                </li>
               </ul>
             </div>
           </div>
-          
+
           <Alert>
             <AlertCircle className="h-4 w-4" />
             <AlertDescription>
-              Les produits seront automatiquement catégorisés selon la marque détectée dans le nom.
-              Les tailles de pneus seront extraites automatiquement du nom du produit.
+              Les produits seront automatiquement catégorisés selon la marque
+              détectée dans le nom. Les tailles de pneus seront extraites
+              automatiquement du nom du produit.
             </AlertDescription>
           </Alert>
         </CardContent>
@@ -180,12 +223,12 @@ export default function ImportPage() {
                   </p>
                 </div>
               </div>
-              <Button 
+              <Button
                 onClick={handleImport}
                 disabled={isUploading}
                 className="ml-4"
               >
-                {isUploading ? 'Import en cours...' : 'Importer'}
+                {isUploading ? "Import en cours..." : "Importer"}
               </Button>
             </div>
           )}
@@ -237,7 +280,9 @@ export default function ImportPage() {
                 <div className="text-2xl font-bold text-yellow-600">
                   {importResult.summary.updated}
                 </div>
-                <div className="text-sm text-yellow-600">Produits mis à jour</div>
+                <div className="text-sm text-yellow-600">
+                  Produits mis à jour
+                </div>
               </div>
               <div className="text-center p-4 bg-red-50 rounded-lg">
                 <div className="text-2xl font-bold text-red-600">
@@ -249,10 +294,16 @@ export default function ImportPage() {
 
             {importResult.created_products.length > 0 && (
               <div>
-                <h3 className="font-medium mb-2">Produits créés (premiers 10):</h3>
+                <h3 className="font-medium mb-2">
+                  Produits créés (premiers 10):
+                </h3>
                 <div className="space-y-1">
                   {importResult.created_products.map((product, index) => (
-                    <Badge key={index} variant="secondary" className="mr-2 mb-1">
+                    <Badge
+                      key={index}
+                      variant="secondary"
+                      className="mr-2 mb-1"
+                    >
                       {product}
                     </Badge>
                   ))}
@@ -262,7 +313,9 @@ export default function ImportPage() {
 
             {importResult.updated_products.length > 0 && (
               <div>
-                <h3 className="font-medium mb-2">Produits mis à jour (premiers 10):</h3>
+                <h3 className="font-medium mb-2">
+                  Produits mis à jour (premiers 10):
+                </h3>
                 <div className="space-y-1">
                   {importResult.updated_products.map((product, index) => (
                     <Badge key={index} variant="outline" className="mr-2 mb-1">
@@ -279,7 +332,9 @@ export default function ImportPage() {
                 <div className="space-y-1">
                   {importResult.errors.map((error, index) => (
                     <Alert key={index} variant="destructive" className="mb-2">
-                      <AlertDescription className="text-sm">{error}</AlertDescription>
+                      <AlertDescription className="text-sm">
+                        {error}
+                      </AlertDescription>
                     </Alert>
                   ))}
                 </div>
@@ -289,5 +344,5 @@ export default function ImportPage() {
         </Card>
       )}
     </div>
-  )
+  );
 }

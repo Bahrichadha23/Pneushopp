@@ -37,12 +37,21 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { API_URL } from "@/lib/config";
+import { useAuth } from "@/contexts/auth-context";
+import { useRouter } from "next/navigation";
+
 export default function FournisseursPage() {
   const [fournisseurs, setFournisseurs] = useState<Supplier[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [editingSupplier, setEditingSupplier] = useState<Supplier | null>(null);
+  const { user } = useAuth();
+  const router = useRouter();
 
+  if (user && user.role !== "admin" && user.role !== "purchasing") {
+    router.push("/admin"); // or show "Access Denied"
+    return null;
+  }
   useEffect(() => {
     const loadSuppliers = async () => {
       try {
@@ -63,8 +72,9 @@ export default function FournisseursPage() {
     return Array.from({ length: 5 }, (_, i) => (
       <Star
         key={i}
-        className={`h-4 w-4 ${i < rating ? "text-yellow-400 fill-current" : "text-gray-300"
-          }`}
+        className={`h-4 w-4 ${
+          i < rating ? "text-yellow-400 fill-current" : "text-gray-300"
+        }`}
       />
     ));
   };

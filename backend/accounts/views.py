@@ -10,6 +10,7 @@ from django.utils.encoding import force_bytes
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 import random
 import string
+from .permanent_permissions import IsAdmin
 
 from .models import CustomUser
 from .serializers import UserRegistrationSerializer, UserLoginSerializer, UserSerializer
@@ -256,3 +257,102 @@ def clients_list(request):
     clients = CustomUser.objects.filter(is_staff=False, is_superuser=False)
     serializer = UserSerializer(clients, many=True)
     return Response(serializer.data)
+
+
+
+# @api_view(['POST'])
+# @permission_classes([IsAdmin])
+# def create_user(request):
+#     data = request.data
+#     user = CustomUser.objects.create_user(
+#         username=data["email"],
+#         email=data["email"],
+#         first_name=data["firstName"],
+#         last_name=data["lastName"],
+#         password=data["password"],
+#         role=data["role"],  # "sales" or "purchasing"
+#     )
+#     serializer = UserSerializer(user)
+#     return Response(serializer.data)
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def list_staff_users(request):
+    """
+    List all non-customer users with optional role filtering
+    Query params:
+    - role: Optional filter by role (purchasing, sales, or admin)
+    """
+    # Check if user is admin or superuser
+    if not (request.user.role == 'admin' or request.user.is_superuser):
+        return Response(
+            {'error': 'You do not have permission to view this resource'},
+            status=status.HTTP_403_FORBIDDEN
+        )
+    
+    # Get role filter from query params
+    role = request.query_params.get('role')
+    
+    # Base query for all non-customer users
+    users = CustomUser.objects.exclude(role='customer')
+    
+    # Apply role filter if provided
+    if role and role in ['purchasing', 'sales', 'admin']:
+        users = users.filter(role=role)
+    
+    # Debug: Print the query and results
+    print(f"Query: {users.query}")
+    print(f"Found {users.count()} users with role: {role or 'all'}")
+    
+    # Serialize and return the results
+    serializer = UserSerializer(users, many=True)
+    return Response({
+        'count': users.count(),
+        'users': serializer.data
+    })
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def create_user(request):
+    # Check if user is either admin or superuser
+    if not (request.user.role == 'admin' or request.user.is_superuser):
+        return Response(
+            {'error': 'You do not have permission to perform this action'},
+            status=status.HTTP_403_FORBIDDEN
+        )
+    # Only allow creating purchasing and sales accounts
+    role = request.data.get('role')
+    if role not in ['purchasing', 'sales']:
+        return Response(
+            {'error': 'You can only create purchasing or sales accounts'}, 
+            status=status.HTTP_400_BAD_REQUEST
+        )
+    
+    # Set is_verified to True for staff accounts
+    data = request.data.copy()
+    data['is_verified'] = True
+    
+    # Create a copy of the data and ensure role is set
+    user_data = data.copy()
+    user_data['role'] = role  # Ensure role is set from the validated request
+    
+    serializer = UserRegistrationSerializer(data=user_data)
+    if serializer.is_valid():
+        user = serializer.save()
+        # Send welcome email with credentials
+        try:
+            send_welcome_email(user)
+        except Exception as e:
+            print(f"Error sending welcome email: {e}")
+            
+        # Return the created user data with the role from the serializer
+        response_data = {
+            'message': f'{role.capitalize()} account created successfully',
+            'user': {
+                **UserSerializer(user).data,
+                'role': role  # Explicitly set the role in the response
+            }
+        }
+        return Response(response_data, status=status.HTTP_201_CREATED)
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

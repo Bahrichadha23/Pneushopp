@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { Eye, Edit, Truck, Search, Package } from "lucide-react"
+import { Eye, Edit, Truck, Search, Package, Download } from "lucide-react"
 import { createPurchaseOrder } from "@/lib/services/purchase-order"
 interface OrdersTableProps {
   orders: Order[]
@@ -15,18 +15,277 @@ interface OrdersTableProps {
   onEditOrder: (orderId: string) => void
   onUpdateStatus: (orderId: string, status: Order["status"]) => void
 }
+import jsPDF from "jspdf";
+import html2canvas from "html2canvas";
+import InvoiceTemplate from "@/components/invoice/InvoiceTemplate";
+import ReactDOMServer from "react-dom/server";
+
+
+
+
+
+
+export async function handleDownloadInvoice(order: any) {
+  const pdf = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
+  const pageWidth = pdf.internal.pageSize.width;
+  const pageHeight = pdf.internal.pageSize.height;
+  const margin = 15;
+
+  // === Utility: Draw cell with flexible borders ===
+  const drawCell = (
+    x: number,
+    y: number,
+    w: number,
+    h: number,
+    options: { top?: boolean; bottom?: boolean; left?: boolean; right?: boolean } = {}
+  ) => {
+    const { top = false, bottom = false, left = true, right = true } = options;
+    pdf.setDrawColor(0);
+    pdf.setLineWidth(0.1);
+    if (top) pdf.line(x, y, x + w, y);
+    if (bottom) pdf.line(x, y + h, x + w, y + h);
+    if (left) pdf.line(x, y, x, y + h);
+    if (right) pdf.line(x + w, y, x + w, y + h);
+  };
+
+  let y = 30;
+  let page = 1;
+
+  // === Header ===
+  const addHeader = () => {
+    pdf.setFont("helvetica", "bold");
+    pdf.setFontSize(14);
+    pdf.text(`FACTURE ${order.orderNumber || ""}`, margin, y);
+    pdf.setFontSize(10);
+    pdf.text(`GRAND TUNIS`, margin, y + 6);
+    pdf.text(`le ${new Date(order.createdAt).toLocaleDateString("fr-FR")}`, margin + 40, y + 6);
+    pdf.text(`${page}/2`, pageWidth - margin, y + 6, { align: "right" });
+
+    // Client box (rounded)
+    const boxX = pageWidth - 70;
+    const boxY = 15;
+    const boxW = 60;
+    const boxH = 25;
+    pdf.roundedRect(boxX, boxY, boxW, boxH, 3, 3, "S");
+
+    pdf.setFontSize(10);
+    pdf.text("Client", boxX + 2, boxY + 6);
+    pdf.setFont("helvetica", "normal");
+    pdf.text(order.customerName || "-", boxX + 20, boxY + 6);
+    pdf.text(`Id. Fiscale : ${order.fiscalId || "-"}`, boxX + 2, boxY + 12);
+    pdf.text(`Tel : ${order.customerPhone || "-"}`, boxX + 2, boxY + 18);
+
+    y += 35;
+    pdf.setFont("helvetica", "bold");
+  };
+
+  addHeader();
+
+  // === Table Headers ===
+  const headers = [
+    { text: "REF.", width: 20 },
+    { text: "DESIGNATION", width: 50 },
+    { text: "QTE", width: 15 },
+    { text: "PU", width: 20 },
+    { text: "TVA (%)", width: 18 },
+    { text: "REM (%)", width: 18 },
+    { text: "Mnt HT", width: 22 },
+    { text: "Mnt TTC", width: 22 },
+  ];
+
+  const drawTableHeader = () => {
+    let x = margin;
+    pdf.setFont("helvetica", "bold");
+    pdf.setFontSize(9);
+    headers.forEach((h) => {
+      pdf.text(h.text, x + 2, y);
+      drawCell(x, y - 5, h.width, 8, { top: true, bottom: true, left: true, right: true });
+      x += h.width;
+    });
+    y += 8;
+  };
+
+  drawTableHeader();
+  pdf.setFont("helvetica", "normal");
+
+  // === Table Rows ===
+  let totalHT = 0,
+    totalRemise = 0,
+    totalTVA = 0;
+  const maxRowsPerPage = 12;
+  let currentRow = 0;
+
+  const addRow = (item?: any, isEmpty = false) => {
+    let x = margin;
+    const h = 8;
+
+    if (!isEmpty && item) {
+      const unit = Number(item.unitPrice || 0);
+      const qty = Number(item.quantity || 1);
+      const remise = Number(item.discount || 0);
+      const tva = Number(item.tva || 19);
+
+      const montantHT = unit * qty * (1 - remise / 100);
+      const montantTTC = montantHT * (1 + tva / 100);
+
+      totalHT += montantHT;
+      totalRemise += unit * qty * (remise / 100);
+      totalTVA += montantHT * (tva / 100);
+
+      pdf.text(item.productId || "-", x + 2, y + 5);
+      x += headers[0].width;
+      pdf.text(item.productName || "-", x + 2, y + 5);
+      x += headers[1].width;
+      pdf.text(qty.toFixed(2), x + headers[2].width / 2, y + 5, { align: "center" });
+      x += headers[2].width;
+      pdf.text(unit.toFixed(3), x + headers[3].width - 2, y + 5, { align: "right" });
+      x += headers[3].width;
+      pdf.text(tva.toFixed(0), x + headers[4].width / 2, y + 5, { align: "center" });
+      x += headers[4].width;
+      pdf.text(remise.toFixed(0), x + headers[5].width / 2, y + 5, { align: "center" });
+      x += headers[5].width;
+      pdf.text((montantHT || 0).toFixed(3), x + headers[6].width - 2, y + 5, { align: "right" });
+      x += headers[6].width;
+      pdf.text((montantTTC || 0).toFixed(3), x + headers[7].width - 2, y + 5, { align: "right" });
+    }
+
+    // Draw borders
+    x = margin;
+    headers.forEach((h) => {
+      drawCell(x, y, h.width, 8, { top: currentRow === 0, left: true, right: true });
+      x += h.width;
+    });
+
+    y += h;
+    currentRow++;
+  };
+
+  order.items?.forEach((item: any) => addRow(item));
+  while (currentRow < maxRowsPerPage) addRow(undefined, true); // Fill empty rows
+
+  // === Page 2 for totals ===
+  pdf.addPage();
+  page++;
+  y = 30;
+  addHeader();
+  drawTableHeader();
+
+  // Fill empty rows again on page 2
+  currentRow = 0;
+  while (currentRow < maxRowsPerPage) addRow(undefined, true);
+
+  const netHT = totalHT - totalRemise;
+  const totalTTC = netHT + totalTVA + 1;
+
+
+
+  // === Inline “QUATRE CENT …” + Vertical Totals ===
+  const boxY = y + 5;
+  const boxH = 14;
+  const totalRowH = 7;
+  const totalTableX = pageWidth - 85;
+
+  // Left side QUATRE CENT box
+  const leftBoxW = totalTableX - margin - 5;
+  drawCell(margin, boxY, leftBoxW, boxH, {
+    top: true,
+    bottom: true,
+    left: true,
+    right: true,
+  });
+  pdf.setFont("helvetica", "bold");
+  pdf.setFontSize(10);
+  pdf.text(
+    `QUATRE CENT ${Math.floor(totalTTC)} Dinar(s) Tunisien ${Math.round(
+      (totalTTC % 1) * 1000
+    )} Millime(s)`,
+    margin + 3,
+    boxY + 8
+  );
+
+  // === Vertical Totals table (right side, inline with QUATRE box) ===
+  const totals = [
+    ["TOTAL HT", totalHT.toFixed(3)],
+    ["FODEC", "0"],
+    ["TOTAL REMISE", totalRemise.toFixed(3)],
+    ["TOTAL NET HT", netHT.toFixed(3)],
+    ["TOTAL T.V.A", totalTVA.toFixed(3)],
+    ["Timbre", "1.000"],
+    ["TOTAL T.T.C", totalTTC.toFixed(3)],
+  ];
+
+  let totalY = boxY;
+  totals.forEach(([label, val]) => {
+    const isBold = label.includes("TOTAL T.T.C");
+    pdf.setFont("helvetica", isBold ? "bold" : "normal");
+    drawCell(totalTableX, totalY, 40, totalRowH, {
+      top: true,
+      bottom: true,
+      left: true,
+      right: true,
+    });
+    drawCell(totalTableX + 40, totalY, 40, totalRowH, {
+      top: true,
+      bottom: true,
+      left: true,
+      right: true,
+    });
+    pdf.text(label, totalTableX + 2, totalY + 5);
+    pdf.text(val, totalTableX + 78, totalY + 5, { align: "right" });
+    totalY += totalRowH;
+  });
+
+  // === Horizontal Totals box (below QUATRE box, aligned left) ===
+  const tvaBoxY = boxY + boxH + 3; // small gap below QUATRE box
+  const colW = leftBoxW / 3;
+  const labels = ["Base TVA", "Taux", "TOTAL TVA"];
+  const values = [netHT.toFixed(3), "19.00", totalTVA.toFixed(3)];
+
+  pdf.setFont("helvetica", "bold");
+  labels.forEach((label, i) => {
+    const x = margin + i * colW;
+    drawCell(x, tvaBoxY, colW, 7, {
+      top: true,
+      bottom: true,
+      left: true,
+      right: true,
+    });
+    pdf.text(label, x + 2, tvaBoxY + 5);
+  });
+
+  pdf.setFont("helvetica", "normal");
+  const valY = tvaBoxY + 7;
+  values.forEach((val, i) => {
+    const x = margin + i * colW;
+    drawCell(x, valY, colW, 7, {
+      top: true,
+      bottom: true,
+      left: true,
+      right: true,
+    });
+    pdf.text(val, x + colW - 2, valY + 5, { align: "right" });
+  });
+
+  // === Signature ===
+  pdf.setFont("helvetica", "italic");
+  pdf.text("Cachet et Signature", margin + 5, pageHeight - 20);
+
+  pdf.save(`facture-${order.orderNumber}.pdf`);
+}
 
 export default function OrdersTable({ orders, onViewOrder, onEditOrder, onUpdateStatus }: OrdersTableProps) {
   const [searchTerm, setSearchTerm] = useState("")
   const [statusFilter, setStatusFilter] = useState<string>("all")
   const [paymentFilter, setPaymentFilter] = useState<string>("all")
   const [expandedOrderId, setExpandedOrderId] = useState<string | null>(null);
-  const formatCurrency = (amount: number) =>
-    new Intl.NumberFormat("fr-TN", {
+  const formatCurrency = (amount: string | number) => {
+    const numAmount = typeof amount === 'string' ? parseFloat(amount) : amount;
+    return new Intl.NumberFormat("fr-TN", {
       style: "currency",
       currency: "TND",
-      minimumFractionDigits: 0,
-    }).format(amount)
+      minimumFractionDigits: 2,
+    }).format(numAmount)
+  }
 
   const formatDate = (date: Date) =>
     new Intl.DateTimeFormat("fr-FR", {
@@ -193,27 +452,108 @@ export default function OrdersTable({ orders, onViewOrder, onEditOrder, onUpdate
                         >
                           <Package className="h-4 w-4" />
                         </Button>
-                      )}
+                      )
+                      }
+
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleDownloadInvoice(order)}
+                        className="flex items-center justify-center"
+                      >
+                        <Download className="w-4 h-4" />
+                      </Button>
+
+
                     </div>
                   </TableCell>
                 </TableRow>
                 {/* ADD THIS PART HERE - INSIDE the map but AFTER the TableRow */}
+
                 {expandedOrderId === order.id && (
                   <TableRow>
                     <TableCell colSpan={7} className="bg-gray-50 p-6">
-                      <div className="space-y-4">
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                          <div>
-                            <h4 className="font-semibold mb-2">Informations client</h4>
-                            <p><strong>Nom:</strong> {order.customerName}</p>
+                      <div className="space-y-6">
+
+
+                        {/* Customer and Order Information in One Row */}
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                          {/* Informations client */}
+                          <div className="space-y-3">
+                            <h4 className="font-semibold text-lg border-b pb-2">Informations client</h4>
+                            <p><strong>Nom complet:</strong> {order.customerName}</p>
                             <p><strong>Email:</strong> {order.customerEmail}</p>
                             <p><strong>Téléphone:</strong> {order.customerPhone}</p>
                           </div>
-                          <div>
-                            <h4 className="font-semibold mb-2">Détails commande</h4>
+
+                          {/* Détails commande */}
+                          <div className="space-y-3">
+                            <h4 className="font-semibold text-lg border-b pb-2">Détails commande</h4>
                             <p><strong>Numéro:</strong> {order.orderNumber}</p>
                             <p><strong>Date:</strong> {formatDate(order.createdAt)}</p>
-                            <p><strong>Suivi:</strong> {order.trackingNumber}</p>
+                            <p><strong>Numéro de suivi:</strong> {order.trackingNumber || 'N/A'}</p>
+                            <p><strong>Méthode de paiement:</strong> {order.paymentMethod === 'card' ? 'Carte' : 'À la livraison'}</p>
+                          </div>
+
+                          {/* Adresse de livraison */}
+                          <div className="space-y-3">
+                            <h4 className="font-semibold text-lg border-b pb-2">Adresse de livraison</h4>
+                            <p><strong>Adresse:</strong> {order.shippingAddress?.street}</p>
+                            <p><strong>Ville:</strong> {order.shippingAddress?.city}</p>
+                            <p><strong>Code postal:</strong> {order.shippingAddress?.postalCode}</p>
+                            <p><strong>Région:</strong> {order.shippingAddress?.region}</p>
+                            <p><strong>Pays:</strong> {order.shippingAddress?.country}</p>
+                          </div>
+
+
+                        </div>
+
+
+                        {/* Order Items */}
+                        <div className="pt-4">
+                          <h4 className="font-semibold text-lg border-b pb-2 mb-4">Articles commandés</h4>
+                          <div className="overflow-x-auto">
+                            <table className="min-w-full divide-y divide-gray-200">
+                              <thead className="bg-gray-50">
+                                <tr>
+                                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Produit</th>
+                                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Référence</th>
+                                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Prix unitaire</th>
+                                  <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Qté</th>
+                                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Total</th>
+                                </tr>
+                              </thead>
+                              <tbody className="bg-white divide-y divide-gray-200">
+                                {order.items?.map((item, index) => (
+                                  <tr key={index}>
+                                    <td className="px-6 py-4 whitespace-nowrap">
+                                      <div className="text-sm font-medium text-gray-900">{item.productName}</div>
+                                      <div className="text-sm text-gray-500">{item.specifications}</div>
+                                    </td>
+                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                      {item.productId}
+                                    </td>
+                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-right">
+                                      {formatCurrency(item.unitPrice)}
+                                    </td>
+                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-center">
+                                      {item.quantity}
+                                    </td>
+                                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 text-right">
+                                      {formatCurrency(item.totalPrice)}
+                                    </td>
+                                  </tr>
+                                ))}
+                                <tr className="bg-gray-50">
+                                  <td colSpan={4} className="px-6 py-4 text-right text-sm font-medium text-gray-900">
+                                    Total commande:
+                                  </td>
+                                  <td className="px-6 py-4 text-right text-sm font-bold text-gray-900">
+                                    {formatCurrency(order.totalAmount)}
+                                  </td>
+                                </tr>
+                              </tbody>
+                            </table>
                           </div>
                         </div>
                       </div>
@@ -266,6 +606,15 @@ export default function OrdersTable({ orders, onViewOrder, onEditOrder, onUpdate
                     <Package className="h-4 w-4" />
                   </Button>
                 )}
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => handleDownloadInvoice(order)}
+                  className="flex items-center justify-center"
+                >
+                  <Download className="w-4 h-4" />
+                </Button>
+
               </div>
             </div>
 

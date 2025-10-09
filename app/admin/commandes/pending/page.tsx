@@ -5,6 +5,8 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import type { Order } from "@/types/order";
+import { useAuth } from "@/contexts/auth-context";
+import { useRouter } from "next/navigation";
 
 import {
   Table,
@@ -27,7 +29,14 @@ export default function PendingOrdersPage() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const { user } = useAuth();
+  const router = useRouter();
 
+  // Only allow admin or purchasing
+  if (user && user.role !== "admin" && user.role !== "sales") {
+    router.push("/admin"); // or show "Access Denied"
+    return null;
+  }
   const [searchTerm, setSearchTerm] = useState("");
   useEffect(() => {
     const loadOrders = async () => {

@@ -52,27 +52,50 @@ export default function LoginForm({ redirectTo = "/", onSuccess }: LoginFormProp
     }
 
     console.log("🔐 Attempting login with:", { email: formData.email, password: "***" })
-    
+
     try {
       const result = await login(formData.email, formData.password)
-      
+
       console.log("🔐 Login result:", result)
-      
+
       if (result.success) {
         console.log("✅ Login successful")
-        
+
         if (onSuccess) {
           onSuccess()
         } else {
           // Redirect based on user role from login result
           const loggedInUser = result.user
-          if (loggedInUser?.role === "admin") {
-            console.log("👑 Admin user detected, redirecting to admin panel")
-            router.push("/admin")
+
+          // if (loggedInUser && loggedInUser.role && ["admin", "purchasing", "sales"].includes(loggedInUser.role as string)) {
+          //   console.log(`👑 ${loggedInUser.role} user detected, redirecting to admin panel`)
+          //   router.push("/admin")
+          // } else {
+          //   console.log("👤 Regular user, redirecting to:", redirectTo)
+          //   router.push(redirectTo)
+          // }
+          if (loggedInUser && loggedInUser.role) {
+            console.log(`👑 Logged in as: ${loggedInUser.role}`);
+
+            switch (loggedInUser.role) {
+              case "admin":
+                router.push("/admin");
+                break;
+              case "purchasing":
+                router.push("/admin/produits"); // redirect to purchasing section
+                break;
+              case "sales":
+                router.push("/admin/commandes"); // redirect to sales section
+                break;
+              default:
+                router.push(redirectTo); // for customers or others
+            }
           } else {
-            console.log("👤 Regular user, redirecting to:", redirectTo)
-            router.push(redirectTo)
+            console.log("👤 Regular user, redirecting to:", redirectTo);
+            router.push(redirectTo);
           }
+
+
         }
       } else {
         console.log("❌ Login failed:", result.error)

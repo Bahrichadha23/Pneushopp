@@ -14,21 +14,38 @@ export const apiClient = axios.create({
 })
 
 // Request interceptor to add auth token
+// apiClient.interceptors.request.use(
+//   (config: InternalAxiosRequestConfig) => {
+//     // Get token from localStorage
+//     if (typeof window !== 'undefined') {
+//       const token = localStorage.getItem('access_token')
+//       if (token && config.headers) {
+//         config.headers.Authorization = `Bearer ${token}`
+//       }
+//     }
+//     return config
+//   },
+//   (error: AxiosError) => {
+//     return Promise.reject(error)
+//   }
+// )
+
+
+// lib/api-client.ts
 apiClient.interceptors.request.use(
   (config: InternalAxiosRequestConfig) => {
-    // Get token from localStorage
     if (typeof window !== 'undefined') {
-      const token = localStorage.getItem('access_token')
+      const token = localStorage.getItem('access_token');
       if (token && config.headers) {
-        config.headers.Authorization = `Bearer ${token}`
+        config.headers.Authorization = `Bearer ${token}`;
       }
     }
-    return config
+    return config;
   },
   (error: AxiosError) => {
-    return Promise.reject(error)
+    return Promise.reject(error);
   }
-)
+);
 
 // Response interceptor to handle token refresh
 apiClient.interceptors.response.use(

@@ -6,6 +6,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Package, AlertTriangle, TrendingUp, Plus, Minus } from "lucide-react";
 import type { Product } from "@/types/product";
+import { useAuth } from "@/contexts/auth-context";
+import { useRouter } from "next/navigation";
+import { API_URL } from "@/lib/config";
 
 interface AdminProduct {
   id: number;
@@ -24,12 +27,19 @@ interface AdminProduct {
 export default function StockManagementPage() {
   const [stock, setStock] = useState<AdminProduct[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
+  const { user } = useAuth();
+  const router = useRouter();
 
+  // Only allow admin or purchasing
+  if (user && user.role !== "admin" && user.role !== "purchasing") {
+    router.push("/admin"); // or show "Access Denied"
+    return null;
+  }
   useEffect(() => {
     const fetchStock = async () => {
       try {
         const response = await fetch(
-          "http://localhost:8000/api/admin/products/",
+          `${API_URL}/admin/products/`,
           {
             headers: {
               Authorization: `Bearer ${localStorage.getItem("access_token")}`,
@@ -103,7 +113,7 @@ export default function StockManagementPage() {
     try {
       // Call backend API to update stock
       const response = await fetch(
-        `http://localhost:8000/api/admin/products/${id}/`,
+        `${API_URL}/admin/products/${id}/`,
         {
           method: "PATCH",
           headers: {
