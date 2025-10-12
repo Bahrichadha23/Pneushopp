@@ -356,3 +356,90 @@ def create_user(request):
         }
         return Response(response_data, status=status.HTTP_201_CREATED)
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+@api_view(['PUT'])
+@permission_classes([IsAuthenticated])
+def update_user(request, user_id):
+    # Check if user has permission (admin or superuser)
+    if not (request.user.role == 'admin' or request.user.is_superuser):
+        return Response(
+            {'error': 'You do not have permission to perform this action'},
+            status=status.HTTP_403_FORBIDDEN
+        )
+    
+    try:
+        user = CustomUser.objects.get(id=user_id)
+    except CustomUser.DoesNotExist:
+        return Response(
+            {'error': 'User not found'},
+            status=status.HTTP_404_NOT_FOUND
+        )
+    
+    # Prevent modifying superuser accounts unless current user is superuser
+    if user.is_superuser and not request.user.is_superuser:
+        return Response(
+            {'error': 'Cannot modify superuser account'},
+            status=status.HTTP_403_FORBIDDEN
+        )
+    
+    # Don't allow changing role to/from superuser
+    data = request.data.copy()
+    if 'is_superuser' in data:
+        data.pop('is_superuser')
+    
+    # Only allow updating specific fields
+    allowed_fields = ['first_name', 'last_name', 'email', 'phone', 'address', 'role', 'is_active']
+    update_data = {k: v for k, v in data.items() if k in allowed_fields}
+    
+    # Update user
+    for field, value in update_data.items():
+        setattr(user, field, value)
+    
+    # Handle password separately
+    if 'password' in data:
+        user.set_password(data['password'])
+    
+    user.save()
+    
+    return Response({
+        'message': 'User updated successfully',
+        'user': UserSerializer(user).data
+    })
+
+@api_view(['DELETE'])
+@permission_classes([IsAuthenticated])
+def delete_user(request, user_id):
+    # Check if user has permission (admin or superuser)
+    if not (request.user.role == 'admin' or request.user.is_superuser):
+        return Response(
+            {'error': 'You do not have permission to perform this action'},
+            status=status.HTTP_403_FORBIDDEN
+        )
+    
+    try:
+        user = CustomUser.objects.get(id=user_id)
+    except CustomUser.DoesNotExist:
+        return Response(
+            {'error': 'User not found'},
+            status=status.HTTP_404_NOT_FOUND
+        )
+    
+    # Prevent deleting own account or superuser accounts
+    if user == request.user:
+        return Response(
+            {'error': 'You cannot delete your own account'},
+            status=status.HTTP_400_BAD_REQUEST
+        )
+    
+    if user.is_superuser and not request.user.is_superuser:
+        return Response(
+            {'error': 'Cannot delete superuser account'},
+            status=status.HTTP_403_FORBIDDEN
+        )
+    
+    user.delete()
+    return Response(
+        {'message': 'User deleted successfully'},
+        status=status.HTTP_204_NO_CONTENT
+    )

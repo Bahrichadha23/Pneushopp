@@ -12,7 +12,7 @@ class OrderItemSerializer(serializers.ModelSerializer):
 class OrderSerializer(serializers.ModelSerializer):
     user = UserSerializer(read_only=True)
     # items = OrderItemSerializer(many=True)
-    items = OrderItemSerializer(many=True, read_only=True)
+    items = OrderItemSerializer(many=True)
 
     class Meta:
         model = Order

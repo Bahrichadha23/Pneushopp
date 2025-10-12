@@ -66,7 +66,7 @@ export default function ContactPage() {
                   <Textarea placeholder="Votre message..." rows={6} />
                 </div>
 
-                <Button className="w-full bg-yellow-500 hover:bg-red-700">
+                <Button className="w-full bg-yellow-500 hover:bg-yellow-600">
                   Envoyer le Message
                 </Button>
               </form>

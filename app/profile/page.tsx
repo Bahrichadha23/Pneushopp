@@ -116,6 +116,35 @@ export default function UserProfile() {
 
       <div className="flex justify-center mt-10">
         <div className="w-full max-w-md md:max-w-lg lg:max-w-xl bg-white shadow-lg hover:shadow-xl transition-shadow p-6 rounded-lg">
+          <button
+            onClick={async () => {
+              setIsLoggingOut(true);
+              await logout();
+              window.location.href = "/auth/login";
+            }}
+            className={`ml-86 px-4 py-2 bg-yellow-500 text-white rounded cursor-pointer hover:bg-yellow-600 transition-all duration-150 flex items-center gap-2 ${isLoggingOut ? "opacity-60 cursor-not-allowed" : ""
+              }`}
+            disabled={isLoggingOut}
+          >
+            {isLoggingOut ? (
+              <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
+            ) : (
+              <svg
+                className="w-5 h-5"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M17 16l4-4m0 0l-4-4m4 4H7"
+                />
+              </svg>
+            )}
+            Se déconnecter
+          </button>
           <h1 className="text-2xl font-bold mb-2 text-yellow-600 animate-pulse">
             Bonjour, {user.firstName}!
           </h1>
@@ -145,38 +174,9 @@ export default function UserProfile() {
           </div>
           <button
             onClick={() => setIsEditing(true)}
-            className="mt-4 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors"
+            className="mt-4 px-4 py-2 bg-yellow-500 text-white rounded cursor-pointer hover:bg-yellow-600 transition-colors"
           >
             Modifier le profil
-          </button>
-          <button
-            onClick={async () => {
-              setIsLoggingOut(true);
-              await logout();
-              window.location.href = "/auth/login";
-            }}
-            className={`mt-6 px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600 transition-all duration-150 flex items-center gap-2 ${isLoggingOut ? "opacity-60 cursor-not-allowed" : ""
-              }`}
-            disabled={isLoggingOut}
-          >
-            {isLoggingOut ? (
-              <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
-            ) : (
-              <svg
-                className="w-5 h-5"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M17 16l4-4m0 0l-4-4m4 4H7"
-                />
-              </svg>
-            )}
-            Se déconnecter
           </button>
         </div>
       </div>

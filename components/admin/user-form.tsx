@@ -187,26 +187,48 @@ import { useEffect } from 'react';
 
 // Schema validation
 // Update the schema to make fields required
-const userFormSchema = z.object({
+const baseUserSchema = {
     email: z.string().min(1, 'Email est requis').email('Email invalide'),
     firstName: z.string().min(1, 'Le prénom est requis'),
     lastName: z.string().min(1, 'Le nom est requis'),
+    role: z.enum(['sales', 'purchasing', 'admin']),
+};
+
+// Schema for creating a new user (password is required)
+const createUserSchema = z.object({
+    ...baseUserSchema,
     password: z.string().min(6, 'Le mot de passe doit contenir au moins 6 caractères'),
     password_confirm: z.string().min(1, 'La confirmation du mot de passe est requise'),
-    role: z.enum(['sales', 'purchasing']),
 }).refine((data) => data.password === data.password_confirm, {
     message: 'Les mots de passe ne correspondent pas',
     path: ['password_confirm'],
 });
 
-type UserFormValues = z.infer<typeof userFormSchema>;
+// Schema for updating a user (password is optional)
+const updateUserSchema = z.object({
+    ...baseUserSchema,
+    password: z.string().min(6, 'Le mot de passe doit contenir au moins 6 caractères').optional(),
+    password_confirm: z.string().optional(),
+}).refine(
+    (data) => !data.password || data.password === data.password_confirm,
+    {
+        message: 'Les mots de passe ne correspondent pas',
+        path: ['password_confirm'],
+    }
+);
+
+type UserFormValues = z.infer<typeof createUserSchema> & { id?: number };
 
 interface UserFormProps {
     onSubmit: (data: UserFormValues) => Promise<void>;
     isLoading: boolean;
+    initialData?: Partial<UserFormValues>;
 }
 
-export function UserForm({ onSubmit, isLoading }: UserFormProps) {
+export function UserForm({ onSubmit, isLoading, initialData }: UserFormProps) {
+    const isEdit = !!initialData?.id;
+    const schema = isEdit ? updateUserSchema : createUserSchema;
+
     const {
         register,
         handleSubmit,
@@ -214,9 +236,10 @@ export function UserForm({ onSubmit, isLoading }: UserFormProps) {
         formState: { errors, isValid },
         watch,
         reset,
-        trigger
+        trigger,
+        setValue
     } = useForm<UserFormValues>({
-        resolver: zodResolver(userFormSchema),
+        resolver: zodResolver(schema),
         mode: 'onChange',
         defaultValues: {
             email: '',
@@ -224,9 +247,21 @@ export function UserForm({ onSubmit, isLoading }: UserFormProps) {
             lastName: '',
             password: '',
             password_confirm: '',
-            role: 'sales'
+            role: 'sales',
+            ...initialData
         },
     });
+
+    // Update form when initialData changes (for edit mode)
+    useEffect(() => {
+        if (initialData) {
+            Object.entries(initialData).forEach(([key, value]) => {
+                if (value !== undefined) {
+                    setValue(key as keyof UserFormValues, value);
+                }
+            });
+        }
+    }, [initialData, setValue]);
 
     // Debug form values
     const formValues = watch();

@@ -19,6 +19,7 @@
 from django.urls import path
 from rest_framework_simplejwt.views import TokenRefreshView
 from . import views
+from .views import update_user, delete_user
 
 urlpatterns = [
     # Authentication
@@ -37,4 +38,7 @@ urlpatterns = [
     # Admin endpoints
     path('admin/create-user/', views.create_user, name='create_user'),
     path('admin/staff-users/', views.list_staff_users, name='list_staff_users'),
+    path('admin/update-user/<int:user_id>/', update_user, name='update-user'),
+    path('admin/delete-user/<int:user_id>/', delete_user, name='delete-user'),
+
 ]
