@@ -31,37 +31,6 @@ export default function ClientsPage() {
   const [typeFilter, setTypeFilter] = useState("tous");
   const [selectedClient, setSelectedClient] = useState<any>(null);
   const [showClientDetails, setShowClientDetails] = useState(false);
-  // useEffect(() => {
-  //   const fetchClients = async () => {
-  //     try {
-  //       const token = localStorage.getItem("access_token");
-  //       if (!token) {
-  //         console.error("No access token found");
-  //         return;
-  //       }
-
-  //       const res = await fetch("http://127.0.0.1:8000/api/clients/", {
-  //         method: "GET",
-  //         headers: {
-  //           "Content-Type": "application/json",
-  //           Authorization: `Bearer ${token}`,
-  //         },
-  //       });
-
-
-  //       if (!res.ok) {
-  //         throw new Error(`Erreur: ${res.status} ${res.statusText}`);
-  //       }
-
-  //       const data = await res.json();
-  //       console.log(data);
-  //       setClients(data);
-  //     } catch (error) {
-  //       console.error("Erreur lors du chargement des clients:", error);
-  //     }
-  //   };
-  //   fetchClients();
-  // }, []);
   useEffect(() => {
     const fetchClients = async () => {
       try {
