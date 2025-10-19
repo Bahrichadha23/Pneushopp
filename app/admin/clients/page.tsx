@@ -56,7 +56,9 @@ export default function ClientsPage() {
         console.log("All users:", data);
 
         // ✅ Filter only users with role = "customer"
-        const customers = data.filter((user) => user.role === "customer");
+        // const customers = data.filter((user) => user.role === "customer");
+        const customers = data.filter((user: { role: string }) => user.role === "customer");
+
         console.log("Filtered customers:", customers);
 
         setClients(customers);

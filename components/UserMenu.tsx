@@ -18,11 +18,10 @@ export default function UserMenu() {
         className="flex items-center font-medium text-gray-900 hover:text-yellow-500"
       >
         <UserCircle className="h-6 w-6 mr-1" />
-        {user && <span className="hidden sm:block">{user.name}</span>}
+        {user && <span className="hidden sm:block">{user.firstName}</span>}
         <ChevronDown
-          className={`h-4 w-4 transform transition-transform ${
-            isOpen ? "rotate-180" : ""
-          }`}
+          className={`h-4 w-4 transform transition-transform ${isOpen ? "rotate-180" : ""
+            }`}
         />
       </button>
 

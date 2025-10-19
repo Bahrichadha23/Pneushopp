@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import type { Order } from "@/types/order";
+// import type { Order } from "@/types/admin";
 import { useAuth } from "@/contexts/auth-context";
 import { useRouter } from "next/navigation";
 
@@ -25,8 +25,21 @@ import {
 } from "lucide-react";
 import { API_URL } from "@/lib/config";
 
+type PendingOrder = {
+  id: string;
+  numericId: number;
+  client: string;
+  email: string;
+  total: number;
+  items: any[]; // or number if you only store length
+  date: string;
+  urgence: string;
+};
+
+
 export default function PendingOrdersPage() {
-  const [orders, setOrders] = useState<Order[]>([]);
+  // const [orders, setOrders] = useState<Order[]>([]);
+  const [orders, setOrders] = useState<PendingOrder[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const { user } = useAuth();
@@ -99,23 +112,9 @@ export default function PendingOrdersPage() {
       order.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
       order.client.toLowerCase().includes(searchTerm.toLowerCase())
   );
-  // const updateOrderStatus = async (orderId: string, status: string) => {
-  //   const token = localStorage.getItem("access_token");
-  //   const res = await fetch(`${API_URL}/orders/${orderId}/`, {
-  //     method: "PATCH",
-  //     headers: {
-  //       "Content-Type": "application/json",
-  //       Authorization: `Bearer ${token}`,
-  //     },
-  //     body: JSON.stringify({ status }),
-  //   });
-  //   if (res.ok) {
-  //     setOrders((prev) => prev.filter((o) => o.id !== orderId));
-  //   }
-  // };
   const updateOrderStatus = async (
     numericId: number,
-    status: Order["status"]
+    status: PendingOrder["urgence"]
   ) => {
     const token = localStorage.getItem("access_token");
     const res = await fetch(`${API_URL}/orders/${numericId}/`, {

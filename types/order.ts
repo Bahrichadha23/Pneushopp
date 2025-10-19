@@ -1,107 +1,3 @@
-// // Types pour la gestion des commandes et paiements
-// export interface ShippingAddress {
-//   firstName: string
-//   lastName: string
-//   company?: string
-//   address: string
-//   city: string
-//   postalCode: string
-//   country: string
-//   phone: string
-// }
-
-// export interface PaymentMethod {
-//   type: "card" | "paypal" | "bank_transfer" | "cash_on_delivery"
-//   cardNumber?: string
-//   expiryDate?: string
-//   cvv?: string
-//   holderName?: string
-// }
-
-// export interface Order {
-
-//   id: string
-//   numericId: number
-//   userId?: string
-//   items: CartItem[]
-//   shippingAddress: ShippingAddress
-//   paymentMethod: PaymentMethod
-//   subtotal: number
-//   shippingCost: number
-//   tax: number
-//   total: number
-//   status: "pending" | "confirmed" | "processing" | "shipped" | "delivered" | "cancelled"
-//   createdAt: Date
-//   updatedAt: Date
-//   trackingNumber?: string
-//   notes?: string
-//   client: string
-//   email?: string
-//   date?: string
-//   urgence?: "normale" | "haute"
-
-
-// }
-// // lib/services/order.ts
-
-
-// interface CreateOrderData {
-//   items: Array<{
-//     product_id: string | number;
-//     product_name: string;
-//     quantity: number;
-//     unit_price: number;
-//     total_price: number;
-//     specifications?: any;
-//   }>;
-//   shipping_address: {
-//     first_name: string;
-//     last_name: string;
-//     address: string;
-//     city: string;
-//     postal_code: string;
-//     country: string;
-//     phone: string;
-//     company?: string;
-//   };
-//   payment_method: string;
-//   notes?: string;
-// }
-
-// export const createOrder = async (orderData: CreateOrderData) => {
-//   const token = localStorage.getItem("access_token");
-//   if (!token) throw new Error("No auth token found");
-
-//   const response = await fetch(`${API_URL}/api/orders/`, {
-//     method: "POST",
-//     headers: {
-//       "Content-Type": "application/json",
-//       Authorization: `Bearer ${token}`,
-//     },
-//     body: JSON.stringify(orderData),
-//   });
-
-//   if (!response.ok) {
-//     const errorData = await response.json().catch(() => ({}));
-//     throw new Error(errorData.detail || "Failed to create order");
-//   }
-
-//   return response.json();
-// };
-// export interface OrderContextType {
-//   currentOrder: Order | null
-//   createOrder: (orderData: Omit<Order, "id" | "createdAt" | "updatedAt">) => Promise<string>
-//   getOrder: (orderId: string) => Order | null
-//   updateOrderStatus: (orderId: string, status: Order["status"]) => void
-//   getAllOrders: () => Order[]
-// }
-
-// import { API_URL } from "@/lib/config"
-// import type { CartItem } from "./product"
-
-
-
-
 import type { Order as AdminOrder } from "@/types/admin";
 import { API_URL } from "@/lib/config";
 // Interface for order items
@@ -113,6 +9,10 @@ export interface OrderItem {
   total_price: number;
   specifications?: Record<string, any>;
 }
+export type PaymentMethod = {
+  type: "card" | "cash_on_delivery" | "paypal" | "bank_transfer";
+  details?: string;
+};
 
 // Interface for shipping address
 export interface ShippingAddress {

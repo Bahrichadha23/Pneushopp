@@ -6,7 +6,7 @@ import { fetchOrders } from "@/lib/services/order";
 import { API_URL } from "@/lib/config";
 import { useAuth } from "@/contexts/auth-context";
 import { useRouter } from "next/navigation";
-import ProtectedRoute from '@/components/protected-route';
+// import ProtectedRoute from '@/components/protected-route';
 
 export default function OrdersPage() {
   const [orders, setOrders] = useState<Order[]>([]);

@@ -2,11 +2,30 @@
 // Contexte pour la gestion des commandes
 import type React from "react"
 import { createContext, useContext, useState, useEffect } from "react"
-import type { Order, OrderContextType } from "@/types/order"
+// import type { Order, OrderContextType } from "@/types/order"
+import { OrderItem } from "@/types/admin"
+import { PaymentMethod } from "@/types/order"
+import { ShippingAddress } from "@/types/order"
 import { API_URL } from "@/lib/config"
 
 const OrderContext = createContext<OrderContextType | undefined>(undefined)
-
+interface Order {
+  id: string;
+  items: OrderItem[];
+  shippingAddress: ShippingAddress;
+  paymentMethod: PaymentMethod;
+  total: number;
+  status: "pending" | "paid" | "shipped" | "delivered" | "cancelled";
+  createdAt: Date;
+  updatedAt: Date;
+}
+interface OrderContextType {
+  currentOrder: Order | null;
+  createOrder: (orderData: Omit<Order, "id" | "createdAt" | "updatedAt">) => Promise<string>;
+  getOrder: (orderId: string) => Order | null;
+  updateOrderStatus: (orderId: string, status: Order["status"]) => void;
+  getAllOrders: () => Order[];
+}
 export function OrderProvider({ children }: { children: React.ReactNode }) {
   const [orders, setOrders] = useState<Order[]>([])
   const [currentOrder, setCurrentOrder] = useState<Order | null>(null)
@@ -37,14 +56,8 @@ export function OrderProvider({ children }: { children: React.ReactNode }) {
     try {
       // Get auth token
       const token = typeof window !== "undefined" ? localStorage.getItem("access_token") : null;
-      console.log("🔑 Token check:", token ? "Token exists" : "No token found");
-      console.log("🔑 Token preview:", token ? token.substring(0, 20) + "..." : "null");
 
       if (token) {
-        console.log("🚀 Attempting to create order in backend...");
-        console.log("📦 Order data:", orderData);
-        console.log("🌐 API URL:", `${API_URL}/orders/`);
-
         // Call backend API to create order
         const response = await fetch(`${API_URL}/orders/`, {
           method: "POST",
@@ -55,29 +68,30 @@ export function OrderProvider({ children }: { children: React.ReactNode }) {
           body: JSON.stringify({
             order_number: `PN-${Date.now()}`, // Add order number
             items: orderData.items.map(item => ({
-              product_id: parseInt(item.product.id),
+              product_id: parseInt(item.productId),
               quantity: item.quantity,
-              unit_price: parseFloat(item.product.price.toFixed(2)), // Ensure 2 decimal places
-              total_price: parseFloat((item.product.price * item.quantity).toFixed(2)), // Add total_price
-              product_name: item.product.name,
-              specifications: `${item.product.specifications.width}/${item.product.specifications.height} R${item.product.specifications.diameter}`
+              unit_price: parseFloat(item.unitPrice.toFixed(2)), // Ensure 2 decimal places
+              total_price: parseFloat((item.unitPrice * item.quantity).toFixed(2)), // Add total_price
+              product_name: item.productName,
+              specifications: item.specifications,
+              // specifications: `${item.product.specifications.width}/${item.product.specifications.height} R${item.product.specifications.diameter}`
               // Remove 'order' field - it will be set by Django automatically
             })),
             shipping_address: {
-              first_name: orderData.shippingAddress.firstName,
-              last_name: orderData.shippingAddress.lastName,
+              first_name: orderData.shippingAddress.first_name,
+              last_name: orderData.shippingAddress.last_name,
               address: orderData.shippingAddress.address,
               city: orderData.shippingAddress.city,
-              postal_code: orderData.shippingAddress.postalCode,
+              postal_code: orderData.shippingAddress.postal_code,
               country: orderData.shippingAddress.country,
               phone: orderData.shippingAddress.phone
             },
             billing_address: {
-              first_name: orderData.shippingAddress.firstName,
-              last_name: orderData.shippingAddress.lastName,
+              first_name: orderData.shippingAddress.first_name,
+              last_name: orderData.shippingAddress.last_name,
               address: orderData.shippingAddress.address,
               city: orderData.shippingAddress.city,
-              postal_code: orderData.shippingAddress.postalCode,
+              postal_code: orderData.shippingAddress.postal_code,
               country: orderData.shippingAddress.country,
               phone: orderData.shippingAddress.phone
             },

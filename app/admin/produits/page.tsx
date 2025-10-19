@@ -29,6 +29,7 @@ const adminProductToProduct = (adminProduct: AdminProduct): Product => {
 
   return {
     id: adminProduct.id.toString(),
+    slug: adminProduct.slug || adminProduct.name.toLowerCase().replace(/\s+/g, "-"),
     name: adminProduct.name,
     brand: adminProduct.brand,
     model: adminProduct.size || "", // Utiliser size comme model temporairement
@@ -38,7 +39,9 @@ const adminProductToProduct = (adminProduct: AdminProduct): Product => {
       : undefined,
     discount_percentage: adminProduct.discount_percentage,
     image: adminProduct.image || "/placeholder.jpg",
-    images: [adminProduct.image || "/placeholder.jpg"],
+    images: [
+      new File([], adminProduct.image || "/placeholder.jpg", { type: "image/jpeg" }),
+    ],
     category: "auto" as any, // Valeur par défaut
     specifications: {
       width: 225, // Valeurs par défaut car non disponibles dans AdminProduct

@@ -43,33 +43,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     user: null,
     isLoading: true,
   });
-
-  // Vérifier l'authentification au chargement
-  // useEffect(() => {
-  //   const checkAuth = async () => {
-  //     dispatch({ type: "SET_LOADING", loading: true });
-
-  //     if (authService.isAuthenticated()) {
-  //       try {
-  //         const response = await authService.getProfile();
-  //         if (response.success && response.data) {
-  //           dispatch({ type: "SET_USER", user: response.data });
-  //         } else {
-  //           // Token invalide, nettoyer
-  //           authService.logout();
-  //           dispatch({ type: "LOGOUT" });
-  //         }
-  //       } catch (error) {
-  //         authService.logout();
-  //         dispatch({ type: "LOGOUT" });
-  //       }
-  //     } else {
-  //       dispatch({ type: "SET_LOADING", loading: false });
-  //     }
-  //   };
-
-  //   checkAuth();
-  // }, []);
   useEffect(() => {
     const checkAuth = async () => {
       dispatch({ type: "SET_LOADING", loading: true });
@@ -119,7 +92,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
         // Save user to localStorage
         localStorage.setItem("user", JSON.stringify(response.data.user));
-        localStorage.setItem("token", response.data.token);
+        // localStorage.setItem("token", response.data.token);
         return { success: true, user: response.data.user };
       } else {
         dispatch({ type: "SET_LOADING", loading: false });

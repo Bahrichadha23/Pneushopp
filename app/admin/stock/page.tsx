@@ -1,4 +1,5 @@
 "use client";
+
 import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -9,6 +10,24 @@ import type { Product } from "@/types/product";
 import { useAuth } from "@/contexts/auth-context";
 import { useRouter } from "next/navigation";
 import { API_URL } from "@/lib/config";
+type StockVariant = "default" | "secondary" | "destructive" | "outline";
+
+interface StockStatus {
+  status: string;
+  variant: StockVariant;
+}
+
+const getStockStatus = (current: number): StockStatus => {
+  if (current <= 0) {
+    return { status: "Out of Stock", variant: "destructive" };
+  } else if (current <= 5) {
+    return { status: "Low Stock", variant: "secondary" };
+  } else if (current <= 20) {
+    return { status: "In Stock", variant: "default" };
+  } else {
+    return { status: "High Stock", variant: "outline" };
+  }
+};
 
 interface AdminProduct {
   id: number;
@@ -83,27 +102,8 @@ export default function StockManagementPage() {
       currency: "TND",
     }).format(amount);
 
-  const getStockStatus = (current: number) => {
-    if (current === 0) {
-      return { status: "Rupture", variant: "destructive" };
-    } else if (current <= 5) {
-      return { status: "Stock faible", variant: "destructive" };
-    } else if (current <= 10) {
-      return { status: "Stock moyen", variant: "secondary" };
-    } else {
-      return { status: "En stock", variant: "default" };
-    }
-  };
 
-  // const updateStock = (id: number, change: number) => {
-  //   setStock((prev) =>
-  //     prev.map((item) =>
-  //       item.id === id
-  //         ? { ...item, stock: Math.max(0, item.stock + change) }
-  //         : item
-  //     )
-  //   );
-  // };
+
   const updateStock = async (id: number, change: number) => {
     const item = stock.find((p) => p.id === id);
     if (!item) return;
@@ -244,7 +244,7 @@ export default function StockManagementPage() {
               </thead>
               <tbody>
                 {filteredStock.map((item) => {
-                  const stockStatus = getStockStatus(
+                  const stockStatus: { status: string; variant: "default" | "secondary" | "destructive" | "outline" } = getStockStatus(
                     item.stock
                     // item.stockMin,
                     // item.stockMax
@@ -303,7 +303,7 @@ export default function StockManagementPage() {
         {/* Mobile Cards */}
         <div className="md:hidden space-y-3">
           {filteredStock.map((item) => {
-            const stockStatus = getStockStatus(
+            const stockStatus: { status: string; variant: "default" | "secondary" | "destructive" | "outline" } = getStockStatus(
               item.stock
               // item.stockMin,
               // item.stockMax

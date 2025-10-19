@@ -55,7 +55,10 @@ const convertApiProduct = (apiProduct: ApiProduct): Product => ({
     : undefined,
   discount_percentage: apiProduct.discount_percentage,
   image: apiProduct.image || "/placeholder.jpg",
-  images: [apiProduct.image || "/placeholder.jpg"],
+  // images: [apiProduct.image || "/placeholder.jpg"],
+  images: [
+    new File([], apiProduct.image || "/placeholder.jpg", { type: "image/jpeg" }),
+  ],
   category: "auto",
   specifications: {
     width: 225,
@@ -67,8 +70,8 @@ const convertApiProduct = (apiProduct: ApiProduct): Product => ({
       apiProduct.season === "summer"
         ? "ete"
         : apiProduct.season === "winter"
-        ? "hiver"
-        : "toutes-saisons",
+          ? "hiver"
+          : "toutes-saisons",
     specialty: "tourisme",
   },
   stock: apiProduct.stock,
