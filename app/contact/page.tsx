@@ -1,3 +1,8 @@
+"use client";
+
+import React, { ChangeEvent } from "react";
+import { useState, type FormEvent } from "react";
+import emailjs from "@emailjs/browser";
 import Header from "@/components/header";
 import Footer from "@/components/footer";
 import { Button } from "@/components/ui/button";
@@ -5,6 +10,69 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 
 export default function ContactPage() {
+  const [formData, setFormData] = useState({
+    nom: "",
+    prenom: "",
+    email: "",
+    telephone: "",
+    sujet: "",
+    message: "",
+  });
+
+  const [loading, setLoading] = useState(false);
+  const [successMsg, setSuccessMsg] = useState("");
+  const [errorMsg, setErrorMsg] = useState("");
+
+  const handleChange = (
+    e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
+    setFormData({
+      ...formData,
+      [e.target.name]: e.target.value,
+    });
+  };
+
+  // ✅ Handle Form Submit
+  const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setLoading(true);
+    setSuccessMsg("");
+    setErrorMsg("");
+
+    emailjs
+      .send(
+        "service_6b0lqyh", // Service ID
+        "template_hfmwxsl", // Template ID
+        {
+          nom: formData.nom,
+          prenom: formData.prenom,
+          email: formData.email,
+          telephone: formData.telephone,
+          sujet: formData.sujet,
+          message: formData.message,
+        },
+        "DYXz6yVXm8PzEU-2S" // Public Key
+      )
+      .then(
+        () => {
+          setSuccessMsg("✅ Votre message a été envoyé avec succès !");
+          setFormData({
+            nom: "",
+            prenom: "",
+            email: "",
+            telephone: "",
+            sujet: "",
+            message: "",
+          });
+        },
+        (error) => {
+          setErrorMsg("❌ Une erreur s'est produite. Veuillez réessayer.");
+          console.error("EmailJS Error:", error);
+        }
+      )
+      .finally(() => setLoading(false));
+  };
+
   return (
     <div className="min-h-screen bg-white">
       <Header />
@@ -22,19 +90,31 @@ export default function ContactPage() {
                 Envoyez-nous un Message
               </h2>
 
-              <form className="space-y-6">
+              <form onSubmit={handleSubmit} className="space-y-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
                       Nom
                     </label>
-                    <Input placeholder="Votre nom" />
+                    <Input
+                      name="nom"
+                      placeholder="Votre nom"
+                      value={formData.nom}
+                      onChange={handleChange}
+                      required
+                    />
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
                       Prénom
                     </label>
-                    <Input placeholder="Votre prénom" />
+                    <Input
+                      name="prenom"
+                      placeholder="Votre prénom"
+                      value={formData.prenom}
+                      onChange={handleChange}
+                      required
+                    />
                   </div>
                 </div>
 
@@ -42,43 +122,79 @@ export default function ContactPage() {
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Email
                   </label>
-                  <Input type="email" placeholder="votre.email@exemple.com" />
+                  <Input
+                    name="email"
+                    type="email"
+                    placeholder="votre.email@exemple.com"
+                    value={formData.email}
+                    onChange={handleChange}
+                    required
+                  />
                 </div>
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Téléphone
                   </label>
-                  <Input placeholder="+216 XX XXX XXX" />
+                  <Input
+                    name="telephone"
+                    placeholder="+216 XX XXX XXX"
+                    value={formData.telephone}
+                    onChange={handleChange}
+                  />
                 </div>
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Sujet
                   </label>
-                  <Input placeholder="Sujet de votre message" />
+                  <Input
+                    name="sujet"
+                    placeholder="Sujet de votre message"
+                    value={formData.sujet}
+                    onChange={handleChange}
+                    required
+                  />
                 </div>
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Message
                   </label>
-                  <Textarea placeholder="Votre message..." rows={6} />
+                  <Textarea
+                    name="message"
+                    placeholder="Votre message..."
+                    rows={6}
+                    value={formData.message}
+                    onChange={handleChange}
+                    required
+                  />
                 </div>
 
-                <Button className="w-full bg-yellow-500 hover:bg-yellow-600">
-                  Envoyer le Message
+                {successMsg && (
+                  <p className="text-green-600 font-medium">{successMsg}</p>
+                )}
+                {errorMsg && (
+                  <p className="text-red-600 font-medium">{errorMsg}</p>
+                )}
+
+                <Button
+                  type="submit"
+                  className="w-full bg-yellow-500 hover:bg-yellow-600"
+                  disabled={loading}
+                >
+                  {loading ? "Envoi en cours..." : "Envoyer le Message"}
                 </Button>
               </form>
             </div>
 
-            {/* Contact Information */}
+            {/* Contact Info */}
             <div>
               <h2 className="text-2xl font-semibold mb-6">Nos Coordonnées</h2>
 
               <div className="space-y-6">
                 <div className="flex items-start space-x-4">
-                  <div className="w-8 h-8 bg-yellow-500 rounded-full flex items-center justify-center flex-shrink-0">
+                  <div className="w-8 h-8 bg-yellow-500 rounded-full flex items-center justify-center">
                     <span className="text-black font-bold">📍</span>
                   </div>
                   <div>
@@ -90,7 +206,7 @@ export default function ContactPage() {
                 </div>
 
                 <div className="flex items-start space-x-4">
-                  <div className="w-8 h-8 bg-yellow-500 rounded-full flex items-center justify-center flex-shrink-0">
+                  <div className="w-8 h-8 bg-yellow-500 rounded-full flex items-center justify-center">
                     <span className="text-black font-bold">📞</span>
                   </div>
                   <div>
@@ -100,7 +216,7 @@ export default function ContactPage() {
                 </div>
 
                 <div className="flex items-start space-x-4">
-                  <div className="w-8 h-8 bg-yellow-500 rounded-full flex items-center justify-center flex-shrink-0">
+                  <div className="w-8 h-8 bg-yellow-500 rounded-full flex items-center justify-center">
                     <span className="text-black font-bold">✉️</span>
                   </div>
                   <div>
@@ -112,7 +228,7 @@ export default function ContactPage() {
                 </div>
 
                 <div className="flex items-start space-x-4">
-                  <div className="w-8 h-8 bg-yellow-500 rounded-full flex items-center justify-center flex-shrink-0">
+                  <div className="w-8 h-8 bg-yellow-500 rounded-full flex items-center justify-center">
                     <span className="text-black font-bold">🕒</span>
                   </div>
                   <div>

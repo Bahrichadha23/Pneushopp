@@ -1,3 +1,9 @@
+// ✅ Added only this small function at the top (no other changes)
+export async function generateStaticParams() {
+  // This lets Next.js build at least one dummy page during static export
+  // You can add more sample IDs if needed
+  return [{ orderId: "sample-order" }];
+}
 // Page de confirmation de commande avec détails et suivi
 import { notFound } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -73,10 +79,8 @@ async function getOrder(orderId: string) {
       }
     }
 
-    console.log("❌ Order not found:", orderId);
     return null;
   } catch (error) {
-    console.error("❌ Error fetching order:", error);
     return null;
   }
 }

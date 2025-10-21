@@ -44,6 +44,13 @@ const newsItems = [
   },
 ];
 
+// ✅ Add this function here:
+export async function generateStaticParams() {
+  return newsItems.map((item) => ({
+    slug: item.slug,
+  }));
+}
+
 export default function ArticlePage({ params }: { params: { slug: string } }) {
   const article = newsItems.find((item) => item.slug === params.slug);
 
@@ -58,7 +65,6 @@ export default function ArticlePage({ params }: { params: { slug: string } }) {
   return (
     <div className="min-h-screen bg-white">
       <Header />
-
       <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <span className="bg-yellow-500 text-black px-3 py-1 rounded-full text-xs font-semibold">
           {article.category}
@@ -67,7 +73,6 @@ export default function ArticlePage({ params }: { params: { slug: string } }) {
           {article.title}
         </h1>
         <p className="text-sm text-gray-500 mt-2">{article.date}</p>
-
         <div className="mt-6">
           <img
             src={article.image}
@@ -75,13 +80,11 @@ export default function ArticlePage({ params }: { params: { slug: string } }) {
             className="w-full rounded-lg shadow-md"
           />
         </div>
-
         <div
           className="mt-6 text-gray-700 leading-relaxed"
           dangerouslySetInnerHTML={{ __html: article.content }}
         />
       </main>
-
       <Footer />
     </div>
   );
