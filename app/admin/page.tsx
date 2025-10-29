@@ -1,41 +1,42 @@
 // Page principale du tableau de bord administrateur
-"use client"
-import { useState, useEffect } from "react"
-import DashboardStatsComponent from "@/components/admin/dashboard-stats"
-import { adminService } from "@/lib/services/admin"
-import type { AdminStats } from "@/lib/services/admin"
-import { Alert, AlertDescription } from "@/components/ui/alert"
-import { Loader2, AlertCircle } from "lucide-react"
-
+"use client";
+import { useState, useEffect } from "react";
+import DashboardStatsComponent from "@/components/admin/dashboard-stats";
+import { adminService } from "@/lib/services/admin";
+import type { AdminStats } from "@/lib/services/admin";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Loader2, AlertCircle } from "lucide-react";
 
 export default function AdminDashboard() {
-  const [stats, setStats] = useState<AdminStats | null>(null)
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string>("")
+  const [stats, setStats] = useState<AdminStats | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string>("");
 
   const fetchStats = async () => {
-    setLoading(true)
-    setError("")
+    setLoading(true);
+    setError("");
 
     try {
-      const response = await adminService.getDashboardStats()
+      const response = await adminService.getDashboardStats();
 
       if (response.success && response.data) {
-        setStats(response.data)
+        setStats(response.data);
       } else {
-        setError(response.error || "Erreur lors du chargement des statistiques")
+        setError(
+          response.error || "Erreur lors du chargement des statistiques"
+        );
       }
     } catch (err: any) {
-      setError("Erreur de connexion au serveur")
-      console.error("Dashboard stats error:", err)
+      setError("Erreur de connexion au serveur");
+      console.error("Dashboard stats error:", err);
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   useEffect(() => {
-    fetchStats()
-  }, [])
+    fetchStats();
+  }, []);
 
   if (loading) {
     return (
@@ -45,7 +46,7 @@ export default function AdminDashboard() {
           <p className="text-gray-600">Chargement des statistiques...</p>
         </div>
       </div>
-    )
+    );
   }
 
   if (error) {
@@ -62,7 +63,7 @@ export default function AdminDashboard() {
           Réessayer
         </button>
       </div>
-    )
+    );
   }
 
   if (!stats) {
@@ -70,7 +71,7 @@ export default function AdminDashboard() {
       <div className="text-center py-12">
         <p className="text-gray-600">Aucune donnée disponible</p>
       </div>
-    )
+    );
   }
 
   return (
@@ -88,6 +89,5 @@ export default function AdminDashboard() {
       {/* Main Dashboard Content */}
       <DashboardStatsComponent stats={stats} />
     </div>
-
-  )
+  );
 }

@@ -22,7 +22,7 @@ import {
 } from "@/components/ui/table";
 import { TrendingUp, TrendingDown, RotateCcw, Search } from "lucide-react";
 import type { StockMovement } from "@/types/admin";
-
+import { API_URL } from "@/lib/config";
 interface StockMovementsProps {
   movements: StockMovement[];
   onAddMovement: (movement: Omit<StockMovement, "id" | "createdAt">) => void;
@@ -40,7 +40,7 @@ export default function StockMovements({
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-        const res = await fetch("http://localhost:8000/api/products/", {
+        const res = await fetch(`${API_URL}/products/`, {
           headers: {
             Authorization: `Bearer ${localStorage.getItem("access_token")}`,
             "Content-Type": "application/json",
@@ -66,7 +66,7 @@ export default function StockMovements({
   });
 
   const fetchStockMovements = async (): Promise<StockMovement[]> => {
-    const res = await fetch("http://localhost:8000/api/admin/stock-movements/");
+    const res = await fetch(`${API_URL}/admin/stock-movements/`);
     const data = await res.json();
 
     // Django returns { results: [...] } if paginated

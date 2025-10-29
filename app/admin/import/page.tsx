@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import { useAuth } from "@/contexts/auth-context";
 import { useRouter } from "next/navigation";
+import { API_URL } from "@/lib/config";
 
 interface ImportResult {
   message: string;
@@ -69,13 +70,10 @@ export default function ImportPage() {
         setUploadProgress((prev) => Math.min(prev + 10, 90));
       }, 200);
 
-      const response = await fetch(
-        "http://localhost:8000/api/products/import/excel/",
-        {
-          method: "POST",
-          body: formData,
-        }
-      );
+      const response = await fetch(`${API_URL}/products/import/excel/`, {
+        method: "POST",
+        body: formData,
+      });
 
       clearInterval(progressInterval);
       setUploadProgress(100);
@@ -292,7 +290,7 @@ export default function ImportPage() {
               </div>
             </div>
 
-            {importResult.created_products.length > 0 && (
+            {importResult.created_products?.length > 0 && (
               <div>
                 <h3 className="font-medium mb-2">
                   Produits créés (premiers 10):
@@ -311,7 +309,7 @@ export default function ImportPage() {
               </div>
             )}
 
-            {importResult.updated_products.length > 0 && (
+            {importResult.updated_products?.length > 0 && (
               <div>
                 <h3 className="font-medium mb-2">
                   Produits mis à jour (premiers 10):

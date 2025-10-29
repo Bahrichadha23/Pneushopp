@@ -1,8 +1,8 @@
 // API configuration and base client
 import axios, { AxiosResponse, AxiosError, InternalAxiosRequestConfig } from 'axios'
-
+import { API_URL } from './config';
 // API base URL
-export const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api'
+export const API_BASE_URL = API_URL 
 
 // Create axios instance with default configuration
 export const apiClient = axios.create({
@@ -90,10 +90,10 @@ apiClient.interceptors.response.use(
 // API endpoints
 export const API_ENDPOINTS = {
   // Authentication
-  LOGIN: '/auth/login/',
-  REGISTER: '/auth/register/',
-  REFRESH_TOKEN: '/auth/token/refresh/',
-  USER_PROFILE: '/auth/user/',
+  LOGIN: '/accounts/auth/login/',
+  REGISTER: '/accounts/auth/register/',
+  REFRESH_TOKEN: '/accounts/auth/token/refresh/',
+  USER_PROFILE: '/accounts/user/',
 
   // Products
   PRODUCTS: '/products/',

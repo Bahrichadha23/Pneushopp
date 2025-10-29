@@ -130,19 +130,35 @@ export const authService = {
 
   // Update user profile
   async updateProfile(userData: Partial<User>): Promise<ApiResponse<User>> {
-    try {
-      const response = await apiClient.patch(API_ENDPOINTS.USER_PROFILE, userData)
-      return {
-        success: true,
-        data: response.data
-      }
-    } catch (error: any) {
-      return {
-        success: false,
-        error: error.response?.data?.detail || 'Failed to update profile'
-      }
+  try {
+    const token = localStorage.getItem('access_token');
+    if (!token) {
+      return { success: false, error: 'Non authentifié' };
     }
-  },
+
+    const response = await apiClient.patch(API_ENDPOINTS.USER_PROFILE, userData, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      }
+    });
+
+    // Update localStorage with new user data
+    const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
+    const updatedUser = { ...currentUser, ...response.data };
+    localStorage.setItem('user', JSON.stringify(updatedUser));
+
+    return {
+      success: true,
+      data: response.data
+    }
+  } catch (error: any) {
+    console.error('Update profile error:', error);
+    return {
+      success: false,
+      error: error.response?.data?.detail || error.response?.data?.error || 'Failed to update profile'
+    }
+  }
+},
 
   // Logout user
   logout(): void {

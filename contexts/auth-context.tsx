@@ -48,7 +48,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       dispatch({ type: "SET_LOADING", loading: true });
 
       // Step 1: Restore from localStorage (fast UI update)
-      const storedUser = localStorage.getItem("user");
+      const storedUser =
+        localStorage.getItem("user") || sessionStorage.getItem("user");
       if (storedUser) {
         dispatch({ type: "SET_USER", user: JSON.parse(storedUser) });
       }
@@ -79,7 +80,35 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     checkAuth();
   }, []);
 
-  const login = async (email: string, password: string) => {
+  // const login = async (email: string, password: string) => {
+  //   dispatch({ type: "SET_LOADING", loading: true });
+
+  //   try {
+  //     const credentials: LoginCredentials = { email, password };
+  //     const response = await authService.login(credentials);
+
+  //     if (response.success && response.data) {
+  //       // Save user to state
+  //       dispatch({ type: "SET_USER", user: response.data.user });
+
+  //       // Save user to localStorage
+  //       localStorage.setItem("user", JSON.stringify(response.data.user));
+  //       // localStorage.setItem("token", response.data.token);
+  //       return { success: true, user: response.data.user };
+  //     } else {
+  //       dispatch({ type: "SET_LOADING", loading: false });
+  //       return {
+  //         success: false,
+  //         error: response.error || "Erreur de connexion",
+  //       };
+  //     }
+  //   } catch (error) {
+  //     dispatch({ type: "SET_LOADING", loading: false });
+  //     return { success: false, error: "Erreur de connexion" };
+  //   }
+  // };
+
+  const login = async (email: string, password: string, rememberMe = true) => {
     dispatch({ type: "SET_LOADING", loading: true });
 
     try {
@@ -87,13 +116,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const response = await authService.login(credentials);
 
       if (response.success && response.data) {
-        // Save user to state
-        dispatch({ type: "SET_USER", user: response.data.user });
+        const user = response.data.user;
 
-        // Save user to localStorage
-        localStorage.setItem("user", JSON.stringify(response.data.user));
-        // localStorage.setItem("token", response.data.token);
-        return { success: true, user: response.data.user };
+        dispatch({ type: "SET_USER", user });
+
+        if (rememberMe) {
+          localStorage.setItem("user", JSON.stringify(user));
+        } else {
+          sessionStorage.setItem("user", JSON.stringify(user));
+        }
+
+        return { success: true, user };
       } else {
         dispatch({ type: "SET_LOADING", loading: false });
         return {
@@ -106,6 +139,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       return { success: false, error: "Erreur de connexion" };
     }
   };
+
   const register = async (userData: RegisterData) => {
     dispatch({ type: "SET_LOADING", loading: true });
 
@@ -142,10 +176,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
+  // const logout = () => {
+  //   authService.logout();
+  //   localStorage.removeItem("user"); // 👈 Remove user from localStorage
+  //   localStorage.removeItem("token");
+  //   dispatch({ type: "LOGOUT" });
+  // };
   const logout = () => {
     authService.logout();
-    localStorage.removeItem("user"); // 👈 Remove user from localStorage
-    localStorage.removeItem("token");
+    localStorage.removeItem("user");
+    localStorage.removeItem("access_token"); // 👈 Changed from "token"
+    localStorage.removeItem("refresh_token"); // 👈 Added
+    sessionStorage.removeItem("user"); // 👈 Also clear session storage
     dispatch({ type: "LOGOUT" });
   };
 

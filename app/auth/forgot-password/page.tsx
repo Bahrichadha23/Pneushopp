@@ -1,48 +1,48 @@
-"use client"
-import { useState } from "react"
-import Link from "next/link"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Alert, AlertDescription } from "@/components/ui/alert"
-import { Mail, ArrowLeft, CheckCircle, AlertCircle } from "lucide-react"
-
+"use client";
+import { useState } from "react";
+import Link from "next/link";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Mail, ArrowLeft, CheckCircle, AlertCircle } from "lucide-react";
+import { API_URL } from "@/lib/config";
 export default function ForgotPasswordPage() {
-  const [email, setEmail] = useState("")
-  const [isLoading, setIsLoading] = useState(false)
-  const [success, setSuccess] = useState(false)
-  const [error, setError] = useState("")
+  const [email, setEmail] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const [success, setSuccess] = useState(false);
+  const [error, setError] = useState("");
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!email) return
+    e.preventDefault();
+    if (!email) return;
 
-    setIsLoading(true)
-    setError("")
+    setIsLoading(true);
+    setError("");
 
     try {
-      const response = await fetch("http://localhost:8000/api/auth/forgot-password/", {
+      const response = await fetch(`${API_URL}/auth/forgot-password/`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({ email }),
-      })
+      });
 
-      const data = await response.json()
-console.log(data)
+      const data = await response.json();
+      console.log(data);
       if (response.ok) {
-        setSuccess(true)
+        setSuccess(true);
       } else {
-        setError(data.error || "Une erreur s'est produite")
+        setError(data.error || "Une erreur s'est produite");
       }
     } catch (err) {
-      setError("Erreur de connexion au serveur")
+      setError("Erreur de connexion au serveur");
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   if (success) {
     return (
@@ -64,22 +64,22 @@ console.log(data)
                 <Alert>
                   <Mail className="h-4 w-4" />
                   <AlertDescription>
-                    Vérifiez votre boîte de réception et suivez les instructions dans l&apos;email.
-                    Le lien est valide pendant 1 heure.
+                    Vérifiez votre boîte de réception et suivez les instructions
+                    dans l&apos;email. Le lien est valide pendant 1 heure.
                   </AlertDescription>
                 </Alert>
               </div>
-              
+
               <div className="space-y-3 pt-4">
                 <p className="text-sm text-gray-500 text-center">
                   Vous n&apos;avez pas reçu l&apos;email ?
                 </p>
-                <Button 
-                  variant="outline" 
+                <Button
+                  variant="outline"
                   className="w-full"
                   onClick={() => {
-                    setSuccess(false)
-                    setEmail("")
+                    setSuccess(false);
+                    setEmail("");
                   }}
                 >
                   Renvoyer l&apos;email
@@ -95,7 +95,7 @@ console.log(data)
           </Card>
         </div>
       </div>
-    )
+    );
   }
 
   return (
@@ -105,7 +105,8 @@ console.log(data)
           <CardHeader className="text-center">
             <CardTitle className="text-2xl">Mot de passe oublié ?</CardTitle>
             <p className="text-gray-600 mt-2">
-              Entrez votre adresse email et nous vous enverrons les instructions pour réinitialiser votre mot de passe.
+              Entrez votre adresse email et nous vous enverrons les instructions
+              pour réinitialiser votre mot de passe.
             </p>
           </CardHeader>
           <CardContent>
@@ -149,8 +150,8 @@ console.log(data)
               </Button>
 
               <div className="text-center">
-                <Link 
-                  href="/auth/login" 
+                <Link
+                  href="/auth/login"
                   className="text-sm text-blue-600 hover:text-blue-500 inline-flex items-center"
                 >
                   <ArrowLeft className="h-4 w-4 mr-1" />
@@ -162,5 +163,5 @@ console.log(data)
         </Card>
       </div>
     </div>
-  )
+  );
 }

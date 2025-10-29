@@ -12,6 +12,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Eye, EyeOff, Loader2, AlertCircle } from "lucide-react";
 import { useAuth } from "@/contexts/auth-context";
 import Link from "next/link";
+import { toast } from "sonner";
 
 interface RegisterFormProps {
   redirectTo?: string;
@@ -120,33 +121,7 @@ export default function RegisterForm({
         setErrors({ general: result.error || "Erreur lors de l'inscription" });
       }
 
-      // if (result.success) {
-      //   console.log("✅ Registration successful")
-
-      //   // Show success message
-      //   setErrors({ success: "Compte créé avec succès! Redirection vers la connexion..." })
-
-      //   // Auto-redirect to login after 2 seconds
-      //   setTimeout(() => {
-      //     router.push('/auth/login')
-      //   }, 2000)
-
-      // } else {
-      //   console.log("❌ Registration failed:", result.error)
-      //   setErrors({ general: result.error || "Erreur lors de l'inscription" })
-      // }
-
-      // Skip validation - always show success and redirect
       console.log("✅ Registration successful (forced)");
-
-      /// Successful LOGIN--------------------------------------------
-      // // Show success message
-      // setErrors({ success: "Compte créé avec succès! Redirection vers la connexion..." })
-
-      // // Auto-redirect to login after 2 seconds
-      // setTimeout(() => {
-      //   router.push('/auth/login')
-      // }, 2000)
     } catch (err: any) {
       console.error("💥 Registration error:", err);
       setErrors({ general: "Erreur lors de l'inscription" });

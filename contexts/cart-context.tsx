@@ -13,8 +13,7 @@ type CartAction =
   | { type: "LOAD_CART"; items: CartItem[] };
 
 // API endpoints
-const API_BASE_URL = "http://localhost:8000/api";
-
+import { API_URL } from "@/lib/config";
 // Helper function to get auth token
 const getAuthToken = () => {
   if (typeof window !== "undefined") {
@@ -35,7 +34,7 @@ const apiCall = async (endpoint: string, options: RequestInit = {}) => {
     headers.Authorization = `Bearer ${token}`;
   }
 
-  const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+  const response = await fetch(`${API_URL}${endpoint}`, {
     ...options,
     headers,
   });
@@ -124,8 +123,8 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
                     item.product.season === "summer"
                       ? "ete"
                       : item.product.season === "winter"
-                        ? "hiver"
-                        : "toutes-saisons",
+                      ? "hiver"
+                      : "toutes-saisons",
                   specialty: "tourisme",
                 },
                 description: item.product.description || "",

@@ -1,82 +1,89 @@
-"use client"
-import { useState, useEffect } from "react"
-import { useSearchParams, useRouter } from "next/navigation"
-import Link from "next/link"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Alert, AlertDescription } from "@/components/ui/alert"
-import { Lock, Eye, EyeOff, CheckCircle, AlertCircle, ArrowLeft } from "lucide-react"
-
+"use client";
+import { useState, useEffect } from "react";
+import { useSearchParams, useRouter } from "next/navigation";
+import Link from "next/link";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import {
+  Lock,
+  Eye,
+  EyeOff,
+  CheckCircle,
+  AlertCircle,
+  ArrowLeft,
+} from "lucide-react";
+import { API_URL } from "@/lib/config";
 export default function ResetPasswordPage() {
-  const [password, setPassword] = useState("")
-  const [confirmPassword, setConfirmPassword] = useState("")
-  const [showPassword, setShowPassword] = useState(false)
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false)
-  const [isLoading, setIsLoading] = useState(false)
-  const [success, setSuccess] = useState(false)
-  const [error, setError] = useState("")
-  const [tokenValid, setTokenValid] = useState<boolean | null>(null)
-  const [userEmail, setUserEmail] = useState("")
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [success, setSuccess] = useState(false);
+  const [error, setError] = useState("");
+  const [tokenValid, setTokenValid] = useState<boolean | null>(null);
+  const [userEmail, setUserEmail] = useState("");
 
-  const searchParams = useSearchParams()
-  const router = useRouter()
-  const uid = searchParams.get("uid")
-  const token = searchParams.get("token")
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const uid = searchParams.get("uid");
+  const token = searchParams.get("token");
 
   useEffect(() => {
     if (uid && token) {
-      verifyToken()
+      verifyToken();
     } else {
-      setError("Lien de réinitialisation invalide")
-      setTokenValid(false)
+      setError("Lien de réinitialisation invalide");
+      setTokenValid(false);
     }
-  }, [uid, token])
+  }, [uid, token]);
 
   const verifyToken = async () => {
     try {
-      const response = await fetch("http://localhost:8000/api/accounts/verify-reset-token/", {
+      const response = await fetch(`${API_URL}/accounts/verify-reset-token/`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({ uid, token }),
-      })
+      });
 
-      const data = await response.json()
+      const data = await response.json();
 
       if (response.ok && data.valid) {
-        setTokenValid(true)
-        setUserEmail(data.email)
+        setTokenValid(true);
+        setUserEmail(data.email);
       } else {
-        setTokenValid(false)
-        setError(data.message || "Token invalide ou expiré")
+        setTokenValid(false);
+        setError(data.message || "Token invalide ou expiré");
       }
     } catch (err) {
-      setTokenValid(false)
-      setError("Erreur de vérification du token")
+      setTokenValid(false);
+      setError("Erreur de vérification du token");
     }
-  }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    
+    e.preventDefault();
+
     if (password !== confirmPassword) {
-      setError("Les mots de passe ne correspondent pas")
-      return
+      setError("Les mots de passe ne correspondent pas");
+      return;
     }
 
     if (password.length < 8) {
-      setError("Le mot de passe doit contenir au moins 8 caractères")
-      return
+      setError("Le mot de passe doit contenir au moins 8 caractères");
+      return;
     }
 
-    setIsLoading(true)
-    setError("")
+    setIsLoading(true);
+    setError("");
 
     try {
-      const response = await fetch("http://localhost:8000/api/accounts/reset-password/", {
+      const response = await fetch(`${API_URL}/accounts/reset-password/`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -86,21 +93,21 @@ export default function ResetPasswordPage() {
           token,
           new_password: password,
         }),
-      })
+      });
 
-      const data = await response.json()
+      const data = await response.json();
 
       if (response.ok) {
-        setSuccess(true)
+        setSuccess(true);
       } else {
-        setError(data.error || "Erreur lors de la réinitialisation")
+        setError(data.error || "Erreur lors de la réinitialisation");
       }
     } catch (err) {
-      setError("Erreur de connexion au serveur")
+      setError("Erreur de connexion au serveur");
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   if (tokenValid === null) {
     return (
@@ -114,7 +121,7 @@ export default function ResetPasswordPage() {
           </CardContent>
         </Card>
       </div>
-    )
+    );
   }
 
   if (tokenValid === false) {
@@ -134,9 +141,7 @@ export default function ResetPasswordPage() {
             </Alert>
             <div className="space-y-3">
               <Link href="/auth/forgot-password" className="block">
-                <Button className="w-full">
-                  Demander un nouveau lien
-                </Button>
+                <Button className="w-full">Demander un nouveau lien</Button>
               </Link>
               <Link href="/auth/login" className="block">
                 <Button variant="outline" className="w-full">
@@ -148,7 +153,7 @@ export default function ResetPasswordPage() {
           </CardContent>
         </Card>
       </div>
-    )
+    );
   }
 
   if (success) {
@@ -159,21 +164,22 @@ export default function ResetPasswordPage() {
             <div className="mx-auto w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mb-4">
               <CheckCircle className="h-8 w-8 text-green-600" />
             </div>
-            <CardTitle className="text-2xl">Mot de passe réinitialisé !</CardTitle>
+            <CardTitle className="text-2xl">
+              Mot de passe réinitialisé !
+            </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <p className="text-center text-gray-600">
-              Votre mot de passe a été mis à jour avec succès. Vous pouvez maintenant vous connecter avec votre nouveau mot de passe.
+              Votre mot de passe a été mis à jour avec succès. Vous pouvez
+              maintenant vous connecter avec votre nouveau mot de passe.
             </p>
             <Link href="/auth/login" className="block">
-              <Button className="w-full">
-                Se connecter
-              </Button>
+              <Button className="w-full">Se connecter</Button>
             </Link>
           </CardContent>
         </Card>
       </div>
-    )
+    );
   }
 
   return (
@@ -209,13 +215,19 @@ export default function ResetPasswordPage() {
                     className="absolute inset-y-0 right-0 pr-3 flex items-center"
                     onClick={() => setShowPassword(!showPassword)}
                   >
-                    {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    {showPassword ? (
+                      <EyeOff className="h-4 w-4" />
+                    ) : (
+                      <Eye className="h-4 w-4" />
+                    )}
                   </button>
                 </div>
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="confirmPassword">Confirmer le mot de passe</Label>
+                <Label htmlFor="confirmPassword">
+                  Confirmer le mot de passe
+                </Label>
                 <div className="relative">
                   <Input
                     id="confirmPassword"
@@ -232,7 +244,11 @@ export default function ResetPasswordPage() {
                     className="absolute inset-y-0 right-0 pr-3 flex items-center"
                     onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                   >
-                    {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    {showConfirmPassword ? (
+                      <EyeOff className="h-4 w-4" />
+                    ) : (
+                      <Eye className="h-4 w-4" />
+                    )}
                   </button>
                 </div>
               </div>
@@ -271,8 +287,8 @@ export default function ResetPasswordPage() {
               </Button>
 
               <div className="text-center">
-                <Link 
-                  href="/auth/login" 
+                <Link
+                  href="/auth/login"
                   className="text-sm text-blue-600 hover:text-blue-500 inline-flex items-center"
                 >
                   <ArrowLeft className="h-4 w-4 mr-1" />
@@ -284,5 +300,5 @@ export default function ResetPasswordPage() {
         </Card>
       </div>
     </div>
-  )
+  );
 }

@@ -1,13 +1,13 @@
 "use client";
 import { useEffect, useState } from "react";
 import { useAuth } from "@/contexts/auth-context";
-import { useForm } from 'react-hook-form';
-import { toast } from 'react-hot-toast';
+import { useForm } from "react-hook-form";
+import { toast } from "react-hot-toast";
 import Header from "@/components/header";
 import { Download } from "lucide-react";
 import { handleDownloadInvoice } from "@/components/admin/orders-table";
-import { Button } from "@/components/ui/button"
-
+import { Button } from "@/components/ui/button";
+import { API_URL } from "@/lib/config";
 
 export default function UserProfile() {
   const { user, logout, updateProfile } = useAuth();
@@ -18,7 +18,12 @@ export default function UserProfile() {
 
   const [isEditing, setIsEditing] = useState(false);
 
-  const { register, handleSubmit, formState: { errors, isSubmitting }, reset } = useForm();
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isSubmitting },
+    reset,
+  } = useForm();
   const handleProfileInvoice = (profileOrder: any) => {
     // Convert API snake_case → camelCase expected by handleDownloadInvoice
     const mappedOrder = {
@@ -45,10 +50,10 @@ export default function UserProfile() {
   useEffect(() => {
     if (user) {
       reset({
-        firstName: user.firstName || '',
-        lastName: user.lastName || '',
-        email: user.email || '',
-        phone: user.phone || '',
+        firstName: user.firstName || "",
+        lastName: user.lastName || "",
+        email: user.email || "",
+        phone: user.phone || "",
       });
     }
   }, [user, isEditing, reset]);
@@ -62,19 +67,19 @@ export default function UserProfile() {
       });
 
       if (result.success) {
-        toast.success('Profil mis à jour avec succès');
+        toast.success("Profil mis à jour avec succès");
         setIsEditing(false);
       } else {
-        toast.error(result.error || 'Erreur lors de la mise à jour du profil');
+        toast.error(result.error || "Erreur lors de la mise à jour du profil");
       }
     } catch (error) {
-      console.error('Error updating profile:', error);
-      toast.error('Une erreur est survenue');
+      console.error("Error updating profile:", error);
+      toast.error("Une erreur est survenue");
     }
   };
 
   useEffect(() => {
-    const token = localStorage.getItem("token");
+    const token = localStorage.getItem("access_token");
     if (!token) {
       window.location.href = "/auth/login";
     }
@@ -85,7 +90,7 @@ export default function UserProfile() {
     const fetchOrders = async () => {
       setLoadingOrders(true);
       try {
-        const res = await fetch("http://localhost:8000/api/orders/", {
+        const res = await fetch(`${API_URL}/orders/`, {
           headers: {
             "Content-Type": "application/json",
             Authorization: `Bearer ${localStorage.getItem("access_token")}`,
@@ -122,8 +127,9 @@ export default function UserProfile() {
               await logout();
               window.location.href = "/auth/login";
             }}
-            className={`ml-86 px-4 py-2 bg-yellow-500 text-white rounded cursor-pointer hover:bg-yellow-600 transition-all duration-150 flex items-center gap-2 ${isLoggingOut ? "opacity-60 cursor-not-allowed" : ""
-              }`}
+            className={`ml-86 px-4 py-2 bg-yellow-500 text-white rounded cursor-pointer hover:bg-yellow-600 transition-all duration-150 flex items-center gap-2 ${
+              isLoggingOut ? "opacity-60 cursor-not-allowed" : ""
+            }`}
             disabled={isLoggingOut}
           >
             {isLoggingOut ? (
@@ -149,10 +155,11 @@ export default function UserProfile() {
             Bonjour, {user.firstName}!
           </h1>
           <span
-            className={`inline-block px-2 py-1 rounded text-xs font-semibold mb-4 ${user.role === "admin"
-              ? "bg-red-100 text-red-600"
-              : "bg-blue-100 text-blue-600"
-              }`}
+            className={`inline-block px-2 py-1 rounded text-xs font-semibold mb-4 ${
+              user.role === "admin"
+                ? "bg-red-100 text-red-600"
+                : "bg-blue-100 text-blue-600"
+            }`}
           >
             {user.role === "admin" ? "Administrateur" : "Client"}
           </span>
@@ -181,64 +188,113 @@ export default function UserProfile() {
         </div>
       </div>
       {isEditing ? (
-        <form onSubmit={handleSubmit(onSubmit)} className="bg-white shadow-lg rounded-lg overflow-hidden p-6 sm:p-8">
+        <form
+          onSubmit={handleSubmit(onSubmit)}
+          className="bg-white shadow-lg rounded-lg overflow-hidden p-6 sm:p-8"
+        >
           <div className="border-b border-gray-200 pb-6 mb-6">
-            <h2 className="text-lg font-medium text-gray-900">Modifier le profil</h2>
-            <p className="mt-1 text-sm text-gray-500">Mettez à jour vos informations personnelles</p>
+            <h2 className="text-lg font-medium text-gray-900">
+              Modifier le profil
+            </h2>
+            <p className="mt-1 text-sm text-gray-500">
+              Mettez à jour vos informations personnelles
+            </p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
-              <label htmlFor="firstName" className="block text-sm font-medium text-gray-700">Prénom</label>
+              <label
+                htmlFor="firstName"
+                className="block text-sm font-medium text-gray-700"
+              >
+                Prénom
+              </label>
               <div className="mt-1">
                 <input
                   id="firstName"
                   type="text"
-                  {...register('firstName', { required: 'Ce champ est requis' })}
+                  {...register("firstName", {
+                    required: "Ce champ est requis",
+                  })}
                   className="block w-full rounded-md border-gray-300 shadow-sm focus:border-yellow-500 focus:ring-yellow-500 sm:text-sm p-2 border"
                 />
-                {errors.fieldName && <p className="mt-1 text-sm text-red-600">{String(errors.fieldName.message)}</p>}              </div>
+                {errors.fieldName && (
+                  <p className="mt-1 text-sm text-red-600">
+                    {String(errors.fieldName.message)}
+                  </p>
+                )}{" "}
+              </div>
             </div>
             <div>
-              <label htmlFor="lastName" className="block text-sm font-medium text-gray-700">Nom</label>
+              <label
+                htmlFor="lastName"
+                className="block text-sm font-medium text-gray-700"
+              >
+                Nom
+              </label>
               <div className="mt-1">
                 <input
                   id="lastName"
                   type="text"
-                  {...register('lastName', { required: 'Ce champ est requis' })}
+                  {...register("lastName", { required: "Ce champ est requis" })}
                   className="block w-full rounded-md border-gray-300 shadow-sm focus:border-yellow-500 focus:ring-yellow-500 sm:text-sm p-2 border"
                 />
-                {errors.fieldName && <p className="mt-1 text-sm text-red-600">{String(errors.fieldName.message)}</p>}              </div>
+                {errors.fieldName && (
+                  <p className="mt-1 text-sm text-red-600">
+                    {String(errors.fieldName.message)}
+                  </p>
+                )}{" "}
+              </div>
             </div>
 
             <div className="md:col-span-2">
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700">Email</label>
+              <label
+                htmlFor="email"
+                className="block text-sm font-medium text-gray-700"
+              >
+                Email
+              </label>
               <div className="mt-1">
                 <input
                   id="email"
                   type="email"
-                  {...register('email', {
-                    required: 'Email est requis',
+                  {...register("email", {
+                    required: "Email est requis",
                     pattern: {
                       value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
-                      message: 'Email invalide'
-                    }
+                      message: "Email invalide",
+                    },
                   })}
                   className="block w-full rounded-md border-gray-300 shadow-sm focus:border-yellow-500 focus:ring-yellow-500 sm:text-sm p-2 border"
                 />
-                {errors.fieldName && <p className="mt-1 text-sm text-red-600">{String(errors.fieldName.message)}</p>}              </div>
+                {errors.fieldName && (
+                  <p className="mt-1 text-sm text-red-600">
+                    {String(errors.fieldName.message)}
+                  </p>
+                )}{" "}
+              </div>
             </div>
 
             <div className="md:col-span-2">
-              <label htmlFor="phone" className="block text-sm font-medium text-gray-700">Téléphone</label>
+              <label
+                htmlFor="phone"
+                className="block text-sm font-medium text-gray-700"
+              >
+                Téléphone
+              </label>
               <div className="mt-1">
                 <input
                   id="phone"
                   type="tel"
-                  {...register('phone')}
+                  {...register("phone")}
                   className="block w-full rounded-md border-gray-300 shadow-sm focus:border-yellow-500 focus:ring-yellow-500 sm:text-sm p-2 border"
                 />
-                {errors.fieldName && <p className="mt-1 text-sm text-red-600">{String(errors.fieldName.message)}</p>}              </div>
+                {errors.fieldName && (
+                  <p className="mt-1 text-sm text-red-600">
+                    {String(errors.fieldName.message)}
+                  </p>
+                )}{" "}
+              </div>
             </div>
           </div>
 
@@ -253,17 +309,37 @@ export default function UserProfile() {
             <button
               type="submit"
               disabled={isSubmitting}
-              className={`inline-flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-yellow-600 hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500 ${isSubmitting ? 'opacity-60 cursor-not-allowed' : ''}`}
+              className={`inline-flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-yellow-600 hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500 ${
+                isSubmitting ? "opacity-60 cursor-not-allowed" : ""
+              }`}
             >
               {isSubmitting ? (
                 <>
-                  <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  <svg
+                    className="animate-spin -ml-1 mr-2 h-4 w-4 text-white"
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                  >
+                    <circle
+                      className="opacity-25"
+                      cx="12"
+                      cy="12"
+                      r="10"
+                      stroke="currentColor"
+                      strokeWidth="4"
+                    ></circle>
+                    <path
+                      className="opacity-75"
+                      fill="currentColor"
+                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                    ></path>
                   </svg>
                   Enregistrement...
                 </>
-              ) : 'Enregistrer les modifications'}
+              ) : (
+                "Enregistrer les modifications"
+              )}
             </button>
           </div>
         </form>
@@ -289,8 +365,8 @@ export default function UserProfile() {
                     <th className="p-2 border">Date</th>
                     <th className="p-2 border">Montant</th>
                     <th className="p-2 border">Statut</th>
-                    <th className="p-2 border text-center">Facture</th> {/* 👈 new column */}
-
+                    <th className="p-2 border text-center">Facture</th>{" "}
+                    {/* 👈 new column */}
                   </tr>
                 </thead>
                 <tbody>
@@ -312,14 +388,15 @@ export default function UserProfile() {
                       <td className="p-2 border">
                         <span
                           className={`px-2 py-1 rounded text-xs font-bold
-                    ${order.status === "pending"
-                              ? "bg-yellow-100 text-yellow-800"
-                              : order.status === "confirmed"
-                                ? "bg-blue-100 text-blue-800"
-                                : order.status === "delivered"
-                                  ? "bg-green-100 text-green-800"
-                                  : "bg-gray-100 text-gray-800"
-                            }`}
+                    ${
+                      order.status === "pending"
+                        ? "bg-yellow-100 text-yellow-800"
+                        : order.status === "confirmed"
+                        ? "bg-blue-100 text-blue-800"
+                        : order.status === "delivered"
+                        ? "bg-green-100 text-green-800"
+                        : "bg-gray-100 text-gray-800"
+                    }`}
                         >
                           {order.status}
                         </span>
@@ -337,7 +414,6 @@ export default function UserProfile() {
                           <Download className="w-4 h-4" />
                         </Button>
                       </td>
-
                     </tr>
                   ))}
                 </tbody>
@@ -369,14 +445,15 @@ export default function UserProfile() {
                     <span className="font-semibold text-sm">Statut:</span>
                     <span
                       className={`px-2 py-1 rounded text-xs font-bold
-                ${order.status === "pending"
-                          ? "bg-yellow-100 text-yellow-800"
-                          : order.status === "confirmed"
-                            ? "bg-blue-100 text-blue-800"
-                            : order.status === "delivered"
-                              ? "bg-green-100 text-green-800"
-                              : "bg-gray-100 text-gray-800"
-                        }`}
+                ${
+                  order.status === "pending"
+                    ? "bg-yellow-100 text-yellow-800"
+                    : order.status === "confirmed"
+                    ? "bg-blue-100 text-blue-800"
+                    : order.status === "delivered"
+                    ? "bg-green-100 text-green-800"
+                    : "bg-gray-100 text-gray-800"
+                }`}
                     >
                       {order.status}
                     </span>

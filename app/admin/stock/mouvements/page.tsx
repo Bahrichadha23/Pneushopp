@@ -5,6 +5,7 @@ import StockMovements from "@/components/admin/stock-movements";
 import type { StockMovement } from "@/types/admin";
 import { useAuth } from "@/contexts/auth-context";
 import { useRouter } from "next/navigation";
+import { API_URL } from "@/lib/config";
 
 export default function StockMovementsPage() {
   const [movements, setMovements] = useState<StockMovement[]>([]);
@@ -21,23 +22,20 @@ export default function StockMovementsPage() {
     movementData: Omit<StockMovement, "id" | "createdAt" | "createdBy">
   ) => {
     try {
-      const response = await fetch(
-        "http://localhost:8000/api/admin/stock-movements/",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${localStorage.getItem("access_token")}`,
-          },
-          body: JSON.stringify({
-            product: movementData.productId, // ✅ backend expects "product"
-            type: movementData.type,
-            quantity: movementData.quantity,
-            reason: movementData.reason,
-            reference: movementData.reference,
-          }),
-        }
-      );
+      const response = await fetch(`${API_URL}/admin/stock-movements/`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("access_token")}`,
+        },
+        body: JSON.stringify({
+          product: movementData.productId, // ✅ backend expects "product"
+          type: movementData.type,
+          quantity: movementData.quantity,
+          reason: movementData.reason,
+          reference: movementData.reference,
+        }),
+      });
 
       if (!response.ok) {
         const errorData = await response.json();
@@ -58,15 +56,12 @@ export default function StockMovementsPage() {
   useEffect(() => {
     const fetchMovements = async () => {
       try {
-        const res = await fetch(
-          "http://localhost:8000/api/admin/stock-movements/",
-          {
-            headers: {
-              Authorization: `Bearer ${localStorage.getItem("access_token")}`,
-              "Content-Type": "application/json",
-            },
-          }
-        );
+        const res = await fetch(`${API_URL}/admin/stock-movements/`, {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("access_token")}`,
+            "Content-Type": "application/json",
+          },
+        });
         if (!res.ok)
           throw new Error("Erreur lors du chargement des mouvements");
         const data = await res.json();

@@ -1,11 +1,22 @@
 import ProductDetailsPage from "./product";
+import { API_URL } from "@/lib/config";
 
-// ✅ Temporary dummy params for static export
 export async function generateStaticParams() {
-  // Returning a few dummy slugs so Next.js can statically export pages
-  return [
-    { slug: "dummy-product-1" },
-  ];
+  const res = await fetch(`${API_URL}/products/`);
+  if (!res.ok) {
+    console.error("Failed to fetch product slugs from API");
+    return [];
+  }
+
+  const data = await res.json();
+
+  // Handle both possible formats: array or object with "results"
+  const products = Array.isArray(data) ? data : data.results || [];
+
+  // Map over the array safely
+  return products.map((p: any) => ({
+    slug: p.slug,
+  }));
 }
 
 export default function Page() {

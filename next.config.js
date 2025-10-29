@@ -10,7 +10,7 @@
 // }
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-    output: 'export', // 👈 Enables static export (replaces next export command)
+    // output: 'export', // 👈 Enables static export (replaces next export command)
     images: {
         unoptimized: true, // ✅ disable Next.js image optimization
     },

@@ -1,9 +1,12 @@
+export const dynamicParams = true; // allow unknown params
+export const dynamic = "force-dynamic";
+
 // ✅ Added only this small function at the top (no other changes)
-export async function generateStaticParams() {
-  // This lets Next.js build at least one dummy page during static export
-  // You can add more sample IDs if needed
-  return [{ orderId: "sample-order" }];
-}
+// export async function generateStaticParams() {
+//   // This lets Next.js build at least one dummy page during static export
+//   // You can add more sample IDs if needed
+//   return [{ orderId: "sample-order" }];
+// }
 // Page de confirmation de commande avec détails et suivi
 import { notFound } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -102,7 +105,8 @@ export default async function OrderConfirmationPage({
           Commande confirmée !
         </h1>
         <p className="text-gray-600">
-          Votre commande a été créée avec succès, mais les détails ne sont pas disponibles pour le moment.
+          Votre commande a été créée avec succès, mais les détails ne sont pas
+          disponibles pour le moment.
         </p>
         <div className="mt-6">
           <Button asChild>
@@ -112,7 +116,6 @@ export default async function OrderConfirmationPage({
       </div>
     );
   }
-
 
   return (
     <div className="container mx-auto px-4 py-8">
