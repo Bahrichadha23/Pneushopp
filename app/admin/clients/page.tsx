@@ -16,6 +16,7 @@ import {
 import { Users, Search, Mail, Phone, MapPin, Star } from "lucide-react";
 import { useAuth } from "@/contexts/auth-context";
 import { useRouter } from "next/navigation";
+import { API_URL } from "@/lib/config";
 
 export default function ClientsPage() {
   const { user } = useAuth();
@@ -40,7 +41,7 @@ export default function ClientsPage() {
           return;
         }
 
-        const res = await fetch("http://127.0.0.1:8000/api/clients/", {
+        const res = await fetch(`${API_URL}/clients/`, {
           method: "GET",
           headers: {
             "Content-Type": "application/json",
@@ -57,7 +58,9 @@ export default function ClientsPage() {
 
         // ✅ Filter only users with role = "customer"
         // const customers = data.filter((user) => user.role === "customer");
-        const customers = data.filter((user: { role: string }) => user.role === "customer");
+        const customers = data.filter(
+          (user: { role: string }) => user.role === "customer"
+        );
 
         console.log("Filtered customers:", customers);
 
