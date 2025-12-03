@@ -35,10 +35,10 @@ export default function HomePage() {
       {/* Section présentant les différentes catégories de pneus disponibles */}
       <ProductCategoriesSection />
 
-      {/* Section promotionnelle pour la livraison gratuite */}
+      {/* Section promotionnelle pour la Livraison Rapide */}
       <div className="bg-gray-50 py-12 text-center">
         <h2 className="text-3xl font-bold mb-4">
-          Livraison <span className="text-yellow-400">GRATUITE</span> en{" "}
+          Livraison <span className="text-yellow-400">Rapide</span> en{" "}
           <span className="text-yellow-400">2 à 4 jours</span>
         </h2>
         <p className="text-xl text-gray-600">

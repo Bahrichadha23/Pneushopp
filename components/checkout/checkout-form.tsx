@@ -48,7 +48,7 @@
 //   })
 
 //   const subtotal = getTotalPrice()
-//   const shippingCost = subtotal >= 200 ? 0 : 15 // Livraison gratuite à partir de 200 DT
+//   const shippingCost = subtotal >= 200 ? 0 : 15 // Livraison Rapide à partir de 200 DT
 //   const tax = subtotal * 0.19 // TVA 19%
 //   const total = subtotal + shippingCost + tax
 
@@ -230,29 +230,31 @@
 //     </Card>
 //   )
 // }
-"use client"
+"use client";
 
-import type React from "react"
-import { useState } from "react"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { useCart } from "@/contexts/cart-context"
-import { useOrder } from "@/contexts/order-context"
-import { useAuth } from "@/contexts/auth-context"
-import type { PaymentMethod, ShippingAddress } from "@/types/order"
-import { PaymentForm } from "./payment-form"
-import { useRouter } from "next/navigation"
+import type React from "react";
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useCart } from "@/contexts/cart-context";
+import { useOrder } from "@/contexts/order-context";
+import { useAuth } from "@/contexts/auth-context";
+import type { PaymentMethod, ShippingAddress } from "@/types/order";
+import { PaymentForm } from "./payment-form";
+import { useRouter } from "next/navigation";
 
 export function CheckoutForm() {
-  const { items, getTotalPrice, clearCart } = useCart()
-  const { createOrder } = useOrder()
-  const { user } = useAuth()
-  const router = useRouter()
+  const { items, getTotalPrice, clearCart } = useCart();
+  const { createOrder } = useOrder();
+  const { user } = useAuth();
+  const router = useRouter();
 
-  const [step, setStep] = useState<"shipping" | "payment" | "review">("shipping")
-  const [isLoading, setIsLoading] = useState(false)
+  const [step, setStep] = useState<"shipping" | "payment" | "review">(
+    "shipping"
+  );
+  const [isLoading, setIsLoading] = useState(false);
 
   // Local shipping form (camelCase)
   const [shippingAddress, setShippingAddress] = useState({
@@ -264,29 +266,29 @@ export function CheckoutForm() {
     postalCode: "",
     country: "Tunisie",
     phone: user?.phone || "",
-  })
+  });
 
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>({
     type: "card",
-  })
+  });
 
-  const subtotal = getTotalPrice()
-  const shippingCost = subtotal >= 200 ? 0 : 15
-  const tax = subtotal * 0.19
-  const total = subtotal + shippingCost + tax
+  const subtotal = getTotalPrice();
+  const shippingCost = subtotal >= 200 ? 0 : 15;
+  const tax = subtotal * 0.19;
+  const total = subtotal + shippingCost + tax;
 
   const handleShippingSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
-    setStep("payment")
-  }
+    e.preventDefault();
+    setStep("payment");
+  };
 
   const handlePaymentSubmit = (payment: PaymentMethod) => {
-    setPaymentMethod(payment)
-    setStep("review")
-  }
+    setPaymentMethod(payment);
+    setStep("review");
+  };
 
   const handleOrderSubmit = async () => {
-    setIsLoading(true)
+    setIsLoading(true);
     try {
       // ✅ Transform CartItem[] → OrderItem[]
       const orderItems = items.map((item) => ({
@@ -299,7 +301,7 @@ export function CheckoutForm() {
         specifications: item.product.specifications
           ? `${item.product.specifications.width}/${item.product.specifications.height} R${item.product.specifications.diameter}`
           : "",
-      }))
+      }));
 
       // ✅ Transform camelCase shipping → snake_case for backend type
       const formattedShipping: ShippingAddress = {
@@ -311,7 +313,7 @@ export function CheckoutForm() {
         postal_code: shippingAddress.postalCode,
         country: shippingAddress.country,
         phone: shippingAddress.phone,
-      }
+      };
 
       const orderId = await createOrder({
         userId: user?.id,
@@ -320,16 +322,16 @@ export function CheckoutForm() {
         paymentMethod,
         total,
         status: "pending",
-      } as any) // optional cast if strict mode complains
+      } as any); // optional cast if strict mode complains
 
-      clearCart()
-      router.push(`/commande/confirmation/${orderId}`)
+      clearCart();
+      router.push(`/commande/confirmation/${orderId}`);
     } catch (error) {
-      console.error("Erreur lors de la création de la commande:", error)
+      console.error("Erreur lors de la création de la commande:", error);
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   if (step === "shipping") {
     return (
@@ -346,7 +348,10 @@ export function CheckoutForm() {
                   id="firstName"
                   value={shippingAddress.firstName}
                   onChange={(e) =>
-                    setShippingAddress((prev) => ({ ...prev, firstName: e.target.value }))
+                    setShippingAddress((prev) => ({
+                      ...prev,
+                      firstName: e.target.value,
+                    }))
                   }
                   required
                 />
@@ -357,7 +362,10 @@ export function CheckoutForm() {
                   id="lastName"
                   value={shippingAddress.lastName}
                   onChange={(e) =>
-                    setShippingAddress((prev) => ({ ...prev, lastName: e.target.value }))
+                    setShippingAddress((prev) => ({
+                      ...prev,
+                      lastName: e.target.value,
+                    }))
                   }
                   required
                 />
@@ -370,7 +378,10 @@ export function CheckoutForm() {
                 id="company"
                 value={shippingAddress.company}
                 onChange={(e) =>
-                  setShippingAddress((prev) => ({ ...prev, company: e.target.value }))
+                  setShippingAddress((prev) => ({
+                    ...prev,
+                    company: e.target.value,
+                  }))
                 }
               />
             </div>
@@ -381,7 +392,10 @@ export function CheckoutForm() {
                 id="address"
                 value={shippingAddress.address}
                 onChange={(e) =>
-                  setShippingAddress((prev) => ({ ...prev, address: e.target.value }))
+                  setShippingAddress((prev) => ({
+                    ...prev,
+                    address: e.target.value,
+                  }))
                 }
                 required
               />
@@ -394,7 +408,10 @@ export function CheckoutForm() {
                   id="city"
                   value={shippingAddress.city}
                   onChange={(e) =>
-                    setShippingAddress((prev) => ({ ...prev, city: e.target.value }))
+                    setShippingAddress((prev) => ({
+                      ...prev,
+                      city: e.target.value,
+                    }))
                   }
                   required
                 />
@@ -405,7 +422,10 @@ export function CheckoutForm() {
                   id="postalCode"
                   value={shippingAddress.postalCode}
                   onChange={(e) =>
-                    setShippingAddress((prev) => ({ ...prev, postalCode: e.target.value }))
+                    setShippingAddress((prev) => ({
+                      ...prev,
+                      postalCode: e.target.value,
+                    }))
                   }
                   required
                 />
@@ -419,7 +439,10 @@ export function CheckoutForm() {
                 type="tel"
                 value={shippingAddress.phone}
                 onChange={(e) =>
-                  setShippingAddress((prev) => ({ ...prev, phone: e.target.value }))
+                  setShippingAddress((prev) => ({
+                    ...prev,
+                    phone: e.target.value,
+                  }))
                 }
                 required
               />
@@ -431,11 +454,16 @@ export function CheckoutForm() {
           </form>
         </CardContent>
       </Card>
-    )
+    );
   }
 
   if (step === "payment") {
-    return <PaymentForm onSubmit={handlePaymentSubmit} onBack={() => setStep("shipping")} />
+    return (
+      <PaymentForm
+        onSubmit={handlePaymentSubmit}
+        onBack={() => setStep("shipping")}
+      />
+    );
   }
 
   return (
@@ -465,7 +493,11 @@ export function CheckoutForm() {
           </div>
           <div className="flex justify-between">
             <span>Livraison:</span>
-            <span>{shippingCost === 0 ? "Gratuite" : `${shippingCost.toFixed(2)} DT`}</span>
+            <span>
+              {shippingCost === 0
+                ? "Gratuite"
+                : `${shippingCost.toFixed(2)} DT`}
+            </span>
           </div>
           <div className="flex justify-between">
             <span>TVA (19%):</span>
@@ -478,14 +510,22 @@ export function CheckoutForm() {
         </div>
 
         <div className="flex gap-4">
-          <Button variant="outline" onClick={() => setStep("payment")} className="flex-1">
+          <Button
+            variant="outline"
+            onClick={() => setStep("payment")}
+            className="flex-1"
+          >
             Retour
           </Button>
-          <Button onClick={handleOrderSubmit} disabled={isLoading} className="flex-1">
+          <Button
+            onClick={handleOrderSubmit}
+            disabled={isLoading}
+            className="flex-1"
+          >
             {isLoading ? "Traitement..." : "Confirmer la commande"}
           </Button>
         </div>
       </CardContent>
     </Card>
-  )
+  );
 }

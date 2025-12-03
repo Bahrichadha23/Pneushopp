@@ -57,7 +57,9 @@ const convertApiProduct = (apiProduct: ApiProduct): Product => ({
   image: apiProduct.image || "/placeholder.jpg",
   // images: [apiProduct.image || "/placeholder.jpg"],
   images: [
-    new File([], apiProduct.image || "/placeholder.jpg", { type: "image/jpeg" }),
+    new File([], apiProduct.image || "/placeholder.jpg", {
+      type: "image/jpeg",
+    }),
   ],
   category: "auto",
   specifications: {
@@ -70,8 +72,8 @@ const convertApiProduct = (apiProduct: ApiProduct): Product => ({
       apiProduct.season === "summer"
         ? "ete"
         : apiProduct.season === "winter"
-          ? "hiver"
-          : "toutes-saisons",
+        ? "hiver"
+        : "toutes-saisons",
     specialty: "tourisme",
   },
   stock: apiProduct.stock,
@@ -94,13 +96,20 @@ export default function BoutiquePage() {
   const [sortBy, setSortBy] = useState("name");
   const [nextPage, setNextPage] = useState<string | null>(null);
   const [loadingMore, setLoadingMore] = useState(false);
+  const [pagination, setPagination] = useState({
+    page: 1,
+    total: 0,
+    limit: 20, // number of products per page
+  });
 
-  const fetchProducts = async (url: string, append = false) => {
+  const fetchProducts = async (page = 1) => {
     try {
-      if (!append) setLoading(true);
-      else setLoadingMore(true);
+      setLoading(true);
 
-      const response = await fetch(url);
+      const response = await fetch(
+        `${API_URL}/products/?page=${page}&limit=${pagination.limit}`
+      );
+
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
@@ -110,60 +119,25 @@ export default function BoutiquePage() {
       const apiProducts = data.results || [];
       const convertedProducts = apiProducts.map(convertApiProduct);
 
-      setProducts((prev) =>
-        append ? [...prev, ...convertedProducts] : convertedProducts
-      );
-      setNextPage(data.next || null);
+      setProducts(convertedProducts);
+
+      setPagination({
+        page,
+        total: data.count || 0,
+        limit: pagination.limit,
+      });
+
       setError(null);
     } catch (err) {
       console.error("❌ Error fetching products:", err);
       setError(`Erreur lors du chargement des produits: ${err}`);
     } finally {
-      if (!append) setLoading(false);
-      else setLoadingMore(false);
+      setLoading(false);
     }
   };
 
-  // useEffect(() => {
-  //   const fetchProducts = async () => {
-  //     try {
-  //       setLoading(true);
-  //       console.log("🚀 Starting to fetch products from API...");
-
-  //       // Direct API call since the service wrapper seems to have type issues
-  //       const response = await fetch(`${API_URL}/products/`);
-  //       console.log("📡 API Response status:", response.status);
-
-  //       if (!response.ok) {
-  //         throw new Error(`HTTP error! status: ${response.status}`);
-  //       }
-
-  //       const data = await response.json();
-  //       console.log("📦 Raw API data:", data);
-  //       console.log(
-  //         "📊 Number of products received:",
-  //         data.results?.length || 0
-  //       );
-
-  //       const apiProducts = data.results || [];
-  //       const convertedProducts = apiProducts.map(convertApiProduct);
-  //       console.log("✅ Converted products:", convertedProducts.length);
-
-  //       setProducts(convertedProducts);
-  //       setError(null);
-  //       console.log("🎉 Products successfully loaded!");
-  //     } catch (err) {
-  //       console.error("❌ Error fetching products:", err);
-  //       setError(`Erreur lors du chargement des produits: ${err}`);
-  //     } finally {
-  //       setLoading(false);
-  //     }
-  //   };
-
-  //   fetchProducts();
-  // }, []);
   useEffect(() => {
-    fetchProducts(`${API_URL}/products/`);
+    fetchProducts();
   }, []);
 
   // Filter and sort products
@@ -357,17 +331,33 @@ export default function BoutiquePage() {
           </div>
         )}
       </main>
-      {nextPage && (
-        <div className="flex justify-center mt-8 mb-8">
-          <Button
-            onClick={() => fetchProducts(nextPage, true)}
-            disabled={loadingMore}
-          >
-            {loadingMore && <Loader2 className="h-4 w-4 animate-spin mr-2" />}
-            Charger plus
-          </Button>
-        </div>
-      )}
+      {/* Pagination */}
+      <div className="flex mb-10 flex-wrap justify-center gap-2 mt-6 text-sm sm:text-base">
+        <Button
+          variant="outline"
+          disabled={pagination.page === 1}
+          onClick={() => fetchProducts(pagination.page - 1)}
+          className="w-full sm:w-auto"
+        >
+          Previous
+        </Button>
+
+        <span className="text-gray-700 self-center">
+          Page {pagination.page} /{" "}
+          {Math.ceil(pagination.total / pagination.limit)}
+        </span>
+
+        <Button
+          variant="outline"
+          disabled={
+            pagination.page >= Math.ceil(pagination.total / pagination.limit)
+          }
+          onClick={() => fetchProducts(pagination.page + 1)}
+          className="w-full sm:w-auto"
+        >
+          Next
+        </Button>
+      </div>
 
       <Footer />
     </div>

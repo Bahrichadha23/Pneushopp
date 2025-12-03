@@ -1,30 +1,40 @@
 // Composant panier d'achat avec gestion des quantités
-"use client"
-import { useCart } from "@/contexts/cart-context"
-import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
-import { Minus, Plus, Trash2, ShoppingBag } from "lucide-react"
-import Link from "next/link"
+"use client";
+import { useCart } from "@/contexts/cart-context";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Minus, Plus, Trash2, ShoppingBag } from "lucide-react";
+import Link from "next/link";
 
 interface ShoppingCartProps {
-  isOpen?: boolean
-  onClose?: () => void
+  isOpen?: boolean;
+  onClose?: () => void;
 }
 
-export default function ShoppingCart({ isOpen = true, onClose }: ShoppingCartProps) {
-  const { items, updateQuantity, removeFromCart, getTotalPrice, clearCart } = useCart()
+export default function ShoppingCart({
+  isOpen = true,
+  onClose,
+}: ShoppingCartProps) {
+  const { items, updateQuantity, removeFromCart, getTotalPrice, clearCart } =
+    useCart();
 
   if (items.length === 0) {
     return (
       <div className="p-6 text-center">
         <ShoppingBag className="w-16 h-16 mx-auto text-gray-400 mb-4" />
-        <h3 className="text-lg font-semibold text-gray-900 mb-2">Votre panier est vide</h3>
-        <p className="text-gray-600 mb-4">Découvrez nos pneus et ajoutez-les à votre panier</p>
+        <h3 className="text-lg font-semibold text-gray-900 mb-2">
+          Votre panier est vide
+        </h3>
+        <p className="text-gray-600 mb-4">
+          Découvrez nos pneus et ajoutez-les à votre panier
+        </p>
         <Link href="/boutique">
-          <Button className="bg-yellow-500 hover:bg-yellow-600 text-black">Voir nos produits</Button>
+          <Button className="bg-yellow-500 hover:bg-yellow-600 text-black">
+            Voir nos produits
+          </Button>
         </Link>
       </div>
-    )
+    );
   }
 
   return (
@@ -53,10 +63,15 @@ export default function ShoppingCart({ isOpen = true, onClose }: ShoppingCartPro
               <div className="flex-1">
                 <div className="flex justify-between items-start mb-2">
                   <div>
-                    <h3 className="font-semibold text-gray-900">{item.product.name}</h3>
-                    <p className="text-sm text-gray-600">{item.product.brand}</p>
+                    <h3 className="font-semibold text-gray-900">
+                      {item.product.name}
+                    </h3>
+                    <p className="text-sm text-gray-600">
+                      {item.product.brand}
+                    </p>
                     <p className="text-xs text-gray-500">
-                      {item.product.specifications.width}/{item.product.specifications.height} R
+                      {item.product.specifications.width}/
+                      {item.product.specifications.height} R
                       {item.product.specifications.diameter}
                     </p>
                   </div>
@@ -76,17 +91,23 @@ export default function ShoppingCart({ isOpen = true, onClose }: ShoppingCartPro
                     <Button
                       variant="outline"
                       size="icon"
-                      onClick={() => updateQuantity(item.product.id, item.quantity - 1)}
+                      onClick={() =>
+                        updateQuantity(item.product.id, item.quantity - 1)
+                      }
                       disabled={item.quantity <= 1}
                       className="h-8 w-8"
                     >
                       <Minus className="w-3 h-3" />
                     </Button>
-                    <span className="w-8 text-center font-medium">{item.quantity}</span>
+                    <span className="w-8 text-center font-medium">
+                      {item.quantity}
+                    </span>
                     <Button
                       variant="outline"
                       size="icon"
-                      onClick={() => updateQuantity(item.product.id, item.quantity + 1)}
+                      onClick={() =>
+                        updateQuantity(item.product.id, item.quantity + 1)
+                      }
                       disabled={item.quantity >= item.product.stock}
                       className="h-8 w-8"
                     >
@@ -95,8 +116,12 @@ export default function ShoppingCart({ isOpen = true, onClose }: ShoppingCartPro
                   </div>
 
                   <div className="text-right">
-                    <p className="font-semibold text-gray-900">{(item.product.price * item.quantity).toFixed(2)} DT</p>
-                    <p className="text-sm text-gray-600">{item.product.price} DT / unité</p>
+                    <p className="font-semibold text-gray-900">
+                      {(item.product.price * item.quantity).toFixed(2)} DT
+                    </p>
+                    <p className="text-sm text-gray-600">
+                      {item.product.price} DT / unité
+                    </p>
                   </div>
                 </div>
 
@@ -116,11 +141,17 @@ export default function ShoppingCart({ isOpen = true, onClose }: ShoppingCartPro
       <div className="bg-gray-50 rounded-lg p-4">
         <div className="flex justify-between items-center mb-4">
           <span className="text-lg font-semibold">Total:</span>
-          <span className="text-2xl font-bold text-gray-900">{getTotalPrice().toFixed(2)} DT</span>
+          <span className="text-2xl font-bold text-gray-900">
+            {getTotalPrice().toFixed(2)} DT
+          </span>
         </div>
 
         <div className="flex gap-3">
-          <Button variant="outline" onClick={clearCart} className="flex-1 bg-transparent">
+          <Button
+            variant="outline"
+            onClick={clearCart}
+            className="flex-1 bg-transparent"
+          >
             Vider le panier
           </Button>
           <Link href="/checkout" className="flex-1">
@@ -132,9 +163,11 @@ export default function ShoppingCart({ isOpen = true, onClose }: ShoppingCartPro
 
         {/* Informations livraison */}
         <div className="mt-4 p-3 bg-green-50 rounded-md">
-          <p className="text-sm text-green-800">🚚 Livraison gratuite à partir de 2 pneus (24h-72h)</p>
+          <p className="text-sm text-green-800">
+            🚚 Livraison Rapide à partir de 2 pneus (24h-72h)
+          </p>
         </div>
       </div>
     </div>
-  )
+  );
 }

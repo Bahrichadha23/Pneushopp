@@ -17,9 +17,9 @@ export const metadata: Metadata = {
   title:
     "PNEU SHOP - Le spécialiste du pneu pas cher en Tunisie | Pneumatiques en ligne",
   description:
-    "Vos pneumatiques en un seul clic. Leader en Tunisie de la vente en ligne de pneumatiques. Livraison gratuite 24h/72h à partir de 2 pneus. Pneus auto, SUV, camionnette, agricole aux meilleurs prix.",
+    "Vos pneumatiques en un seul clic. Leader en Tunisie de la vente en ligne de pneumatiques. Livraison Rapide 24h/72h à partir de 2 pneus. Pneus auto, SUV, camionnette, agricole aux meilleurs prix.",
   keywords:
-    "pneus tunisie, pneumatiques pas cher, pneus auto, pneus SUV, livraison gratuite, pneus agricoles, pneus camionnette, vente pneus en ligne",
+    "pneus tunisie, pneumatiques pas cher, pneus auto, pneus SUV, Livraison Rapide, pneus agricoles, pneus camionnette, vente pneus en ligne",
   authors: [{ name: "PNEU SHOP" }],
   creator: "PNEU SHOP",
   publisher: "PNEU SHOP",
@@ -39,7 +39,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: "PNEU SHOP - Le spécialiste du pneu pas cher en Tunisie",
     description:
-      "Vos pneumatiques en un seul clic. Leader en Tunisie de la vente en ligne de pneumatiques. Livraison gratuite 24h/72h à partir de 2 pneus.",
+      "Vos pneumatiques en un seul clic. Leader en Tunisie de la vente en ligne de pneumatiques. Livraison Rapide 24h/72h à partir de 2 pneus.",
     url: "https://pneushop.tn",
     siteName: "PNEU SHOP",
     images: [
@@ -57,7 +57,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "PNEU SHOP - Le spécialiste du pneu pas cher en Tunisie",
     description:
-      "Vos pneumatiques en un seul clic. Livraison gratuite 24h/72h à partir de 2 pneus.",
+      "Vos pneumatiques en un seul clic. Livraison Rapide 24h/72h à partir de 2 pneus.",
     images: ["/images/twitter-image.jpg"],
     creator: "@pneushop_tn",
   },

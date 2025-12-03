@@ -10,7 +10,7 @@ export default function ALaUnePage() {
       title: "Nouvelle Gamme Continental 2024",
       date: "15 Janvier 2024",
       category: "ÉVÉNEMENT",
-      image: "/placeholder.svg?key=news1",
+      image: "/Evenements.jpeg",
       excerpt:
         "Découvrez la nouvelle gamme Continental PremiumContact 7 avec une technologie révolutionnaire pour une adhérence optimale.",
     },
@@ -20,7 +20,7 @@ export default function ALaUnePage() {
       title: "Promotion Spéciale Pirelli",
       date: "10 Janvier 2024",
       category: "PROMOTION",
-      image: "/placeholder.svg?key=promo2",
+      image: "/Promotion.jpeg",
       excerpt:
         "Profitez de -20% sur tous les pneus Pirelli jusqu'à la fin du mois. Offre valable sur toute la gamme.",
     },
@@ -30,7 +30,7 @@ export default function ALaUnePage() {
       title: "Guide d'Entretien des Pneus",
       date: "5 Janvier 2024",
       category: "ACTUALITÉS",
-      image: "/placeholder.svg?key=guide1",
+      image: "/Actualite.jpeg",
       excerpt:
         "Apprenez comment prolonger la durée de vie de vos pneus avec nos conseils d'experts.",
     },

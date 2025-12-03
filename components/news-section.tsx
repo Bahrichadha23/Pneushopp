@@ -7,21 +7,21 @@ export default function NewsSection() {
     {
       id: 1,
       title: "ÉVÉNEMENT",
-      image: "/dark-warehouse-interior-with-tire-storage-racks.jpg",
+      image: "/Evenements.jpeg",
       description: "Découvrez nos derniers événements et promotions",
       link: "/a-la-une",
     },
     {
       id: 2,
       title: "ACTUALITÉS",
-      image: "/industrial-tire-warehouse-with-shelving-and-lighti.jpg",
+      image: "/Actualite.jpeg",
       description: "Restez informé des dernières actualités du secteur",
       link: "/a-propos",
     },
     {
       id: 3,
       title: "PROMOTION",
-      image: "/modern-tire-storage-facility-with-industrial-light.jpg",
+      image: "/Promotion.jpeg",
       description: "Profitez de nos offres promotionnelles exceptionnelles",
       link: "/promotion",
     },
@@ -75,7 +75,7 @@ export default function NewsSection() {
                 whileInView="show"
                 viewport={{ once: true, amount: 0.2 }}
               >
-                <div className="aspect-video bg-gray-900 flex items-center justify-center overflow-hidden">
+                <div className="bg-gray-900 flex items-center justify-center overflow-hidden h-64">
                   <img
                     src={item.image || "/placeholder.svg"}
                     alt={item.title}

@@ -12,10 +12,11 @@ export default function Footer() {
             <h3 className="text-xl font-bold mb-6">NOUS CONTACTER :</h3>
             <div className="space-y-3 text-sm sm:text-base">
               <p>
-                <strong>Tél. :</strong> +216 29 353 666
+                <strong>Tél. :</strong> +216 26 888 073
               </p>
               <p>
-                <strong>Adresse :</strong> 9 Rue El Milaha, Menzah 8, 2037, ARIANA
+                <strong>Adresse :</strong> 9 Rue El Milaha, Menzah 8, 2037,
+                ARIANA
               </p>
               <p>
                 <strong>E-mail :</strong> service.commercial@pneushop.tn
@@ -65,8 +66,13 @@ export default function Footer() {
 
             {/* Logo */}
             <div>
-           <Image src="/black-logo.png" alt="Logo" width={200} height={200} />
-           </div>
+              <Image
+                src="/black-logo.png"
+                alt="Logo"
+                width={200}
+                height={200}
+              />
+            </div>
           </div>
         </div>
       </div>
