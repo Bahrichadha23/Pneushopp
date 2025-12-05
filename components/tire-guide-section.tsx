@@ -39,7 +39,7 @@ export default function TireGuideSection() {
     <section className="bg-white mt-2 lg:ml-58 lg:mr-58 m-14">
       <Image
         src={"/tire-guide-image.jpeg"}
-        alt="Tire Guide"
+        alt="Guide des pneus"
         width={0}
         height={0}
         sizes="100vw"
@@ -246,7 +246,7 @@ export default function TireGuideSection() {
                 />
                 <h3 className="font-bold text-lg">{p.name}</h3>
                 <p className="text-sm text-gray-600">{p.brand}</p>
-                <p className="text-black font-bold">{p.price} €</p>
+                <p className="text-black font-bold">{p.price} DT</p>
               </div>
             </Link>
           ))}

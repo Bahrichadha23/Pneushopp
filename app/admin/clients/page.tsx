@@ -163,7 +163,7 @@ export default function ClientsPage() {
         <Card>
           <CardHeader className="flex justify-between items-center">
             <CardTitle className="text-sm font-medium">CA Total</CardTitle>
-            <span className="h-4 w-4 text-green-500">€</span>
+            <span className="h-4 w-4 text-green-500">DT</span>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-green-600">

@@ -52,7 +52,12 @@ export default function Header() {
                 transition={{ duration: 0.8, ease: "easeOut" }}
                 className="hidden sm:block"
               >
-                <Image src="/logo.png" alt="Logo" width={150} height={100} />
+                <Image
+                  src="/logo.png"
+                  alt="Logo PneuShop"
+                  width={150}
+                  height={100}
+                />
               </motion.div>
               {/* Mobile Logo */}
               <motion.div
@@ -63,7 +68,7 @@ export default function Header() {
               >
                 <Image
                   src="/logo.png"
-                  alt="Mobile Logo"
+                  alt="Logo Mobile PneuShop"
                   width={120}
                   height={100}
                 />

@@ -50,7 +50,7 @@ export default function MobileOptimizedFooter() {
               <div className="flex flex-col sm:flex-row gap-2">
                 <input
                   type="email"
-                  placeholder="Enter your e-mail..."
+                  placeholder="Entrez votre e-mail..."
                   className="flex-1 px-3 py-2 bg-gray-800 text-white rounded text-sm"
                 />
                 <Button className="bg-yellow-500 hover:bg-yellow-600 text-black px-4 py-2 text-sm">→</Button>

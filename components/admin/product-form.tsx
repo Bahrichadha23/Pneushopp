@@ -242,7 +242,6 @@ export default function ProductForm({
                   <SelectValue placeholder="Sélectionner une marque" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="Pirelli">Pirelli</SelectItem>
                   <SelectItem value="Continental">Continental</SelectItem>
                   <SelectItem value="Michelin">Michelin</SelectItem>
                   <SelectItem value="Bridgestone">Bridgestone</SelectItem>

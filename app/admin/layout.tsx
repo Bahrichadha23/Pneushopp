@@ -32,7 +32,7 @@ export default function AdminLayout({
           {/* Logo */}
           <Image
             src="/logo.png"
-            alt="Logo"
+            alt="Logo PneuShop"
             width={80}
             height={80}
             className="h-10 w-auto"
@@ -62,7 +62,6 @@ export default function AdminLayout({
             >
               <LogOutIcon className="w-4 h-4" />
             </Button>
-
           </div>
         </div>
         {/* Page content */}
@@ -80,7 +79,6 @@ export default function AdminLayout({
               </Button>
             </div>
           </div>
-
 
           {/* Page Content */}
           <div className="p-4">{children}</div>

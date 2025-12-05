@@ -36,7 +36,6 @@ type PendingOrder = {
   urgence: string;
 };
 
-
 export default function PendingOrdersPage() {
   // const [orders, setOrders] = useState<Order[]>([]);
   const [orders, setOrders] = useState<PendingOrder[]>([]);
@@ -176,7 +175,7 @@ export default function PendingOrdersPage() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Montant total</CardTitle>
-            <span className="h-4 w-4 text-green-500">€</span>
+            <span className="h-4 w-4 text-green-500">DT</span>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-green-600">

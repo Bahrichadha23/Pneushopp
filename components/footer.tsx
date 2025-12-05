@@ -68,7 +68,7 @@ export default function Footer() {
             <div>
               <Image
                 src="/black-logo.png"
-                alt="Logo"
+                alt="Logo PneuShop"
                 width={200}
                 height={200}
               />

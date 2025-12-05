@@ -70,13 +70,11 @@ export async function handleDownloadInvoice(order: any) {
     pdf.setFontSize(14);
     pdf.text(`FACTURE ${order.orderNumber || ""}`, margin, y);
     pdf.setFontSize(10);
-    pdf.text(`GRAND TUNIS`, margin, y + 6);
     pdf.text(
-      `le ${new Date(order.createdAt).toLocaleDateString("fr-FR")}`,
-      margin + 40,
+      ` ${new Date(order.createdAt).toLocaleDateString("fr-FR")}`,
+      margin,
       y + 6
     );
-    pdf.text(`${page}/2`, pageWidth - margin, y + 6, { align: "right" });
 
     // Client box (rounded)
     const boxX = pageWidth - 70;
@@ -88,7 +86,8 @@ export async function handleDownloadInvoice(order: any) {
     pdf.setFontSize(10);
     pdf.text("Client", boxX + 2, boxY + 6);
     pdf.setFont("helvetica", "normal");
-    pdf.text(order.customerName || "-", boxX + 20, boxY + 6);
+    // pdf.text(order.customerName || "-", boxX + 20, boxY + 6);
+    pdf.text("Company Otosure", boxX + 20, boxY + 6);
     pdf.text(`Id. Fiscale : ${order.fiscalId || "-"}`, boxX + 2, boxY + 12);
     pdf.text(`Tel : ${order.customerPhone || "-"}`, boxX + 2, boxY + 18);
 

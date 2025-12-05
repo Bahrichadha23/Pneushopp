@@ -274,8 +274,7 @@ export function CheckoutForm() {
 
   const subtotal = getTotalPrice();
   const shippingCost = subtotal >= 200 ? 0 : 15;
-  const tax = subtotal * 0.19;
-  const total = subtotal + shippingCost + tax;
+  const total = subtotal + shippingCost;
 
   const handleShippingSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -486,23 +485,7 @@ export function CheckoutForm() {
         </div>
 
         {/* Totaux */}
-        <div className="border-t pt-4 space-y-2">
-          <div className="flex justify-between">
-            <span>Sous-total:</span>
-            <span>{subtotal.toFixed(2)} DT</span>
-          </div>
-          <div className="flex justify-between">
-            <span>Livraison:</span>
-            <span>
-              {shippingCost === 0
-                ? "Gratuite"
-                : `${shippingCost.toFixed(2)} DT`}
-            </span>
-          </div>
-          <div className="flex justify-between">
-            <span>TVA (19%):</span>
-            <span>{tax.toFixed(2)} DT</span>
-          </div>
+        <div className="pt-2 space-y-2">
           <div className="flex justify-between font-bold text-lg border-t pt-2">
             <span>Total:</span>
             <span>{total.toFixed(2)} DT</span>

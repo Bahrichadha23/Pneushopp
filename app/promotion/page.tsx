@@ -39,48 +39,87 @@ interface ApiProduct {
     slug: string;
   };
 }
+const categoryMap: Record<string, Product["category"]> = {
+  auto: "auto",
+  suv: "suv",
+  camionnette: "camionnette",
+  utilitaire: "utilitaire",
+  agricole: "agricole",
+  "poids-lourd": "poids-lourd",
+  "4x4": "4x4",
+  tourisme: "auto",
+};
 
-// Convert API product to frontend Product type
-const convertApiProduct = (apiProduct: ApiProduct): Product => ({
-  id: apiProduct.id.toString(),
-  slug: apiProduct.slug,
-  name: apiProduct.name,
-  brand: apiProduct.brand,
-  model: apiProduct.size,
-  price: parseFloat(apiProduct.price),
-  is_on_sale: apiProduct.is_on_sale,
-  old_price: apiProduct.old_price
-    ? parseFloat(apiProduct.old_price)
-    : undefined,
-  discount_percentage: apiProduct.discount_percentage,
-  image: apiProduct.image || "/placeholder.jpg",
-  // images: [apiProduct.image || "/placeholder.jpg"],
-  images: [
-    new File([], apiProduct.image || "/placeholder.jpg", { type: "image/jpeg" }),
-  ],
-  category: "auto",
-  specifications: {
-    width: 225,
-    height: 45,
-    diameter: 17,
-    loadIndex: 91,
-    speedRating: "W",
-    season:
-      apiProduct.season === "summer"
-        ? "ete"
-        : apiProduct.season === "winter"
+const convertApiProduct = (apiProduct: ApiProduct): Product => {
+  // Parse size like "225/45R17"
+  let width = 0;
+  let height = 0;
+  let diameter = 0;
+
+  if (apiProduct.size && apiProduct.size.includes("/")) {
+    const [w, rest] = apiProduct.size.split("/");
+    const [h, d] = rest.split("R");
+
+    width = Number(w);
+    height = Number(h);
+    diameter = Number(d);
+  }
+
+  return {
+    id: apiProduct.id.toString(),
+    slug: apiProduct.slug,
+    name: apiProduct.name,
+    brand: apiProduct.brand,
+
+    // Use name or model if your backend has one
+    model: apiProduct.name,
+
+    price: parseFloat(apiProduct.price),
+    old_price: apiProduct.old_price
+      ? parseFloat(apiProduct.old_price)
+      : undefined,
+    is_on_sale: apiProduct.is_on_sale,
+    discount_percentage: apiProduct.discount_percentage,
+
+    image: apiProduct.image || "/placeholder.jpg",
+    images: [
+      new File([], apiProduct.image || "/placeholder.jpg", {
+        type: "image/jpeg",
+      }),
+    ],
+
+    category: categoryMap[apiProduct.category.slug] ?? "auto",
+
+    specifications: {
+      width,
+      height,
+      diameter,
+      loadIndex: 0, // backend does not send this
+      speedRating: "", // backend does not send this
+
+      // Convert season to union type
+      season:
+        apiProduct.season === "summer"
+          ? "ete"
+          : apiProduct.season === "winter"
           ? "hiver"
           : "toutes-saisons",
-    specialty: "tourisme",
-  },
-  stock: apiProduct.stock,
-  description: apiProduct.description,
-  features: [],
-  inStock: apiProduct.stock > 0,
-  isPromotion: apiProduct.is_featured || apiProduct.is_on_sale, // 👈 Mark as promotional
-  rating: 4.5,
-  reviewCount: 0,
-});
+
+      // Choose a default specialty
+      specialty: "tourisme",
+    },
+
+    stock: apiProduct.stock,
+    description: apiProduct.description,
+    features: [],
+    inStock: apiProduct.stock > 0,
+
+    isPromotion:
+      apiProduct.discount_percentage > 0 ||
+      apiProduct.is_on_sale ||
+      apiProduct.is_featured,
+  };
+};
 
 export default function PromotionsPage() {
   const [products, setProducts] = useState<Product[]>([]);
@@ -238,7 +277,6 @@ export default function PromotionsPage() {
               <SelectContent>
                 <SelectItem value="all">Toutes marques</SelectItem>
                 <SelectItem value="continental">Continental</SelectItem>
-                <SelectItem value="pirelli">Pirelli</SelectItem>
                 <SelectItem value="kleber">Kleber</SelectItem>
                 <SelectItem value="tigar">Tigar</SelectItem>
                 <SelectItem value="michelin">Michelin</SelectItem>

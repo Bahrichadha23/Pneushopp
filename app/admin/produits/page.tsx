@@ -29,7 +29,8 @@ const adminProductToProduct = (adminProduct: AdminProduct): Product => {
 
   return {
     id: adminProduct.id.toString(),
-    slug: adminProduct.slug || adminProduct.name.toLowerCase().replace(/\s+/g, "-"),
+    slug:
+      adminProduct.slug || adminProduct.name.toLowerCase().replace(/\s+/g, "-"),
     name: adminProduct.name,
     brand: adminProduct.brand,
     model: adminProduct.size || "", // Utiliser size comme model temporairement
@@ -40,7 +41,9 @@ const adminProductToProduct = (adminProduct: AdminProduct): Product => {
     discount_percentage: adminProduct.discount_percentage,
     image: adminProduct.image || "/placeholder.jpg",
     images: [
-      new File([], adminProduct.image || "/placeholder.jpg", { type: "image/jpeg" }),
+      new File([], adminProduct.image || "/placeholder.jpg", {
+        type: "image/jpeg",
+      }),
     ],
     category: "auto" as any, // Valeur par défaut
     specifications: {
@@ -63,7 +66,10 @@ const adminProductToProduct = (adminProduct: AdminProduct): Product => {
 };
 
 // Fonction pour convertir Product vers ProductCreateData pour l'API
-const productToCreateData = (product: Partial<Product>): ProductCreateData => {
+const productToCreateData = (
+  product: Partial<Product>,
+  keepSlug: boolean = false
+): ProductCreateData => {
   // Mapper les saisons vers l'API
   const seasonMap = {
     ete: "summer",
@@ -148,11 +154,14 @@ const productToCreateData = (product: Partial<Product>): ProductCreateData => {
 
   return {
     name: product.name || "",
-    slug: generateSlug(
-      product.brand || "",
-      product.name || "",
-      product.model || ""
-    ),
+    slug:
+      keepSlug && product.slug
+        ? product.slug // Keep existing slug on update
+        : generateSlug(
+            product.brand || "",
+            product.name || "",
+            product.model || ""
+          ),
     description: product.description || "",
     price: product.price || 0,
     old_price: product.old_price,
@@ -292,7 +301,11 @@ export default function ProductsPage() {
     setIsLoading(true);
 
     try {
-      const createData = productToCreateData(productData);
+      // const createData = productToCreateData(productData, !!editingProduct);
+      const createData = productToCreateData(
+        { ...productData, slug: editingProduct?.slug },
+        !!editingProduct
+      );
 
       if (editingProduct) {
         // Mise à jour
@@ -339,8 +352,9 @@ export default function ProductsPage() {
     const dataUri =
       "data:application/json;charset=utf-8," + encodeURIComponent(dataStr);
 
-    const exportFileDefaultName = `produits-${new Date().toISOString().split("T")[0]
-      }.json`;
+    const exportFileDefaultName = `produits-${
+      new Date().toISOString().split("T")[0]
+    }.json`;
 
     const linkElement = document.createElement("a");
     linkElement.setAttribute("href", dataUri);

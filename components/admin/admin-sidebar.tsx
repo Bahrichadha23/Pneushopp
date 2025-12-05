@@ -122,7 +122,11 @@ export default function AdminSidebar({
         title: "Produits",
         icon: Package,
         children: [
-          { title: "Catalogue produits", href: "/admin/produits", icon: Package },
+          {
+            title: "Catalogue produits",
+            href: "/admin/produits",
+            icon: Package,
+          },
           { title: "Gestion stock", href: "/admin/stock", icon: Store },
           {
             title: "Mouvements stock",
@@ -191,8 +195,9 @@ export default function AdminSidebar({
           <CollapsibleTrigger asChild>
             <Button
               variant="ghost"
-              className={`w-full justify-start px-3 py-2 h-auto text-left ${level > 0 ? "pl-8" : ""
-                } hover:bg-gray-100`}
+              className={`w-full justify-start px-3 py-2 h-auto text-left ${
+                level > 0 ? "pl-8" : ""
+              } hover:bg-gray-100`}
             >
               <Icon className="w-4 h-4 mr-3" />
               <span className="flex-1">{item.title}</span>
@@ -214,11 +219,13 @@ export default function AdminSidebar({
       <Link key={item.href} href={item.href || "#"}>
         <Button
           variant="ghost"
-          className={`w-full justify-start px-3 py-1.5 h-auto ${level > 0 ? "pl-8" : ""
-            } ${isActive(item.href || "")
+          className={`w-full justify-start px-3 py-1.5 h-auto ${
+            level > 0 ? "pl-8" : ""
+          } ${
+            isActive(item.href || "")
               ? "bg-yellow-100 text-yellow-800 hover:bg-yellow-200"
               : "hover:bg-gray-100"
-            }`}
+          }`}
         >
           <Icon className="w-4 h-4 mr-3" />
           {item.title}
@@ -231,12 +238,13 @@ export default function AdminSidebar({
     <>
       <div
         className={`fixed inset-y-0 left-0 z-40 w-64 bg-white border-r border-gray-200 transform transition-transform duration-200 ease-in-out
-        ${sidebarOpen ? "translate-x-0" : "-translate-x-full"
-          } md:translate-x-0`}
+        ${
+          sidebarOpen ? "translate-x-0" : "-translate-x-full"
+        } md:translate-x-0`}
       >
         {/* Desktop logo */}
         <div className="p-3 justify-center items-center space-x-2">
-          <Image src="/logo.png" alt="Logo" width={100} height={100} />
+          <Image src="/logo.png" alt="Logo PneuShop" width={100} height={100} />
           <div>
             <p className="pl-2 pt-0.5 text-xs text-gray-600">{roleLabel}</p>
           </div>
@@ -249,8 +257,6 @@ export default function AdminSidebar({
         <nav className="p-4 space-y-1">
           {filteredMenuItems.map((item) => renderMenuItem(item))}
         </nav>
-
-
       </div>
 
       {/* Overlay for mobile */}

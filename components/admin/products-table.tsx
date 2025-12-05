@@ -158,16 +158,6 @@ export default function ProductsTable({
     <div className="space-y-4">
       {/* Filtres et recherche */}
       <div className="flex flex-col lg:flex-row gap-4">
-        <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-          <Input
-            placeholder="Rechercher par nom, marque, modèle..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-10"
-          />
-        </div>
-
         <div className="flex flex-wrap gap-2">
           <Select value={categoryFilter} onValueChange={setCategoryFilter}>
             <SelectTrigger className="w-40">
@@ -250,7 +240,7 @@ export default function ProductsTable({
             <Package className="h-8 w-8 text-blue-500" />
             <div className="ml-3">
               <p className="text-sm font-medium text-gray-500">
-                Produits Per Page
+                Produits par page
               </p>
               <p className="text-2xl font-bold text-gray-900">
                 {filteredAndSortedProducts.length}
