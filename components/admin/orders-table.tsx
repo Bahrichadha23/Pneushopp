@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import React from "react";
+import { useState, useEffect } from "react";
 import type { Order } from "@/types/admin";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -22,6 +23,16 @@ import {
 } from "@/components/ui/table";
 import { Eye, Edit, Truck, Search, Package, Download } from "lucide-react";
 import { createPurchaseOrder } from "@/lib/services/purchase-order";
+import { fetchSuppliers } from "@/lib/services/supplier";
+import type { Supplier } from "@/types/supplier";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 interface OrdersTableProps {
   orders: Order[];
   onViewOrder: (orderId: string) => void;
@@ -86,9 +97,8 @@ export async function handleDownloadInvoice(order: any) {
     pdf.setFontSize(10);
     pdf.text("Client", boxX + 2, boxY + 6);
     pdf.setFont("helvetica", "normal");
-    // pdf.text(order.customerName || "-", boxX + 20, boxY + 6);
-    pdf.text("Company Otosure", boxX + 20, boxY + 6);
-    pdf.text(`Id. Fiscale : ${order.fiscalId || "-"}`, boxX + 2, boxY + 12);
+    pdf.text(order.customerName || "-", boxX + 20, boxY + 6);
+    pdf.text(`Id. Fiscale : ${order.id || "-"}`, boxX + 2, boxY + 12);
     pdf.text(`Tel : ${order.customerPhone || "-"}`, boxX + 2, boxY + 18);
 
     y += 35;
@@ -141,19 +151,30 @@ export async function handleDownloadInvoice(order: any) {
     const h = 8;
 
     if (!isEmpty && item) {
-      const unit = Number(item.unitPrice || 0);
+      const unitTTC = Number(item.unitPrice || 0); // backend price already includes TVA
       const qty = Number(item.quantity || 1);
       const remise = Number(item.discount || 0);
-      const tva = Number(item.tva || 19);
+      const tvaRate = 19;
 
-      const montantHT = unit * qty * (1 - remise / 100);
-      const montantTTC = montantHT * (1 + tva / 100);
+      // 1. Extract HT (before TVA)
+      const unitHT = unitTTC / (1 + tvaRate / 100);
+
+      // 2. Apply discount
+      const unitHTAfterRemise = unitHT * (1 - remise / 100);
+
+      // 3. Calculate totals
+      const montantHT = unitHTAfterRemise * qty;
+      const montantTVA = montantHT * (tvaRate / 100);
+
+      // 4. Final TTC = backend TTC price * quantity
+      const montantTTC = unitTTC * qty;
 
       totalHT += montantHT;
-      totalRemise += unit * qty * (remise / 100);
-      totalTVA += montantHT * (tva / 100);
+      totalRemise += (unitHT - unitHTAfterRemise) * qty;
+      totalTVA += montantTVA;
 
-      pdf.text(item.productId || "-", x + 2, y + 5);
+      // Use specifications (tire size) as reference
+      pdf.text(item.specifications || "-", x + 2, y + 5);
       x += headers[0].width;
       pdf.text(item.productName || "-", x + 2, y + 5);
       x += headers[1].width;
@@ -161,11 +182,12 @@ export async function handleDownloadInvoice(order: any) {
         align: "center",
       });
       x += headers[2].width;
-      pdf.text(unit.toFixed(3), x + headers[3].width - 2, y + 5, {
+      // Show HT price in PU column (price without TVA)
+      pdf.text(unitHT.toFixed(3), x + headers[3].width - 2, y + 5, {
         align: "right",
       });
       x += headers[3].width;
-      pdf.text(tva.toFixed(0), x + headers[4].width / 2, y + 5, {
+      pdf.text(tvaRate.toFixed(0), x + headers[4].width / 2, y + 5, {
         align: "center",
       });
       x += headers[4].width;
@@ -313,6 +335,94 @@ export default function OrdersTable({
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [paymentFilter, setPaymentFilter] = useState<string>("all");
   const [expandedOrderId, setExpandedOrderId] = useState<string | null>(null);
+  const [creatingPurchaseOrder, setCreatingPurchaseOrder] = useState<
+    string | null
+  >(null);
+  const [supplierDialogOpen, setSupplierDialogOpen] = useState(false);
+  const [selectedOrderForPO, setSelectedOrderForPO] = useState<Order | null>(
+    null
+  );
+  const [suppliers, setSuppliers] = useState<Supplier[]>([]);
+  const [selectedSupplier, setSelectedSupplier] = useState<string>("");
+  const [purchaseOrderCreated, setPurchaseOrderCreated] = useState<Set<string>>(
+    () => {
+      // Load from localStorage on initial mount
+      if (typeof window !== "undefined") {
+        const saved = localStorage.getItem("purchaseOrderCreated");
+        if (saved) {
+          try {
+            return new Set(JSON.parse(saved));
+          } catch (e) {
+            return new Set();
+          }
+        }
+      }
+      return new Set();
+    }
+  );
+
+  // Save to localStorage whenever purchaseOrderCreated changes
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      localStorage.setItem(
+        "purchaseOrderCreated",
+        JSON.stringify(Array.from(purchaseOrderCreated))
+      );
+    }
+  }, [purchaseOrderCreated]);
+
+  // Fetch suppliers on mount
+  useEffect(() => {
+    const loadSuppliers = async () => {
+      const token = localStorage.getItem("access_token");
+      if (token) {
+        try {
+          const data = await fetchSuppliers(token);
+          setSuppliers(data);
+        } catch (error) {
+          console.error("Failed to fetch suppliers:", error);
+        }
+      }
+    };
+    loadSuppliers();
+  }, []);
+
+  const handleOpenSupplierDialog = (order: Order) => {
+    setSelectedOrderForPO(order);
+    setSelectedSupplier("");
+    setSupplierDialogOpen(true);
+  };
+
+  const handleCreatePurchaseOrder = async () => {
+    if (!selectedOrderForPO || creatingPurchaseOrder) return;
+
+    const supplierName = selectedSupplier || "Non défini";
+    setCreatingPurchaseOrder(selectedOrderForPO.id);
+    setSupplierDialogOpen(false);
+
+    try {
+      const result = await createPurchaseOrder(
+        selectedOrderForPO,
+        supplierName
+      );
+      if (result.success) {
+        alert(result.message);
+        // Mark this order as having a purchase order created
+        setPurchaseOrderCreated((prev) =>
+          new Set(prev).add(selectedOrderForPO.id)
+        );
+      } else {
+        alert(result.message || "Erreur lors de la création");
+      }
+    } catch (error) {
+      alert("Erreur lors de la création du bon de commande");
+    } finally {
+      setCreatingPurchaseOrder(null);
+      setSelectedOrderForPO(null);
+      setSelectedSupplier("");
+    }
+  };
+
   const formatCurrency = (amount: string | number) => {
     const numAmount = typeof amount === "string" ? parseFloat(amount) : amount;
     return new Intl.NumberFormat("fr-TN", {
@@ -434,7 +544,7 @@ export default function OrdersTable({
           </TableHeader>
           <TableBody>
             {filteredOrders.map((order) => (
-              <>
+              <React.Fragment key={order.id}>
                 <TableRow key={order.id}>
                   <TableCell className="font-medium">
                     #{order.orderNumber}
@@ -485,10 +595,28 @@ export default function OrdersTable({
                         <Button
                           variant="ghost"
                           size="icon"
-                          onClick={() => createPurchaseOrder(order.id)}
-                          title="Créer bon de commande"
+                          onClick={() => handleOpenSupplierDialog(order)}
+                          disabled={
+                            creatingPurchaseOrder === order.id ||
+                            purchaseOrderCreated.has(order.id)
+                          }
+                          title={
+                            purchaseOrderCreated.has(order.id)
+                              ? "Bon de commande déjà créé"
+                              : "Créer bon de commande"
+                          }
                         >
-                          <Package className="h-4 w-4" />
+                          {creatingPurchaseOrder === order.id ? (
+                            <div className="h-4 w-4 animate-spin rounded-full border-2 border-gray-300 border-t-gray-600" />
+                          ) : (
+                            <Package
+                              className={`h-4 w-4 ${
+                                purchaseOrderCreated.has(order.id)
+                                  ? "text-green-500"
+                                  : ""
+                              }`}
+                            />
+                          )}
                         </Button>
                       )}
 
@@ -612,12 +740,12 @@ export default function OrdersTable({
                                       <div className="text-sm font-medium text-gray-900">
                                         {item.productName}
                                       </div>
-                                      <div className="text-sm text-gray-500">
+                                      {/* <div className="text-sm text-gray-500">
                                         {item.specifications}
-                                      </div>
+                                      </div> */}
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                      {item.productId}
+                                      {item.specifications}
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-right">
                                       {formatCurrency(item.unitPrice)}
@@ -649,7 +777,7 @@ export default function OrdersTable({
                     </TableCell>
                   </TableRow>
                 )}
-              </>
+              </React.Fragment>
             ))}
           </TableBody>
         </Table>
@@ -658,7 +786,7 @@ export default function OrdersTable({
       {/* Mobile Card View */}
       <div className="space-y-4 md:hidden">
         {filteredOrders.map((order) => (
-          <>
+          <React.Fragment key={order.id}>
             <div
               key={order.id}
               className="border rounded-lg p-4 bg-white shadow-sm"
@@ -703,10 +831,28 @@ export default function OrdersTable({
                   <Button
                     variant="ghost"
                     size="icon"
-                    onClick={() => createPurchaseOrder(order.id)}
-                    title="Créer bon de commande"
+                    onClick={() => handleOpenSupplierDialog(order)}
+                    disabled={
+                      creatingPurchaseOrder === order.id ||
+                      purchaseOrderCreated.has(order.id)
+                    }
+                    title={
+                      purchaseOrderCreated.has(order.id)
+                        ? "Bon de commande déjà créé"
+                        : "Créer bon de commande"
+                    }
                   >
-                    <Package className="h-4 w-4" />
+                    {creatingPurchaseOrder === order.id ? (
+                      <div className="h-4 w-4 animate-spin rounded-full border-2 border-gray-300 border-t-gray-600" />
+                    ) : (
+                      <Package
+                        className={`h-4 w-4 ${
+                          purchaseOrderCreated.has(order.id)
+                            ? "text-green-500"
+                            : ""
+                        }`}
+                      />
+                    )}
                   </Button>
                 )}
                 <Button
@@ -751,15 +897,60 @@ export default function OrdersTable({
                 </div>
               </div>
             )}
-          </>
+          </React.Fragment>
         ))}
       </div>
-
       {filteredOrders.length === 0 && (
         <div className="text-center py-8 text-gray-500">
           Aucune commande trouvée avec les critères sélectionnés.
         </div>
       )}
+
+      {/* Supplier Selection Dialog */}
+      <Dialog open={supplierDialogOpen} onOpenChange={setSupplierDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Sélectionner un fournisseur</DialogTitle>
+            <DialogDescription>
+              Choisissez un fournisseur pour créer le bon de commande
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="py-4">
+            <Select
+              value={selectedSupplier}
+              onValueChange={setSelectedSupplier}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Sélectionner un fournisseur" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="Non défini">Non défini</SelectItem>
+                {suppliers.map((supplier) => (
+                  <SelectItem key={supplier.id} value={supplier.name}>
+                    {supplier.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setSupplierDialogOpen(false)}
+            >
+              Annuler
+            </Button>
+            <Button
+              onClick={handleCreatePurchaseOrder}
+              disabled={!selectedSupplier}
+            >
+              Créer le bon de commande
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

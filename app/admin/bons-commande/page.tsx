@@ -54,23 +54,28 @@ export default function BonsCommandePage() {
         }
 
         const data = await res.json();
-        console.log("API Response:", data);
+        console.log("📋 API Response:", data);
 
-        const normalizedData = (data.results ?? data ?? []).map((bon: any) => ({
-          id: bon.id,
-          order_id: bon.order?.id ?? null, // 👈 make sure this exists
-          order: bon.order?.id ?? null, // 👈 keep order in sync
-          fournisseur: bon.fournisseur ?? "",
-          dateCommande: bon.date_commande ?? "",
-          dateLivraisonPrevue: bon.date_livraison_prevue ?? "",
-          articles: bon.articles ?? [],
-          totalHT: bon.total_ht ?? 0,
-          totalTTC: bon.total_ttc ?? 0,
-          statut: bon.statut ?? "en_attente",
-          priorite: bon.priorite ?? "normale",
-        }));
+        const normalizedData = (data.results ?? data ?? []).map((bon: any) => {
+          console.log("📋 Processing bon:", bon);
+          console.log("📋 Articles from API:", bon.articles);
 
-        console.log("Normalized Data:", normalizedData);
+          return {
+            id: bon.id,
+            order_id: bon.order?.id ?? null, // 👈 make sure this exists
+            order: bon.order?.id ?? null, // 👈 keep order in sync
+            fournisseur: bon.fournisseur ?? "",
+            dateCommande: bon.date_commande ?? "",
+            dateLivraisonPrevue: bon.date_livraison_prevue ?? "",
+            // articles: bon.articles ?? [],
+            totalHT: bon.total_ht ?? 0,
+            totalTTC: bon.total_ttc ?? 0,
+            statut: bon.statut ?? "en_attente",
+            priorite: bon.priorite ?? "normale",
+          };
+        });
+
+        console.log("📋 Normalized Data:", normalizedData);
         setBonsCommande(normalizedData);
       } catch (err) {
         console.error("Erreur lors du fetch:", err);
@@ -104,14 +109,18 @@ export default function BonsCommandePage() {
   //     console.error(err);
   //   }
   // };
-  const handleConfirmBon = async (id: number, order_id: number | null) => {
-    console.log("🔍 Confirming:", { id, order_id });
+  const handleConfirmBon = async (
+    id: number,
+    order_id: number | null,
+    fournisseur: string
+  ) => {
+    console.log("🔍 Confirming:", { id, order_id, fournisseur });
     console.log("🔍 Request URL:", `${API_URL}/purchase-orders/${id}/`);
     try {
       const token = localStorage.getItem("access_token");
 
       // Prepare the request body - only include order if it's valid
-      const requestBody: any = { statut: "confirmé" };
+      const requestBody: any = { statut: "confirmé", fournisseur };
       if (order_id && order_id > 0) {
         requestBody.order = order_id;
       }
@@ -207,10 +216,6 @@ export default function BonsCommandePage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
         <h1 className="text-2xl font-bold text-gray-900">Bons de commande</h1>
-        <Button className="flex items-center">
-          <ShoppingCart className="h-4 w-4 mr-2" />
-          Nouvelle commande
-        </Button>
       </div>
 
       {/* Stats */}
@@ -295,14 +300,6 @@ export default function BonsCommandePage() {
                 {new Date(bon.dateLivraisonPrevue).toLocaleDateString()}
               </div>
               <div>
-                <strong>Articles:</strong>
-                {bon.articles.map((article, idx) => (
-                  <div key={idx}>
-                    {article.quantite}x {article.nom}
-                  </div>
-                ))}
-              </div>
-              <div>
                 <strong>Total TTC:</strong>{" "}
                 {(bon.totalTTC ?? 0).toLocaleString()} DT
               </div>
@@ -310,10 +307,11 @@ export default function BonsCommandePage() {
                 <strong>Priorité:</strong> {getPrioriteBadge(bon.priorite)}
               </div>
             </div>
-            <div className="mt-2 flex flex-wrap gap-2">
+            <div className="mt-2 flex flex-nowrap justify-between gap-2 w-full">
               <Button
                 size="sm"
                 variant="outline"
+                className="flex-1"
                 onClick={() => handleViewBon(bon)}
               >
                 Voir
@@ -323,7 +321,14 @@ export default function BonsCommandePage() {
                 <Button
                   size="sm"
                   variant="default"
-                  onClick={() => handleConfirmBon(Number(bon.id), bon.order_id)}
+                  className="flex-1"
+                  onClick={() =>
+                    handleConfirmBon(
+                      Number(bon.id),
+                      bon.order_id,
+                      bon.fournisseur
+                    )
+                  }
                 >
                   Confirmer
                 </Button>
@@ -347,7 +352,6 @@ export default function BonsCommandePage() {
                   <TableHead>Fournisseur</TableHead>
                   <TableHead>Date commande</TableHead>
                   <TableHead>Livraison prévue</TableHead>
-                  <TableHead>Articles</TableHead>
                   <TableHead>Total TTC</TableHead>
                   <TableHead>Priorité</TableHead>
                   <TableHead>Statut</TableHead>
@@ -365,21 +369,12 @@ export default function BonsCommandePage() {
                     <TableCell>
                       {new Date(bon.dateLivraisonPrevue).toLocaleDateString()}
                     </TableCell>
-                    <TableCell>
-                      <div className="space-y-1">
-                        {bon.articles.map((article, idx) => (
-                          <div key={idx} className="text-sm">
-                            {article.quantite}x {article.nom}
-                          </div>
-                        ))}
-                      </div>
-                    </TableCell>
                     <TableCell className="font-medium">
                       {(bon.totalTTC ?? 0).toLocaleString()} DT
                     </TableCell>
                     <TableCell>{getPrioriteBadge(bon.priorite)}</TableCell>
                     <TableCell>{getStatutBadge(bon.statut)}</TableCell>
-                    <TableCell className="space-x-2 flex flex-wrap">
+                    <TableCell className="flex flex-nowrap space-x-2">
                       <Button
                         size="sm"
                         variant="outline"
@@ -393,7 +388,11 @@ export default function BonsCommandePage() {
                           size="sm"
                           variant="default"
                           onClick={() =>
-                            handleConfirmBon(Number(bon.id), bon.order_id)
+                            handleConfirmBon(
+                              Number(bon.id),
+                              bon.order_id,
+                              bon.fournisseur
+                            )
                           }
                         >
                           Confirmer
@@ -429,14 +428,6 @@ export default function BonsCommandePage() {
                 {new Date(
                   selectedBon!.dateLivraisonPrevue
                 ).toLocaleDateString()}
-              </div>
-              <div>
-                <strong>Articles:</strong>
-                {selectedBon!.articles.map((article, idx) => (
-                  <div key={idx}>
-                    {article.quantite}x {article.nom}
-                  </div>
-                ))}
               </div>
               <div>
                 <strong>Total TTC:</strong>{" "}

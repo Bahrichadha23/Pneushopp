@@ -118,7 +118,6 @@ export default function OrdersPage() {
   };
 
   return (
-
     <div className="space-y-6">
       <div>
         <h1 className="text-2xl md:text-3xl font-bold text-gray-900">
@@ -136,6 +135,5 @@ export default function OrdersPage() {
         onUpdateStatus={handleUpdateStatus}
       />
     </div>
-
   );
 }

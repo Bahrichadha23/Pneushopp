@@ -1,15 +1,19 @@
 // Composant footer optimisé pour mobile avec sections repliables
-"use client"
-import { useState } from "react"
-import { ChevronDown, ChevronUp } from "lucide-react"
-import { Button } from "@/components/ui/button"
+"use client";
+import { useState } from "react";
+import { ChevronDown, ChevronUp } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 export default function MobileOptimizedFooter() {
-  const [openSections, setOpenSections] = useState<string[]>([])
+  const [openSections, setOpenSections] = useState<string[]>([]);
 
   const toggleSection = (section: string) => {
-    setOpenSections((prev) => (prev.includes(section) ? prev.filter((s) => s !== section) : [...prev, section]))
-  }
+    setOpenSections((prev) =>
+      prev.includes(section)
+        ? prev.filter((s) => s !== section)
+        : [...prev, section]
+    );
+  };
 
   return (
     <footer className="bg-black text-white">
@@ -36,16 +40,27 @@ export default function MobileOptimizedFooter() {
                 onClick={() => toggleSection("newsletter")}
               >
                 <h3 className="text-lg font-bold">NEWSLETTER</h3>
-                {openSections.includes("newsletter") ? <ChevronUp /> : <ChevronDown />}
+                {openSections.includes("newsletter") ? (
+                  <ChevronUp />
+                ) : (
+                  <ChevronDown />
+                )}
               </Button>
             </div>
 
             <div
-              className={`${openSections.includes("newsletter") || "lg:block"} ${!openSections.includes("newsletter") && "hidden lg:block"} mt-4 lg:mt-0`}
+              className={`${
+                openSections.includes("newsletter") || "lg:block"
+              } ${
+                !openSections.includes("newsletter") && "hidden lg:block"
+              } mt-4 lg:mt-0`}
             >
-              <h3 className="hidden lg:block text-lg font-bold mb-4">NEWSLETTER</h3>
+              <h3 className="hidden lg:block text-lg font-bold mb-4">
+                NEWSLETTER
+              </h3>
               <p className="text-sm mb-4">
-                Abonnez-vous à notre newsletter. Inscrivez-vous à notre e-mail pour obtenir les dernières nouvelles.
+                Abonnez-vous à notre newsletter. Inscrivez-vous à notre e-mail
+                pour obtenir les dernières nouvelles.
               </p>
               <div className="flex flex-col sm:flex-row gap-2">
                 <input
@@ -53,13 +68,19 @@ export default function MobileOptimizedFooter() {
                   placeholder="Entrez votre e-mail..."
                   className="flex-1 px-3 py-2 bg-gray-800 text-white rounded text-sm"
                 />
-                <Button className="bg-yellow-500 hover:bg-yellow-600 text-black px-4 py-2 text-sm">→</Button>
+                <Button className="bg-yellow-500 hover:bg-yellow-600 text-black px-4 py-2 text-sm">
+                  →
+                </Button>
               </div>
 
               {/* Applications mobiles */}
               <div className="flex gap-2 mt-4">
-                <Button className="bg-white text-black px-4 py-2 rounded text-sm">Apple</Button>
-                <Button className="bg-white text-black px-4 py-2 rounded text-sm">Google</Button>
+                <Button className="bg-white text-black px-4 py-2 rounded text-sm">
+                  Apple
+                </Button>
+                <Button className="bg-white text-black px-4 py-2 rounded text-sm">
+                  Google
+                </Button>
               </div>
             </div>
           </div>
@@ -73,14 +94,22 @@ export default function MobileOptimizedFooter() {
                 onClick={() => toggleSection("social")}
               >
                 <h3 className="text-lg font-bold">SUIVEZ-NOUS</h3>
-                {openSections.includes("social") ? <ChevronUp /> : <ChevronDown />}
+                {openSections.includes("social") ? (
+                  <ChevronUp />
+                ) : (
+                  <ChevronDown />
+                )}
               </Button>
             </div>
 
             <div
-              className={`${openSections.includes("social") || "lg:block"} ${!openSections.includes("social") && "hidden lg:block"} mt-4 lg:mt-0`}
+              className={`${openSections.includes("social") || "lg:block"} ${
+                !openSections.includes("social") && "hidden lg:block"
+              } mt-4 lg:mt-0`}
             >
-              <h3 className="hidden lg:block text-lg font-bold mb-4">SUIVEZ-NOUS</h3>
+              <h3 className="hidden lg:block text-lg font-bold mb-4">
+                SUIVEZ-NOUS
+              </h3>
               <div className="flex gap-2">
                 {/* Icônes des réseaux sociaux */}
                 <div className="w-8 h-8 bg-white rounded"></div>
@@ -102,14 +131,9 @@ export default function MobileOptimizedFooter() {
               </div>
               <span>PNEU SHOP</span>
             </div>
-            <p className="text-center sm:text-right">
-              © Droits d'auteur 2024 pneushop.
-              <br className="sm:hidden" />
-              par Innovation-wep.pro Tunisie
-            </p>
           </div>
         </div>
       </div>
     </footer>
-  )
+  );
 }

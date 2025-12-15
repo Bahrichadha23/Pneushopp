@@ -5,7 +5,7 @@ import { useForm } from "react-hook-form";
 import { toast } from "react-hot-toast";
 import Header from "@/components/header";
 import { Download } from "lucide-react";
-import { handleDownloadInvoice } from "@/components/admin/orders-table";
+// import { handleDownloadInvoice } from "@/components/admin/orders-table";
 import { Button } from "@/components/ui/button";
 import { API_URL } from "@/lib/config";
 
@@ -24,29 +24,30 @@ export default function UserProfile() {
     formState: { errors, isSubmitting },
     reset,
   } = useForm();
-  const handleProfileInvoice = (profileOrder: any) => {
-    // Convert API snake_case → camelCase expected by handleDownloadInvoice
-    const mappedOrder = {
-      orderNumber: profileOrder.order_number,
-      createdAt: profileOrder.created_at,
-      customerName: `${profileOrder.user.firstName} ${profileOrder.user.lastName}`,
-      customerPhone: profileOrder.user.telephone || profileOrder.user.phone,
-      fiscalId: profileOrder.user.id,
-      items: profileOrder.items.map((i: any) => ({
-        productId: i.product_id,
-        productName: i.product_name,
-        quantity: i.quantity,
-        unitPrice: i.unit_price,
-        discount: 0,
-        tva: 19,
-      })),
-    };
+  // const handleProfileInvoice = (profileOrder: any) => {
+  //   // Convert API snake_case → camelCase expected by handleDownloadInvoice
+  //   const mappedOrder = {
+  //     orderNumber: profileOrder.order_number,
+  //     createdAt: profileOrder.created_at,
+  //     customerName: `${profileOrder.user.firstName} ${profileOrder.user.lastName}`,
+  //     customerPhone: profileOrder.user.telephone || profileOrder.user.phone,
+  //     fiscalId: profileOrder.user.id,
+  //     items: profileOrder.items.map((i: any) => ({
+  //       productId: i.product_id,
+  //       productName: i.product_name,
+  //       quantity: i.quantity,
+  //       unitPrice: i.unit_price,
+  //       discount: 0,
+  //       tva: 19,
+  //     })),
+  //   };
 
-    // Call the original invoice generator
-    handleDownloadInvoice(mappedOrder);
-  };
+  //   // Call the original invoice generator
+  //   // handleDownloadInvoice(mappedOrder);
+  // };
 
   // Reset form with user data when user changes or when toggling edit mode
+
   useEffect(() => {
     if (user) {
       reset({
@@ -365,7 +366,7 @@ export default function UserProfile() {
                     <th className="p-2 border">Date</th>
                     <th className="p-2 border">Montant</th>
                     <th className="p-2 border">Statut</th>
-                    <th className="p-2 border text-center">Facture</th>{" "}
+                    {/* <th className="p-2 border text-center">Facture</th>{" "} */}
                     {/* 👈 new column */}
                   </tr>
                 </thead>
@@ -401,7 +402,7 @@ export default function UserProfile() {
                           {order.status}
                         </span>
                       </td>
-                      <td className="p-2 border text-center">
+                      {/* <td className="p-2 border text-center">
                         <Button
                           variant="outline"
                           size="sm"
@@ -413,7 +414,7 @@ export default function UserProfile() {
                         >
                           <Download className="w-4 h-4" />
                         </Button>
-                      </td>
+                      </td> */}
                     </tr>
                   ))}
                 </tbody>

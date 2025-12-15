@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useSearchParams } from "next/navigation";
 import Header from "@/components/header";
 import Footer from "@/components/footer";
 import { Button } from "@/components/ui/button";
@@ -88,7 +89,9 @@ const convertApiProduct = (apiProduct: ApiProduct): Product => {
       }),
     ],
 
-    category: categoryMap[apiProduct.category.slug] ?? "auto",
+    category:
+      categoryMap[apiProduct.category.slug] ||
+      (apiProduct.category.slug as any),
 
     specifications: {
       width,
@@ -122,12 +125,15 @@ const convertApiProduct = (apiProduct: ApiProduct): Product => {
 };
 
 export default function BoutiquePage() {
+  const searchParams = useSearchParams();
+  const categoryFromUrl = searchParams.get("category") || "all";
+
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [brandFilter, setBrandFilter] = useState("all");
-  const [categoryFilter, setCategoryFilter] = useState("all");
+  const [categoryFilter, setCategoryFilter] = useState(categoryFromUrl);
   const [priceFilter, setPriceFilter] = useState("");
   const [sortBy, setSortBy] = useState("name");
   const [nextPage, setNextPage] = useState<string | null>(null);
@@ -137,6 +143,11 @@ export default function BoutiquePage() {
     total: 0,
     limit: 20, // number of products per page
   });
+
+  // Update category filter when URL changes
+  useEffect(() => {
+    setCategoryFilter(categoryFromUrl);
+  }, [categoryFromUrl]);
 
   const fetchProducts = async (page = 1) => {
     try {
@@ -155,7 +166,12 @@ export default function BoutiquePage() {
       const apiProducts = data.results || [];
       const convertedProducts = apiProducts.map(convertApiProduct);
 
-      setProducts(convertedProducts);
+      // ✅ Only keep non-promotional products (exclude promotions)
+      const nonPromoProducts = convertedProducts.filter(
+        (p: Product) => p.isPromotion !== true
+      );
+
+      setProducts(nonPromoProducts);
 
       setPagination({
         page,
@@ -192,7 +208,7 @@ export default function BoutiquePage() {
       const matchesCategory =
         !categoryFilter ||
         categoryFilter === "all" ||
-        product.category === categoryFilter;
+        product.category.toLowerCase() === categoryFilter.toLowerCase();
 
       return matchesSearch && matchesBrand && matchesCategory;
     })

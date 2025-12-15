@@ -343,23 +343,22 @@ export default function ProductsTable({
                       />
                       <div>
                         <p className="font-medium">{product.name}</p>
-                        <p className="text-sm text-gray-500">
-                          {product.brand} - {product.model}
-                        </p>
+                        <p className="text-sm text-gray-500">{product.brand}</p>
                       </div>
                     </div>
                   </TableCell>
                   <TableCell className="hidden sm:table-cell">
                     <div className="text-sm">
                       <p className="font-medium">
-                        {product.specifications.width}/
+                        {product.model}
+                        {/* {product.specifications.width}/
                         {product.specifications.height}R
-                        {product.specifications.diameter}
+                        {product.specifications.diameter} */}
                       </p>
                       <p className="text-gray-500">
-                        {product.specifications.loadIndex}
+                        {/* {product.specifications.loadIndex}
                         {product.specifications.speedRating} -{" "}
-                        {product.specifications.season}
+                        {product.specifications.season} */}
                       </p>
                     </div>
                   </TableCell>

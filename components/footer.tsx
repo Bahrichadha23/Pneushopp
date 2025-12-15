@@ -76,17 +76,6 @@ export default function Footer() {
           </div>
         </div>
       </div>
-
-      {/* Bottom copyright */}
-      <div className="bg-gray-100 text-black py-4">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <p className="text-sm leading-relaxed">
-            © Droits d&apos;auteur 2024 pneushop.
-            <br className="block sm:hidden" />
-            par Innovation-wep.pro Tunisie
-          </p>
-        </div>
-      </div>
     </footer>
   );
 }

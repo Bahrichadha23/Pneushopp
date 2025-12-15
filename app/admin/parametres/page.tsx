@@ -125,7 +125,7 @@ export default function ParametresPage() {
           "Content-Type": "application/json",
         },
       });
-
+      console.log("Export response:", response);
       if (response.ok) {
         // Create download link
         const blob = await response.blob();

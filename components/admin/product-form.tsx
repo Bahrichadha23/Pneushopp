@@ -477,7 +477,7 @@ export default function ProductForm({
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div>
+            {/* <div>
               <Label htmlFor="price">Prix de vente (DT) *</Label>
               <Input
                 id="price"
@@ -512,6 +512,43 @@ export default function ProductForm({
                   )
                 }
                 placeholder="220.00"
+              />
+              <p className="text-xs text-gray-500 mt-1">Pour les promotions</p>
+            </div> */}
+            <div>
+              <Label htmlFor="price">Prix de vente (DT) *</Label>
+              <Input
+                id="price"
+                type="number"
+                step="0.01"
+                value={formData.price || ""}
+                onChange={(e) => {
+                  const newPrice = Number.parseFloat(e.target.value) || 0;
+
+                  if (!formData.old_price) {
+                    handleInputChange("old_price", formData.price);
+                  }
+
+                  handleInputChange("price", newPrice);
+                }}
+                placeholder="180.00"
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="old_price">Prix original (DT)</Label>
+              <Input
+                id="old_price"
+                type="number"
+                step="0.01"
+                value={formData.old_price || ""}
+                onChange={(e) =>
+                  handleInputChange(
+                    "old_price",
+                    Number.parseFloat(e.target.value) || 0
+                  )
+                }
+                placeholder="573.64"
               />
               <p className="text-xs text-gray-500 mt-1">Pour les promotions</p>
             </div>

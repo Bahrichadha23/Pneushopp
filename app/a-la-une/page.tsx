@@ -77,10 +77,11 @@ export default function ALaUnePage() {
 
                 {/* Link to slug page */}
                 <Link
-                  href={`/a-la-une/${item.slug}`}
-                  className="hover:text-yellow-600 font-semibold text-yellow-500"
+                  href={item.id === 2 ? "/boutique" : `/a-la-une/${item.slug}`}
                 >
-                  Lire la suite →
+                  <span className="hover:text-yellow-600 font-semibold text-yellow-500">
+                    Lire la suite →
+                  </span>
                 </Link>
               </div>
             </article>

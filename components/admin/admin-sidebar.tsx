@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import type React from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -28,6 +28,7 @@ import {
 } from "@/components/ui/collapsible";
 import Image from "next/image";
 import { useAuth } from "@/contexts/auth-context"; // Add this
+import { API_URL } from "@/lib/config";
 
 interface MenuItem {
   title: string;
@@ -98,6 +99,8 @@ export default function AdminSidebar({
   sidebarOpen: boolean;
   setSidebarOpen: (open: boolean) => void;
 }) {
+  const [pendingCount, setPendingCount] = useState(0);
+  const [bonsCount, setBonsCount] = useState(0);
   const pathname = usePathname();
   const [openMenus, setOpenMenus] = useState<string[]>([
     "Commandes",
@@ -112,6 +115,64 @@ export default function AdminSidebar({
     );
   };
   const { user } = useAuth(); // Get current user
+  useEffect(() => {
+    if (!user) return;
+
+    const fetchPendingOrders = async () => {
+      try {
+        const token = localStorage.getItem("access_token");
+        const res = await fetch(`${API_URL}/orders/?status=pending`, {
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        });
+        if (!res.ok) return;
+        const data = await res.json();
+        setPendingCount(data.results.length);
+      } catch (err) {
+        console.error("Error fetching pending orders:", err);
+      }
+    };
+
+    fetchPendingOrders();
+
+    // Optional: poll every 10s for updates
+    const interval = setInterval(fetchPendingOrders, 10000);
+    return () => clearInterval(interval);
+  }, [user]);
+
+  useEffect(() => {
+    if (!user) return;
+
+    const fetchPendingBons = async () => {
+      try {
+        const token = localStorage.getItem("access_token");
+        const res = await fetch(`${API_URL}/purchase-orders/`, {
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        });
+        if (!res.ok) return;
+        const data = await res.json();
+        // Count the number of pending bons
+        const pendingBons = (data.results ?? []).filter(
+          (bon: any) => bon.statut === "en_attente"
+        );
+        setBonsCount(pendingBons.length);
+      } catch (err) {
+        console.error("Error fetching bons de commande:", err);
+      }
+    };
+
+    fetchPendingBons();
+
+    // Optional: poll every 10s
+    const interval = setInterval(fetchPendingBons, 10000);
+    return () => clearInterval(interval);
+  }, [user]);
+
   // Role-based menu filtering
   let filteredMenuItems = menuItems;
   let roleLabel = "";
@@ -219,16 +280,31 @@ export default function AdminSidebar({
       <Link key={item.href} href={item.href || "#"}>
         <Button
           variant="ghost"
-          className={`w-full justify-start px-3 py-1.5 h-auto ${
-            level > 0 ? "pl-8" : ""
+          className={`w-full justify-start px-2 h-auto ${
+            // reduced px from 3 → 2
+            level > 0 ? "pl-6" : "pl-3" // slightly less than previous pl-8
           } ${
             isActive(item.href || "")
               ? "bg-yellow-100 text-yellow-800 hover:bg-yellow-200"
               : "hover:bg-gray-100"
-          }`}
+          } flex items-center justify-between`}
         >
-          <Icon className="w-4 h-4 mr-3" />
-          {item.title}
+          <div className="flex items-center">
+            <Icon className="w-4 h-4 mr-2" /> {/* icon spacing maintained */}
+            <span>{item.title}</span>
+          </div>
+
+          {item.title === "Commandes en attente" && pendingCount > 0 && (
+            <span className="ml-1 inline-flex items-center justify-center px-2 py-0.5 text-xs font-bold leading-none text-red-100 bg-red-600 rounded-full">
+              {pendingCount}
+            </span>
+          )}
+
+          {item.title === "Bons de commande" && bonsCount > 0 && (
+            <span className="ml-1 inline-flex items-center justify-center px-2 py-0.5 text-xs font-bold leading-none text-red-100 bg-red-600 rounded-full">
+              {bonsCount}
+            </span>
+          )}
         </Button>
       </Link>
     );

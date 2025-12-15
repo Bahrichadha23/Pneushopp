@@ -9,30 +9,35 @@ export default function ProductCategoriesSection() {
       name: "PNEU AGRICOLE",
       image: "/AGRICOLE.jpeg",
       description: "Pneus spécialisés pour tracteurs et machines agricoles",
+      slug: "continental",
     },
     {
       id: 2,
       name: "PNEU 4*4",
       image: "/4X4.jpeg",
       description: "Pneus pour voitures particulières et berlines",
+      slug: "continental",
     },
     {
       id: 3,
       name: "PNEU MOTO",
       image: "/MOTO.jpeg",
       description: "Pneus renforcés pour utilitaires et camionnettes",
+      slug: "continental",
     },
     {
       id: 4,
       name: "PNEU TOURISM",
       image: "/TOURISM.jpeg",
       description: "Pneus haute résistance pour camions et poids lourds",
+      slug: "continental",
     },
     {
       id: 5,
       name: "PNEU UTILITAIRE",
       image: "/UTILITAIRE.jpeg",
       description: "Pneus haute résistance pour camions et poids lourds",
+      slug: "continental",
     },
   ];
 
@@ -103,7 +108,7 @@ export default function ProductCategoriesSection() {
                   {category.description}
                 </p>
                 <Link
-                  href="/boutique"
+                  href={`/boutique?category=${category.slug}`}
                   className="w-full text-center px-2 py-2 border-2 border-yellow-300 rounded-md font-semibold text-gray-700 bg-transparent 
              hover:bg-yellow-300 hover:text-white transition duration-300 ease-in-out"
                 >

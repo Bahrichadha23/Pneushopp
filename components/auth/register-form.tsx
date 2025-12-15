@@ -77,7 +77,9 @@ export default function RegisterForm({
 
     if (
       formData.phone &&
-      !/^(\+216|216)?[0-9]{8}$/.test(formData.phone.replace(/\s/g, ""))
+      !/^(\+216|216)?\s?[0-9]{2}\s?[0-9]{3}\s?[0-9]{3}$/.test(
+        formData.phone.replace(/\s/g, "")
+      )
     ) {
       newErrors.phone = "Format de téléphone invalide (ex: +216 20 123 456)";
     }
@@ -86,10 +88,54 @@ export default function RegisterForm({
     return Object.keys(newErrors).length === 0;
   };
 
+  // const handleSubmit = async (e: React.FormEvent) => {
+  //   e.preventDefault();
+  //   // setDebugInfo(null)
+
+  //   if (!validateForm()) return;
+
+  //   setIsLoading(true);
+
+  //   try {
+  //     const registerData = {
+  //       firstName: formData.firstName.trim(),
+  //       lastName: formData.lastName.trim(),
+  //       email: formData.email.trim(),
+  //       phone: formData.phone.trim() || undefined,
+  //       password: formData.password,
+  //       acceptTerms: formData.acceptTerms,
+  //       newsletter: formData.newsletter,
+  //     };
+
+  //     const result = await register(registerData);
+
+  //     console.log("📝 Registration result:", result);
+
+  //     if (result.success) {
+  //       console.log("✅ Registration successful");
+  //       if (onSuccess) {
+  //         onSuccess();
+  //       } else {
+  //         router.push(redirectTo);
+  //       }
+  //     } else {
+  //       console.log("❌ Registration failed:", result.error);
+  //       setErrors({ general: result.error || "Erreur lors de l'inscription" });
+  //     }
+
+  //     console.log("✅ Registration successful (forced)");
+  //   } catch (err: any) {
+  //     console.error("💥 Registration error:", err);
+  //     setErrors({ general: "Erreur lors de l'inscription" });
+  //   } finally {
+  //     setIsLoading(false);
+  //   }
+  // };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // setDebugInfo(null)
 
+    // Frontend validation
     if (!validateForm()) return;
 
     setIsLoading(true);
@@ -106,25 +152,41 @@ export default function RegisterForm({
       };
 
       const result = await register(registerData);
+      console.log("Registration result:", result);
 
-      console.log("📝 Registration result:", result);
-
+      // If registration was successful
       if (result.success) {
-        console.log("✅ Registration successful");
-        if (onSuccess) {
-          onSuccess();
-        } else {
-          router.push(redirectTo);
-        }
-      } else {
-        console.log("❌ Registration failed:", result.error);
-        setErrors({ general: result.error || "Erreur lors de l'inscription" });
+        router.push("/auth/login");
+        return;
       }
 
-      console.log("✅ Registration successful (forced)");
+      // Backend errors (Django returns field: [error])
+      // Backend errors (TypeScript-safe)
+      if (result.error) {
+        const backendErrors: Record<string, string> = {};
+
+        if (typeof result.error === "string") {
+          // backend sends "password: Ce mot de passe est trop courant."
+          const [field, message] = result.error.split(":").map((s) => s.trim());
+          backendErrors[field || "general"] = message || result.error;
+        } else if (typeof result.error === "object") {
+          // backend sends { password: ["Ce mot de passe est trop courant."] }
+          Object.entries(result.error).forEach(([field, value]) => {
+            backendErrors[field] = Array.isArray(value)
+              ? value[0]
+              : String(value);
+          });
+        }
+
+        setErrors(backendErrors);
+      } else {
+        setErrors({ general: "Erreur lors de l'inscription" });
+      }
     } catch (err: any) {
-      console.error("💥 Registration error:", err);
-      setErrors({ general: "Erreur lors de l'inscription" });
+      console.error("Registration error:", err);
+      setErrors({
+        general: "Erreur lors de l'inscription",
+      });
     } finally {
       setIsLoading(false);
     }
@@ -132,13 +194,24 @@ export default function RegisterForm({
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
+
     setFormData((prev) => ({ ...prev, [name]: value }));
 
-    // Effacer l'erreur du champ modifié
-    if (errors[name]) {
-      setErrors((prev) => ({ ...prev, [name]: "" }));
-    }
+    // Clear only the error for this field
+    setErrors((prev) => ({ ...prev, [name]: "" }));
+
+    // Optional: re-run validation for all fields dynamically
+    validateForm();
   };
+  const isFormInvalid =
+    !formData.firstName.trim() ||
+    !formData.lastName.trim() ||
+    !formData.email.trim() ||
+    !formData.password ||
+    !formData.confirmPassword ||
+    !formData.acceptTerms ||
+    formData.password.length < 6 ||
+    formData.password !== formData.confirmPassword;
 
   return (
     <div className="w-full max-w-md mx-auto">
@@ -347,7 +420,7 @@ export default function RegisterForm({
         <Button
           type="submit"
           className="w-full bg-yellow-500 hover:bg-yellow-600 text-black"
-          disabled={isLoading}
+          disabled={isLoading || isFormInvalid}
         >
           {isLoading ? (
             <>

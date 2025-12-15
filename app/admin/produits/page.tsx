@@ -15,6 +15,7 @@ import { adminService } from "@/lib/services/admin";
 import type { AdminProduct, ProductCreateData } from "@/lib/services/admin";
 import type { Product } from "@/types/product";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/contexts/auth-context";
 import { useRouter } from "next/navigation";
 
@@ -190,6 +191,8 @@ export default function ProductsPage() {
   const [products, setProducts] = useState<Product[]>([]); // Version convertie pour l'affichage
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | undefined>();
+  const [viewingProduct, setViewingProduct] = useState<Product | undefined>();
+  const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [isPageLoading, setIsPageLoading] = useState(true);
   const [error, setError] = useState<string>("");
@@ -249,8 +252,11 @@ export default function ProductsPage() {
   };
 
   const handleViewProduct = (productId: string) => {
-    console.log("Voir produit:", productId);
-    // Redirection vers la page de détail du produit
+    const product = products.find((p) => p.id === productId);
+    if (product) {
+      setViewingProduct(product);
+      setIsViewDialogOpen(true);
+    }
   };
 
   const handleDeleteProduct = async (productId: string) => {
@@ -449,7 +455,7 @@ export default function ProductsPage() {
         </Button>
       </div>
 
-      {/* Dialog */}
+      {/* Product Form Dialog */}
       <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
         <DialogContent className="w-full max-w-4xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
@@ -463,6 +469,239 @@ export default function ProductsPage() {
             onCancel={() => setIsFormOpen(false)}
             isLoading={isLoading}
           />
+        </DialogContent>
+      </Dialog>
+
+      {/* Product View Dialog */}
+      <Dialog open={isViewDialogOpen} onOpenChange={setIsViewDialogOpen}>
+        <DialogContent className="w-full max-w-3xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Détails du produit</DialogTitle>
+          </DialogHeader>
+
+          {viewingProduct && (
+            <div className="space-y-6">
+              {/* Product Image */}
+              {viewingProduct.image && (
+                <div className="flex justify-center">
+                  <img
+                    src={viewingProduct.image}
+                    alt={viewingProduct.name}
+                    className="max-h-48 object-contain rounded-lg"
+                  />
+                </div>
+              )}
+
+              {/* Basic Information */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <h3 className="font-semibold text-gray-700 mb-2">
+                    Informations de base
+                  </h3>
+                  <div className="space-y-2 text-sm">
+                    <div>
+                      <span className="font-medium text-gray-600">Nom:</span>
+                      <p className="text-gray-900">{viewingProduct.name}</p>
+                    </div>
+                    <div>
+                      <span className="font-medium text-gray-600">Marque:</span>
+                      <p className="text-gray-900">{viewingProduct.brand}</p>
+                    </div>
+                    <div>
+                      <span className="font-medium text-gray-600">Modèle:</span>
+                      <p className="text-gray-900">{viewingProduct.model}</p>
+                    </div>
+                    <div>
+                      <span className="font-medium text-gray-600">
+                        Catégorie:
+                      </span>
+                      <p className="text-gray-900">{viewingProduct.category}</p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Pricing Information */}
+                <div>
+                  <h3 className="font-semibold text-gray-700 mb-2">
+                    Tarification
+                  </h3>
+                  <div className="space-y-2 text-sm">
+                    <div>
+                      <span className="font-medium text-gray-600">Prix:</span>
+                      <p className="text-gray-900 text-lg font-bold">
+                        {viewingProduct.price.toFixed(3)} TND
+                      </p>
+                    </div>
+                    {viewingProduct.old_price && (
+                      <div>
+                        <span className="font-medium text-gray-600">
+                          Ancien prix:
+                        </span>
+                        <p className="text-gray-500 line-through">
+                          {viewingProduct.old_price.toFixed(3)} TND
+                        </p>
+                      </div>
+                    )}
+                    {viewingProduct.discount_percentage && (
+                      <div>
+                        <span className="font-medium text-gray-600">
+                          Réduction:
+                        </span>
+                        <p className="text-green-600 font-semibold">
+                          -{viewingProduct.discount_percentage}%
+                        </p>
+                      </div>
+                    )}
+                    <div>
+                      <span className="font-medium text-gray-600">
+                        En promotion:
+                      </span>
+                      <p className="text-gray-900">
+                        {viewingProduct.is_on_sale ? "Oui" : "Non"}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Specifications */}
+              <div>
+                <h3 className="font-semibold text-gray-700 mb-2">
+                  Spécifications techniques
+                </h3>
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-3 text-sm">
+                  {viewingProduct.specifications?.width && (
+                    <div className="bg-gray-50 p-3 rounded">
+                      <span className="font-medium text-gray-600">
+                        Largeur:
+                      </span>
+                      <p className="text-gray-900 font-semibold">
+                        {viewingProduct.specifications.width} mm
+                      </p>
+                    </div>
+                  )}
+                  {viewingProduct.specifications?.height && (
+                    <div className="bg-gray-50 p-3 rounded">
+                      <span className="font-medium text-gray-600">
+                        Hauteur:
+                      </span>
+                      <p className="text-gray-900 font-semibold">
+                        {viewingProduct.specifications.height}
+                      </p>
+                    </div>
+                  )}
+                  {viewingProduct.specifications?.diameter && (
+                    <div className="bg-gray-50 p-3 rounded">
+                      <span className="font-medium text-gray-600">
+                        Diamètre:
+                      </span>
+                      <p className="text-gray-900 font-semibold">
+                        {viewingProduct.specifications.diameter}"
+                      </p>
+                    </div>
+                  )}
+                  {viewingProduct.specifications?.loadIndex &&
+                    viewingProduct.specifications.loadIndex > 0 && (
+                      <div className="bg-gray-50 p-3 rounded">
+                        <span className="font-medium text-gray-600">
+                          Indice de charge:
+                        </span>
+                        <p className="text-gray-900 font-semibold">
+                          {viewingProduct.specifications.loadIndex}
+                        </p>
+                      </div>
+                    )}
+                  {viewingProduct.specifications?.speedRating && (
+                    <div className="bg-gray-50 p-3 rounded">
+                      <span className="font-medium text-gray-600">
+                        Indice de vitesse:
+                      </span>
+                      <p className="text-gray-900 font-semibold">
+                        {viewingProduct.specifications.speedRating}
+                      </p>
+                    </div>
+                  )}
+                  {viewingProduct.specifications?.season && (
+                    <div className="bg-gray-50 p-3 rounded">
+                      <span className="font-medium text-gray-600">Saison:</span>
+                      <p className="text-gray-900 font-semibold">
+                        {viewingProduct.specifications.season}
+                      </p>
+                    </div>
+                  )}
+                </div>
+                {viewingProduct.model && (
+                  <div className="mt-3">
+                    <span className="font-medium text-gray-600">
+                      Format complet:
+                    </span>
+                    <p className="text-gray-900 text-lg font-mono bg-gray-50 p-2 rounded mt-1">
+                      {viewingProduct.model}
+                    </p>
+                  </div>
+                )}
+              </div>
+
+              {/* Inventory */}
+              <div>
+                <h3 className="font-semibold text-gray-700 mb-2">Stock</h3>
+                <div className="space-y-2 text-sm">
+                  <div className="flex items-center gap-2">
+                    <span className="font-medium text-gray-600">
+                      Quantité en stock:
+                    </span>
+                    <Badge
+                      variant={
+                        viewingProduct.stock > 10
+                          ? "default"
+                          : viewingProduct.stock > 0
+                          ? "secondary"
+                          : "destructive"
+                      }
+                    >
+                      {viewingProduct.stock} unité(s)
+                    </Badge>
+                  </div>
+                  <div>
+                    <span className="font-medium text-gray-600">Statut:</span>
+                    <p
+                      className={`font-semibold ${
+                        viewingProduct.stock > 0
+                          ? "text-green-600"
+                          : "text-red-600"
+                      }`}
+                    >
+                      {viewingProduct.stock > 0
+                        ? "En stock"
+                        : "Rupture de stock"}
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Description */}
+              {viewingProduct.description && (
+                <div>
+                  <h3 className="font-semibold text-gray-700 mb-2">
+                    Description
+                  </h3>
+                  <p className="text-gray-900 text-sm whitespace-pre-wrap">
+                    {viewingProduct.description}
+                  </p>
+                </div>
+              )}
+
+              {/* Close Button */}
+              <div className="flex justify-end pt-4 border-t">
+                <Button
+                  variant="outline"
+                  onClick={() => setIsViewDialogOpen(false)}
+                >
+                  Fermer
+                </Button>
+              </div>
+            </div>
+          )}
         </DialogContent>
       </Dialog>
     </div>

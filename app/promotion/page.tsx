@@ -124,6 +124,7 @@ const convertApiProduct = (apiProduct: ApiProduct): Product => {
 export default function PromotionsPage() {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [brandFilter, setBrandFilter] = useState("all");
@@ -134,25 +135,70 @@ export default function PromotionsPage() {
     const fetchProducts = async () => {
       try {
         setLoading(true);
-        const response = await fetch(`${API_URL}/products/`);
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
+
+        // 🚀 STEP 1: Fetch first page IMMEDIATELY
+        const firstResponse = await fetch(
+          `${API_URL}/products/?is_on_sale=true&limit=100`
+        );
+        if (!firstResponse.ok) {
+          throw new Error(`HTTP error! status: ${firstResponse.status}`);
         }
 
-        const data = await response.json();
-        const apiProducts = data.results || [];
-        const convertedProducts = apiProducts.map(convertApiProduct);
+        const firstData = await firstResponse.json();
+        const firstPageProducts = firstData.results || [];
+        const convertedFirst = firstPageProducts.map(convertApiProduct);
 
-        // ✅ Only keep promotional products
-        const promoProducts = convertedProducts.filter(
+        // ✅ Show first batch immediately
+        const firstPromos = convertedFirst.filter(
           (p: Product) => p.isPromotion === true
         );
+        setProducts(firstPromos);
+        setLoading(false);
 
-        setProducts(promoProducts);
+        console.log(
+          `✅ First page loaded: ${firstPromos.length} promotions shown`
+        );
+
+        // 🔄 STEP 2: Load remaining pages in background
+        let allProducts = firstPageProducts;
+        let nextUrl = firstData.next;
+
+        if (nextUrl) {
+          setLoadingMore(true);
+
+          while (nextUrl) {
+            try {
+              const response = await fetch(nextUrl);
+              if (!response.ok) break;
+
+              const data = await response.json();
+              const newProducts = data.results || [];
+              allProducts = [...allProducts, ...newProducts];
+              nextUrl = data.next;
+
+              // Update products incrementally as each page loads
+              const converted = allProducts.map(convertApiProduct);
+              const promos = converted.filter(
+                (p: Product) => p.isPromotion === true
+              );
+              setProducts(promos);
+
+              console.log(`Background: ${promos.length} total promotions`);
+            } catch (err) {
+              console.error("Error loading more:", err);
+              break;
+            }
+          }
+
+          setLoadingMore(false);
+          console.log(
+            `✅ All pages loaded: ${allProducts.length} products checked`
+          );
+        }
+
         setError(null);
       } catch (err) {
         setError(`Erreur lors du chargement des produits: ${err}`);
-      } finally {
         setLoading(false);
       }
     };
@@ -329,7 +375,18 @@ export default function PromotionsPage() {
           ))}
         </div>
 
-        {filteredProducts.length === 0 && (
+        {/* Loading More Indicator */}
+        {loadingMore && filteredProducts.length > 0 && (
+          <div className="flex flex-col items-center justify-center py-12">
+            <Loader2 className="h-8 w-8 animate-spin text-yellow-500 mb-3" />
+            <p className="text-gray-600 font-medium">
+              Recherche de plus de promotions...
+            </p>
+            <p className="text-gray-400 text-sm mt-1">Chargement en cours...</p>
+          </div>
+        )}
+
+        {filteredProducts.length === 0 && !loadingMore && (
           <div className="text-center py-12">
             <p className="text-gray-500 text-lg">
               Aucune promotion trouvée avec ces critères

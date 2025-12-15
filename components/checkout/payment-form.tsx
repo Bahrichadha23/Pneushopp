@@ -1,40 +1,40 @@
-"use client"
+"use client";
 // Formulaire de paiement avec différentes méthodes
-import type React from "react"
+import type React from "react";
 
-import { useState } from "react"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
-import type { PaymentMethod } from "@/types/order"
-import { CreditCard, Smartphone, Building, Truck } from "lucide-react"
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import type { PaymentMethod } from "@/types/order";
+import { CreditCard, Smartphone, Building, Truck } from "lucide-react";
 
 interface PaymentFormProps {
-  onSubmit: (payment: PaymentMethod) => void
-  onBack: () => void
+  onSubmit: (payment: PaymentMethod) => void;
+  onBack: () => void;
 }
 
 export function PaymentForm({ onSubmit, onBack }: PaymentFormProps) {
-  const [paymentType, setPaymentType] = useState<PaymentMethod["type"]>("card")
+  const [paymentType, setPaymentType] = useState<PaymentMethod["type"]>("card");
   const [cardData, setCardData] = useState({
     cardNumber: "",
     expiryDate: "",
     cvv: "",
     holderName: "",
-  })
+  });
 
   const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
+    e.preventDefault();
 
     const paymentMethod: PaymentMethod = {
       type: paymentType,
       ...(paymentType === "card" ? cardData : {}),
-    }
+    };
 
-    onSubmit(paymentMethod)
-  }
+    onSubmit(paymentMethod);
+  };
 
   return (
     <Card className="max-w-2xl mx-auto">
@@ -43,7 +43,12 @@ export function PaymentForm({ onSubmit, onBack }: PaymentFormProps) {
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-6">
-          <RadioGroup value={paymentType} onValueChange={(value) => setPaymentType(value as PaymentMethod["type"])}>
+          <RadioGroup
+            value={paymentType}
+            onValueChange={(value) =>
+              setPaymentType(value as PaymentMethod["type"])
+            }
+          >
             <div className="space-y-4">
               <div className="flex items-center space-x-3 p-4 border rounded-lg">
                 <RadioGroupItem value="card" id="card" />
@@ -64,15 +69,24 @@ export function PaymentForm({ onSubmit, onBack }: PaymentFormProps) {
               <div className="flex items-center space-x-3 p-4 border rounded-lg">
                 <RadioGroupItem value="bank_transfer" id="bank_transfer" />
                 <Building className="h-5 w-5" />
-                <Label htmlFor="bank_transfer" className="flex-1 cursor-pointer">
+                <Label
+                  htmlFor="bank_transfer"
+                  className="flex-1 cursor-pointer"
+                >
                   Virement bancaire
                 </Label>
               </div>
 
               <div className="flex items-center space-x-3 p-4 border rounded-lg">
-                <RadioGroupItem value="cash_on_delivery" id="cash_on_delivery" />
+                <RadioGroupItem
+                  value="cash_on_delivery"
+                  id="cash_on_delivery"
+                />
                 <Truck className="h-5 w-5" />
-                <Label htmlFor="cash_on_delivery" className="flex-1 cursor-pointer">
+                <Label
+                  htmlFor="cash_on_delivery"
+                  className="flex-1 cursor-pointer"
+                >
                   Paiement à la livraison
                 </Label>
               </div>
@@ -88,7 +102,12 @@ export function PaymentForm({ onSubmit, onBack }: PaymentFormProps) {
                   id="cardNumber"
                   placeholder="1234 5678 9012 3456"
                   value={cardData.cardNumber}
-                  onChange={(e) => setCardData((prev) => ({ ...prev, cardNumber: e.target.value }))}
+                  onChange={(e) =>
+                    setCardData((prev) => ({
+                      ...prev,
+                      cardNumber: e.target.value,
+                    }))
+                  }
                   required
                 />
               </div>
@@ -100,7 +119,12 @@ export function PaymentForm({ onSubmit, onBack }: PaymentFormProps) {
                     id="expiryDate"
                     placeholder="MM/AA"
                     value={cardData.expiryDate}
-                    onChange={(e) => setCardData((prev) => ({ ...prev, expiryDate: e.target.value }))}
+                    onChange={(e) =>
+                      setCardData((prev) => ({
+                        ...prev,
+                        expiryDate: e.target.value,
+                      }))
+                    }
                     required
                   />
                 </div>
@@ -110,7 +134,9 @@ export function PaymentForm({ onSubmit, onBack }: PaymentFormProps) {
                     id="cvv"
                     placeholder="123"
                     value={cardData.cvv}
-                    onChange={(e) => setCardData((prev) => ({ ...prev, cvv: e.target.value }))}
+                    onChange={(e) =>
+                      setCardData((prev) => ({ ...prev, cvv: e.target.value }))
+                    }
                     required
                   />
                 </div>
@@ -122,7 +148,12 @@ export function PaymentForm({ onSubmit, onBack }: PaymentFormProps) {
                   id="holderName"
                   placeholder="Nom complet"
                   value={cardData.holderName}
-                  onChange={(e) => setCardData((prev) => ({ ...prev, holderName: e.target.value }))}
+                  onChange={(e) =>
+                    setCardData((prev) => ({
+                      ...prev,
+                      holderName: e.target.value,
+                    }))
+                  }
                   required
                 />
               </div>
@@ -144,17 +175,22 @@ export function PaymentForm({ onSubmit, onBack }: PaymentFormProps) {
             </div>
           )}
 
-          {paymentType === "cash_on_delivery" && (
+          {/* {paymentType === "cash_on_delivery" && (
             <div className="p-4 bg-green-50 rounded-lg">
               <h3 className="font-semibold mb-2">Paiement à la livraison</h3>
               <p className="text-sm text-gray-600">
                 Vous paierez en espèces ou par carte lors de la réception de votre commande. Frais supplémentaires: 5 DT
               </p>
             </div>
-          )}
+          )} */}
 
           <div className="flex gap-4">
-            <Button type="button" variant="outline" onClick={onBack} className="flex-1 bg-transparent">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={onBack}
+              className="flex-1 bg-transparent"
+            >
               Retour
             </Button>
             <Button type="submit" className="flex-1">
@@ -164,5 +200,5 @@ export function PaymentForm({ onSubmit, onBack }: PaymentFormProps) {
         </form>
       </CardContent>
     </Card>
-  )
+  );
 }

@@ -74,12 +74,14 @@ export default function ProductCard({
             <p className="text-sm text-gray-600">
               {product.specifications.width}/{product.specifications.height} R
               {product.specifications.diameter}
-              {product.specifications.loadIndex}
-              {product.specifications.speedRating}
+              {product.specifications.loadIndex > 0 &&
+                product.specifications.loadIndex}
+              {product.specifications.speedRating &&
+                product.specifications.speedRating}
             </p>
             <p className="text-xs text-gray-500 capitalize">
               {product.specifications.season.replace("-", " ")} •{" "}
-              {product.category}
+              {product.brand}
             </p>
           </div>
 
