@@ -4,7 +4,7 @@ import type React from "react";
 import { createContext, useContext, useState, useEffect } from "react";
 // import type { Order, OrderContextType } from "@/types/order"
 import { OrderItem } from "@/types/admin";
-import { PaymentMethod } from "@/types/order";
+import { PaymentMethod, WarrantyInfo } from "@/types/order";
 import { ShippingAddress } from "@/types/order";
 import { API_URL } from "@/lib/config";
 
@@ -14,6 +14,7 @@ interface Order {
   items: OrderItem[];
   shippingAddress: ShippingAddress;
   paymentMethod: PaymentMethod;
+  warranty?: WarrantyInfo;
   total: number;
   status: "pending" | "paid" | "shipped" | "delivered" | "cancelled";
   createdAt: Date;
@@ -106,6 +107,16 @@ export function OrderProvider({ children }: { children: React.ReactNode }) {
             },
             payment_method: orderData.paymentMethod.type,
             total_amount: parseFloat(orderData.total.toFixed(2)), // Fix decimal places
+            // Warranty information (if provided)
+            ...(orderData.warranty &&
+              orderData.warranty.accepted && {
+                warranty_accepted: true,
+                warranty_client_name: orderData.warranty.clientName || "",
+                warranty_vehicle_registration:
+                  orderData.warranty.vehicleRegistration || "",
+                warranty_vehicle_mileage:
+                  orderData.warranty.vehicleMileage || "",
+              }),
           }),
         });
         console.log("📡 API Response status:", response.status);

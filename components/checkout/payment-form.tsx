@@ -12,7 +12,7 @@ import type { PaymentMethod } from "@/types/order";
 import { CreditCard, Smartphone, Building, Truck } from "lucide-react";
 
 interface PaymentFormProps {
-  onSubmit: (payment: PaymentMethod) => void;
+  onSubmit: (payment: PaymentMethod, acceptWarranty: boolean) => void;
   onBack: () => void;
 }
 
@@ -24,16 +24,24 @@ export function PaymentForm({ onSubmit, onBack }: PaymentFormProps) {
     cvv: "",
     holderName: "",
   });
+  const [showWarrantyButtons, setShowWarrantyButtons] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-
+  const handleWarrantyChoice = (acceptWarranty: boolean) => {
     const paymentMethod: PaymentMethod = {
       type: paymentType,
       ...(paymentType === "card" ? cardData : {}),
     };
+    onSubmit(paymentMethod, acceptWarranty);
+  };
 
-    onSubmit(paymentMethod);
+  const handleContinue = () => {
+    setShowWarrantyButtons(true);
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    // Form validation passed
+    handleContinue();
   };
 
   return (
@@ -175,15 +183,6 @@ export function PaymentForm({ onSubmit, onBack }: PaymentFormProps) {
             </div>
           )}
 
-          {/* {paymentType === "cash_on_delivery" && (
-            <div className="p-4 bg-green-50 rounded-lg">
-              <h3 className="font-semibold mb-2">Paiement à la livraison</h3>
-              <p className="text-sm text-gray-600">
-                Vous paierez en espèces ou par carte lors de la réception de votre commande. Frais supplémentaires: 5 DT
-              </p>
-            </div>
-          )} */}
-
           <div className="flex gap-4">
             <Button
               type="button"
@@ -193,9 +192,28 @@ export function PaymentForm({ onSubmit, onBack }: PaymentFormProps) {
             >
               Retour
             </Button>
-            <Button type="submit" className="flex-1">
-              Continuer
-            </Button>
+            {!showWarrantyButtons ? (
+              <Button type="submit" className="flex-1">
+                Continuer
+              </Button>
+            ) : (
+              <div className="flex-1 flex gap-2">
+                <Button
+                  type="button"
+                  onClick={() => handleWarrantyChoice(true)}
+                  className="flex-1 bg-green-600 hover:bg-green-700"
+                >
+                  Accepter la garantie
+                </Button>
+                <Button
+                  type="button"
+                  onClick={() => handleWarrantyChoice(false)}
+                  className="flex-1 bg-gray-600 hover:bg-gray-700"
+                >
+                  Refuser la garantie
+                </Button>
+              </div>
+            )}
           </div>
         </form>
       </CardContent>

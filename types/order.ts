@@ -1,5 +1,14 @@
 import type { Order as AdminOrder } from "@/types/admin";
 import { API_URL } from "@/lib/config";
+
+// Interface for warranty information
+export interface WarrantyInfo {
+  accepted: boolean;
+  clientName?: string;
+  vehicleRegistration?: string;
+  vehicleMileage?: string;
+}
+
 // Interface for order items
 export interface OrderItem {
   product_id: string | number;
@@ -32,6 +41,7 @@ export interface CreateOrderData {
   shipping_address: Omit<ShippingAddress, 'company'>;
   payment_method: string;
   notes?: string;
+  warranty?: WarrantyInfo;
 }
 
 // Create a new order

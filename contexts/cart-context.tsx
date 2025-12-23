@@ -97,6 +97,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
           // Convert backend cart data to frontend format
           const cartItems: CartItem[] =
             cartData.items?.map((item: any) => ({
+              id: item.id?.toString(), // Store cart item ID for updates
               product: {
                 id: item.product.id.toString(),
                 name: item.product.name,
@@ -222,14 +223,26 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     try {
       const token = getAuthToken();
       if (token) {
-        // Update backend cart
-        await apiCall("/cart/update/", {
-          method: "POST",
+        // Find the cart item to get its ID
+        const cartItem = items.find((item) => item.product.id === productId);
+        if (!cartItem?.id) {
+          console.error("Cart item ID not found for product:", productId);
+          // Still update local state
+          dispatch({ type: "UPDATE_QUANTITY", productId, quantity });
+          return;
+        }
+        
+        // Update backend cart using cart item ID in URL
+        console.log(
+          `🔄 Updating cart item ${cartItem.id}: product ${productId}, new quantity: ${quantity}`
+        );
+        await apiCall(`/cart/update/${cartItem.id}/`, {
+          method: "PUT",
           body: JSON.stringify({
-            product_id: parseInt(productId),
             quantity: quantity,
           }),
         });
+        console.log(`✅ Cart updated successfully`);
       }
       // Update local state
       dispatch({ type: "UPDATE_QUANTITY", productId, quantity });
@@ -240,12 +253,12 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  const clearCart = async () => {
+  const clearCart = async (restoreStock: boolean = true) => {
     try {
       const token = getAuthToken();
       if (token) {
-        // Clear backend cart
-        await apiCall("/cart/clear/", {
+        // Clear backend cart with restore_stock parameter
+        await apiCall(`/cart/clear/?restore_stock=${restoreStock}`, {
           method: "DELETE",
         });
       }

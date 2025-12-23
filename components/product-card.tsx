@@ -103,7 +103,7 @@ export default function ProductCard({
           {/* Prix */}
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-2">
-              <span className="text-2xl font-bold text-green-600">
+              <span className="text-2xl font-bold text-black">
                 {product.price} DT
               </span>
               {product.old_price && (

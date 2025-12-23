@@ -29,6 +29,7 @@ import {
 import Image from "next/image";
 import { useAuth } from "@/contexts/auth-context"; // Add this
 import { API_URL } from "@/lib/config";
+import { title } from "process";
 
 interface MenuItem {
   title: string;
@@ -61,7 +62,6 @@ const menuItems: MenuItem[] = [
     icon: Package,
     children: [
       { title: "Catalogue produits", href: "/admin/produits", icon: Package },
-      { title: "Import Excel", href: "/admin/import", icon: Upload },
       { title: "Gestion stock", href: "/admin/stock", icon: Store },
       {
         title: "Mouvements stock",
@@ -70,7 +70,22 @@ const menuItems: MenuItem[] = [
       },
     ],
   },
-  { title: "Clients", href: "/admin/clients", icon: Users },
+  {
+    title: "Gestion des Produits",
+    icon: Upload,
+    children: [
+      {
+        title: "Importer un fichier Excel",
+        href: "/admin/import",
+        icon: Upload,
+      },
+      {
+        title: "Ajouter un produit",
+        href: "/admin/add-product",
+        icon: Package,
+      },
+    ],
+  },
   {
     title: "Fournisseurs",
     icon: UserCheck,
@@ -87,6 +102,7 @@ const menuItems: MenuItem[] = [
       },
     ],
   },
+  { title: "Clients", href: "/admin/clients", icon: Users },
   { title: "Rapports", href: "/admin/rapports", icon: BarChart3 },
   { title: "Paramètres", href: "/admin/parametres", icon: Settings },
   { title: "Personnel Utilisateurs", href: "/admin/Utilisateurs", icon: Users },
@@ -102,10 +118,7 @@ export default function AdminSidebar({
   const [pendingCount, setPendingCount] = useState(0);
   const [bonsCount, setBonsCount] = useState(0);
   const pathname = usePathname();
-  const [openMenus, setOpenMenus] = useState<string[]>([
-    "Commandes",
-    "Produits",
-  ]);
+  const [openMenus, setOpenMenus] = useState<string[]>([]);
 
   const toggleMenu = (title: string) => {
     setOpenMenus((prev) =>
@@ -325,10 +338,6 @@ export default function AdminSidebar({
             <p className="pl-2 pt-0.5 text-xs text-gray-600">{roleLabel}</p>
           </div>
         </div>
-        {/* Menu */}
-        {/* <nav className="p-4 space-y-1">
-          {menuItems.map((item) => renderMenuItem(item))}
-        </nav> */}
         {/* Menu */}
         <nav className="p-4 space-y-1">
           {filteredMenuItems.map((item) => renderMenuItem(item))}

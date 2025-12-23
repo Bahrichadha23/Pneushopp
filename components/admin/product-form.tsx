@@ -42,7 +42,7 @@ export default function ProductForm({
     model: "",
     price: 0,
     old_price: 0,
-    category: "auto" as Product["category"],
+    category: "" as Product["category"],
     specifications: {
       width: 0,
       height: 0,
@@ -58,6 +58,12 @@ export default function ProductForm({
     inStock: true,
     isPromotion: false,
     images: [] as File[],
+    // New manual fields
+    reference: "",
+    designation: "",
+    type: "",
+    emplacement: "",
+    fabrication_date: "",
   });
 
   const [newFeature, setNewFeature] = useState("");
@@ -89,6 +95,12 @@ export default function ProductForm({
         inStock: product.inStock,
         isPromotion: product.is_on_sale || false,
         images: product.images,
+        // New manual fields
+        reference: product.reference || "",
+        designation: product.designation || "",
+        type: product.type || "",
+        emplacement: product.emplacement || "",
+        fabrication_date: product.fabrication_date || "",
       });
     }
   }, [product]);
@@ -219,12 +231,13 @@ export default function ProductForm({
         <CardContent className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <Label htmlFor="name">Nom du produit *</Label>
+              <Label htmlFor="name" className="mb-2">
+                Nom du produit *
+              </Label>
               <Input
                 id="name"
                 value={formData.name}
                 onChange={(e) => handleInputChange("name", e.target.value)}
-                placeholder="Ex: Pirelli P Zero"
                 className={errors.name ? "border-red-500" : ""}
               />
               {errors.name && (
@@ -233,7 +246,9 @@ export default function ProductForm({
             </div>
 
             <div>
-              <Label htmlFor="brand">Marque *</Label>
+              <Label htmlFor="brand" className="mb-2">
+                Marque *
+              </Label>
               <Select
                 value={formData.brand}
                 onValueChange={(value) => handleInputChange("brand", value)}
@@ -258,12 +273,13 @@ export default function ProductForm({
             </div>
 
             <div>
-              <Label htmlFor="model">Modèle *</Label>
+              <Label htmlFor="model" className="mb-2">
+                Modèle *
+              </Label>
               <Input
                 id="model"
                 value={formData.model}
                 onChange={(e) => handleInputChange("model", e.target.value)}
-                placeholder="Ex: P Zero"
                 className={errors.model ? "border-red-500" : ""}
               />
               {errors.model && (
@@ -272,7 +288,9 @@ export default function ProductForm({
             </div>
 
             <div>
-              <Label htmlFor="category">Catégorie *</Label>
+              <Label htmlFor="category" className="mb-2">
+                Catégorie *
+              </Label>
               <Select
                 value={formData.category}
                 onValueChange={(value) => handleInputChange("category", value)}
@@ -281,7 +299,7 @@ export default function ProductForm({
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="auto">Auto</SelectItem>
+                  <SelectItem value="Tourisme">Tourisme</SelectItem>
                   <SelectItem value="suv">SUV</SelectItem>
                   <SelectItem value="camionnette">Camionnette</SelectItem>
                   <SelectItem value="agricole">Agricole</SelectItem>
@@ -294,18 +312,91 @@ export default function ProductForm({
           </div>
 
           <div>
-            <Label htmlFor="description">Description *</Label>
+            <Label htmlFor="description" className="mb-2">
+              Description *
+            </Label>
             <Textarea
               id="description"
               value={formData.description}
               onChange={(e) => handleInputChange("description", e.target.value)}
-              placeholder="Description détaillée du produit..."
               rows={3}
               className={errors.description ? "border-red-500" : ""}
             />
             {errors.description && (
               <p className="text-red-500 text-xs mt-1">{errors.description}</p>
             )}
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Informations complémentaires */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Informations Complémentaires</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <Label htmlFor="reference" className="mb-2">
+                Référence
+              </Label>
+              <Input
+                id="reference"
+                value={formData.reference}
+                onChange={(e) => handleInputChange("reference", e.target.value)}
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="designation" className="mb-2">
+                Désignation
+              </Label>
+              <Input
+                id="designation"
+                value={formData.designation}
+                onChange={(e) =>
+                  handleInputChange("designation", e.target.value)
+                }
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="type" className="mb-2">
+                Type
+              </Label>
+              <Input
+                id="type"
+                value={formData.type}
+                onChange={(e) => handleInputChange("type", e.target.value)}
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="emplacement" className="mb-2">
+                Emplacement
+              </Label>
+              <Input
+                id="emplacement"
+                value={formData.emplacement}
+                onChange={(e) =>
+                  handleInputChange("emplacement", e.target.value)
+                }
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="fabrication_date" className="mb-2">
+                Date de Fabrication
+              </Label>
+              <Input
+                id="fabrication_date"
+                type="date"
+                value={formData.fabrication_date}
+                onChange={(e) =>
+                  handleInputChange("fabrication_date", e.target.value)
+                }
+              />
+            </div>
           </div>
         </CardContent>
       </Card>
@@ -318,7 +409,9 @@ export default function ProductForm({
         <CardContent className="space-y-4">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             <div>
-              <Label htmlFor="width">Largeur *</Label>
+              <Label htmlFor="width" className="mb-2">
+                Largeur *
+              </Label>
               <Input
                 id="width"
                 type="number"
@@ -329,7 +422,6 @@ export default function ProductForm({
                     Number.parseInt(e.target.value) || 0
                   )
                 }
-                placeholder="225"
                 className={errors.width ? "border-red-500" : ""}
               />
               {errors.width && (
@@ -338,7 +430,9 @@ export default function ProductForm({
             </div>
 
             <div>
-              <Label htmlFor="height">Hauteur *</Label>
+              <Label htmlFor="height" className="mb-2">
+                Hauteur *
+              </Label>
               <Input
                 id="height"
                 type="number"
@@ -349,7 +443,6 @@ export default function ProductForm({
                     Number.parseInt(e.target.value) || 0
                   )
                 }
-                placeholder="45"
                 className={errors.height ? "border-red-500" : ""}
               />
               {errors.height && (
@@ -358,7 +451,9 @@ export default function ProductForm({
             </div>
 
             <div>
-              <Label htmlFor="diameter">Diamètre *</Label>
+              <Label htmlFor="diameter" className="mb-2">
+                Diamètre *
+              </Label>
               <Input
                 id="diameter"
                 type="number"
@@ -369,7 +464,6 @@ export default function ProductForm({
                     Number.parseInt(e.target.value) || 0
                   )
                 }
-                placeholder="17"
                 className={errors.diameter ? "border-red-500" : ""}
               />
               {errors.diameter && (
@@ -378,7 +472,9 @@ export default function ProductForm({
             </div>
 
             <div>
-              <Label htmlFor="loadIndex">Indice charge *</Label>
+              <Label htmlFor="loadIndex" className="mb-2">
+                Indice charge *
+              </Label>
               <Input
                 id="loadIndex"
                 type="number"
@@ -389,7 +485,6 @@ export default function ProductForm({
                     Number.parseInt(e.target.value) || 0
                   )
                 }
-                placeholder="91"
                 className={errors.loadIndex ? "border-red-500" : ""}
               />
               {errors.loadIndex && (
@@ -400,7 +495,9 @@ export default function ProductForm({
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
-              <Label htmlFor="speedRating">Indice vitesse *</Label>
+              <Label htmlFor="speedRating" className="mb-2">
+                Indice vitesse *
+              </Label>
               <Select
                 value={formData.specifications.speedRating}
                 onValueChange={(value) =>
@@ -430,7 +527,9 @@ export default function ProductForm({
             </div>
 
             <div>
-              <Label htmlFor="season">Saison</Label>
+              <Label htmlFor="season" className="mb-2">
+                Saison
+              </Label>
               <Select
                 value={formData.specifications.season}
                 onValueChange={(value) =>
@@ -449,7 +548,9 @@ export default function ProductForm({
             </div>
 
             <div>
-              <Label htmlFor="specialty">Spécialité</Label>
+              <Label htmlFor="specialty" className="mb-2">
+                Spécialité
+              </Label>
               <Select
                 value={formData.specifications.specialty}
                 onValueChange={(value) =>
@@ -477,46 +578,10 @@ export default function ProductForm({
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {/* <div>
-              <Label htmlFor="price">Prix de vente (DT) *</Label>
-              <Input
-                id="price"
-                type="number"
-                step="0.01"
-                value={formData.price || ""}
-                onChange={(e) =>
-                  handleInputChange(
-                    "price",
-                    Number.parseFloat(e.target.value) || 0
-                  )
-                }
-                placeholder="180.00"
-                className={errors.price ? "border-red-500" : ""}
-              />
-              {errors.price && (
-                <p className="text-red-500 text-xs mt-1">{errors.price}</p>
-              )}
-            </div>
-
             <div>
-              <Label htmlFor="old_price">Prix original (DT)</Label>
-              <Input
-                id="old_price"
-                type="number"
-                step="0.01"
-                value={formData.old_price || ""}
-                onChange={(e) =>
-                  handleInputChange(
-                    "old_price",
-                    Number.parseFloat(e.target.value) || 0
-                  )
-                }
-                placeholder="220.00"
-              />
-              <p className="text-xs text-gray-500 mt-1">Pour les promotions</p>
-            </div> */}
-            <div>
-              <Label htmlFor="price">Prix de vente (DT) *</Label>
+              <Label htmlFor="price" className="mb-2">
+                Prix de vente (DT) *
+              </Label>
               <Input
                 id="price"
                 type="number"
@@ -531,7 +596,6 @@ export default function ProductForm({
 
                   handleInputChange("price", newPrice);
                 }}
-                placeholder="180.00"
               />
             </div>
 
@@ -548,13 +612,13 @@ export default function ProductForm({
                     Number.parseFloat(e.target.value) || 0
                   )
                 }
-                placeholder="573.64"
               />
-              <p className="text-xs text-gray-500 mt-1">Pour les promotions</p>
             </div>
 
             <div>
-              <Label htmlFor="stock">Stock disponible *</Label>
+              <Label htmlFor="stock" className="mb-2">
+                Stock disponible *
+              </Label>
               <Input
                 id="stock"
                 type="number"
@@ -565,7 +629,6 @@ export default function ProductForm({
                     Number.parseInt(e.target.value) || 0
                   )
                 }
-                placeholder="25"
                 className={errors.stock ? "border-red-500" : ""}
               />
               {errors.stock && (
@@ -599,83 +662,6 @@ export default function ProductForm({
           </div>
         </CardContent>
       </Card>
-
-      {/* Caractéristiques */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Caractéristiques</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="flex gap-2">
-            <Input
-              value={newFeature}
-              onChange={(e) => setNewFeature(e.target.value)}
-              placeholder="Ajouter une caractéristique..."
-              onKeyPress={(e) =>
-                e.key === "Enter" && (e.preventDefault(), addFeature())
-              }
-            />
-            <Button type="button" onClick={addFeature} variant="outline">
-              <Plus className="h-4 w-4" />
-            </Button>
-          </div>
-
-          <div className="flex flex-wrap gap-2">
-            {formData.features.map((feature, index) => (
-              <Badge
-                key={index}
-                variant="secondary"
-                className="flex items-center gap-1"
-              >
-                {feature}
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="icon"
-                  className="h-4 w-4 p-0"
-                  onClick={() => removeFeature(index)}
-                >
-                  <X className="h-3 w-3" />
-                </Button>
-              </Badge>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Images */}
-      {/* <Card>
-        <CardHeader>
-          <CardTitle>Images</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <Button type="button" onClick={addImage} variant="outline">
-            <Upload className="h-4 w-4 mr-2" />
-            Ajouter une image
-          </Button>
-
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            {formData.images.map((image, index) => (
-              <div key={index} className="relative">
-                <img
-                  src={image || "/placeholder.svg"}
-                  alt={`Image ${index + 1}`}
-                  className="w-full h-24 object-cover rounded border"
-                />
-                <Button
-                  type="button"
-                  variant="destructive"
-                  size="icon"
-                  className="absolute -top-2 -right-2 h-6 w-6"
-                  onClick={() => removeImage(index)}
-                >
-                  <X className="h-3 w-3" />
-                </Button>
-              </div>
-            ))}
-          </div>
-        </CardContent>
-      </Card> */}
       <Card>
         <CardHeader>
           <CardTitle>Images</CardTitle>

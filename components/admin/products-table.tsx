@@ -165,11 +165,11 @@ export default function ProductsTable({
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">Toutes catégories</SelectItem>
-              <SelectItem value="auto">Auto</SelectItem>
-              <SelectItem value="suv">SUV</SelectItem>
-              <SelectItem value="camionnette">Camionnette</SelectItem>
+              <SelectItem value="tourisme">Tourisme</SelectItem>
+              <SelectItem value="moto">Moto</SelectItem>
+              {/* <SelectItem value="camionnette">Camionnette</SelectItem> */}
               <SelectItem value="agricole">Agricole</SelectItem>
-              <SelectItem value="poids-lourd">Poids lourd</SelectItem>
+              {/* <SelectItem value="poids-lourd">Poids lourd</SelectItem> */}
               <SelectItem value="utilitaire">Utilitaire</SelectItem>
               <SelectItem value="4x4">4X4</SelectItem>
             </SelectContent>
@@ -364,7 +364,9 @@ export default function ProductsTable({
                   </TableCell>
                   <TableCell className="hidden sm:table-cell">
                     <Badge variant="outline">
-                      {getCategoryLabel(product.category)}
+                      {/* {getCategoryLabel(product.category)} */}
+                      {product.designation}
+                      {product.brand}
                     </Badge>
                   </TableCell>
 

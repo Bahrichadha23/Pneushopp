@@ -1,4 +1,6 @@
 // Types de données pour l'interface d'administration et ERP
+import type { WarrantyInfo } from "./order";
+
 export interface Order {
   id: string
   orderNumber: string
@@ -18,6 +20,7 @@ export interface Order {
   deliveryDate?: Date
   trackingNumber?: string
   notes?: string
+  warrantyInfo?: WarrantyInfo
 }
 
 export interface OrderItem {

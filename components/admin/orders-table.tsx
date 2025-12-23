@@ -23,16 +23,6 @@ import {
 } from "@/components/ui/table";
 import { Eye, Edit, Truck, Search, Package, Download } from "lucide-react";
 import { createPurchaseOrder } from "@/lib/services/purchase-order";
-import { fetchSuppliers } from "@/lib/services/supplier";
-import type { Supplier } from "@/types/supplier";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
 interface OrdersTableProps {
   orders: Order[];
   onViewOrder: (orderId: string) => void;
@@ -91,16 +81,28 @@ export async function handleDownloadInvoice(order: any) {
     const boxX = pageWidth - 70;
     const boxY = 15;
     const boxW = 60;
-    const boxH = 25;
+    const boxH = 40; // increased height
     pdf.roundedRect(boxX, boxY, boxW, boxH, 3, 3, "S");
 
     pdf.setFontSize(10);
+    pdf.setFont("helvetica", "bold");
     pdf.text("Client", boxX + 2, boxY + 6);
+
     pdf.setFont("helvetica", "normal");
     pdf.text(order.customerName || "-", boxX + 20, boxY + 6);
     pdf.text(`Id. Fiscale : ${order.id || "-"}`, boxX + 2, boxY + 12);
     pdf.text(`Tel : ${order.customerPhone || "-"}`, boxX + 2, boxY + 18);
-
+    pdf.text(
+      `Matricule : ${order.warrantyInfo?.vehicleRegistration || "-"}`,
+      boxX + 2,
+      boxY + 24
+    );
+    pdf.text(
+      `Kilométrage: ${order.warrantyInfo?.vehicleMileage || "-"}`,
+      boxX + 2,
+      boxY + 30
+    );
+    pdf.text(`Page ${page}`, margin, pageHeight - 10);
     y += 35;
     pdf.setFont("helvetica", "bold");
   };
@@ -258,7 +260,6 @@ export async function handleDownloadInvoice(order: any) {
   // === Vertical Totals table (right side, inline with QUATRE box) ===
   const totals = [
     ["TOTAL HT", totalHT.toFixed(3)],
-    ["FODEC", "0"],
     ["TOTAL REMISE", totalRemise.toFixed(3)],
     ["TOTAL NET HT", netHT.toFixed(3)],
     ["TOTAL T.V.A", totalTVA.toFixed(3)],
@@ -338,12 +339,6 @@ export default function OrdersTable({
   const [creatingPurchaseOrder, setCreatingPurchaseOrder] = useState<
     string | null
   >(null);
-  const [supplierDialogOpen, setSupplierDialogOpen] = useState(false);
-  const [selectedOrderForPO, setSelectedOrderForPO] = useState<Order | null>(
-    null
-  );
-  const [suppliers, setSuppliers] = useState<Supplier[]>([]);
-  const [selectedSupplier, setSelectedSupplier] = useState<string>("");
   const [purchaseOrderCreated, setPurchaseOrderCreated] = useState<Set<string>>(
     () => {
       // Load from localStorage on initial mount
@@ -371,46 +366,17 @@ export default function OrdersTable({
     }
   }, [purchaseOrderCreated]);
 
-  // Fetch suppliers on mount
-  useEffect(() => {
-    const loadSuppliers = async () => {
-      const token = localStorage.getItem("access_token");
-      if (token) {
-        try {
-          const data = await fetchSuppliers(token);
-          setSuppliers(data);
-        } catch (error) {
-          console.error("Failed to fetch suppliers:", error);
-        }
-      }
-    };
-    loadSuppliers();
-  }, []);
+  const handleCreatePurchaseOrder = async (order: Order) => {
+    if (creatingPurchaseOrder) return;
 
-  const handleOpenSupplierDialog = (order: Order) => {
-    setSelectedOrderForPO(order);
-    setSelectedSupplier("");
-    setSupplierDialogOpen(true);
-  };
-
-  const handleCreatePurchaseOrder = async () => {
-    if (!selectedOrderForPO || creatingPurchaseOrder) return;
-
-    const supplierName = selectedSupplier || "Non défini";
-    setCreatingPurchaseOrder(selectedOrderForPO.id);
-    setSupplierDialogOpen(false);
+    setCreatingPurchaseOrder(order.id);
 
     try {
-      const result = await createPurchaseOrder(
-        selectedOrderForPO,
-        supplierName
-      );
+      const result = await createPurchaseOrder(order);
       if (result.success) {
         alert(result.message);
         // Mark this order as having a purchase order created
-        setPurchaseOrderCreated((prev) =>
-          new Set(prev).add(selectedOrderForPO.id)
-        );
+        setPurchaseOrderCreated((prev) => new Set(prev).add(order.id));
       } else {
         alert(result.message || "Erreur lors de la création");
       }
@@ -418,8 +384,6 @@ export default function OrdersTable({
       alert("Erreur lors de la création du bon de commande");
     } finally {
       setCreatingPurchaseOrder(null);
-      setSelectedOrderForPO(null);
-      setSelectedSupplier("");
     }
   };
 
@@ -595,7 +559,7 @@ export default function OrdersTable({
                         <Button
                           variant="ghost"
                           size="icon"
-                          onClick={() => handleOpenSupplierDialog(order)}
+                          onClick={() => handleCreatePurchaseOrder(order)}
                           disabled={
                             creatingPurchaseOrder === order.id ||
                             purchaseOrderCreated.has(order.id)
@@ -831,7 +795,7 @@ export default function OrdersTable({
                   <Button
                     variant="ghost"
                     size="icon"
-                    onClick={() => handleOpenSupplierDialog(order)}
+                    onClick={() => handleCreatePurchaseOrder(order)}
                     disabled={
                       creatingPurchaseOrder === order.id ||
                       purchaseOrderCreated.has(order.id)
@@ -905,52 +869,6 @@ export default function OrdersTable({
           Aucune commande trouvée avec les critères sélectionnés.
         </div>
       )}
-
-      {/* Supplier Selection Dialog */}
-      <Dialog open={supplierDialogOpen} onOpenChange={setSupplierDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Sélectionner un fournisseur</DialogTitle>
-            <DialogDescription>
-              Choisissez un fournisseur pour créer le bon de commande
-            </DialogDescription>
-          </DialogHeader>
-
-          <div className="py-4">
-            <Select
-              value={selectedSupplier}
-              onValueChange={setSelectedSupplier}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Sélectionner un fournisseur" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="Non défini">Non défini</SelectItem>
-                {suppliers.map((supplier) => (
-                  <SelectItem key={supplier.id} value={supplier.name}>
-                    {supplier.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
-          <DialogFooter>
-            <Button
-              variant="outline"
-              onClick={() => setSupplierDialogOpen(false)}
-            >
-              Annuler
-            </Button>
-            <Button
-              onClick={handleCreatePurchaseOrder}
-              disabled={!selectedSupplier}
-            >
-              Créer le bon de commande
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
     </div>
   );
 }

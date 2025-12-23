@@ -17,6 +17,13 @@ export interface Product {
   images: File[]
   category: "auto" | "suv" | "camionnette" | "agricole" | "poids-lourd" | "utilitaire" | "4x4"
 
+  // Champs additionnels pour l'ajout manuel
+  reference?: string
+  designation?: string
+  type?: string
+  emplacement?: string
+  fabrication_date?: string
+
   specifications: {
     width: number // Largeur (ex: 225)
     height: number // Hauteur (ex: 45)
@@ -37,6 +44,7 @@ export interface Product {
 }
 
 export interface CartItem {
+  id?: string // Backend cart item ID (for updates)
   product: Product
   quantity: number
 }
@@ -46,7 +54,7 @@ export interface CartContextType {
   addToCart: (product: Product, quantity?: number) => void
   removeFromCart: (productId: string) => void
   updateQuantity: (productId: string, quantity: number) => void
-  clearCart: () => void
+  clearCart: (restoreStock?: boolean) => void
   getTotalItems: () => number
   getTotalPrice: () => number
 }

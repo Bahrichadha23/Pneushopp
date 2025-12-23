@@ -46,7 +46,7 @@ const adminProductToProduct = (adminProduct: AdminProduct): Product => {
         type: "image/jpeg",
       }),
     ],
-    category: "auto" as any, // Valeur par défaut
+    category: adminProduct.category || ("" as any), // Valeur par défaut
     specifications: {
       width: 225, // Valeurs par défaut car non disponibles dans AdminProduct
       height: 45,

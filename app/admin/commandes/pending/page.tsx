@@ -4,7 +4,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-// import type { Order } from "@/types/admin";
 import { useAuth } from "@/contexts/auth-context";
 import { useRouter } from "next/navigation";
 
@@ -94,10 +93,18 @@ export default function PendingOrdersPage() {
     }));
   }
 
+  // const formatCurrency = (amount: number) => {
+  //   return new Intl.NumberFormat("fr-TN", {
+  //     style: "currency",
+  //     currency: "TND",
+  //   }).format(amount);
+  // };
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat("fr-TN", {
       style: "currency",
       currency: "TND",
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0,
     }).format(amount);
   };
 
@@ -265,7 +272,6 @@ export default function PendingOrdersPage() {
                   <TableHead>Articles</TableHead>
                   <TableHead>Total</TableHead>
                   <TableHead>Date</TableHead>
-                  <TableHead>Urgence</TableHead>
                   <TableHead>Actions</TableHead>
                 </TableRow>
               </TableHeader>
@@ -282,17 +288,6 @@ export default function PendingOrdersPage() {
                       {formatCurrency(order.total)}
                     </TableCell>
                     <TableCell>{order.date}</TableCell>
-                    <TableCell>
-                      <Badge
-                        variant={
-                          order.urgence === "haute"
-                            ? "destructive"
-                            : "secondary"
-                        }
-                      >
-                        {order.urgence}
-                      </Badge>
-                    </TableCell>
                     <TableCell>
                       <div className="flex space-x-2">
                         <Button

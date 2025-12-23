@@ -138,7 +138,6 @@ export const fetchOrders = async (): Promise<AdminOrder[]> => {
   }
 
   const data = await res.json();
-
   return data.results.map((o: any) => ({
     id: o.id.toString(),
     orderNumber: o.order_number,
@@ -180,5 +179,13 @@ export const fetchOrders = async (): Promise<AdminOrder[]> => {
     updatedAt: new Date(o.updated_at),
     trackingNumber: o.tracking_number,
     notes: o.notes || "",
+    
+    // Map warranty information from backend
+    warrantyInfo: o.warranty_accepted ? {
+      accepted: o.warranty_accepted,
+      clientName: o.warranty_client_name || "",
+      vehicleRegistration: o.warranty_vehicle_registration || "",
+      vehicleMileage: o.warranty_vehicle_mileage || "",
+    } : undefined,
   }));
 };

@@ -288,9 +288,7 @@ export default function BonsCommandePage() {
               {getStatutBadge(bon.statut)}
             </div>
             <div className="text-sm space-y-1">
-              <div>
-                <strong>Fournisseur:</strong> {bon.fournisseur}
-              </div>
+              {/* <div><strong>Fournisseur:</strong> {bon.fournisseur}</div> */}
               <div>
                 <strong>Date commande:</strong>{" "}
                 {new Date(bon.dateCommande).toLocaleDateString()}
@@ -349,7 +347,7 @@ export default function BonsCommandePage() {
               <TableHeader>
                 <TableRow>
                   <TableHead>N° Bon</TableHead>
-                  <TableHead>Fournisseur</TableHead>
+                  {/* <TableHead>Fournisseur</TableHead> */}
                   <TableHead>Date commande</TableHead>
                   <TableHead>Livraison prévue</TableHead>
                   <TableHead>Total TTC</TableHead>
@@ -362,7 +360,7 @@ export default function BonsCommandePage() {
                 {filteredBons.map((bon) => (
                   <TableRow key={bon.id}>
                     <TableCell className="font-medium">{bon.id}</TableCell>
-                    <TableCell>{bon.fournisseur}</TableCell>
+                    {/* <TableCell>{bon.fournisseur}</TableCell> */}
                     <TableCell>
                       {new Date(bon.dateCommande).toLocaleDateString()}
                     </TableCell>
@@ -416,9 +414,9 @@ export default function BonsCommandePage() {
               <div>
                 <strong>N° Bon:</strong> {selectedBon!.id}
               </div>
-              <div>
+              {/* <div>
                 <strong>Fournisseur:</strong> {selectedBon!.fournisseur}
-              </div>
+              </div> */}
               <div>
                 <strong>Date commande:</strong>{" "}
                 {new Date(selectedBon!.dateCommande).toLocaleDateString()}

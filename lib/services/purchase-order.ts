@@ -1,6 +1,6 @@
 import { API_URL } from "../config";
 
-export const createPurchaseOrder = async (order: any, supplierName: string = "Non défini") => {
+export const createPurchaseOrder = async (order: any) => {
     try {
         const token = localStorage.getItem("access_token");
         if (!token) return { success: false, message: "Token manquant" };
@@ -27,7 +27,6 @@ export const createPurchaseOrder = async (order: any, supplierName: string = "No
 
         const payload = {
             order: parseInt(order.id),
-            fournisseur: supplierName,
             date_commande: new Date(order.createdAt || Date.now()).toISOString().split("T")[0],
             date_livraison_prevue: new Date(Date.now() + 7*24*60*60*1000)
                 .toISOString().split("T")[0],

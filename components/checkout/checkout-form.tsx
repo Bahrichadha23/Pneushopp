@@ -241,8 +241,14 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useCart } from "@/contexts/cart-context";
 import { useOrder } from "@/contexts/order-context";
 import { useAuth } from "@/contexts/auth-context";
-import type { PaymentMethod, ShippingAddress } from "@/types/order";
+import type {
+  PaymentMethod,
+  ShippingAddress,
+  WarrantyInfo,
+} from "@/types/order";
 import { PaymentForm } from "./payment-form";
+import { WarrantyForm } from "./warranty-form";
+import type { WarrantyData } from "./warranty-form";
 import { useRouter } from "next/navigation";
 
 export function CheckoutForm() {
@@ -251,9 +257,9 @@ export function CheckoutForm() {
   const { user } = useAuth();
   const router = useRouter();
 
-  const [step, setStep] = useState<"shipping" | "payment" | "review">(
-    "shipping"
-  );
+  const [step, setStep] = useState<
+    "shipping" | "payment" | "warranty" | "review"
+  >("shipping");
   const [isLoading, setIsLoading] = useState(false);
 
   // Local shipping form (camelCase)
@@ -272,6 +278,10 @@ export function CheckoutForm() {
     type: "card",
   });
 
+  const [warrantyInfo, setWarrantyInfo] = useState<WarrantyInfo>({
+    accepted: false,
+  });
+
   const subtotal = getTotalPrice();
   const shippingCost = subtotal >= 200 ? 0 : 15;
   const total = subtotal + shippingCost;
@@ -281,8 +291,30 @@ export function CheckoutForm() {
     setStep("payment");
   };
 
-  const handlePaymentSubmit = (payment: PaymentMethod) => {
+  const handlePaymentSubmit = (
+    payment: PaymentMethod,
+    acceptWarranty: boolean
+  ) => {
     setPaymentMethod(payment);
+
+    if (acceptWarranty) {
+      // User accepted warranty - go to warranty form page
+      setWarrantyInfo({ accepted: true });
+      setStep("warranty");
+    } else {
+      // User refused warranty - skip to review
+      setWarrantyInfo({ accepted: false });
+      setStep("review");
+    }
+  };
+
+  const handleWarrantySubmit = (warrantyData: WarrantyData) => {
+    setWarrantyInfo({
+      accepted: warrantyData.accepted,
+      clientName: warrantyData.clientName,
+      vehicleRegistration: warrantyData.vehicleRegistration,
+      vehicleMileage: warrantyData.vehicleMileage,
+    });
     setStep("review");
   };
 
@@ -319,11 +351,13 @@ export function CheckoutForm() {
         items: orderItems,
         shippingAddress: formattedShipping,
         paymentMethod,
+        warranty: warrantyInfo,
         total,
         status: "pending",
       } as any); // optional cast if strict mode complains
 
-      clearCart();
+      // Clear cart without restoring stock (stock already deducted by order)
+      clearCart(false);
       router.push(`/commande/confirmation/${orderId}`);
     } catch (error) {
       console.error("Erreur lors de la création de la commande:", error);
@@ -461,6 +495,15 @@ export function CheckoutForm() {
       <PaymentForm
         onSubmit={handlePaymentSubmit}
         onBack={() => setStep("shipping")}
+      />
+    );
+  }
+
+  if (step === "warranty") {
+    return (
+      <WarrantyForm
+        onSubmit={handleWarrantySubmit}
+        onBack={() => setStep("payment")}
       />
     );
   }

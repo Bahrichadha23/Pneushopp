@@ -311,7 +311,7 @@ export default function FournisseursPage() {
                   <TableHead>Entreprise</TableHead>
                   <TableHead>Contact</TableHead>
                   <TableHead>Coordonnées</TableHead>
-                  <TableHead>Spécialités</TableHead>
+                  {/* <TableHead>Spécialités</TableHead> */}
                   <TableHead>Évaluation</TableHead>
                   <TableHead>Commandes</TableHead>
                   <TableHead>Délai livraison</TableHead>
@@ -333,7 +333,7 @@ export default function FournisseursPage() {
                         </div>
                       </div>
                     </TableCell>
-                    <TableCell>
+                    {/* <TableCell>
                       <div className="flex flex-wrap gap-1">
                         {f.specialties.map((s, i) => (
                           <Badge key={i} variant="outline" className="text-xs">
@@ -341,7 +341,7 @@ export default function FournisseursPage() {
                           </Badge>
                         ))}
                       </div>
-                    </TableCell>
+                    </TableCell> */}
                     <TableCell>
                       <div className="flex">{renderStars(f.rating)}</div>
                     </TableCell>
@@ -349,9 +349,9 @@ export default function FournisseursPage() {
                       <Badge variant="secondary">{f.orders_count}</Badge>
                     </TableCell>
                     <TableCell>{f.delivery_time}</TableCell>
-                    <TableCell className="flex gap-2">
-                      <div className="mt-2 flex justify-end">
-                        <div className="flex gap-2">
+                    <TableCell>
+                      <div className="flex flex-col items-center gap-2">
+                        <div className="flex gap-9 justify-between">
                           <Button
                             size="sm"
                             variant="outline"
@@ -359,6 +359,7 @@ export default function FournisseursPage() {
                           >
                             <Pencil className="h-4 w-4" />
                           </Button>
+
                           <Button
                             size="sm"
                             variant="destructive"
@@ -367,16 +368,16 @@ export default function FournisseursPage() {
                             <Trash className="h-4 w-4" />
                           </Button>
                         </div>
+
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => handleCreatePurchaseOrder(f.id)}
+                          className="w-full"
+                        >
+                          Commander
+                        </Button>
                       </div>
-                    </TableCell>
-                    <TableCell>
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => handleCreatePurchaseOrder(f.id)}
-                      >
-                        Commander
-                      </Button>
                     </TableCell>
                   </TableRow>
                 ))}

@@ -111,7 +111,8 @@ const CartModal = ({ onClose }: CartModalProps) => {
       const order = await createOrder(orderData);
       // ... rest of the code ...
 
-      await clearCart();
+      // Clear cart without restoring stock (stock already deducted by order)
+      await clearCart(false);
       alert(`Commande #${order.id} créée avec succès !`);
       onClose();
     } catch (err) {

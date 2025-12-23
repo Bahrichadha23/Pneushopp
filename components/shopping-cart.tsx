@@ -149,7 +149,7 @@ export default function ShoppingCart({
         <div className="flex gap-3">
           <Button
             variant="outline"
-            onClick={clearCart}
+            onClick={() => clearCart()}
             className="flex-1 bg-transparent"
           >
             Vider le panier

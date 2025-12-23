@@ -7,6 +7,7 @@ import { LogOutIcon, Menu, X } from "lucide-react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/contexts/auth-context";
+import { ArrowLeft } from "lucide-react";
 export default function AdminLayout({
   children,
 }: {
@@ -67,17 +68,19 @@ export default function AdminLayout({
         {/* Page content */}
         <main className="flex-1 overflow-y-auto  pt-14 md:pt-0">
           {/* Logout button aligned right */}
-          <div className="flex w-full justify-end pt-8 px-6 cursor-pointer">
-            <div className="hidden sm:flex">
-              <Button
-                onClick={handleLogout}
-                variant="outline"
-                className="flex items-center gap-2 text-red-600 hover:text-red-700 hover:bg-red-50"
-              >
-                <LogOutIcon className="w-4 h-4" />
-                <span>Déconnexion</span>
-              </Button>
-            </div>
+          <div className="flex w-full justify-between items-center pt-8 px-6 mb-4">
+            <Button variant="outline" onClick={() => router.back()}>
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Retour
+            </Button>
+            <Button
+              onClick={handleLogout}
+              variant="outline"
+              className="hidden sm:flex items-center gap-2 text-red-600 hover:text-red-700 hover:bg-red-50"
+            >
+              <LogOutIcon className="w-4 h-4" />
+              <span>Déconnexion</span>
+            </Button>
           </div>
 
           {/* Page Content */}
