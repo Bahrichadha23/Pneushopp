@@ -85,16 +85,21 @@ export default function ProductsTable({
   };
 
   const getCategoryLabel = (category: Product["category"]) => {
-    const labels = {
-      auto: "Auto",
-      suv: "SUV",
-      camionnette: "Camionnette",
+    // Map numeric category IDs from backend to display names
+    const labels: { [key: string]: string } = {
+      "1": "Tourisme",
+      "2": "4x4",
+      "3": "Agricole",
+      "4": "Utilitaire",
+      "5": "Moto",
+      // Also handle string values
+      tourisme: "Tourisme",
+      "4x4": "4x4",
       agricole: "Agricole",
-      "poids-lourd": "Poids lourd",
       utilitaire: "Utilitaire",
-      "4x4": "4X4",
+      moto: "Moto",
     };
-    return labels[category] || category;
+    return labels[String(category)] || category;
   };
 
   // Filtrage et tri des produits
@@ -364,9 +369,7 @@ export default function ProductsTable({
                   </TableCell>
                   <TableCell className="hidden sm:table-cell">
                     <Badge variant="outline">
-                      {/* {getCategoryLabel(product.category)} */}
-                      {product.designation}
-                      {product.brand}
+                      {getCategoryLabel(product.category)}
                     </Badge>
                   </TableCell>
 
