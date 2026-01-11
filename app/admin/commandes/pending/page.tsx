@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useAuth } from "@/contexts/auth-context";
 import { useRouter } from "next/navigation";
+import { motion, AnimatePresence } from "framer-motion";
 
 import {
   Table,
@@ -35,11 +36,25 @@ type PendingOrder = {
   urgence: string;
 };
 
+type ConfirmationDialog = {
+  isOpen: boolean;
+  orderId: number | null;
+  orderName: string;
+  action: "approve" | "reject" | null;
+};
+
 export default function PendingOrdersPage() {
   // const [orders, setOrders] = useState<Order[]>([]);
   const [orders, setOrders] = useState<PendingOrder[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [searchTerm, setSearchTerm] = useState("");
+  const [confirmation, setConfirmation] = useState<ConfirmationDialog>({
+    isOpen: false,
+    orderId: null,
+    orderName: "",
+    action: null,
+  });
   const { user } = useAuth();
   const router = useRouter();
 
@@ -48,7 +63,6 @@ export default function PendingOrdersPage() {
     router.push("/admin"); // or show "Access Denied"
     return null;
   }
-  const [searchTerm, setSearchTerm] = useState("");
   useEffect(() => {
     const loadOrders = async () => {
       try {
@@ -108,10 +122,46 @@ export default function PendingOrdersPage() {
     }).format(amount);
   };
 
-  const handleApprove = (numericId: number) =>
-    updateOrderStatus(numericId, "processing");
-  const handleReject = (numericId: number) =>
-    updateOrderStatus(numericId, "cancelled");
+  const handleApprove = (numericId: number, orderName: string) => {
+    setConfirmation({
+      isOpen: true,
+      orderId: numericId,
+      orderName,
+      action: "approve",
+    });
+  };
+
+  const handleReject = (numericId: number, orderName: string) => {
+    setConfirmation({
+      isOpen: true,
+      orderId: numericId,
+      orderName,
+      action: "reject",
+    });
+  };
+
+  const handleConfirm = async () => {
+    if (!confirmation.orderId || !confirmation.action) return;
+
+    const status = confirmation.action === "approve" ? "processing" : "cancelled";
+    await updateOrderStatus(confirmation.orderId, status);
+
+    setConfirmation({
+      isOpen: false,
+      orderId: null,
+      orderName: "",
+      action: null,
+    });
+  };
+
+  const handleCancel = () => {
+    setConfirmation({
+      isOpen: false,
+      orderId: null,
+      orderName: "",
+      action: null,
+    });
+  };
 
   const filteredOrders = orders.filter(
     (order) =>
@@ -236,7 +286,7 @@ export default function PendingOrdersPage() {
                   <Button
                     size="sm"
                     variant="outline"
-                    onClick={() => handleApprove(order.numericId)}
+                    onClick={() => handleApprove(order.numericId, order.id)}
                   >
                     <CheckCircle className="h-4 w-4 mr-1" />
                     Approuver
@@ -244,7 +294,7 @@ export default function PendingOrdersPage() {
                   <Button
                     size="sm"
                     variant="outline"
-                    onClick={() => handleReject(order.numericId)}
+                    onClick={() => handleReject(order.numericId, order.id)}
                   >
                     <XCircle className="h-4 w-4 mr-1" />
                     Rejeter
@@ -293,7 +343,7 @@ export default function PendingOrdersPage() {
                         <Button
                           size="sm"
                           variant="outline"
-                          onClick={() => handleApprove(order.numericId)}
+                          onClick={() => handleApprove(order.numericId, order.id)}
                           className="text-green-600 hover:text-green-700"
                         >
                           <CheckCircle className="h-4 w-4 mr-1" />
@@ -302,7 +352,7 @@ export default function PendingOrdersPage() {
                         <Button
                           size="sm"
                           variant="outline"
-                          onClick={() => handleReject(order.numericId)}
+                          onClick={() => handleReject(order.numericId, order.id)}
                           className="text-red-600 hover:text-red-700"
                         >
                           <XCircle className="h-4 w-4 mr-1" />
@@ -317,6 +367,60 @@ export default function PendingOrdersPage() {
           </div>
         </CardContent>
       </Card>
+
+      {/* Confirmation Dialog */}
+      <AnimatePresence>
+        {confirmation.isOpen && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            className="fixed inset-0 bg-black/50 flex items-center justify-center z-50"
+            onClick={handleCancel}
+          >
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              transition={{ duration: 0.2 }}
+              onClick={(e) => e.stopPropagation()}
+              className="bg-white rounded-lg shadow-lg p-6 max-w-sm"
+            >
+              <h2 className="text-lg font-semibold text-gray-900 mb-2">
+                {confirmation.action === "approve"
+                  ? "Approuver la commande"
+                  : "Rejeter la commande"}
+              </h2>
+              <p className="text-gray-600 mb-4">
+                {confirmation.action === "approve"
+                  ? `Êtes-vous sûr de vouloir approuver la commande ${confirmation.orderName} ?`
+                  : `Êtes-vous sûr de vouloir rejeter la commande ${confirmation.orderName} ?`}
+              </p>
+
+              <div className="flex gap-3 justify-end">
+                <Button
+                  variant="outline"
+                  onClick={handleCancel}
+                  className="text-gray-600"
+                >
+                  Non
+                </Button>
+                <Button
+                  onClick={handleConfirm}
+                  className={
+                    confirmation.action === "approve"
+                      ? "bg-green-500 hover:bg-green-600 text-white"
+                      : "bg-red-500 hover:bg-red-600 text-white"
+                  }
+                >
+                  Oui
+                </Button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

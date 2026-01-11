@@ -341,7 +341,6 @@ const CartModal = ({ onClose }: CartModalProps) => {
                     className="w-full border rounded-md px-3 py-2 text-sm"
                   >
                     <option value="card">Carte de crédit</option>
-                    <option value="paypal">PayPal</option>
                     <option value="bank_transfer">Virement bancaire</option>
                   </select>
                 </div>

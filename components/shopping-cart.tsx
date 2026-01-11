@@ -161,12 +161,6 @@ export default function ShoppingCart({
           </Link>
         </div>
 
-        {/* Informations livraison */}
-        <div className="mt-4 p-3 bg-green-50 rounded-md">
-          <p className="text-sm text-green-800">
-            🚚 Livraison Rapide à partir de 2 pneus (24h-72h)
-          </p>
-        </div>
       </div>
     </div>
   );

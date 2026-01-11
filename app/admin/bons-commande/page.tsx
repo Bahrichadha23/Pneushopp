@@ -8,6 +8,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useAuth } from "@/contexts/auth-context";
 import { useRouter } from "next/navigation";
+import { motion, AnimatePresence } from "framer-motion";
+import jsPDF from "jspdf";
 
 import {
   Table,
@@ -17,8 +19,110 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Calendar, Package, Truck, ShoppingCart, Check } from "lucide-react";
+import { Calendar, Package, Truck, ShoppingCart, Check, Download } from "lucide-react";
 import { API_URL } from "@/lib/config";
+
+type ConfirmationDialog = {
+  isOpen: boolean;
+  bonId: number | null;
+  bonNumber: string;
+  orderId: number | null;
+  fournisseur: string;
+};
+
+// Download Purchase Order PDF
+const handleDownloadPurchaseOrder = (bon: BonCommande) => {
+  const pdf = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
+  const pageWidth = pdf.internal.pageSize.width;
+  const pageHeight = pdf.internal.pageSize.height;
+  const margin = 15;
+
+  let y = 30;
+
+  // === Header ===
+  pdf.setFont("helvetica", "bold");
+  pdf.setFontSize(16);
+  pdf.text("BON DE COMMANDE", pageWidth / 2, y, { align: "center" });
+  
+  y += 10;
+  pdf.setFontSize(10);
+  pdf.setFont("helvetica", "normal");
+  pdf.text(`N° ${bon.id}`, pageWidth / 2, y, { align: "center" });
+
+  y += 15;
+
+  // === Info Table ===
+  pdf.setFont("helvetica", "bold");
+  pdf.setFontSize(11);
+  pdf.text("Informations de la commande", margin, y);
+  
+  y += 7;
+  
+  // Create table for information
+  const tableData = [
+    { label: "Date de commande", value: new Date(bon.dateCommande).toLocaleDateString("fr-FR") },
+    { label: "Date de livraison prévue", value: new Date(bon.dateLivraisonPrevue).toLocaleDateString("fr-FR") },
+    { label: "Priorité", value: bon.priorite === "urgent" ? "URGENT" : "Normale" },
+    { label: "Statut", value: bon.statut === "en_attente" ? "En attente" : bon.statut === "confirmé" ? "Confirmé" : "Livré" },
+  ];
+
+  const colWidth1 = 60;
+  const colWidth2 = 70;
+  const rowHeight = 8;
+
+  pdf.setFontSize(10);
+  
+  tableData.forEach((row, index) => {
+    const rowY = y + (index * rowHeight);
+    
+    // Draw cells
+    pdf.rect(margin, rowY, colWidth1, rowHeight);
+    pdf.rect(margin + colWidth1, rowY, colWidth2, rowHeight);
+    
+    // Label (bold)
+    pdf.setFont("helvetica", "bold");
+    pdf.text(row.label, margin + 2, rowY + 5.5);
+    
+    // Value (normal)
+    pdf.setFont("helvetica", "normal");
+    pdf.text(row.value, margin + colWidth1 + 2, rowY + 5.5);
+  });
+
+  y += (tableData.length * rowHeight) + 10;
+
+  // === Totals Section ===
+  pdf.setFont("helvetica", "bold");
+  pdf.setFontSize(11);
+  pdf.text("Montants", margin, y);
+  
+  y += 7;
+  pdf.setFont("helvetica", "normal");
+  pdf.setFontSize(10);
+  
+  const boxX = pageWidth - 80;
+  const boxY = y - 5;
+  
+  pdf.roundedRect(boxX, boxY, 65, 26, 2, 2, "S");
+  
+  pdf.text(`Total HT:`, boxX + 3, boxY + 7);
+  pdf.text(`${(bon.totalHT ?? 0).toLocaleString("fr-FR", { minimumFractionDigits: 2 })} TND`, boxX + 60, boxY + 7, { align: "right" });
+  
+  // Add 3mm spacing between lines
+  pdf.setFont("helvetica", "bold");
+  pdf.text(`Total TTC:`, boxX + 3, boxY + 17);
+  pdf.text(`${(bon.totalTTC ?? 0).toLocaleString("fr-FR", { minimumFractionDigits: 2 })} TND`, boxX + 60, boxY + 17, { align: "right" });
+
+  y += 35;
+
+  // === Footer ===
+  pdf.setFont("helvetica", "italic");
+  pdf.setFontSize(8);
+  pdf.text("PNEU SHOP - Bon de commande", pageWidth / 2, pageHeight - 15, { align: "center" });
+  pdf.text(`Généré le ${new Date().toLocaleDateString("fr-FR")} à ${new Date().toLocaleTimeString("fr-FR")}`, pageWidth / 2, pageHeight - 10, { align: "center" });
+
+  // Save PDF
+  pdf.save(`bon-commande-${bon.id}.pdf`);
+};
 
 export default function BonsCommandePage() {
   const [bonsCommande, setBonsCommande] = useState<BonCommande[]>([]);
@@ -30,6 +134,13 @@ export default function BonsCommandePage() {
   }
   const [selectedBon, setSelectedBon] = useState<BonCommande | null>(null);
   const [showForm, setShowForm] = useState(false);
+  const [confirmation, setConfirmation] = useState<ConfirmationDialog>({
+    isOpen: false,
+    bonId: null,
+    bonNumber: "",
+    orderId: null,
+    fournisseur: "",
+  });
 
   const handleViewBon = (bon: BonCommande) => {
     setSelectedBon(bon);
@@ -109,23 +220,38 @@ export default function BonsCommandePage() {
   //     console.error(err);
   //   }
   // };
-  const handleConfirmBon = async (
+  const handleConfirmBon = (
     id: number,
+    bonNumber: string,
     order_id: number | null,
     fournisseur: string
   ) => {
-    console.log("🔍 Confirming:", { id, order_id, fournisseur });
-    console.log("🔍 Request URL:", `${API_URL}/purchase-orders/${id}/`);
+    setConfirmation({
+      isOpen: true,
+      bonId: id,
+      bonNumber,
+      orderId: order_id,
+      fournisseur,
+    });
+  };
+
+  const handleConfirmDialogAction = async () => {
+    if (!confirmation.bonId) return;
+
+    const { bonId, orderId, fournisseur } = confirmation;
+    console.log("🔍 Confirming:", { bonId, orderId, fournisseur });
+    console.log("🔍 Request URL:", `${API_URL}/purchase-orders/${bonId}/`);
+    
     try {
       const token = localStorage.getItem("access_token");
 
       // Prepare the request body - only include order if it's valid
       const requestBody: any = { statut: "confirmé", fournisseur };
-      if (order_id && order_id > 0) {
-        requestBody.order = order_id;
+      if (orderId && orderId > 0) {
+        requestBody.order = orderId;
       }
 
-      const res = await fetch(`${API_URL}/purchase-orders/${id}/`, {
+      const res = await fetch(`${API_URL}/purchase-orders/${bonId}/`, {
         method: "PATCH",
         headers: {
           "Content-Type": "application/json",
@@ -145,7 +271,7 @@ export default function BonsCommandePage() {
       // Update the local state
       setBonsCommande((prev) =>
         prev.map((bon) =>
-          bon.id === id ? { ...bon, statut: "confirmé" } : bon
+          bon.id === bonId ? { ...bon, statut: "confirmé" } : bon
         )
       );
 
@@ -153,7 +279,25 @@ export default function BonsCommandePage() {
     } catch (err) {
       console.error("Error:", err);
       alert("Erreur lors de la confirmation");
+    } finally {
+      setConfirmation({
+        isOpen: false,
+        bonId: null,
+        bonNumber: "",
+        orderId: null,
+        fournisseur: "",
+      });
     }
+  };
+
+  const handleCancelDialog = () => {
+    setConfirmation({
+      isOpen: false,
+      bonId: null,
+      bonNumber: "",
+      orderId: null,
+      fournisseur: "",
+    });
   };
   const getStatutBadge = (statut: string) => {
     switch (statut) {
@@ -315,6 +459,15 @@ export default function BonsCommandePage() {
                 Voir
               </Button>
 
+              <Button
+                size="sm"
+                variant="outline"
+                className="flex-1"
+                onClick={() => handleDownloadPurchaseOrder(bon)}
+              >
+                <Download className="h-4 w-4" />
+              </Button>
+
               {bon.statut === "en_attente" && (
                 <Button
                   size="sm"
@@ -323,6 +476,7 @@ export default function BonsCommandePage() {
                   onClick={() =>
                     handleConfirmBon(
                       Number(bon.id),
+                      bon.id.toString(),
                       bon.order_id,
                       bon.fournisseur
                     )
@@ -381,6 +535,15 @@ export default function BonsCommandePage() {
                         Voir
                       </Button>
 
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => handleDownloadPurchaseOrder(bon)}
+                        title="Télécharger PDF"
+                      >
+                        <Download className="h-4 w-4" />
+                      </Button>
+
                       {bon.statut === "en_attente" && (
                         <Button
                           size="sm"
@@ -388,6 +551,7 @@ export default function BonsCommandePage() {
                           onClick={() =>
                             handleConfirmBon(
                               Number(bon.id),
+                              bon.id.toString(),
                               bon.order_id,
                               bon.fournisseur
                             )
@@ -445,6 +609,52 @@ export default function BonsCommandePage() {
           </div>
         </div>
       )}
+
+      {/* Confirmation Dialog */}
+      <AnimatePresence>
+        {confirmation.isOpen && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            className="fixed inset-0 bg-black/50 flex items-center justify-center z-50"
+            onClick={handleCancelDialog}
+          >
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              transition={{ duration: 0.2 }}
+              onClick={(e) => e.stopPropagation()}
+              className="bg-white rounded-lg shadow-lg p-6 max-w-sm"
+            >
+              <h2 className="text-lg font-semibold text-gray-900 mb-2">
+                Confirmer le bon de commande
+              </h2>
+              <p className="text-gray-600 mb-4">
+                Êtes-vous sûr de vouloir confirmer le bon de commande <strong>{confirmation.bonNumber}</strong> ?
+              </p>
+
+              <div className="flex gap-3 justify-end">
+                <Button
+                  variant="outline"
+                  onClick={handleCancelDialog}
+                  className="text-gray-600"
+                >
+                  Non
+                </Button>
+                <Button
+                  onClick={handleConfirmDialogAction}
+                  className="bg-green-500 hover:bg-green-600 text-white"
+                >
+                  Oui
+                </Button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

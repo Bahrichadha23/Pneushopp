@@ -3,12 +3,13 @@
 import { useState, useEffect } from "react";
 import DashboardStatsComponent from "@/components/admin/dashboard-stats";
 import { adminService } from "@/lib/services/admin";
-import type { AdminStats } from "@/lib/services/admin";
+import type { AdminStats, AnalyticsData } from "@/lib/services/admin";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Loader2, AlertCircle } from "lucide-react";
 
 export default function AdminDashboard() {
   const [stats, setStats] = useState<AdminStats | null>(null);
+  const [analytics, setAnalytics] = useState<AnalyticsData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string>("");
 
@@ -17,14 +18,21 @@ export default function AdminDashboard() {
     setError("");
 
     try {
-      const response = await adminService.getDashboardStats();
+      const [statsResponse, analyticsResponse] = await Promise.all([
+        adminService.getDashboardStats(),
+        adminService.getAnalytics()
+      ]);
 
-      if (response.success && response.data) {
-        setStats(response.data);
+      if (statsResponse.success && statsResponse.data) {
+        setStats(statsResponse.data);
       } else {
         setError(
-          response.error || "Erreur lors du chargement des statistiques"
+          statsResponse.error || "Erreur lors du chargement des statistiques"
         );
+      }
+
+      if (analyticsResponse.success && analyticsResponse.data) {
+        setAnalytics(analyticsResponse.data);
       }
     } catch (err: any) {
       setError("Erreur de connexion au serveur");
@@ -87,7 +95,7 @@ export default function AdminDashboard() {
       </div>
 
       {/* Main Dashboard Content */}
-      <DashboardStatsComponent stats={stats} />
+      <DashboardStatsComponent stats={stats} analytics={analytics || undefined} />
     </div>
   );
 }

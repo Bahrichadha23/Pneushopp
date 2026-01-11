@@ -4,9 +4,8 @@ import Footer from "@/components/footer";
 const newsItems = [
   {
     id: 1,
-    slug: "nouvelle-gamme-continental-2024",
-    title: "Nouvelle Gamme Continental 2024",
-    date: "15 Janvier 2024",
+    slug: "nouvelle-gamme-continental",
+    title: "Nouvelle Gamme Continental",
     category: "ÉVÉNEMENT",
     image: "/placeholder.svg?key=news1",
     content: `
@@ -21,7 +20,6 @@ const newsItems = [
     id: 2,
     slug: "promotion-speciale-pirelli",
     title: "Promotion Spéciale Pirelli",
-    date: "10 Janvier 2024",
     category: "PROMOTION",
     image: "/placeholder.svg?key=promo2",
     content: `
@@ -34,7 +32,6 @@ const newsItems = [
     id: 3,
     slug: "guide-entretien-pneus",
     title: "Guide d'Entretien des Pneus",
-    date: "5 Janvier 2024",
     category: "ACTUALITÉS",
     image: "/placeholder.svg?key=guide1",
     content: `
@@ -72,7 +69,6 @@ export default function ArticlePage({ params }: { params: { slug: string } }) {
         <h1 className="text-3xl font-bold text-gray-900 mt-4">
           {article.title}
         </h1>
-        <p className="text-sm text-gray-500 mt-2">{article.date}</p>
         <div className="mt-6">
           <img
             src={article.image}

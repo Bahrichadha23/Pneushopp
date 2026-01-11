@@ -21,8 +21,9 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Eye, Edit, Truck, Search, Package, Download } from "lucide-react";
+import { Eye, Edit, Truck, Search, Package, Download, X } from "lucide-react";
 import { createPurchaseOrder } from "@/lib/services/purchase-order";
+import { motion, AnimatePresence } from "framer-motion";
 interface OrdersTableProps {
   orders: Order[];
   onViewOrder: (orderId: string) => void;
@@ -150,8 +151,7 @@ export async function handleDownloadInvoice(order: any) {
 
   const addRow = (item?: any, isEmpty = false) => {
     let x = margin;
-    const h = 8;
-
+    let h = 8; 
     if (!isEmpty && item) {
       const unitTTC = Number(item.unitPrice || 0); // backend price already includes TVA
       const qty = Number(item.quantity || 1);
@@ -175,11 +175,28 @@ export async function handleDownloadInvoice(order: any) {
       totalRemise += (unitHT - unitHTAfterRemise) * qty;
       totalTVA += montantTVA;
 
+      // Wrap product name text to fit within column width
+      const productName = item.productName || "-";
+      const maxWidth = headers[1].width - 4; // Leave 2mm padding on each side
+      const wrappedText = pdf.splitTextToSize(productName, maxWidth);
+      const lineHeight = 4;
+      const textHeight = wrappedText.length * lineHeight;
+      
+      // Adjust row height if text needs more space
+      if (textHeight > h) {
+        h = textHeight + 2; // Add some padding
+      }
+
       // Use specifications (tire size) as reference
       pdf.text(item.specifications || "-", x + 2, y + 5);
       x += headers[0].width;
-      pdf.text(item.productName || "-", x + 2, y + 5);
+      
+      // Draw wrapped product name
+      wrappedText.forEach((line: string, index: number) => {
+        pdf.text(line, x + 2, y + 5 + (index * lineHeight));
+      });
       x += headers[1].width;
+      
       pdf.text(qty.toFixed(2), x + headers[2].width / 2, y + 5, {
         align: "center",
       });
@@ -334,8 +351,8 @@ export default function OrdersTable({
 }: OrdersTableProps) {
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
-  const [paymentFilter, setPaymentFilter] = useState<string>("all");
-  const [expandedOrderId, setExpandedOrderId] = useState<string | null>(null);
+  const [yearFilter, setYearFilter] = useState<string>("all");
+  const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [creatingPurchaseOrder, setCreatingPurchaseOrder] = useState<
     string | null
   >(null);
@@ -449,6 +466,16 @@ export default function OrdersTable({
     );
   };
 
+  // Get unique years from orders
+  const availableYears = React.useMemo(() => {
+    const years = new Set<number>();
+    orders.forEach(order => {
+      const year = new Date(order.createdAt).getFullYear();
+      years.add(year);
+    });
+    return Array.from(years).sort((a, b) => b - a); // descending order
+  }, [orders]);
+
   // Filtrage
   const filteredOrders = orders.filter((order) => {
     const matchesSearch =
@@ -458,10 +485,9 @@ export default function OrdersTable({
 
     const matchesStatus =
       statusFilter === "all" || order.status === statusFilter;
-    const matchesPayment =
-      paymentFilter === "all" || order.paymentStatus === paymentFilter;
-
-    return matchesSearch && matchesStatus && matchesPayment;
+    const matchesYear =
+      yearFilter === "all" || new Date(order.createdAt).getFullYear().toString() === yearFilter;
+    return matchesSearch && matchesStatus && matchesYear;
   });
 
   return (
@@ -478,16 +504,16 @@ export default function OrdersTable({
           />
         </div>
 
-        <Select value={paymentFilter} onValueChange={setPaymentFilter}>
+
+        <Select value={yearFilter} onValueChange={setYearFilter}>
           <SelectTrigger className="w-full sm:w-48">
-            <SelectValue placeholder="Statut paiement" />
+            <SelectValue placeholder="Année" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">Tous les paiements</SelectItem>
-            <SelectItem value="pending">En attente</SelectItem>
-            <SelectItem value="paid">Payé</SelectItem>
-            <SelectItem value="failed">Échec</SelectItem>
-            <SelectItem value="refunded">Remboursé</SelectItem>
+            <SelectItem value="all">Toutes les années</SelectItem>
+            {availableYears.map(year => (
+              <SelectItem key={year} value={year.toString()}>{year}</SelectItem>
+            ))}
           </SelectContent>
         </Select>
       </div>
@@ -533,12 +559,8 @@ export default function OrdersTable({
                     <div className="flex items-center gap-2">
                       <Button
                         variant="ghost"
-                        size="icon" // Replace the onViewOrder prop with this inline function
-                        onClick={() =>
-                          setExpandedOrderId(
-                            expandedOrderId === order.id ? null : order.id
-                          )
-                        }
+                        size="icon"
+                        onClick={() => setSelectedOrder(order)}
                         title="Voir détails"
                       >
                         <Eye className="h-4 w-4" />
@@ -595,152 +617,6 @@ export default function OrdersTable({
                     </div>
                   </TableCell>
                 </TableRow>
-                {/* ADD THIS PART HERE - INSIDE the map but AFTER the TableRow */}
-
-                {expandedOrderId === order.id && (
-                  <TableRow>
-                    <TableCell colSpan={7} className="bg-gray-50 p-6">
-                      <div className="space-y-6">
-                        {/* Customer and Order Information in One Row */}
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                          {/* Informations client */}
-                          <div className="space-y-3">
-                            <h4 className="font-semibold text-lg border-b pb-2">
-                              Informations client
-                            </h4>
-                            <p>
-                              <strong>Nom complet:</strong> {order.customerName}
-                            </p>
-                            <p>
-                              <strong>Email:</strong> {order.customerEmail}
-                            </p>
-                            <p>
-                              <strong>Téléphone:</strong> {order.customerPhone}
-                            </p>
-                          </div>
-
-                          {/* Détails commande */}
-                          <div className="space-y-3">
-                            <h4 className="font-semibold text-lg border-b pb-2">
-                              Détails commande
-                            </h4>
-                            <p>
-                              <strong>Numéro:</strong> {order.orderNumber}
-                            </p>
-                            <p>
-                              <strong>Date:</strong>{" "}
-                              {formatDate(order.createdAt)}
-                            </p>
-                            <p>
-                              <strong>Numéro de suivi:</strong>{" "}
-                              {order.trackingNumber || "N/A"}
-                            </p>
-                            <p>
-                              <strong>Méthode de paiement:</strong>{" "}
-                              {order.paymentMethod === "card"
-                                ? "Carte"
-                                : "À la livraison"}
-                            </p>
-                          </div>
-
-                          {/* Adresse de livraison */}
-                          <div className="space-y-3">
-                            <h4 className="font-semibold text-lg border-b pb-2">
-                              Adresse de livraison
-                            </h4>
-                            <p>
-                              <strong>Adresse:</strong>{" "}
-                              {order.shippingAddress?.street}
-                            </p>
-                            <p>
-                              <strong>Ville:</strong>{" "}
-                              {order.shippingAddress?.city}
-                            </p>
-                            <p>
-                              <strong>Code postal:</strong>{" "}
-                              {order.shippingAddress?.postalCode}
-                            </p>
-                            <p>
-                              <strong>Région:</strong>{" "}
-                              {order.shippingAddress?.region}
-                            </p>
-                            <p>
-                              <strong>Pays:</strong>{" "}
-                              {order.shippingAddress?.country}
-                            </p>
-                          </div>
-                        </div>
-
-                        {/* Order Items */}
-                        <div className="pt-4">
-                          <h4 className="font-semibold text-lg border-b pb-2 mb-4">
-                            Articles commandés
-                          </h4>
-                          <div className="overflow-x-auto">
-                            <table className="min-w-full divide-y divide-gray-200">
-                              <thead className="bg-gray-50">
-                                <tr>
-                                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                    Produit
-                                  </th>
-                                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                    Référence
-                                  </th>
-                                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                    Prix unitaire
-                                  </th>
-                                  <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                    Qté
-                                  </th>
-                                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                    Total
-                                  </th>
-                                </tr>
-                              </thead>
-                              <tbody className="bg-white divide-y divide-gray-200">
-                                {order.items?.map((item, index) => (
-                                  <tr key={index}>
-                                    <td className="px-6 py-4 whitespace-nowrap">
-                                      <div className="text-sm font-medium text-gray-900">
-                                        {item.productName}
-                                      </div>
-                                      {/* <div className="text-sm text-gray-500">
-                                        {item.specifications}
-                                      </div> */}
-                                    </td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                      {item.specifications}
-                                    </td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-right">
-                                      {formatCurrency(item.unitPrice)}
-                                    </td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-center">
-                                      {item.quantity}
-                                    </td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 text-right">
-                                      {formatCurrency(item.totalPrice)}
-                                    </td>
-                                  </tr>
-                                ))}
-                                <tr className="bg-gray-50">
-                                  <td
-                                    colSpan={4}
-                                    className="px-6 py-4 text-right text-sm font-medium text-gray-900"
-                                  >
-                                    Total commande:
-                                  </td>
-                                  <td className="px-6 py-4 text-right text-sm font-bold text-gray-900">
-                                    {formatCurrency(order.totalAmount)}
-                                  </td>
-                                </tr>
-                              </tbody>
-                            </table>
-                          </div>
-                        </div>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                )}
               </React.Fragment>
             ))}
           </TableBody>
@@ -771,12 +647,8 @@ export default function OrdersTable({
               <div className="flex items-center gap-2 mt-3">
                 <Button
                   variant="ghost"
-                  size="icon" // Replace the onViewOrder prop with this inline function
-                  onClick={() =>
-                    setExpandedOrderId(
-                      expandedOrderId === order.id ? null : order.id
-                    )
-                  }
+                  size="icon"
+                  onClick={() => setSelectedOrder(order)}
                 >
                   <Eye className="h-4 w-4" />
                 </Button>
@@ -829,38 +701,6 @@ export default function OrdersTable({
                 </Button>
               </div>
             </div>
-
-            {/* ADD THIS PART HERE - AFTER the card div */}
-            {expandedOrderId === order.id && (
-              <div className="mt-4 p-4 bg-gray-50 rounded-lg">
-                <div className="space-y-3">
-                  <div>
-                    <h4 className="font-semibold mb-2">Informations client</h4>
-                    <p>
-                      <strong>Nom:</strong> {order.customerName}
-                    </p>
-                    <p>
-                      <strong>Email:</strong> {order.customerEmail}
-                    </p>
-                    <p>
-                      <strong>Téléphone:</strong> {order.customerPhone}
-                    </p>
-                  </div>
-                  <div>
-                    <h4 className="font-semibold mb-2">Détails commande</h4>
-                    <p>
-                      <strong>Numéro:</strong> {order.orderNumber}
-                    </p>
-                    <p>
-                      <strong>Date:</strong> {formatDate(order.createdAt)}
-                    </p>
-                    <p>
-                      <strong>Suivi:</strong> {order.trackingNumber}
-                    </p>
-                  </div>
-                </div>
-              </div>
-            )}
           </React.Fragment>
         ))}
       </div>
@@ -869,6 +709,199 @@ export default function OrdersTable({
           Aucune commande trouvée avec les critères sélectionnés.
         </div>
       )}
+
+      {/* Order Details Modal */}
+      <AnimatePresence>
+        {selectedOrder && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 overflow-y-auto">
+            {/* Backdrop */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setSelectedOrder(null)}
+              className="absolute inset-0 bg-black/50"
+            />
+
+            {/* Modal */}
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              className="relative bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto"
+            >
+              {/* Modal Header */}
+              <div className="sticky top-0 bg-white border-b px-6 py-4 flex items-center justify-between z-10">
+                <div>
+                  <h2 className="text-xl font-bold text-gray-900">
+                    Détails de la commande #{selectedOrder.orderNumber}
+                  </h2>
+                  <p className="text-sm text-gray-500 mt-1">
+                    {formatDate(selectedOrder.createdAt)}
+                  </p>
+                </div>
+                <button
+                  onClick={() => setSelectedOrder(null)}
+                  className="text-gray-400 hover:text-gray-600 transition-colors"
+                >
+                  <X className="w-6 h-6" />
+                </button>
+              </div>
+
+              {/* Modal Content */}
+              <div className="p-6 space-y-6">
+                {/* Status Badges */}
+                <div className="flex flex-wrap gap-3">
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm text-gray-600">Statut:</span>
+                    {getStatusBadge(selectedOrder.status)}
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm text-gray-600">Paiement:</span>
+                    {getPaymentStatusBadge(selectedOrder.paymentStatus)}
+                  </div>
+                </div>
+
+                {/* Customer and Order Information */}
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {/* Informations client */}
+                  <div className="space-y-3">
+                    <h4 className="font-semibold text-lg border-b pb-2 text-gray-900">
+                      Informations client
+                    </h4>
+                    <p className="text-sm">
+                      <strong>Nom complet:</strong> {selectedOrder.customerName}
+                    </p>
+                    <p className="text-sm">
+                      <strong>Email:</strong> {selectedOrder.customerEmail}
+                    </p>
+                    <p className="text-sm">
+                      <strong>Téléphone:</strong> {selectedOrder.customerPhone}
+                    </p>
+                  </div>
+
+                  {/* Détails commande */}
+                  <div className="space-y-3">
+                    <h4 className="font-semibold text-lg border-b pb-2 text-gray-900">
+                      Détails commande
+                    </h4>
+                    <p className="text-sm">
+                      <strong>Numéro:</strong> {selectedOrder.orderNumber}
+                    </p>
+                    <p className="text-sm">
+                      <strong>Date:</strong> {formatDate(selectedOrder.createdAt)}
+                    </p>
+                    <p className="text-sm">
+                      <strong>Numéro de suivi:</strong>{" "}
+                      {selectedOrder.trackingNumber || "N/A"}
+                    </p>
+                    <p className="text-sm">
+                      <strong>Méthode de paiement:</strong>{" "}
+                      {selectedOrder.paymentMethod === "card" ? "Carte" : "À la livraison"}
+                    </p>
+                  </div>
+
+                  {/* Adresse de livraison */}
+                  <div className="space-y-3">
+                    <h4 className="font-semibold text-lg border-b pb-2 text-gray-900">
+                      Adresse de livraison
+                    </h4>
+                    <p className="text-sm">
+                      <strong>Adresse:</strong> {selectedOrder.shippingAddress?.street}
+                    </p>
+                    <p className="text-sm">
+                      <strong>Ville:</strong> {selectedOrder.shippingAddress?.city}
+                    </p>
+                    <p className="text-sm">
+                      <strong>Code postal:</strong> {selectedOrder.shippingAddress?.postalCode}
+                    </p>
+                    <p className="text-sm">
+                      <strong>Région:</strong> {selectedOrder.shippingAddress?.region}
+                    </p>
+                    <p className="text-sm">
+                      <strong>Pays:</strong> {selectedOrder.shippingAddress?.country}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Order Items */}
+                <div className="pt-4">
+                  <h4 className="font-semibold text-lg border-b pb-2 mb-4 text-gray-900">
+                    Articles commandés
+                  </h4>
+                  <div className="overflow-x-auto">
+                    <table className="min-w-full divide-y divide-gray-200">
+                      <thead className="bg-gray-50">
+                        <tr>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Produit
+                          </th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Référence
+                          </th>
+                          <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Prix unitaire
+                          </th>
+                          <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Qté
+                          </th>
+                          <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Total
+                          </th>
+                        </tr>
+                      </thead>
+                      <tbody className="bg-white divide-y divide-gray-200">
+                        {selectedOrder.items?.map((item, index) => (
+                          <tr key={index}>
+                            <td className="px-6 py-4 whitespace-nowrap">
+                              <div className="text-sm font-medium text-gray-900">
+                                {item.productName}
+                              </div>
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                              {item.specifications}
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-right">
+                              {formatCurrency(item.unitPrice)}
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-center">
+                              {item.quantity}
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 text-right">
+                              {formatCurrency(item.totalPrice)}
+                            </td>
+                          </tr>
+                        ))}
+                        <tr className="bg-gray-50">
+                          <td
+                            colSpan={4}
+                            className="px-6 py-4 text-right text-sm font-medium text-gray-900"
+                          >
+                            Total commande:
+                          </td>
+                          <td className="px-6 py-4 text-right text-sm font-bold text-gray-900">
+                            {formatCurrency(selectedOrder.totalAmount)}
+                          </td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+
+              {/* Modal Footer */}
+              <div className="sticky bottom-0 bg-gray-50 border-t px-6 py-4 flex justify-end">
+                <Button
+                  onClick={() => setSelectedOrder(null)}
+                  variant="outline"
+                >
+                  Fermer
+                </Button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

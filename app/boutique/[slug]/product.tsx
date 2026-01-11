@@ -31,6 +31,7 @@ export default function ProductDetailsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
+  const [isAdding, setIsAdding] = useState(false);
   const { addToCart } = useCart();
 
   useEffect(() => {
@@ -105,11 +106,20 @@ export default function ProductDetailsPage() {
   const handleAddToCart = async () => {
     if (product) {
       try {
+        // Set animation state FIRST (immediately)
+        setIsAdding(true);
+        
+        // Then add to cart
         await addToCart(product);
-        // Optionally show success message
         console.log("Product added to cart successfully!");
+        
+        // Keep animation for 1.5 seconds
+        setTimeout(() => {
+          setIsAdding(false);
+        }, 1500);
       } catch (error) {
         console.error("Error adding to cart:", error);
+        setIsAdding(false);
       }
     }
   };
@@ -297,12 +307,25 @@ export default function ProductDetailsPage() {
               <div className="mt-6">
                 <Button
                   onClick={handleAddToCart}
-                  disabled={!product.inStock}
+                  disabled={!product.inStock || isAdding}
                   size="lg"
-                  className="w-full bg-yellow-500 hover:bg-yellow-600 text-black font-semibold text-lg py-6"
+                  className={`w-full text-black font-semibold text-lg py-6
+                    transition-all duration-500 ease-out
+                    ${isAdding 
+                      ? 'bg-green-500 hover:bg-green-500 scale-110 shadow-2xl shadow-green-500/50 -translate-y-2' 
+                      : 'bg-yellow-500 hover:bg-yellow-600 hover:-translate-y-1 hover:shadow-lg active:translate-y-0 active:shadow-md'
+                    }
+                  `}
                 >
-                  <ShoppingCart className="w-5 h-5 mr-2" />
-                  {product.inStock ? "Ajouter au panier" : "Rupture de stock"}
+                  <ShoppingCart className={`w-5 h-5 mr-2 inline-block transition-all duration-700 ease-out ${isAdding ? 'rotate-[720deg] scale-150' : ''}`} />
+                  <span className="inline-block transition-all duration-300">
+                    {isAdding 
+                      ? "✓ Ajouté au panier!" 
+                      : product.inStock 
+                      ? "Ajouter au panier" 
+                      : "Rupture de stock"
+                    }
+                  </span>
                 </Button>
               </div>
             </div>

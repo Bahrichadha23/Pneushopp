@@ -49,7 +49,7 @@ export default function TireGuideSection() {
         Recherche de pneu par dimensions
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="max-w-7xl mx-auto">
         {/* Form */}
         <div className="bg-yellow-300 py-12 px-6">
           <div className="space-y-6 text-center">
@@ -102,6 +102,25 @@ export default function TireGuideSection() {
                 <option value="205">205</option>
                 <option value="215">215</option>
                 <option value="225">225</option>
+                <option value="235">235</option>
+                <option value="245">245</option>
+                <option value="255">255</option>
+                <option value="265">265</option>
+                <option value="275">275</option>
+                <option value="285">285</option>
+                <option value="295">295</option>
+                <option value="315">315</option>
+                <option value="325">325</option>
+                <option value="335">335</option>
+                <option value="355">355</option>
+                <option value="365">365</option>
+                <option value="375">375</option>
+                <option value="385">385</option>
+                <option value="425">425</option>
+                <option value="445">445</option>
+                <option value="455">455</option>
+                <option value="495">495</option>
+                <option value="825">825</option>
               </select>
             </div>
 

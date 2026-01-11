@@ -6,9 +6,8 @@ export default function ALaUnePage() {
   const newsItems = [
     {
       id: 1,
-      slug: "nouvelle-gamme-continental-2024",
-      title: "Nouvelle Gamme Continental 2024",
-      date: "15 Janvier 2024",
+      slug: "nouvelle-gamme-continental",
+      title: "Nouvelle Gamme Continental",
       category: "ÉVÉNEMENT",
       image: "/Evenements.jpeg",
       excerpt:
@@ -18,7 +17,6 @@ export default function ALaUnePage() {
       id: 2,
       slug: "promotion-speciale-pirelli",
       title: "Promotion Spéciale Pirelli",
-      date: "10 Janvier 2024",
       category: "PROMOTION",
       image: "/Promotion.jpeg",
       excerpt:
@@ -28,7 +26,6 @@ export default function ALaUnePage() {
       id: 3,
       slug: "guide-entretien-pneus",
       title: "Guide d'Entretien des Pneus",
-      date: "5 Janvier 2024",
       category: "ACTUALITÉS",
       image: "/Actualite.jpeg",
       excerpt:
@@ -67,7 +64,6 @@ export default function ALaUnePage() {
                   <span className="bg-yellow-500 text-black px-3 py-1 rounded-full text-xs font-semibold">
                     {item.category}
                   </span>
-                  <span className="text-sm text-gray-500">{item.date}</span>
                 </div>
 
                 <h2 className="text-xl font-bold text-gray-900 mb-3">
@@ -77,7 +73,7 @@ export default function ALaUnePage() {
 
                 {/* Link to slug page */}
                 <Link
-                  href={item.id === 2 ? "/boutique" : `/a-la-une/${item.slug}`}
+                  href={item.id === 2 ? "/promotion" : `/a-la-une/${item.slug}`}
                 >
                   <span className="hover:text-yellow-600 font-semibold text-yellow-500">
                     Lire la suite →

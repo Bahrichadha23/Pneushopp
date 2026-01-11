@@ -1,5 +1,6 @@
 "use client";
 import type React from "react";
+import { useState } from "react";
 
 // Composant carte produit réutilisable avec fonctionnalités e-commerce
 import type { Product } from "@/types/product";
@@ -19,10 +20,21 @@ export default function ProductCard({
   className = "",
 }: ProductCardProps) {
   const { addToCart } = useCart();
+  const [isAdding, setIsAdding] = useState(false);
 
-  const handleAddToCart = (e: React.MouseEvent) => {
+  const handleAddToCart = async (e: React.MouseEvent) => {
     e.preventDefault(); // Empêche la navigation vers la page produit
-    addToCart(product);
+    
+    // Set animation state FIRST (immediately)
+    setIsAdding(true);
+    
+    // Then add to cart
+    await addToCart(product);
+    
+    // Keep animation for 1.5 seconds
+    setTimeout(() => {
+      setIsAdding(false);
+    }, 1500);
   };
 
   return (
@@ -117,11 +129,19 @@ export default function ProductCard({
           {/* Bouton d'ajout au panier */}
           <Button
             onClick={handleAddToCart}
-            disabled={!product.inStock}
-            className="w-full bg-yellow-500 hover:bg-yellow-600 text-black font-medium"
+            disabled={!product.inStock || isAdding}
+            className={`w-full text-black font-medium
+              transition-all duration-500 ease-out
+              ${isAdding 
+                ? 'bg-green-500 hover:bg-green-500 scale-110 shadow-2xl shadow-green-500/50 -translate-y-2' 
+                : 'bg-yellow-500 hover:bg-yellow-600 hover:-translate-y-1 hover:shadow-lg active:translate-y-0 active:shadow-md'
+              }
+            `}
           >
-            <ShoppingCart className="w-4 h-4 mr-2" />
-            {product.inStock ? "Ajouter au panier" : "Indisponible"}
+            <ShoppingCart className={`w-4 h-4 mr-2 inline-block transition-all duration-700 ease-out ${isAdding ? 'rotate-[720deg] scale-150' : ''}`} />
+            <span className="inline-block transition-all duration-300">
+              {isAdding ? "✓ Ajouté!" : product.inStock ? "Ajouter au panier" : "Indisponible"}
+            </span>
           </Button>
 
           {/* Stock restant si faible */}

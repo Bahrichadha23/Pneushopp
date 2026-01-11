@@ -220,11 +220,6 @@ export default async function OrderConfirmationPage({
         </Card>
 
         <div className="text-center space-y-4">
-          <p className="text-sm text-gray-600">
-            Vous recevrez un email de confirmation avec tous les détails de
-            votre commande. La livraison se fera sous 24-72h selon votre région.
-          </p>
-
           <div className="flex gap-4 justify-center">
             <Button asChild>
               <Link href="/boutique">Continuer vos achats</Link>

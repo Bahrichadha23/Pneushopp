@@ -211,7 +211,7 @@ export default function ContactPage() {
                   </div>
                   <div>
                     <h3 className="font-semibold">Téléphone</h3>
-                    <p className="text-gray-600">+216 29 353 666</p>
+                    <p className="text-gray-600">+216 26 888 073</p>
                   </div>
                 </div>
 

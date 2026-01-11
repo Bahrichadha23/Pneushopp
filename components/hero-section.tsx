@@ -7,7 +7,7 @@ export default function HeroSection() {
       <section className="relative w-full aspect-[848/480] bg-black overflow-hidden md:hidden">
         <video
           src="/hero-video.mp4"
-          className="w-full h-full object-fill"
+          className="w-full h-full object-cover"
           autoPlay
           loop
           muted
@@ -16,10 +16,10 @@ export default function HeroSection() {
       </section>
 
       {/* Desktop View - With padding for corners */}
-      <section className="hidden md:flex relative w-full h-screen overflow-hidden items-center justify-center p-10">
+      <section className="hidden md:block relative w-full h-screen overflow-hidden">
         <video
           src="/hero-video.mp4"
-          className="max-w-full max-h-full object-contain px-10"
+          className="absolute inset-0 w-full h-full object-cover"
           autoPlay
           loop
           muted

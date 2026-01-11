@@ -4,7 +4,8 @@ import { useAuth } from "@/contexts/auth-context";
 import { useForm } from "react-hook-form";
 import { toast } from "react-hot-toast";
 import Header from "@/components/header";
-import { Download } from "lucide-react";
+import { Download, X } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 // import { handleDownloadInvoice } from "@/components/admin/orders-table";
 import { Button } from "@/components/ui/button";
 import { API_URL } from "@/lib/config";
@@ -13,10 +14,17 @@ export default function UserProfile() {
   const { user, logout, updateProfile } = useAuth();
   const [isLoggingOut, setIsLoggingOut] = useState(false);
 
-  const [orders, setOrders] = useState([]);
+  const [orders, setOrders] = useState<any[]>([]);
   const [loadingOrders, setLoadingOrders] = useState(true);
 
   const [isEditing, setIsEditing] = useState(false);
+  
+  const [cancelDialog, setCancelDialog] = useState<{
+    isOpen: boolean;
+    orderId: string | null;
+    orderNumber: string;
+  }>({ isOpen: false, orderId: null, orderNumber: '' });
+  const [cancelling, setCancelling] = useState(false);
 
   const {
     register,
@@ -76,6 +84,46 @@ export default function UserProfile() {
     } catch (error) {
       console.error("Error updating profile:", error);
       toast.error("Une erreur est survenue");
+    }
+  };
+
+  const handleCancelOrder = (orderId: string, orderNumber: string) => {
+    setCancelDialog({ isOpen: true, orderId, orderNumber });
+  };
+
+  const confirmCancelOrder = async () => {
+    if (!cancelDialog.orderId) return;
+
+    setCancelling(true);
+    try {
+      const res = await fetch(`${API_URL}/orders/${cancelDialog.orderId}/`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${localStorage.getItem('access_token')}`,
+        },
+        body: JSON.stringify({ status: 'cancelled' }),
+      });
+
+      if (res.ok) {
+        toast.success('Commande annulée avec succès');
+        // Update local state
+        setOrders((prev) =>
+          prev.map((order: any) =>
+            order.id === parseInt(cancelDialog.orderId!)
+              ? { ...order, status: 'cancelled' }
+              : order
+          )
+        );
+      } else {
+        toast.error('Erreur lors de l\'annulation de la commande');
+      }
+    } catch (error) {
+      console.error('Error cancelling order:', error);
+      toast.error('Une erreur est survenue');
+    } finally {
+      setCancelling(false);
+      setCancelDialog({ isOpen: false, orderId: null, orderNumber: '' });
     }
   };
 
@@ -366,18 +414,14 @@ export default function UserProfile() {
                     <th className="p-2 border">Date</th>
                     <th className="p-2 border">Montant</th>
                     <th className="p-2 border">Statut</th>
-                    {/* <th className="p-2 border text-center">Facture</th>{" "} */}
-                    {/* 👈 new column */}
+                    <th className="p-2 border text-center">Actions</th>
                   </tr>
                 </thead>
                 <tbody>
                   {orders.map((order: any) => (
                     <tr
                       key={order.id}
-                      className="hover:bg-yellow-50 cursor-pointer transition"
-                      onClick={() =>
-                        (window.location.href = `/orders/${order.id}`)
-                      }
+                      className="hover:bg-yellow-50 transition"
                     >
                       <td className="p-2 border font-semibold">
                         {order.order_number}
@@ -394,27 +438,37 @@ export default function UserProfile() {
                         ? "bg-yellow-100 text-yellow-800"
                         : order.status === "confirmed"
                         ? "bg-blue-100 text-blue-800"
+                        : order.status === "processing"
+                        ? "bg-purple-100 text-purple-800"
+                        : order.status === "shipped"
+                        ? "bg-indigo-100 text-indigo-800"
                         : order.status === "delivered"
                         ? "bg-green-100 text-green-800"
+                        : order.status === "cancelled"
+                        ? "bg-red-100 text-red-800"
                         : "bg-gray-100 text-gray-800"
                     }`}
                         >
-                          {order.status}
+                          {order.status === 'pending' ? 'En attente' :
+                           order.status === 'confirmed' ? 'Confirmée' :
+                           order.status === 'processing' ? 'En cours' :
+                           order.status === 'shipped' ? 'Expédiée' :
+                           order.status === 'delivered' ? 'Livrée' :
+                           order.status === 'cancelled' ? 'Annulée' : order.status}
                         </span>
                       </td>
-                      {/* <td className="p-2 border text-center">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={(e) => {
-                            e.stopPropagation(); // prevent row click navigation
-                            handleProfileInvoice(order);
-                          }}
-                          className="flex items-center justify-center"
-                        >
-                          <Download className="w-4 h-4" />
-                        </Button>
-                      </td> */}
+                      <td className="p-2 border text-center">
+                        {order.status === 'pending' && (
+                          <Button
+                            variant="destructive"
+                            size="sm"
+                            onClick={() => handleCancelOrder(order.id, order.order_number)}
+                            className="bg-red-500 hover:bg-red-600"
+                          >
+                            Annuler
+                          </Button>
+                        )}
+                      </td>
                     </tr>
                   ))}
                 </tbody>
@@ -425,8 +479,7 @@ export default function UserProfile() {
               {orders.map((order: any) => (
                 <div
                   key={order.id}
-                  className="bg-white rounded-lg shadow border p-4 flex flex-col gap-2 cursor-pointer hover:shadow-lg transition"
-                  onClick={() => (window.location.href = `/orders/${order.id}`)}
+                  className="bg-white rounded-lg shadow border p-4 flex flex-col gap-2 hover:shadow-lg transition"
                 >
                   <div className="flex justify-between items-center">
                     <span className="font-semibold text-sm">Numéro:</span>
@@ -451,20 +504,112 @@ export default function UserProfile() {
                     ? "bg-yellow-100 text-yellow-800"
                     : order.status === "confirmed"
                     ? "bg-blue-100 text-blue-800"
+                    : order.status === "processing"
+                    ? "bg-purple-100 text-purple-800"
+                    : order.status === "shipped"
+                    ? "bg-indigo-100 text-indigo-800"
                     : order.status === "delivered"
                     ? "bg-green-100 text-green-800"
+                    : order.status === "cancelled"
+                    ? "bg-red-100 text-red-800"
                     : "bg-gray-100 text-gray-800"
                 }`}
                     >
-                      {order.status}
+                      {order.status === 'pending' ? 'En attente' :
+                       order.status === 'confirmed' ? 'Confirmée' :
+                       order.status === 'processing' ? 'En cours' :
+                       order.status === 'shipped' ? 'Expédiée' :
+                       order.status === 'delivered' ? 'Livrée' :
+                       order.status === 'cancelled' ? 'Annulée' : order.status}
                     </span>
                   </div>
+                  {order.status === 'pending' && (
+                    <div className="mt-2 pt-2 border-t">
+                      <Button
+                        variant="destructive"
+                        size="sm"
+                        onClick={() => handleCancelOrder(order.id, order.order_number)}
+                        className="w-full bg-red-500 hover:bg-red-600"
+                      >
+                        Annuler la commande
+                      </Button>
+                    </div>
+                  )}
                 </div>
               ))}
             </div>
           </>
         )}
       </div>
+
+      {/* Confirmation Dialog */}
+      <AnimatePresence>
+        {cancelDialog.isOpen && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+            {/* Backdrop */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setCancelDialog({ isOpen: false, orderId: null, orderNumber: '' })}
+              className="absolute inset-0 bg-black/50"
+            />
+
+            {/* Dialog */}
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              className="relative bg-white rounded-lg shadow-xl max-w-md w-full p-6"
+            >
+              <button
+                onClick={() => setCancelDialog({ isOpen: false, orderId: null, orderNumber: '' })}
+                className="absolute top-4 right-4 text-gray-400 hover:text-gray-600"
+              >
+                <X className="w-5 h-5" />
+              </button>
+
+              <div className="mb-4">
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                  Confirmer l'annulation
+                </h3>
+                <p className="text-sm text-gray-600">
+                  Êtes-vous sûr de vouloir annuler la commande{' '}
+                  <span className="font-semibold">{cancelDialog.orderNumber}</span> ?
+                </p>
+                <p className="text-sm text-red-600 mt-2">
+                  Cette action ne peut pas être annulée.
+                </p>
+              </div>
+
+              <div className="flex gap-3 justify-end">
+                <Button
+                  variant="outline"
+                  onClick={() => setCancelDialog({ isOpen: false, orderId: null, orderNumber: '' })}
+                  disabled={cancelling}
+                >
+                  Non
+                </Button>
+                <Button
+                  variant="destructive"
+                  onClick={confirmCancelOrder}
+                  disabled={cancelling}
+                  className="bg-red-500 hover:bg-red-600"
+                >
+                  {cancelling ? (
+                    <>
+                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
+                      Annulation...
+                    </>
+                  ) : (
+                    'Oui, annuler'
+                  )}
+                </Button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </>
   );
 }

@@ -120,7 +120,9 @@ export default function FournisseursPage() {
   );
 
   const moyenneEvaluation =
-    fournisseurs.reduce((sum, f) => sum + f.rating, 0) / fournisseurs.length;
+    fournisseurs.length > 0
+      ? fournisseurs.reduce((sum, f) => sum + f.rating, 0) / fournisseurs.length
+      : 0;
   function formatDate(date: { toISOString: () => string }) {
     return date.toISOString().split("T")[0]; // gives YYYY-MM-DD
   }

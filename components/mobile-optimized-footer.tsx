@@ -24,7 +24,7 @@ export default function MobileOptimizedFooter() {
           <div className="lg:col-span-1">
             <h3 className="text-lg font-bold mb-4">NOUS CONTACTER :</h3>
             <div className="space-y-2 text-sm">
-              <p>Tél. : +216 29 353 666</p>
+              <p>Tél. : +216 26 888 073</p>
               <p>Adresse : 9 Rue El Milaha, Menzah 8, 2037, ARIANA</p>
               <p>E-mail : service.commercial@pneushop.tn</p>
               <p>Horaires : LUNDI - SAMEDI</p>

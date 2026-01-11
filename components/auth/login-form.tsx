@@ -66,40 +66,24 @@ export default function LoginForm({
 
       if (result.success) {
         console.log("✅ Login successful");
+        const loggedInUser = result.user;
+
+        // Block admin users from regular login
+        if (loggedInUser && loggedInUser.role && ["admin", "purchasing", "sales"].includes(loggedInUser.role as string)) {
+          setError("Accès refusé. Veuillez utiliser la page de connexion administrateur.");
+          setIsLoading(false);
+          // Redirect to admin login after 2 seconds
+          setTimeout(() => {
+            router.push("/auth/login/admin");
+          }, 2000);
+          return;
+        }
 
         if (onSuccess) {
           onSuccess();
         } else {
-          // Redirect based on user role from login result
-          const loggedInUser = result.user;
-
-          // if (loggedInUser && loggedInUser.role && ["admin", "purchasing", "sales"].includes(loggedInUser.role as string)) {
-          //   console.log(`👑 ${loggedInUser.role} user detected, redirecting to admin panel`)
-          //   router.push("/admin")
-          // } else {
-          //   console.log("👤 Regular user, redirecting to:", redirectTo)
-          //   router.push(redirectTo)
-          // }
-          if (loggedInUser && loggedInUser.role) {
-            console.log(`👑 Logged in as: ${loggedInUser.role}`);
-
-            switch (loggedInUser.role) {
-              case "admin":
-                router.push("/admin");
-                break;
-              case "purchasing":
-                router.push("/admin/produits"); // redirect to purchasing section
-                break;
-              case "sales":
-                router.push("/admin/commandes"); // redirect to sales section
-                break;
-              default:
-                router.push(redirectTo); // for customers or others
-            }
-          } else {
-            console.log("👤 Regular user, redirecting to:", redirectTo);
-            router.push(redirectTo);
-          }
+          console.log("👤 Regular user, redirecting to:", redirectTo);
+          router.push(redirectTo);
         }
       } else {
         console.log("❌ Login failed:", result.error);
@@ -237,6 +221,18 @@ export default function LoginForm({
             Créer un compte
           </Link>
         </p>
+      </div>
+
+      <div className="mt-4 pt-4 border-t border-gray-200 text-center">
+        <Link
+          href="/auth/login/admin"
+          className="text-sm text-gray-500 hover:text-gray-700 flex items-center justify-center gap-1"
+        >
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+          </svg>
+          Accès administrateur
+        </Link>
       </div>
     </div>
   );

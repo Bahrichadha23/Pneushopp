@@ -33,6 +33,39 @@ export interface AdminStats {
   }
 }
 
+export interface AnalyticsData {
+  stats_ventes: {
+    ventes_jour: number
+    ventes_hebdo: number
+    ventes_mensuel: number
+    commandes_jour: number
+    commandes_hebdo: number
+    commandes_mensuel: number
+    clients_actifs: number
+    produits_vendus: number
+  }
+  ventes_par_mois: Array<{
+    mois: string
+    ventes: number
+    commandes: number
+  }>
+  ventes_par_semaine: Array<{
+    semaine: string
+    ventes: number
+    commandes: number
+  }>
+  top_produits: Array<{
+    nom: string
+    ventes: number
+    chiffre: number
+  }>
+  top_clients: Array<{
+    nom: string
+    commandes: number
+    total: number
+  }>
+}
+
 export interface AdminProduct {
   id: number
   name: string
@@ -98,6 +131,22 @@ export const adminService = {
       return {
         success: false,
         error: error.response?.data?.detail || 'Erreur lors de la récupération des statistiques'
+      }
+    }
+  },
+
+  // Analytics Data (Sales trends, top clients, top products)
+  async getAnalytics(): Promise<ApiResponse<AnalyticsData>> {
+    try {
+      const response = await apiClient.get('/admin/reports/')
+      return {
+        success: true,
+        data: response.data
+      }
+    } catch (error: any) {
+      return {
+        success: false,
+        error: error.response?.data?.detail || 'Erreur lors de la récupération des analytics'
       }
     }
   },

@@ -67,14 +67,6 @@ export function PaymentForm({ onSubmit, onBack }: PaymentFormProps) {
               </div>
 
               <div className="flex items-center space-x-3 p-4 border rounded-lg">
-                <RadioGroupItem value="paypal" id="paypal" />
-                <Smartphone className="h-5 w-5" />
-                <Label htmlFor="paypal" className="flex-1 cursor-pointer">
-                  PayPal
-                </Label>
-              </div>
-
-              <div className="flex items-center space-x-3 p-4 border rounded-lg">
                 <RadioGroupItem value="bank_transfer" id="bank_transfer" />
                 <Building className="h-5 w-5" />
                 <Label
@@ -201,16 +193,16 @@ export function PaymentForm({ onSubmit, onBack }: PaymentFormProps) {
                 <Button
                   type="button"
                   onClick={() => handleWarrantyChoice(true)}
-                  className="flex-1 bg-green-600 hover:bg-green-700"
+                  className="flex-1 bg-yellow-500 hover:bg-yellow-600"
                 >
-                  Accepter la garantie
+                  Obtenir la garantie
                 </Button>
                 <Button
                   type="button"
                   onClick={() => handleWarrantyChoice(false)}
-                  className="flex-1 bg-gray-600 hover:bg-gray-700"
+                  className="flex-1 bg-black"
                 >
-                  Refuser la garantie
+                  Continuer
                 </Button>
               </div>
             )}

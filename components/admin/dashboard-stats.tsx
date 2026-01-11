@@ -2,12 +2,47 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { TrendingUp, Package, Users, AlertTriangle, Star, Plus } from "lucide-react"
 import type { AdminStats } from "@/lib/services/admin"
+import SalesChart from "./charts/sales-chart"
+import TopProductsChart from "./charts/top-products-chart"
+import TopClientsChart from "./charts/top-clients-chart"
 
 interface DashboardStatsProps {
   stats: AdminStats
+  analytics?: {
+    stats_ventes: {
+      ventes_jour: number
+      ventes_hebdo: number
+      ventes_mensuel: number
+      commandes_jour: number
+      commandes_hebdo: number
+      commandes_mensuel: number
+      clients_actifs: number
+      produits_vendus: number
+    }
+    ventes_par_mois: Array<{
+      mois: string
+      ventes: number
+      commandes: number
+    }>
+    ventes_par_semaine: Array<{
+      semaine: string
+      ventes: number
+      commandes: number
+    }>
+    top_produits: Array<{
+      nom: string
+      ventes: number
+      chiffre: number
+    }>
+    top_clients: Array<{
+      nom: string
+      commandes: number
+      total: number
+    }>
+  }
 }
 
-export default function DashboardStatsComponent({ stats }: DashboardStatsProps) {
+export default function DashboardStatsComponent({ stats, analytics }: DashboardStatsProps) {
   const formatCurrency = (amount: number | string) => {
     const numAmount = typeof amount === 'string' ? parseFloat(amount) : amount
     return new Intl.NumberFormat("fr-TN", {
@@ -19,6 +54,40 @@ export default function DashboardStatsComponent({ stats }: DashboardStatsProps) 
 
   return (
     <div className="space-y-6">
+      {/* Charts Section - Sales Trends */}
+      {analytics && (
+        <>
+          {analytics.ventes_par_semaine && analytics.ventes_par_semaine.length > 0 && (
+            <SalesChart 
+              data={analytics.ventes_par_semaine.map(item => ({
+                mois: item.semaine,
+                ventes: item.ventes,
+                commandes: item.commandes
+              }))} 
+              title="Ventes hebdomadaires (8 dernières semaines)"
+            />
+          )}
+          {analytics.ventes_par_mois && analytics.ventes_par_mois.length > 0 && (
+            <SalesChart 
+              data={analytics.ventes_par_mois} 
+              title="Ventes mensuelles (6 derniers mois)"
+            />
+          )}
+        </>
+      )}
+
+      {/* Charts Section - Top Products and Clients */}
+      {analytics && (analytics.top_produits?.length > 0 || analytics.top_clients?.length > 0) && (
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {analytics.top_produits && analytics.top_produits.length > 0 && (
+            <TopProductsChart data={analytics.top_produits} />
+          )}
+          {analytics.top_clients && analytics.top_clients.length > 0 && (
+            <TopClientsChart data={analytics.top_clients} />
+          )}
+        </div>
+      )}
+
       {/* Statistiques principales */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <Card>

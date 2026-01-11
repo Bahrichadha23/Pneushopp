@@ -19,7 +19,7 @@ export interface OrderItem {
   specifications?: Record<string, any>;
 }
 export type PaymentMethod = {
-  type: "card" | "cash_on_delivery" | "paypal" | "bank_transfer";
+  type: "card" | "cash_on_delivery"| "bank_transfer";
   details?: string;
 };
 
