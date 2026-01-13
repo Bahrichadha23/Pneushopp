@@ -16,6 +16,19 @@ export default function ManufacturersSection() {
     { name: "hankook", logo: "/hankook.jpg" },
     { name: "lassa-logo", logo: "/lassa-logo.jpg" },
     { name: "fulda", logo: "/Logo_Fulda.jpg" },
+    { name: "ALLIANCE", logo: "/alliance.png" },
+    { name: "APOLLO", logo: "/APOLLO.png" },
+    { name: "ARMOUR", logo: "/ARMOUR.png" },
+    { name: "BF GOODRICH", logo: "/BF GOODRICH.png" },
+    { name: "DEBICA", logo: "/DEBICA.png" },
+    { name: "DUNLOP", logo: "/dunlop.png" },
+    { name: "FIRESTONE", logo: "/FIRESTONE.png" },
+    { name: "LAUFENN", logo: "/laufenn_logo.png" },
+    { name: "MAXXIS", logo: "/MAXXIS.avif" },
+    { name: "MICHELIN", logo: "/MICHELIN.png" },
+    { name: "SEMPERIT", logo: "/SEMPERIT.png" },
+    { name: "TIGAR", logo: "/tigar-tire-brand-logo.png" },
+    { name: "WESTLAKE", logo: "/WEST LAKE.png" },
   ];
 
   return (
