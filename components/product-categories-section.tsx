@@ -77,17 +77,60 @@ export default function ProductCategoriesSection() {
             PAR CATÉGORIES
           </motion.p>
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-          {categories.map((category, index) => (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 lg:justify-items-center">
+          {categories.slice(0, 3).map((category, index) => (
             <motion.div
               key={category.id}
-              className="bg-white rounded-lg shadow-lg overflow-hidden hover:shadow-xl transition-shadow duration-300"
-              initial={{ opacity: 0, y: 50 }} // start hidden & below
-              whileInView={{ opacity: 1, y: 0 }} // animate into place
-              viewport={{ once: true, amount: 0.2 }} // trigger when in view
+              className="bg-white rounded-lg shadow-lg overflow-hidden hover:shadow-xl transition-shadow duration-300 w-full"
+              initial={{ opacity: 0, y: 50 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, amount: 0.2 }}
               transition={{
                 duration: 0.8,
-                delay: index * 0.15, // stagger effect
+                delay: index * 0.15,
+                type: "spring",
+                stiffness: 120,
+                damping: 12,
+              }}
+            >
+              <div className="aspect-square p-6 flex items-center justify-center bg-gray-100">
+                <img
+                  src={category.image || "/placeholder.svg"}
+                  alt={category.name}
+                  className="w-full h-full object-contain"
+                />
+              </div>
+              <div className="p-6 text-center">
+                <h3 className="text-lg font-bold text-gray-900 mb-2">
+                  {category.name}
+                </h3>
+                <p className="text-sm text-gray-600 mb-4">
+                  {category.description}
+                </p>
+                <Link
+                  href={`/boutique?category=${category.slug}`}
+                  className="w-full text-center px-2 py-2 border-2 border-yellow-300 rounded-md font-semibold text-gray-700 bg-transparent 
+             hover:bg-yellow-300 hover:text-white transition duration-300 ease-in-out"
+                >
+                  Voir les pneus
+                </Link>
+              </div>
+            </motion.div>
+          ))}
+        </div>
+        
+        {/* Second row - centered */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-8 mt-8 lg:max-w-3xl lg:mx-auto">
+          {categories.slice(3).map((category, index) => (
+            <motion.div
+              key={category.id}
+              className="bg-white rounded-lg shadow-lg overflow-hidden hover:shadow-xl transition-shadow duration-300 w-full"
+              initial={{ opacity: 0, y: 50 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, amount: 0.2 }}
+              transition={{
+                duration: 0.8,
+                delay: (index + 3) * 0.15,
                 type: "spring",
                 stiffness: 120,
                 damping: 12,
