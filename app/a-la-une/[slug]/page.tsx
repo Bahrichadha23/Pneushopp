@@ -7,7 +7,7 @@ const newsItems = [
     slug: "nouvelle-gamme-continental",
     title: "Nouvelle Gamme Continental",
     category: "ÉVÉNEMENT",
-    image: "/placeholder.svg?key=news1",
+    image: "/Nouvel.jpeg",
     content: `
       Découvrez la nouvelle gamme Continental PremiumContact 7 avec une
       technologie révolutionnaire pour une adhérence optimale.
@@ -33,7 +33,7 @@ const newsItems = [
     slug: "guide-entretien-pneus",
     title: "Guide d'Entretien des Pneus",
     category: "ACTUALITÉS",
-    image: "/placeholder.svg?key=guide1",
+    image: "/Guide.jpeg",
     content: `
       Apprenez comment prolonger la durée de vie de vos pneus avec nos conseils
       d'experts : pression régulière, rotation, équilibrage et alignement.

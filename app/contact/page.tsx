@@ -8,6 +8,7 @@ import Footer from "@/components/footer";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { MapPin, Phone, Mail, Clock } from "lucide-react";
 
 export default function ContactPage() {
   const [formData, setFormData] = useState({
@@ -195,7 +196,7 @@ export default function ContactPage() {
               <div className="space-y-6">
                 <div className="flex items-start space-x-4">
                   <div className="w-8 h-8 bg-yellow-500 rounded-full flex items-center justify-center">
-                    <span className="text-black font-bold">📍</span>
+                    <MapPin className="w-4 h-4 text-black" />
                   </div>
                   <div>
                     <h3 className="font-semibold">Adresse</h3>
@@ -207,7 +208,7 @@ export default function ContactPage() {
 
                 <div className="flex items-start space-x-4">
                   <div className="w-8 h-8 bg-yellow-500 rounded-full flex items-center justify-center">
-                    <span className="text-black font-bold">📞</span>
+                    <Phone className="w-4 h-4 text-black" />
                   </div>
                   <div>
                     <h3 className="font-semibold">Téléphone</h3>
@@ -217,7 +218,7 @@ export default function ContactPage() {
 
                 <div className="flex items-start space-x-4">
                   <div className="w-8 h-8 bg-yellow-500 rounded-full flex items-center justify-center">
-                    <span className="text-black font-bold">✉️</span>
+                    <Mail className="w-4 h-4 text-black" />
                   </div>
                   <div>
                     <h3 className="font-semibold">Email</h3>
@@ -229,12 +230,13 @@ export default function ContactPage() {
 
                 <div className="flex items-start space-x-4">
                   <div className="w-8 h-8 bg-yellow-500 rounded-full flex items-center justify-center">
-                    <span className="text-black font-bold">🕒</span>
+                    <Clock className="w-4 h-4 text-black" />
                   </div>
                   <div>
                     <h3 className="font-semibold">Horaires</h3>
                     <p className="text-gray-600">
-                      Lundi - Samedi: 8h00 - 18h00
+                      Lundi - Veendredi: 8h00 - 18h00 <br />
+                      Samedi: 8h00 - 15h00
                     </p>
                   </div>
                 </div>
