@@ -228,7 +228,7 @@ export default function DashboardStatsComponent({ stats, analytics }: DashboardS
                 {formatCurrency(stats.price_stats.avg_price || 0)}
               </p>
             </div>
-            <div className="text-center p-4 bg-green-50 rounded-lg">
+            <div className="text-center p-4 bg-yellow-50 rounded-lg">
               <p className="text-sm text-gray-600">Prix minimum</p>
               <p className="text-xl font-bold text-green-600">
                 {formatCurrency(stats.price_stats.min_price || 0)}

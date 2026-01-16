@@ -41,6 +41,7 @@ type ConfirmationDialog = {
   orderId: number | null;
   orderName: string;
   action: "approve" | "reject" | null;
+  deliveryCost?: number;
 };
 
 export default function PendingOrdersPage() {
@@ -54,6 +55,7 @@ export default function PendingOrdersPage() {
     orderId: null,
     orderName: "",
     action: null,
+    deliveryCost: 0,
   });
   const { user } = useAuth();
   const router = useRouter();
@@ -143,14 +145,24 @@ export default function PendingOrdersPage() {
   const handleConfirm = async () => {
     if (!confirmation.orderId || !confirmation.action) return;
 
-    const status = confirmation.action === "approve" ? "processing" : "cancelled";
-    await updateOrderStatus(confirmation.orderId, status);
+    if (confirmation.action === "approve") {
+      // When approving, send delivery_cost along with status
+      await updateOrderStatusWithDelivery(
+        confirmation.orderId,
+        "processing",
+        confirmation.deliveryCost || 0
+      );
+    } else {
+      // When rejecting, just update status
+      await updateOrderStatus(confirmation.orderId, "cancelled");
+    }
 
     setConfirmation({
       isOpen: false,
       orderId: null,
       orderName: "",
       action: null,
+      deliveryCost: 0,
     });
   };
 
@@ -160,6 +172,7 @@ export default function PendingOrdersPage() {
       orderId: null,
       orderName: "",
       action: null,
+      deliveryCost: 0,
     });
   };
 
@@ -180,6 +193,28 @@ export default function PendingOrdersPage() {
         Authorization: `Bearer ${token}`,
       },
       body: JSON.stringify({ status }),
+    });
+    if (res.ok) {
+      setOrders((prev) => prev.filter((o) => o.numericId !== numericId));
+    }
+  };
+
+  const updateOrderStatusWithDelivery = async (
+    numericId: number,
+    status: string,
+    deliveryCost: number
+  ) => {
+    const token = localStorage.getItem("access_token");
+    const res = await fetch(`${API_URL}/orders/${numericId}/`, {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({ 
+        status,
+        delivery_cost: deliveryCost.toString()
+      }),
     });
     if (res.ok) {
       setOrders((prev) => prev.filter((o) => o.numericId !== numericId));
@@ -397,6 +432,28 @@ export default function PendingOrdersPage() {
                   ? `Êtes-vous sûr de vouloir approuver la commande ${confirmation.orderName} ?`
                   : `Êtes-vous sûr de vouloir rejeter la commande ${confirmation.orderName} ?`}
               </p>
+
+              {confirmation.action === "approve" && (
+                <div className="mb-4">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Frais de livraison (TND)
+                  </label>
+                  <Input
+                    type="number"
+                    step="0.01"
+                    min="0"
+                    value={confirmation.deliveryCost || 0}
+                    onChange={(e) =>
+                      setConfirmation((prev) => ({
+                        ...prev,
+                        deliveryCost: parseFloat(e.target.value) || 0,
+                      }))
+                    }
+                    placeholder="0.00"
+                    className="w-full"
+                  />
+                </div>
+              )}
 
               <div className="flex gap-3 justify-end">
                 <Button

@@ -68,12 +68,12 @@ export default function AdminLoginForm() {
               break;
           }
         } else {
-          // User is not an admin
-          setError("Accès refusé. Cette page est réservée aux administrateurs. Redirection vers la page de connexion client...");
-          // Redirect regular users to regular login after 2 seconds
-          setTimeout(() => {
-            router.push("/auth/login");
-          }, 2000);
+          // User is not an admin - logout immediately
+          localStorage.removeItem("access_token");
+          localStorage.removeItem("refresh_token");
+          localStorage.removeItem("user");
+          
+          setError("Accès refusé. Cette page est réservée aux administrateurs.");
         }
       } else {
         console.log("❌ Login failed:", result.error);

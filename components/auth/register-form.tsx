@@ -410,7 +410,7 @@ export default function RegisterForm({
           </div>
         </div>
         {errors.success && (
-          <Alert className="border-green-500 bg-green-50">
+          <Alert className="border-yellow-500 bg-yellow-50">
             <AlertCircle className="h-4 w-4 text-green-600" />
             <AlertDescription className="text-green-700">
               {errors.success}

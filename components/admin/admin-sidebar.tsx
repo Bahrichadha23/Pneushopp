@@ -19,6 +19,9 @@ import {
   ClipboardList,
   TrendingUp,
   Upload,
+  CheckCircle,
+  CircleX,
+  Timer,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -47,12 +50,22 @@ const menuItems: MenuItem[] = [
       {
         title: "Toutes les commandes",
         href: "/admin/commandes",
-        icon: ShoppingCart,
+        icon: ClipboardList,
       },
       {
         title: "Commandes en attente",
         href: "/admin/commandes/pending",
-        icon: ClipboardList,
+        icon: Timer,
+      },
+      {
+        title: "Commandes confirmées",
+        href: "/admin/commandes/confirmed",
+        icon: CheckCircle,
+      },
+      {
+        title: "Commandes annulées",
+        href: "/admin/commandes/cancelled",
+        icon: CircleX,
       },
       { title: "Livraisons", href: "/admin/livraisons", icon: Truck },
     ],
@@ -236,12 +249,22 @@ export default function AdminSidebar({
           {
             title: "Toutes les commandes",
             href: "/admin/commandes",
-            icon: ShoppingCart,
+            icon: ClipboardList,
           },
           {
             title: "Commandes en attente",
             href: "/admin/commandes/pending",
-            icon: ClipboardList,
+            icon: Timer,
+          },
+          {
+            title: "Commandes confirmées",
+            href: "/admin/commandes/confirmed",
+            icon: CheckCircle,
+          },
+          {
+            title: "Commandes annulées",
+            href: "/admin/commandes/cancelled",
+            icon: CircleX,
           },
           { title: "Livraisons", href: "/admin/livraisons", icon: Truck },
         ],
@@ -326,20 +349,20 @@ export default function AdminSidebar({
   return (
     <>
       <div
-        className={`fixed inset-y-0 left-0 z-40 w-64 bg-white border-r border-gray-200 transform transition-transform duration-200 ease-in-out
+        className={`fixed inset-y-0 left-0 z-40 w-64 bg-white border-r border-gray-200 transform transition-transform duration-200 ease-in-out overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]
         ${
           sidebarOpen ? "translate-x-0" : "-translate-x-full"
         } md:translate-x-0`}
       >
         {/* Desktop logo */}
-        <div className="p-3 justify-center items-center space-x-2">
+        <div className="p-3 justify-center items-center space-x-2 sticky top-0 bg-white z-10 border-b border-gray-100">
           <Image src="/logo.png" alt="Logo PneuShop" width={100} height={100} />
           <div>
             <p className="pl-2 pt-0.5 text-xs text-gray-600">{roleLabel}</p>
           </div>
         </div>
         {/* Menu */}
-        <nav className="p-4 space-y-1">
+        <nav className="p-4 space-y-1 pb-20">
           {filteredMenuItems.map((item) => renderMenuItem(item))}
         </nav>
       </div>

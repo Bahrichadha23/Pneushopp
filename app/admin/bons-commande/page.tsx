@@ -31,88 +31,183 @@ type ConfirmationDialog = {
 };
 
 // Download Purchase Order PDF
-const handleDownloadPurchaseOrder = (bon: BonCommande) => {
+const handleDownloadPurchaseOrder = async (bon: BonCommande) => {
   const pdf = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
   const pageWidth = pdf.internal.pageSize.width;
   const pageHeight = pdf.internal.pageSize.height;
   const margin = 15;
 
-  let y = 30;
+  // Fetch order details to get order_number and delivery_cost
+  let orderNumber = bon.id.toString();
+  let deliveryCost = 0;
+  if (bon.order_id) {
+    try {
+      const token = localStorage.getItem("access_token");
+      const response = await fetch(`${API_URL}/orders/${bon.order_id}/`, {
+        headers: {
+          "Authorization": `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      });
+      if (response.ok) {
+        const orderData = await response.json();
+        orderNumber = orderData.order_number || orderNumber;
+        deliveryCost = parseFloat(orderData.delivery_cost) || 0;
+      }
+    } catch (error) {
+      console.error("Error fetching order number:", error);
+    }
+  }
+
+  let y = 20;
 
   // === Header ===
   pdf.setFont("helvetica", "bold");
-  pdf.setFontSize(16);
+  pdf.setFontSize(18);
   pdf.text("BON DE COMMANDE", pageWidth / 2, y, { align: "center" });
   
-  y += 10;
-  pdf.setFontSize(10);
-  pdf.setFont("helvetica", "normal");
+  y += 8;
+  pdf.setFontSize(11);
   pdf.text(`N° ${bon.id}`, pageWidth / 2, y, { align: "center" });
+  
+  y += 4;
+  pdf.setFontSize(9);
+  pdf.setFont("helvetica", "normal");
+  pdf.text(`Date: ${new Date().toLocaleDateString("fr-FR")} - ${new Date().toLocaleTimeString("fr-FR")}`, pageWidth / 2, y, { align: "center" });
 
   y += 15;
 
-  // === Info Table ===
+  // === Order Info Section ===
   pdf.setFont("helvetica", "bold");
-  pdf.setFontSize(11);
-  pdf.text("Informations de la commande", margin, y);
+  pdf.setFontSize(12);
+  pdf.text("Détails de la commande", margin, y);
   
-  y += 7;
+  y += 8;
   
-  // Create table for information
-  const tableData = [
-    { label: "Date de commande", value: new Date(bon.dateCommande).toLocaleDateString("fr-FR") },
-    { label: "Date de livraison prévue", value: new Date(bon.dateLivraisonPrevue).toLocaleDateString("fr-FR") },
-    { label: "Priorité", value: bon.priorite === "urgent" ? "URGENT" : "Normale" },
-    { label: "Statut", value: bon.statut === "en_attente" ? "En attente" : bon.statut === "confirmé" ? "Confirmé" : "Livré" },
+  // Create horizontal table for order information
+  const infoHeaders = ["Date commande", "Livraison prévue", "Priorité", "Statut"];
+  const infoValues = [
+    new Date(bon.dateCommande).toLocaleDateString("fr-FR"),
+    new Date(bon.dateLivraisonPrevue).toLocaleDateString("fr-FR"),
+    bon.priorite === "urgent" ? "URGENT" : "Normale",
+    bon.statut === "en_attente" ? "En attente" : bon.statut === "confirmé" ? "Confirmé" : "Livré"
   ];
 
-  const colWidth1 = 60;
-  const colWidth2 = 70;
-  const rowHeight = 8;
+  const colWidth = (pageWidth - 2 * margin) / 4;
+  const headerHeight = 8;
+  const valueHeight = 8;
 
-  pdf.setFontSize(10);
+  // Draw headers
+  pdf.setFont("helvetica", "bold");
+  pdf.setFontSize(9);
+  let currentX = margin;
   
-  tableData.forEach((row, index) => {
-    const rowY = y + (index * rowHeight);
-    
-    // Draw cells
-    pdf.rect(margin, rowY, colWidth1, rowHeight);
-    pdf.rect(margin + colWidth1, rowY, colWidth2, rowHeight);
-    
-    // Label (bold)
-    pdf.setFont("helvetica", "bold");
-    pdf.text(row.label, margin + 2, rowY + 5.5);
-    
-    // Value (normal)
-    pdf.setFont("helvetica", "normal");
-    pdf.text(row.value, margin + colWidth1 + 2, rowY + 5.5);
+  infoHeaders.forEach((header) => {
+    pdf.rect(currentX, y, colWidth, headerHeight);
+    pdf.text(header, currentX + colWidth / 2, y + 5.5, { align: "center" });
+    currentX += colWidth;
   });
 
-  y += (tableData.length * rowHeight) + 10;
+  y += headerHeight;
+
+  // Draw values
+  pdf.setFont("helvetica", "normal");
+  currentX = margin;
+  
+  infoValues.forEach((value) => {
+    pdf.rect(currentX, y, colWidth, valueHeight);
+    pdf.text(value, currentX + colWidth / 2, y + 5.5, { align: "center" });
+    currentX += colWidth;
+  });
+
+  y += valueHeight + 12;
+
+  // === Display order items from bon.articles ===
+  console.log("🔍 PDF Generation - Bon articles:", bon.articles);
+
+  // Products Table
+  if (bon.articles && bon.articles.length > 0) {
+    pdf.setFont("helvetica", "bold");
+    pdf.setFontSize(12);
+    pdf.text("Articles commandés", margin, y);
+    y += 8;
+
+    // Table headers
+    const headers = ["Produit", "Qté", "Prix Unit.", "Total"];
+    const colWidths = [90, 25, 30, 35];
+    
+    pdf.setFontSize(9);
+    currentX = margin;
+    headers.forEach((header, index) => {
+      pdf.rect(currentX, y, colWidths[index], 8);
+      pdf.text(header, currentX + colWidths[index] / 2, y + 5.5, { align: "center" });
+      currentX += colWidths[index];
+    });
+
+    y += 8;
+
+    // Table rows
+    pdf.setFont("helvetica", "normal");
+    bon.articles.forEach((item: any) => {
+      currentX = margin;
+      const productName = item.product_name || item.productName || item.product?.name || item.nom || "-";
+      const quantity = parseInt(item.quantity || item.quantite || 0);
+      const unitPrice = parseFloat(item.unit_price || item.unitPrice || item.price || item.prix_unitaire || 0);
+      const total = quantity * unitPrice;
+
+      console.log("🔍 Processing item:", { productName, quantity, unitPrice, total });
+
+      // Product name (full name)
+      pdf.rect(currentX, y, colWidths[0], 8);
+      pdf.text(productName, currentX + 2, y + 5.5);
+      currentX += colWidths[0];
+
+      // Quantity
+      pdf.rect(currentX, y, colWidths[1], 8);
+      pdf.text(quantity.toString(), currentX + colWidths[1] / 2, y + 5.5, { align: "center" });
+      currentX += colWidths[1];
+
+      // Unit price
+      pdf.rect(currentX, y, colWidths[2], 8);
+      pdf.text(`${unitPrice.toFixed(2)} TND`, currentX + colWidths[2] / 2, y + 5.5, { align: "center" });
+      currentX += colWidths[2];
+
+      // Total
+      pdf.rect(currentX, y, colWidths[3], 8);
+      pdf.text(`${total.toFixed(2)} TND`, currentX + colWidths[3] / 2, y + 5.5, { align: "center" });
+
+      y += 8;
+    });
+
+    y += 10;
+  } else {
+    console.warn("🔍 No order items found to display in PDF");
+    // Display message if no items
+    pdf.setFont("helvetica", "italic");
+    pdf.setFontSize(10);
+    pdf.text("Aucun article disponible", margin, y);
+    y += 15;
+  }
 
   // === Totals Section ===
   pdf.setFont("helvetica", "bold");
   pdf.setFontSize(11);
-  pdf.text("Montants", margin, y);
-  
-  y += 7;
-  pdf.setFont("helvetica", "normal");
-  pdf.setFontSize(10);
   
   const boxX = pageWidth - 80;
-  const boxY = y - 5;
+  const boxY = y;
   
-  pdf.roundedRect(boxX, boxY, 65, 26, 2, 2, "S");
+  pdf.roundedRect(boxX, boxY, 65, 36, 2, 2, "S");
   
-  pdf.text(`Total HT:`, boxX + 3, boxY + 7);
-  pdf.text(`${(bon.totalHT ?? 0).toLocaleString("fr-FR", { minimumFractionDigits: 2 })} TND`, boxX + 60, boxY + 7, { align: "right" });
+  pdf.setFontSize(10);
+  pdf.text(`Total HT:`, boxX + 3, boxY + 8);
+  pdf.text(`${(bon.totalHT ?? 0).toLocaleString("fr-FR", { minimumFractionDigits: 2 })} TND`, boxX + 60, boxY + 8, { align: "right" });
   
-  // Add 3mm spacing between lines
-  pdf.setFont("helvetica", "bold");
-  pdf.text(`Total TTC:`, boxX + 3, boxY + 17);
-  pdf.text(`${(bon.totalTTC ?? 0).toLocaleString("fr-FR", { minimumFractionDigits: 2 })} TND`, boxX + 60, boxY + 17, { align: "right" });
-
-  y += 35;
+  pdf.text(`Frais de livraison:`, boxX + 3, boxY + 16);
+  pdf.text(`${deliveryCost.toLocaleString("fr-FR", { minimumFractionDigits: 2 })} TND`, boxX + 60, boxY + 16, { align: "right" });
+  
+  const totalWithDelivery = (bon.totalTTC ?? 0) + deliveryCost;
+  pdf.text(`Total TTC:`, boxX + 3, boxY + 26);
+  pdf.text(`${totalWithDelivery.toLocaleString("fr-FR", { minimumFractionDigits: 2 })} TND`, boxX + 60, boxY + 26, { align: "right" });
 
   // === Footer ===
   pdf.setFont("helvetica", "italic");
@@ -120,8 +215,8 @@ const handleDownloadPurchaseOrder = (bon: BonCommande) => {
   pdf.text("PNEU SHOP - Bon de commande", pageWidth / 2, pageHeight - 15, { align: "center" });
   pdf.text(`Généré le ${new Date().toLocaleDateString("fr-FR")} à ${new Date().toLocaleTimeString("fr-FR")}`, pageWidth / 2, pageHeight - 10, { align: "center" });
 
-  // Save PDF
-  pdf.save(`bon-commande-${bon.id}.pdf`);
+  // Save PDF with order number
+  pdf.save(`bon-commande-${orderNumber}.pdf`);
 };
 
 export default function BonsCommandePage() {
@@ -178,7 +273,7 @@ export default function BonsCommandePage() {
             fournisseur: bon.fournisseur ?? "",
             dateCommande: bon.date_commande ?? "",
             dateLivraisonPrevue: bon.date_livraison_prevue ?? "",
-            // articles: bon.articles ?? [],
+            articles: bon.articles ?? [],
             totalHT: bon.total_ht ?? 0,
             totalTTC: bon.total_ttc ?? 0,
             statut: bon.statut ?? "en_attente",

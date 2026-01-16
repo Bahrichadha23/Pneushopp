@@ -10,6 +10,7 @@ export interface Order {
   customerPhone: string
   items: OrderItem[]
   totalAmount: number
+  deliveryCost?: number
   status: "pending" | "confirmed" | "processing" | "shipped" | "delivered" | "cancelled"
   paymentStatus: "pending" | "paid" | "failed" | "refunded"
   paymentMethod: "card" | "cash" | "transfer" | "check"

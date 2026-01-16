@@ -156,6 +156,7 @@ export const fetchOrders = async (): Promise<AdminOrder[]> => {
     })),
 
     totalAmount: parseFloat(o.total_amount),
+    deliveryCost: parseFloat(o.delivery_cost || 0),
     status: o.status,
     paymentStatus: o.payment_status,
     paymentMethod: o.payment_method,

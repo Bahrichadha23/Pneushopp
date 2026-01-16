@@ -16,6 +16,7 @@ export default function AddProductPage() {
   const { user } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
+  const [success, setSuccess] = useState(false);
 
   // Redirect if not authorized
   if (user && user.role !== "admin" && user.role !== "purchasing") {
@@ -110,8 +111,11 @@ export default function AddProductPage() {
         );
       }
 
-      // Success - redirect to products list
-      router.push("/admin/produits");
+      // Success - show message and redirect
+      setSuccess(true);
+      setTimeout(() => {
+        router.push("/admin/produits");
+      }, 1500);
       return { success: true };
     } catch (err) {
       const errorMessage =
@@ -142,6 +146,14 @@ export default function AddProductPage() {
       {error && (
         <Alert variant="destructive" className="mb-6">
           <AlertDescription>{error}</AlertDescription>
+      {success && (
+        <Alert className="mb-6 bg-yellow-50 border-yellow-200">
+          <AlertDescription className="text-yellow-800">
+            ✅ Produit créé avec succès! Redirection en cours...
+          </AlertDescription>
+        </Alert>
+      )}
+
         </Alert>
       )}
 

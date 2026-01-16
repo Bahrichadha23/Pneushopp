@@ -12,6 +12,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Eye, EyeOff, Loader2, AlertCircle } from "lucide-react";
 import { useAuth } from "@/contexts/auth-context";
 import Link from "next/link";
+import { API_URL } from "@/lib/config";
 
 interface LoginFormProps {
   redirectTo?: string;
@@ -60,25 +61,41 @@ export default function LoginForm({
     });
 
     try {
+      // First, validate credentials with authService directly without using context login
+      const credentials = { email: formData.email, password: formData.password };
+      const response = await fetch(`${API_URL}/accounts/auth/login/`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(credentials),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        setError(errorData.detail || errorData.error || "Identifiants incorrects");
+        setIsLoading(false);
+        return;
+      }
+
+      const data = await response.json();
+      console.log("🔐 Login response:", data);
+
+      // Check role BEFORE storing anything
+      if (data.user && data.user.role && ["admin", "purchasing", "sales"].includes(data.user.role)) {
+        setError("Accès refusé.");
+        setIsLoading(false);
+        return;
+      }
+
+      // Only proceed with actual login if user is not an admin
       const result = await login(formData.email, formData.password);
 
       console.log("🔐 Login result:", result);
 
       if (result.success) {
         console.log("✅ Login successful");
-        const loggedInUser = result.user;
-
-        // Block admin users from regular login
-        if (loggedInUser && loggedInUser.role && ["admin", "purchasing", "sales"].includes(loggedInUser.role as string)) {
-          setError("Accès refusé. Veuillez utiliser la page de connexion administrateur.");
-          setIsLoading(false);
-          // Redirect to admin login after 2 seconds
-          setTimeout(() => {
-            router.push("/auth/login/admin");
-          }, 2000);
-          return;
-        }
-
+        
         if (onSuccess) {
           onSuccess();
         } else {
@@ -223,17 +240,6 @@ export default function LoginForm({
         </p>
       </div>
 
-      <div className="mt-4 pt-4 border-t border-gray-200 text-center">
-        <Link
-          href="/auth/login/admin"
-          className="text-sm text-gray-500 hover:text-gray-700 flex items-center justify-center gap-1"
-        >
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-          </svg>
-          Accès administrateur
-        </Link>
-      </div>
     </div>
   );
 }

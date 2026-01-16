@@ -37,6 +37,8 @@ export default function DeliveriesPage() {
     const loadDeliveries = async () => {
       try {
         const data = await fetchDeliveries();
+        console.log("🚚 Deliveries API Response:", data);
+        console.log("🚚 First delivery sample:", data[0]);
         setDeliveries(data);
       } catch (err) {
         console.error("Erreur lors du fetch des livraisons:", err);

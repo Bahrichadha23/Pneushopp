@@ -247,7 +247,8 @@ export async function handleDownloadInvoice(order: any) {
 
   y += 10; // space after last row
 
-  const netHT = totalHT - totalRemise;
+  const deliveryCost = Number(order.deliveryCost || 0);
+  const netHT = totalHT - totalRemise + deliveryCost;
   const totalTTC = netHT + totalTVA + 1;
 
   // === Inline “QUATRE CENT …” + Vertical Totals ===
@@ -278,6 +279,7 @@ export async function handleDownloadInvoice(order: any) {
   const totals = [
     ["TOTAL HT", totalHT.toFixed(3)],
     ["TOTAL REMISE", totalRemise.toFixed(3)],
+    ["FRAIS LIVRAISON", deliveryCost.toFixed(3)],
     ["TOTAL NET HT", netHT.toFixed(3)],
     ["TOTAL T.V.A", totalTVA.toFixed(3)],
     ["Timbre", "1.000"],
@@ -549,7 +551,7 @@ export default function OrdersTable({
                   </TableCell>
                   <TableCell>{formatDate(order.createdAt)}</TableCell>
                   <TableCell className="font-medium">
-                    {formatCurrency(order.totalAmount)}
+                    {formatCurrency(order.totalAmount + (order.deliveryCost || 0))}
                   </TableCell>
                   <TableCell>{getStatusBadge(order.status)}</TableCell>
                   <TableCell>
@@ -641,7 +643,7 @@ export default function OrdersTable({
               </div>
               <div className="mt-2 text-sm text-gray-600">
                 <p>Date: {formatDate(order.createdAt)}</p>
-                <p>Montant: {formatCurrency(order.totalAmount)}</p>
+                <p>Montant: {formatCurrency(order.totalAmount + (order.deliveryCost || 0))}</p>
                 <p>Paiement: {getPaymentStatusBadge(order.paymentStatus)}</p>
               </div>
               <div className="flex items-center gap-2 mt-3">
@@ -872,15 +874,41 @@ export default function OrdersTable({
                             </td>
                           </tr>
                         ))}
+                        {selectedOrder.deliveryCost && selectedOrder.deliveryCost > 0 && (
+                          <tr className="bg-gray-50">
+                            <td
+                              colSpan={4}
+                              className="px-6 py-4 text-right text-sm font-medium text-gray-900"
+                            >
+                              Sous-total produits:
+                            </td>
+                            <td className="px-6 py-4 text-right text-sm font-medium text-gray-900">
+                              {formatCurrency(selectedOrder.totalAmount)}
+                            </td>
+                          </tr>
+                        )}
+                        {selectedOrder.deliveryCost && selectedOrder.deliveryCost > 0 && (
+                          <tr className="bg-gray-50">
+                            <td
+                              colSpan={4}
+                              className="px-6 py-4 text-right text-sm font-medium text-gray-900"
+                            >
+                              Frais de livraison:
+                            </td>
+                            <td className="px-6 py-4 text-right text-sm font-medium text-gray-900">
+                              {formatCurrency(selectedOrder.deliveryCost)}
+                            </td>
+                          </tr>
+                        )}
                         <tr className="bg-gray-50">
                           <td
                             colSpan={4}
-                            className="px-6 py-4 text-right text-sm font-medium text-gray-900"
+                            className="px-6 py-4 text-right text-sm font-bold text-gray-900"
                           >
                             Total commande:
                           </td>
                           <td className="px-6 py-4 text-right text-sm font-bold text-gray-900">
-                            {formatCurrency(selectedOrder.totalAmount)}
+                            {formatCurrency(selectedOrder.totalAmount + (selectedOrder.deliveryCost || 0))}
                           </td>
                         </tr>
                       </tbody>

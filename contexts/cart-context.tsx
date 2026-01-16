@@ -87,57 +87,65 @@ const CartContext = createContext<CartContextType | undefined>(undefined);
 export function CartProvider({ children }: { children: React.ReactNode }) {
   const [items, dispatch] = useReducer(cartReducer, []);
 
+  // Helper function to convert backend cart data to frontend format
+  const convertCartData = (cartData: any): CartItem[] => {
+    return (
+      cartData.items?.map((item: any) => ({
+        id: item.id?.toString(),
+        product: {
+          id: item.product.id.toString(),
+          name: item.product.name,
+          price: parseFloat(item.product.price),
+          brand: item.product.brand,
+          image: item.product.image || "/placeholder.jpg",
+          model: item.product.size,
+          category: "auto",
+          inStock: item.product.stock > 0,
+          stock: item.product.stock,
+          originalPrice: item.product.old_price
+            ? parseFloat(item.product.old_price)
+            : undefined,
+          discount: item.product.discount_percentage || 0,
+          images: [item.product.image || "/placeholder.jpg"],
+          specifications: {
+            width: 225,
+            height: 45,
+            diameter: 17,
+            loadIndex: 91,
+            speedRating: "W",
+            season:
+              item.product.season === "summer"
+                ? "ete"
+                : item.product.season === "winter"
+                ? "hiver"
+                : "toutes-saisons",
+            specialty: "tourisme",
+          },
+          description: item.product.description || "",
+          features: [],
+          isPromotion: item.product.is_featured || false,
+          rating: 4.5,
+          reviewCount: 0,
+        },
+        quantity: item.quantity,
+      })) || []
+    );
+  };
+
+  // Helper function to reload cart from backend
+  const reloadCartFromBackend = async () => {
+    const cartData = await apiCall("/cart/");
+    const cartItems = convertCartData(cartData);
+    dispatch({ type: "LOAD_CART", items: cartItems });
+  };
+
   // Load cart from backend on startup
   useEffect(() => {
     const loadCart = async () => {
       try {
         const token = getAuthToken();
         if (token) {
-          const cartData = await apiCall("/cart/");
-          // Convert backend cart data to frontend format
-          const cartItems: CartItem[] =
-            cartData.items?.map((item: any) => ({
-              id: item.id?.toString(), // Store cart item ID for updates
-              product: {
-                id: item.product.id.toString(),
-                name: item.product.name,
-                price: parseFloat(item.product.price),
-                brand: item.product.brand,
-                image: item.product.image || "/placeholder.jpg",
-                model: item.product.size,
-                category: "auto",
-                inStock: item.product.stock > 0,
-                stock: item.product.stock,
-                // Add other required Product fields with defaults
-                originalPrice: item.product.old_price
-                  ? parseFloat(item.product.old_price)
-                  : undefined,
-                discount: item.product.discount_percentage || 0,
-                images: [item.product.image || "/placeholder.jpg"],
-                specifications: {
-                  width: 225,
-                  height: 45,
-                  diameter: 17,
-                  loadIndex: 91,
-                  speedRating: "W",
-                  season:
-                    item.product.season === "summer"
-                      ? "ete"
-                      : item.product.season === "winter"
-                      ? "hiver"
-                      : "toutes-saisons",
-                  specialty: "tourisme",
-                },
-                description: item.product.description || "",
-                features: [],
-                isPromotion: item.product.is_featured || false,
-                rating: 4.5,
-                reviewCount: 0,
-              },
-              quantity: item.quantity,
-            })) || [];
-
-          dispatch({ type: "LOAD_CART", items: cartItems });
+          await reloadCartFromBackend();
         } else {
           // Fallback to localStorage if not authenticated
           const savedCart = localStorage.getItem("pneushop-cart");
@@ -188,8 +196,12 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
             quantity: quantity,
           }),
         });
+        
+        // Force reload cart from backend to get fresh data
+        await reloadCartFromBackend();
+        return;
       }
-      // Update local state
+      // Update local state if not authenticated
       dispatch({ type: "ADD_TO_CART", product, quantity });
     } catch (error) {
       console.error("Erreur lors de l'ajout au panier:", error);
@@ -202,15 +214,20 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     try {
       const token = getAuthToken();
       if (token) {
-        // Remove from backend cart
-        await apiCall("/cart/remove/", {
-          method: "POST",
-          body: JSON.stringify({
-            product_id: parseInt(productId),
-          }),
-        });
+        // Find the cart item to get its ID
+        const cartItem = items.find((item) => item.product.id === productId);
+        if (cartItem?.id) {
+          // Remove from backend cart using cart item ID
+          await apiCall(`/cart/remove/${cartItem.id}/`, {
+            method: "DELETE",
+          });
+          
+          // Force reload cart from backend
+          await reloadCartFromBackend();
+          return;
+        }
       }
-      // Update local state
+      // Update local state if not authenticated
       dispatch({ type: "REMOVE_FROM_CART", productId });
     } catch (error) {
       console.error("Erreur lors de la suppression du panier:", error);
@@ -243,8 +260,12 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
           }),
         });
         console.log(`✅ Cart updated successfully`);
+        
+        // Force reload cart from backend
+        await reloadCartFromBackend();
+        return;
       }
-      // Update local state
+      // Update local state if not authenticated
       dispatch({ type: "UPDATE_QUANTITY", productId, quantity });
     } catch (error) {
       console.error("Erreur lors de la mise à jour du panier:", error);

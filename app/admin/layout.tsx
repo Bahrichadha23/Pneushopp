@@ -22,7 +22,8 @@ export default function AdminLayout({
     router.push("/");
   };
   return (
-    <div className="h-screen bg-gray-50 flex">
+    <div className="min-h-screen bg-gray-50 flex overflow-hidden">
+
       {/* Sidebar */}
       <AdminSidebar sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} />
 

@@ -54,7 +54,6 @@ const InvoiceTemplate = forwardRef<HTMLDivElement, InvoiceTemplateProps>(
                     <p><strong>TVA (19%):</strong> {(order.totalAmount * 0.19).toFixed(2)} TND</p>
                     <p><strong>Total TTC:</strong> {(order.totalAmount * 1.19).toFixed(2)} TND</p>
                 </div>
-
                 <div className="mt-8 text-center">
                     <p className="italic">Cachet et Signature</p>
                 </div>

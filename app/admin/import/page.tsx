@@ -268,7 +268,7 @@ export default function ImportPage() {
                 </div>
                 <div className="text-sm text-blue-600">Lignes traitées</div>
               </div>
-              <div className="text-center p-4 bg-green-50 rounded-lg">
+              <div className="text-center p-4 bg-yellow-50 rounded-lg">
                 <div className="text-2xl font-bold text-green-600">
                   {importResult.summary.created}
                 </div>
