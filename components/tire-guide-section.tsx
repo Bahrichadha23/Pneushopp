@@ -126,59 +126,6 @@ export default function TireGuideSection() {
                 fill="url(#outerRubber)"
               />
 
-              {/* Detailed tread pattern */}
-              <g>
-                {Array.from({ length: 70 }).map((_, i) => {
-                  const angle = (i * 5.14) - 180;
-                  const rad = (angle * Math.PI) / 180;
-                  const x = 400 + Math.cos(rad) * 200;
-                  const y = 280 + Math.sin(rad) * 200;
-                  
-                  if (y < 280 && angle > -180 && angle < 0) {
-                    return (
-                      <g key={i}>
-                        <motion.rect
-                          x={x - 5}
-                          y={y - 8}
-                          width="10"
-                          height="16"
-                          rx="1"
-                          fill="#2a2a2a"
-                          transform={`rotate(${angle + 90} ${x} ${y})`}
-                          initial={{ opacity: 0.6 }}
-                          animate={{ opacity: [0.6, 0.95, 0.6] }}
-                          transition={{
-                            duration: 4,
-                            repeat: Infinity,
-                            delay: i * 0.015,
-                            ease: "easeInOut"
-                          }}
-                        />
-                        <rect
-                          x={x - 2.5}
-                          y={y - 5}
-                          width="5"
-                          height="10"
-                          rx="0.5"
-                          fill="#4a4a4a"
-                          transform={`rotate(${angle + 90} ${x} ${y})`}
-                        />
-                        <line
-                          x1={x - 4}
-                          y1={y}
-                          x2={x + 4}
-                          y2={y}
-                          stroke="#1a1a1a"
-                          strokeWidth="1"
-                          transform={`rotate(${angle + 90} ${x} ${y})`}
-                        />
-                      </g>
-                    );
-                  }
-                  return null;
-                })}
-              </g>
-
               {/* Middle sidewall */}
               <circle 
                 cx="400" 

@@ -85,14 +85,12 @@ export default function ProductsTable({
   };
 
   const getCategoryLabel = (category: Product["category"]) => {
-    // Map numeric category IDs from backend to display names
     const labels: { [key: string]: string } = {
       "1": "Tourisme",
       "2": "4x4",
       "3": "Agricole",
       "4": "Utilitaire",
       "5": "Moto",
-      // Also handle string values
       tourisme: "Tourisme",
       "4x4": "4x4",
       agricole: "Agricole",
@@ -102,7 +100,6 @@ export default function ProductsTable({
     return labels[String(category)] || category;
   };
 
-  // Filtrage et tri des produits
   const filteredAndSortedProducts = products
     .filter((product) => {
       const matchesSearch =
@@ -163,6 +160,16 @@ export default function ProductsTable({
     <div className="space-y-4">
       {/* Filtres et recherche */}
       <div className="flex flex-col lg:flex-row gap-4">
+        <div className="relative flex-1">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+          <Input
+            type="text"
+            placeholder="Rechercher par nom, marque ou modèle..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="pl-10"
+          />
+        </div>
         <div className="flex flex-wrap gap-2">
           <Select value={categoryFilter} onValueChange={setCategoryFilter}>
             <SelectTrigger className="w-40">
@@ -172,9 +179,7 @@ export default function ProductsTable({
               <SelectItem value="all">Toutes catégories</SelectItem>
               <SelectItem value="tourisme">Tourisme</SelectItem>
               <SelectItem value="moto">Moto</SelectItem>
-              {/* <SelectItem value="camionnette">Camionnette</SelectItem> */}
               <SelectItem value="agricole">Agricole</SelectItem>
-              {/* <SelectItem value="poids-lourd">Poids lourd</SelectItem> */}
               <SelectItem value="utilitaire">Utilitaire</SelectItem>
               <SelectItem value="4x4">4X4</SelectItem>
             </SelectContent>
@@ -205,6 +210,7 @@ export default function ProductsTable({
               <SelectItem value="out-of-stock">Rupture</SelectItem>
             </SelectContent>
           </Select>
+          
           <Select value={promoFilter} onValueChange={setPromoFilter}>
             <SelectTrigger className="w-40">
               <SelectValue placeholder="Promotion" />
@@ -320,60 +326,65 @@ export default function ProductsTable({
 
       {/* Tableau responsive */}
       <div className="overflow-x-auto">
-        <Table className="min-w-[700px] md:min-w-full">
-          <TableHeader>
-            <TableRow>
-              <TableHead>Produit</TableHead>
-              <TableHead className="hidden sm:table-cell">
+        <table className="min-w-full bg-white border border-gray-200 table-fixed">
+          <thead className="bg-gray-50">
+            <tr>
+              <th className="w-[350px] px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border-b">
+                Produit
+              </th>
+              <th className="w-[150px] px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border-b hidden sm:table-cell">
                 Spécifications
-              </TableHead>
-              <TableHead className="hidden sm:table-cell">Catégorie</TableHead>
-              <TableHead>Prix</TableHead>
-              <TableHead className="hidden md:table-cell">Stock</TableHead>
-              <TableHead>Statut</TableHead>
-              <TableHead>Actions</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
+              </th>
+              <th className="w-[120px] px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border-b hidden sm:table-cell">
+                Catégorie
+              </th>
+              <th className="w-[140px] px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border-b">
+                Prix
+              </th>
+              <th className="w-[100px] px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border-b hidden md:table-cell">
+                Stock
+              </th>
+              <th className="w-[120px] px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border-b">
+                Statut
+              </th>
+              <th className="w-[140px] px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border-b">
+                Actions
+              </th>
+            </tr>
+          </thead>
+          <tbody className="bg-white divide-y divide-gray-200">
             {filteredAndSortedProducts.map((product) => {
               const stockStatus = getStockStatus(product);
               return (
-                <TableRow key={product.id}>
-                  <TableCell>
-                    <div className="flex items-center space-x-3">
+                <tr key={product.id} className="hover:bg-gray-50">
+                  <td className="w-[350px] px-4 py-4">
+                    <div className="flex items-start space-x-3">
                       <img
                         src={product.image || "/placeholder.svg"}
                         alt={product.name}
-                        className="w-12 h-12 object-cover rounded"
+                        className="w-12 h-12 object-cover rounded flex-shrink-0"
                       />
-                      <div>
-                        <p className="font-medium">{product.name}</p>
-                        <p className="text-sm text-gray-500">{product.brand}</p>
+                      <div className="flex-1 min-w-0 overflow-hidden">
+                        <p className="font-medium text-sm leading-tight break-words whitespace-normal">
+                          {product.name}
+                        </p>
+                        <p className="text-sm text-gray-500 mt-1 truncate">
+                          {product.brand}
+                        </p>
                       </div>
                     </div>
-                  </TableCell>
-                  <TableCell className="hidden sm:table-cell">
+                  </td>
+                  <td className="w-[150px] px-4 py-4 hidden sm:table-cell">
                     <div className="text-sm">
-                      <p className="font-medium">
-                        {product.model}
-                        {/* {product.specifications.width}/
-                        {product.specifications.height}R
-                        {product.specifications.diameter} */}
-                      </p>
-                      <p className="text-gray-500">
-                        {/* {product.specifications.loadIndex}
-                        {product.specifications.speedRating} -{" "}
-                        {product.specifications.season} */}
-                      </p>
+                      <p className="font-medium">{product.model}</p>
                     </div>
-                  </TableCell>
-                  <TableCell className="hidden sm:table-cell">
+                  </td>
+                  <td className="w-[120px] px-4 py-4 hidden sm:table-cell">
                     <Badge variant="outline">
                       {getCategoryLabel(product.category)}
                     </Badge>
-                  </TableCell>
-
-                  <TableCell>
+                  </td>
+                  <td className="w-[140px] px-4 py-4">
                     <div>
                       {product.is_on_sale ? (
                         <>
@@ -393,9 +404,8 @@ export default function ProductsTable({
                         </p>
                       )}
                     </div>
-                  </TableCell>
-
-                  <TableCell className="hidden md:table-cell">
+                  </td>
+                  <td className="w-[100px] px-4 py-4 hidden md:table-cell">
                     <Input
                       type="number"
                       value={product.stock}
@@ -408,13 +418,13 @@ export default function ProductsTable({
                       className="w-20 h-8"
                       min="0"
                     />
-                  </TableCell>
-                  <TableCell>
+                  </td>
+                  <td className="w-[120px] px-4 py-4">
                     <Badge variant={stockStatus.variant}>
                       {stockStatus.label}
                     </Badge>
-                  </TableCell>
-                  <TableCell>
+                  </td>
+                  <td className="w-[140px] px-4 py-4">
                     <div className="flex items-center space-x-1">
                       <Button
                         variant="ghost"
@@ -442,12 +452,12 @@ export default function ProductsTable({
                         <Trash2 className="h-4 w-4" />
                       </Button>
                     </div>
-                  </TableCell>
-                </TableRow>
+                  </td>
+                </tr>
               );
             })}
-          </TableBody>
-        </Table>
+          </tbody>
+        </table>
       </div>
 
       {filteredAndSortedProducts.length === 0 && (
