@@ -31,15 +31,15 @@ python -m venv venv
 # Activate virtual environment:
 # On Windows:
 venv\Scripts\activate
-# On macOS/Linux:
+# On macOS/Linux:r
 source venv/bin/activate
 
 2.3 Install Python Dependencies
 --------------------------------
-pip install -r requirements.txt
+r
 
 2.4 Database Configuration
----------------------------
+---------------------------r
 The project uses SQLite by default (no additional setup required).
 If you want to use PostgreSQL or MySQL, update the DATABASES setting in pneushop/settings.py
 
@@ -89,7 +89,1541 @@ EMAIL_HOST = 'smtp.sendgrid.net'
 EMAIL_PORT = 587
 EMAIL_HOST_USER = 'apikey'
 EMAIL_HOST_PASSWORD = 'your-sendgrid-api-key'
+r
+# On macOS/Linux:r
+source venv/bin/activate
 
+2.3 Install Python Dependencies
+--------------------------------
+r
+
+2.4 Database Configuration
+---------------------------r
+The project uses SQLite by default (no additional setup required).
+If you want to use PostgreSQL or MySQL, update the DATABASES setting in pneushop/settings.py
+
+2.5 Run Database Migrations
+----------------------------
+python manage.py makemigrations
+python manage.py migrate
+
+2.6 Create Superuser Account
+-----------------------------
+python manage.py createsuperuser
+# Follow prompts to create admin account
+
+2.7 Load Sample Data (Optional)
+--------------------------------
+# The project includes Excel import functionality
+# You can import tire data through the admin panel or use the sample data
+python manage.py loaddata fixtures/sample_data.json  # if available
+
+STEP 3: EMAIL CONFIGURATION
+============================
+
+3.1 Gmail SMTP Setup (Recommended)
+-----------------------------------
+1. Go to your Gmail account settings
+2. Enable 2-Factor Authentication
+3. Generate an App Password:
+   - Google Account → Security → 2-Step Verification → App passwords
+   - Select "Mail" and generate password
+
+3.2 Update Django Settings
+---------------------------
+Edit backend/pneushop/settings.py and update these lines:
+
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = 'your-email@gmail.com'
+EMAIL_HOST_PASSWORD = 'your-app-password'  # Use the generated app password
+DEFAULT_FROM_EMAIL = 'your-email@gmail.com'
+
+3.3 Alternative Email Providers
+--------------------------------
+For SendGrid:
+EMAIL_HOST = 'smtp.sendgrid.net'
+EMAIL_PORT = 587
+EMAIL_HOST_USER = 'apikey'
+EMAIL_HOST_PASSWORD = 'your-sendgrid-api-key'
+r
+# On macOS/Linux:r
+source venv/bin/activate
+
+2.3 Install Python Dependencies
+--------------------------------
+r
+
+2.4 Database Configuration
+---------------------------r
+The project uses SQLite by default (no additional setup required).
+If you want to use PostgreSQL or MySQL, update the DATABASES setting in pneushop/settings.py
+
+2.5 Run Database Migrations
+----------------------------
+python manage.py makemigrations
+python manage.py migrate
+
+2.6 Create Superuser Account
+-----------------------------
+python manage.py createsuperuser
+# Follow prompts to create admin account
+
+2.7 Load Sample Data (Optional)
+--------------------------------
+# The project includes Excel import functionality
+# You can import tire data through the admin panel or use the sample data
+python manage.py loaddata fixtures/sample_data.json  # if available
+
+STEP 3: EMAIL CONFIGURATION
+============================
+
+3.1 Gmail SMTP Setup (Recommended)
+-----------------------------------
+1. Go to your Gmail account settings
+2. Enable 2-Factor Authentication
+3. Generate an App Password:
+   - Google Account → Security → 2-Step Verification → App passwords
+   - Select "Mail" and generate password
+
+3.2 Update Django Settings
+---------------------------
+Edit backend/pneushop/settings.py and update these lines:
+
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = 'your-email@gmail.com'
+EMAIL_HOST_PASSWORD = 'your-app-password'  # Use the generated app password
+DEFAULT_FROM_EMAIL = 'your-email@gmail.com'
+
+3.3 Alternative Email Providers
+--------------------------------
+For SendGrid:
+EMAIL_HOST = 'smtp.sendgrid.net'
+EMAIL_PORT = 587
+EMAIL_HOST_USER = 'apikey'
+EMAIL_HOST_PASSWORD = 'your-sendgrid-api-key'
+r
+# On macOS/Linux:r
+source venv/bin/activate
+
+2.3 Install Python Dependencies
+--------------------------------
+r
+
+2.4 Database Configuration
+---------------------------r
+The project uses SQLite by default (no additional setup required).
+If you want to use PostgreSQL or MySQL, update the DATABASES setting in pneushop/settings.py
+
+2.5 Run Database Migrations
+----------------------------
+python manage.py makemigrations
+python manage.py migrate
+
+2.6 Create Superuser Account
+-----------------------------
+python manage.py createsuperuser
+# Follow prompts to create admin account
+
+2.7 Load Sample Data (Optional)
+--------------------------------
+# The project includes Excel import functionality
+# You can import tire data through the admin panel or use the sample data
+python manage.py loaddata fixtures/sample_data.json  # if available
+
+STEP 3: EMAIL CONFIGURATION
+============================
+
+3.1 Gmail SMTP Setup (Recommended)
+-----------------------------------
+1. Go to your Gmail account settings
+2. Enable 2-Factor Authentication
+3. Generate an App Password:
+   - Google Account → Security → 2-Step Verification → App passwords
+   - Select "Mail" and generate password
+
+3.2 Update Django Settings
+---------------------------
+Edit backend/pneushop/settings.py and update these lines:
+
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = 'your-email@gmail.com'
+EMAIL_HOST_PASSWORD = 'your-app-password'  # Use the generated app password
+DEFAULT_FROM_EMAIL = 'your-email@gmail.com'
+
+3.3 Alternative Email Providers
+--------------------------------
+For SendGrid:
+EMAIL_HOST = 'smtp.sendgrid.net'
+EMAIL_PORT = 587
+EMAIL_HOST_USER = 'apikey'
+EMAIL_HOST_PASSWORD = 'your-sendgrid-api-key'
+r
+# On macOS/Linux:r
+source venv/bin/activate
+
+2.3 Install Python Dependencies
+--------------------------------
+r
+
+2.4 Database Configuration
+---------------------------r
+The project uses SQLite by default (no additional setup required).
+If you want to use PostgreSQL or MySQL, update the DATABASES setting in pneushop/settings.py
+
+2.5 Run Database Migrations
+----------------------------
+python manage.py makemigrations
+python manage.py migrate
+
+2.6 Create Superuser Account
+-----------------------------
+python manage.py createsuperuser
+# Follow prompts to create admin account
+
+2.7 Load Sample Data (Optional)
+--------------------------------
+# The project includes Excel import functionality
+# You can import tire data through the admin panel or use the sample data
+python manage.py loaddata fixtures/sample_data.json  # if available
+
+STEP 3: EMAIL CONFIGURATION
+============================
+
+3.1 Gmail SMTP Setup (Recommended)
+-----------------------------------
+1. Go to your Gmail account settings
+2. Enable 2-Factor Authentication
+3. Generate an App Password:
+   - Google Account → Security → 2-Step Verification → App passwords
+   - Select "Mail" and generate password
+
+3.2 Update Django Settings
+---------------------------
+Edit backend/pneushop/settings.py and update these lines:
+
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = 'your-email@gmail.com'
+EMAIL_HOST_PASSWORD = 'your-app-password'  # Use the generated app password
+DEFAULT_FROM_EMAIL = 'your-email@gmail.com'
+
+3.3 Alternative Email Providers
+--------------------------------
+For SendGrid:
+EMAIL_HOST = 'smtp.sendgrid.net'
+EMAIL_PORT = 587
+EMAIL_HOST_USER = 'apikey'
+EMAIL_HOST_PASSWORD = 'your-sendgrid-api-key'
+r
+# On macOS/Linux:r
+source venv/bin/activate
+
+2.3 Install Python Dependencies
+--------------------------------
+r
+
+2.4 Database Configuration
+---------------------------r
+The project uses SQLite by default (no additional setup required).
+If you want to use PostgreSQL or MySQL, update the DATABASES setting in pneushop/settings.py
+
+2.5 Run Database Migrations
+----------------------------
+python manage.py makemigrations
+python manage.py migrate
+
+2.6 Create Superuser Account
+-----------------------------
+python manage.py createsuperuser
+# Follow prompts to create admin account
+
+2.7 Load Sample Data (Optional)
+--------------------------------
+# The project includes Excel import functionality
+# You can import tire data through the admin panel or use the sample data
+python manage.py loaddata fixtures/sample_data.json  # if available
+
+STEP 3: EMAIL CONFIGURATION
+============================
+
+3.1 Gmail SMTP Setup (Recommended)
+-----------------------------------
+1. Go to your Gmail account settings
+2. Enable 2-Factor Authentication
+3. Generate an App Password:
+   - Google Account → Security → 2-Step Verification → App passwords
+   - Select "Mail" and generate password
+
+3.2 Update Django Settings
+---------------------------
+Edit backend/pneushop/settings.py and update these lines:
+
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = 'your-email@gmail.com'
+EMAIL_HOST_PASSWORD = 'your-app-password'  # Use the generated app password
+DEFAULT_FROM_EMAIL = 'your-email@gmail.com'
+
+3.3 Alternative Email Providers
+--------------------------------
+For SendGrid:
+EMAIL_HOST = 'smtp.sendgrid.net'
+EMAIL_PORT = 587
+EMAIL_HOST_USER = 'apikey'
+EMAIL_HOST_PASSWORD = 'your-sendgrid-api-key'
+r
+# On macOS/Linux:r
+source venv/bin/activate
+
+2.3 Install Python Dependencies
+--------------------------------
+r
+
+2.4 Database Configuration
+---------------------------r
+The project uses SQLite by default (no additional setup required).
+If you want to use PostgreSQL or MySQL, update the DATABASES setting in pneushop/settings.py
+
+2.5 Run Database Migrations
+----------------------------
+python manage.py makemigrations
+python manage.py migrate
+
+2.6 Create Superuser Account
+-----------------------------
+python manage.py createsuperuser
+# Follow prompts to create admin account
+
+2.7 Load Sample Data (Optional)
+--------------------------------
+# The project includes Excel import functionality
+# You can import tire data through the admin panel or use the sample data
+python manage.py loaddata fixtures/sample_data.json  # if available
+
+STEP 3: EMAIL CONFIGURATION
+============================
+
+3.1 Gmail SMTP Setup (Recommended)
+-----------------------------------
+1. Go to your Gmail account settings
+2. Enable 2-Factor Authentication
+3. Generate an App Password:
+   - Google Account → Security → 2-Step Verification → App passwords
+   - Select "Mail" and generate password
+
+3.2 Update Django Settings
+---------------------------
+Edit backend/pneushop/settings.py and update these lines:
+
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = 'your-email@gmail.com'
+EMAIL_HOST_PASSWORD = 'your-app-password'  # Use the generated app password
+DEFAULT_FROM_EMAIL = 'your-email@gmail.com'
+
+3.3 Alternative Email Providers
+--------------------------------
+For SendGrid:
+EMAIL_HOST = 'smtp.sendgrid.net'
+EMAIL_PORT = 587
+EMAIL_HOST_USER = 'apikey'
+EMAIL_HOST_PASSWORD = 'your-sendgrid-api-key'
+r
+# On macOS/Linux:r
+source venv/bin/activate
+
+2.3 Install Python Dependencies
+--------------------------------
+r
+
+2.4 Database Configuration
+---------------------------r
+The project uses SQLite by default (no additional setup required).
+If you want to use PostgreSQL or MySQL, update the DATABASES setting in pneushop/settings.py
+
+2.5 Run Database Migrations
+----------------------------
+python manage.py makemigrations
+python manage.py migrate
+
+2.6 Create Superuser Account
+-----------------------------
+python manage.py createsuperuser
+# Follow prompts to create admin account
+
+2.7 Load Sample Data (Optional)
+--------------------------------
+# The project includes Excel import functionality
+# You can import tire data through the admin panel or use the sample data
+python manage.py loaddata fixtures/sample_data.json  # if available
+
+STEP 3: EMAIL CONFIGURATION
+============================
+
+3.1 Gmail SMTP Setup (Recommended)
+-----------------------------------
+1. Go to your Gmail account settings
+2. Enable 2-Factor Authentication
+3. Generate an App Password:
+   - Google Account → Security → 2-Step Verification → App passwords
+   - Select "Mail" and generate password
+
+3.2 Update Django Settings
+---------------------------
+Edit backend/pneushop/settings.py and update these lines:
+
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = 'your-email@gmail.com'
+EMAIL_HOST_PASSWORD = 'your-app-password'  # Use the generated app password
+DEFAULT_FROM_EMAIL = 'your-email@gmail.com'
+
+3.3 Alternative Email Providers
+--------------------------------
+For SendGrid:
+EMAIL_HOST = 'smtp.sendgrid.net'
+EMAIL_PORT = 587
+EMAIL_HOST_USER = 'apikey'
+EMAIL_HOST_PASSWORD = 'your-sendgrid-api-key'
+r
+# On macOS/Linux:r
+source venv/bin/activate
+
+2.3 Install Python Dependencies
+--------------------------------
+r
+
+2.4 Database Configuration
+---------------------------r
+The project uses SQLite by default (no additional setup required).
+If you want to use PostgreSQL or MySQL, update the DATABASES setting in pneushop/settings.py
+
+2.5 Run Database Migrations
+----------------------------
+python manage.py makemigrations
+python manage.py migrate
+
+2.6 Create Superuser Account
+-----------------------------
+python manage.py createsuperuser
+# Follow prompts to create admin account
+
+2.7 Load Sample Data (Optional)
+--------------------------------
+# The project includes Excel import functionality
+# You can import tire data through the admin panel or use the sample data
+python manage.py loaddata fixtures/sample_data.json  # if available
+
+STEP 3: EMAIL CONFIGURATION
+============================
+
+3.1 Gmail SMTP Setup (Recommended)
+-----------------------------------
+1. Go to your Gmail account settings
+2. Enable 2-Factor Authentication
+3. Generate an App Password:
+   - Google Account → Security → 2-Step Verification → App passwords
+   - Select "Mail" and generate password
+
+3.2 Update Django Settings
+---------------------------
+Edit backend/pneushop/settings.py and update these lines:
+
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = 'your-email@gmail.com'
+EMAIL_HOST_PASSWORD = 'your-app-password'  # Use the generated app password
+DEFAULT_FROM_EMAIL = 'your-email@gmail.com'
+
+3.3 Alternative Email Providers
+--------------------------------
+For SendGrid:
+EMAIL_HOST = 'smtp.sendgrid.net'
+EMAIL_PORT = 587
+EMAIL_HOST_USER = 'apikey'
+EMAIL_HOST_PASSWORD = 'your-sendgrid-api-key'
+r
+# On macOS/Linux:r
+source venv/bin/activate
+
+2.3 Install Python Dependencies
+--------------------------------
+r
+
+2.4 Database Configuration
+---------------------------r
+The project uses SQLite by default (no additional setup required).
+If you want to use PostgreSQL or MySQL, update the DATABASES setting in pneushop/settings.py
+
+2.5 Run Database Migrations
+----------------------------
+python manage.py makemigrations
+python manage.py migrate
+
+2.6 Create Superuser Account
+-----------------------------
+python manage.py createsuperuser
+# Follow prompts to create admin account
+
+2.7 Load Sample Data (Optional)
+--------------------------------
+# The project includes Excel import functionality
+# You can import tire data through the admin panel or use the sample data
+python manage.py loaddata fixtures/sample_data.json  # if available
+
+STEP 3: EMAIL CONFIGURATION
+============================
+
+3.1 Gmail SMTP Setup (Recommended)
+-----------------------------------
+1. Go to your Gmail account settings
+2. Enable 2-Factor Authentication
+3. Generate an App Password:
+   - Google Account → Security → 2-Step Verification → App passwords
+   - Select "Mail" and generate password
+
+3.2 Update Django Settings
+---------------------------
+Edit backend/pneushop/settings.py and update these lines:
+
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = 'your-email@gmail.com'
+EMAIL_HOST_PASSWORD = 'your-app-password'  # Use the generated app password
+DEFAULT_FROM_EMAIL = 'your-email@gmail.com'
+
+3.3 Alternative Email Providers
+--------------------------------
+For SendGrid:
+EMAIL_HOST = 'smtp.sendgrid.net'
+EMAIL_PORT = 587
+EMAIL_HOST_USER = 'apikey'
+EMAIL_HOST_PASSWORD = 'your-sendgrid-api-key'
+r
+# On macOS/Linux:r
+source venv/bin/activate
+
+2.3 Install Python Dependencies
+--------------------------------
+r
+
+2.4 Database Configuration
+---------------------------r
+The project uses SQLite by default (no additional setup required).
+If you want to use PostgreSQL or MySQL, update the DATABASES setting in pneushop/settings.py
+
+2.5 Run Database Migrations
+----------------------------
+python manage.py makemigrations
+python manage.py migrate
+
+2.6 Create Superuser Account
+-----------------------------
+python manage.py createsuperuser
+# Follow prompts to create admin account
+
+2.7 Load Sample Data (Optional)
+--------------------------------
+# The project includes Excel import functionality
+# You can import tire data through the admin panel or use the sample data
+python manage.py loaddata fixtures/sample_data.json  # if available
+
+STEP 3: EMAIL CONFIGURATION
+============================
+
+3.1 Gmail SMTP Setup (Recommended)
+-----------------------------------
+1. Go to your Gmail account settings
+2. Enable 2-Factor Authentication
+3. Generate an App Password:
+   - Google Account → Security → 2-Step Verification → App passwords
+   - Select "Mail" and generate password
+
+3.2 Update Django Settings
+---------------------------
+Edit backend/pneushop/settings.py and update these lines:
+
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = 'your-email@gmail.com'
+EMAIL_HOST_PASSWORD = 'your-app-password'  # Use the generated app password
+DEFAULT_FROM_EMAIL = 'your-email@gmail.com'
+
+3.3 Alternative Email Providers
+--------------------------------
+For SendGrid:
+EMAIL_HOST = 'smtp.sendgrid.net'
+EMAIL_PORT = 587
+EMAIL_HOST_USER = 'apikey'
+EMAIL_HOST_PASSWORD = 'your-sendgrid-api-key'
+r
+# On macOS/Linux:r
+source venv/bin/activate
+
+2.3 Install Python Dependencies
+--------------------------------
+r
+
+2.4 Database Configuration
+---------------------------r
+The project uses SQLite by default (no additional setup required).
+If you want to use PostgreSQL or MySQL, update the DATABASES setting in pneushop/settings.py
+
+2.5 Run Database Migrations
+----------------------------
+python manage.py makemigrations
+python manage.py migrate
+
+2.6 Create Superuser Account
+-----------------------------
+python manage.py createsuperuser
+# Follow prompts to create admin account
+
+2.7 Load Sample Data (Optional)
+--------------------------------
+# The project includes Excel import functionality
+# You can import tire data through the admin panel or use the sample data
+python manage.py loaddata fixtures/sample_data.json  # if available
+
+STEP 3: EMAIL CONFIGURATION
+============================
+
+3.1 Gmail SMTP Setup (Recommended)
+-----------------------------------
+1. Go to your Gmail account settings
+2. Enable 2-Factor Authentication
+3. Generate an App Password:
+   - Google Account → Security → 2-Step Verification → App passwords
+   - Select "Mail" and generate password
+
+3.2 Update Django Settings
+---------------------------
+Edit backend/pneushop/settings.py and update these lines:
+
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = 'your-email@gmail.com'
+EMAIL_HOST_PASSWORD = 'your-app-password'  # Use the generated app password
+DEFAULT_FROM_EMAIL = 'your-email@gmail.com'
+
+3.3 Alternative Email Providers
+--------------------------------
+For SendGrid:
+EMAIL_HOST = 'smtp.sendgrid.net'
+EMAIL_PORT = 587
+EMAIL_HOST_USER = 'apikey'
+EMAIL_HOST_PASSWORD = 'your-sendgrid-api-key'
+r
+# On macOS/Linux:r
+source venv/bin/activate
+
+2.3 Install Python Dependencies
+--------------------------------
+r
+
+2.4 Database Configuration
+---------------------------r
+The project uses SQLite by default (no additional setup required).
+If you want to use PostgreSQL or MySQL, update the DATABASES setting in pneushop/settings.py
+
+2.5 Run Database Migrations
+----------------------------
+python manage.py makemigrations
+python manage.py migrate
+
+2.6 Create Superuser Account
+-----------------------------
+python manage.py createsuperuser
+# Follow prompts to create admin account
+
+2.7 Load Sample Data (Optional)
+--------------------------------
+# The project includes Excel import functionality
+# You can import tire data through the admin panel or use the sample data
+python manage.py loaddata fixtures/sample_data.json  # if available
+
+STEP 3: EMAIL CONFIGURATION
+============================
+
+3.1 Gmail SMTP Setup (Recommended)
+-----------------------------------
+1. Go to your Gmail account settings
+2. Enable 2-Factor Authentication
+3. Generate an App Password:
+   - Google Account → Security → 2-Step Verification → App passwords
+   - Select "Mail" and generate password
+
+3.2 Update Django Settings
+---------------------------
+Edit backend/pneushop/settings.py and update these lines:
+
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = 'your-email@gmail.com'
+EMAIL_HOST_PASSWORD = 'your-app-password'  # Use the generated app password
+DEFAULT_FROM_EMAIL = 'your-email@gmail.com'
+
+3.3 Alternative Email Providers
+--------------------------------
+For SendGrid:
+EMAIL_HOST = 'smtp.sendgrid.net'
+EMAIL_PORT = 587
+EMAIL_HOST_USER = 'apikey'
+EMAIL_HOST_PASSWORD = 'your-sendgrid-api-key'
+r
+# On macOS/Linux:r
+source venv/bin/activate
+
+2.3 Install Python Dependencies
+--------------------------------
+r
+
+2.4 Database Configuration
+---------------------------r
+The project uses SQLite by default (no additional setup required).
+If you want to use PostgreSQL or MySQL, update the DATABASES setting in pneushop/settings.py
+
+2.5 Run Database Migrations
+----------------------------
+python manage.py makemigrations
+python manage.py migrate
+
+2.6 Create Superuser Account
+-----------------------------
+python manage.py createsuperuser
+# Follow prompts to create admin account
+
+2.7 Load Sample Data (Optional)
+--------------------------------
+# The project includes Excel import functionality
+# You can import tire data through the admin panel or use the sample data
+python manage.py loaddata fixtures/sample_data.json  # if available
+
+STEP 3: EMAIL CONFIGURATION
+============================
+
+3.1 Gmail SMTP Setup (Recommended)
+-----------------------------------
+1. Go to your Gmail account settings
+2. Enable 2-Factor Authentication
+3. Generate an App Password:
+   - Google Account → Security → 2-Step Verification → App passwords
+   - Select "Mail" and generate password
+
+3.2 Update Django Settings
+---------------------------
+Edit backend/pneushop/settings.py and update these lines:
+
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = 'your-email@gmail.com'
+EMAIL_HOST_PASSWORD = 'your-app-password'  # Use the generated app password
+DEFAULT_FROM_EMAIL = 'your-email@gmail.com'
+
+3.3 Alternative Email Providers
+--------------------------------
+For SendGrid:
+EMAIL_HOST = 'smtp.sendgrid.net'
+EMAIL_PORT = 587
+EMAIL_HOST_USER = 'apikey'
+EMAIL_HOST_PASSWORD = 'your-sendgrid-api-key'
+r
+# On macOS/Linux:r
+source venv/bin/activate
+
+2.3 Install Python Dependencies
+--------------------------------
+r
+
+2.4 Database Configuration
+---------------------------r
+The project uses SQLite by default (no additional setup required).
+If you want to use PostgreSQL or MySQL, update the DATABASES setting in pneushop/settings.py
+
+2.5 Run Database Migrations
+----------------------------
+python manage.py makemigrations
+python manage.py migrate
+
+2.6 Create Superuser Account
+-----------------------------
+python manage.py createsuperuser
+# Follow prompts to create admin account
+
+2.7 Load Sample Data (Optional)
+--------------------------------
+# The project includes Excel import functionality
+# You can import tire data through the admin panel or use the sample data
+python manage.py loaddata fixtures/sample_data.json  # if available
+
+STEP 3: EMAIL CONFIGURATION
+============================
+
+3.1 Gmail SMTP Setup (Recommended)
+-----------------------------------
+1. Go to your Gmail account settings
+2. Enable 2-Factor Authentication
+3. Generate an App Password:
+   - Google Account → Security → 2-Step Verification → App passwords
+   - Select "Mail" and generate password
+
+3.2 Update Django Settings
+---------------------------
+Edit backend/pneushop/settings.py and update these lines:
+
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = 'your-email@gmail.com'
+EMAIL_HOST_PASSWORD = 'your-app-password'  # Use the generated app password
+DEFAULT_FROM_EMAIL = 'your-email@gmail.com'
+
+3.3 Alternative Email Providers
+--------------------------------
+For SendGrid:
+EMAIL_HOST = 'smtp.sendgrid.net'
+EMAIL_PORT = 587
+EMAIL_HOST_USER = 'apikey'
+EMAIL_HOST_PASSWORD = 'your-sendgrid-api-key'
+r
+# On macOS/Linux:r
+source venv/bin/activate
+
+2.3 Install Python Dependencies
+--------------------------------
+r
+
+2.4 Database Configuration
+---------------------------r
+The project uses SQLite by default (no additional setup required).
+If you want to use PostgreSQL or MySQL, update the DATABASES setting in pneushop/settings.py
+
+2.5 Run Database Migrations
+----------------------------
+python manage.py makemigrations
+python manage.py migrate
+
+2.6 Create Superuser Account
+-----------------------------
+python manage.py createsuperuser
+# Follow prompts to create admin account
+
+2.7 Load Sample Data (Optional)
+--------------------------------
+# The project includes Excel import functionality
+# You can import tire data through the admin panel or use the sample data
+python manage.py loaddata fixtures/sample_data.json  # if available
+
+STEP 3: EMAIL CONFIGURATION
+============================
+
+3.1 Gmail SMTP Setup (Recommended)
+-----------------------------------
+1. Go to your Gmail account settings
+2. Enable 2-Factor Authentication
+3. Generate an App Password:
+   - Google Account → Security → 2-Step Verification → App passwords
+   - Select "Mail" and generate password
+
+3.2 Update Django Settings
+---------------------------
+Edit backend/pneushop/settings.py and update these lines:
+
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = 'your-email@gmail.com'
+EMAIL_HOST_PASSWORD = 'your-app-password'  # Use the generated app password
+DEFAULT_FROM_EMAIL = 'your-email@gmail.com'
+
+3.3 Alternative Email Providers
+--------------------------------
+For SendGrid:
+EMAIL_HOST = 'smtp.sendgrid.net'
+EMAIL_PORT = 587
+EMAIL_HOST_USER = 'apikey'
+EMAIL_HOST_PASSWORD = 'your-sendgrid-api-key'
+r
+# On macOS/Linux:r
+source venv/bin/activate
+
+2.3 Install Python Dependencies
+--------------------------------
+r
+
+2.4 Database Configuration
+---------------------------r
+The project uses SQLite by default (no additional setup required).
+If you want to use PostgreSQL or MySQL, update the DATABASES setting in pneushop/settings.py
+
+2.5 Run Database Migrations
+----------------------------
+python manage.py makemigrations
+python manage.py migrate
+
+2.6 Create Superuser Account
+-----------------------------
+python manage.py createsuperuser
+# Follow prompts to create admin account
+
+2.7 Load Sample Data (Optional)
+--------------------------------
+# The project includes Excel import functionality
+# You can import tire data through the admin panel or use the sample data
+python manage.py loaddata fixtures/sample_data.json  # if available
+
+STEP 3: EMAIL CONFIGURATION
+============================
+
+3.1 Gmail SMTP Setup (Recommended)
+-----------------------------------
+1. Go to your Gmail account settings
+2. Enable 2-Factor Authentication
+3. Generate an App Password:
+   - Google Account → Security → 2-Step Verification → App passwords
+   - Select "Mail" and generate password
+
+3.2 Update Django Settings
+---------------------------
+Edit backend/pneushop/settings.py and update these lines:
+
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = 'your-email@gmail.com'
+EMAIL_HOST_PASSWORD = 'your-app-password'  # Use the generated app password
+DEFAULT_FROM_EMAIL = 'your-email@gmail.com'
+
+3.3 Alternative Email Providers
+--------------------------------
+For SendGrid:
+EMAIL_HOST = 'smtp.sendgrid.net'
+EMAIL_PORT = 587
+EMAIL_HOST_USER = 'apikey'
+EMAIL_HOST_PASSWORD = 'your-sendgrid-api-key'
+r
+# On macOS/Linux:r
+source venv/bin/activate
+
+2.3 Install Python Dependencies
+--------------------------------
+r
+
+2.4 Database Configuration
+---------------------------r
+The project uses SQLite by default (no additional setup required).
+If you want to use PostgreSQL or MySQL, update the DATABASES setting in pneushop/settings.py
+
+2.5 Run Database Migrations
+----------------------------
+python manage.py makemigrations
+python manage.py migrate
+
+2.6 Create Superuser Account
+-----------------------------
+python manage.py createsuperuser
+# Follow prompts to create admin account
+
+2.7 Load Sample Data (Optional)
+--------------------------------
+# The project includes Excel import functionality
+# You can import tire data through the admin panel or use the sample data
+python manage.py loaddata fixtures/sample_data.json  # if available
+
+STEP 3: EMAIL CONFIGURATION
+============================
+
+3.1 Gmail SMTP Setup (Recommended)
+-----------------------------------
+1. Go to your Gmail account settings
+2. Enable 2-Factor Authentication
+3. Generate an App Password:
+   - Google Account → Security → 2-Step Verification → App passwords
+   - Select "Mail" and generate password
+
+3.2 Update Django Settings
+---------------------------
+Edit backend/pneushop/settings.py and update these lines:
+
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = 'your-email@gmail.com'
+EMAIL_HOST_PASSWORD = 'your-app-password'  # Use the generated app password
+DEFAULT_FROM_EMAIL = 'your-email@gmail.com'
+
+3.3 Alternative Email Providers
+--------------------------------
+For SendGrid:
+EMAIL_HOST = 'smtp.sendgrid.net'
+EMAIL_PORT = 587
+EMAIL_HOST_USER = 'apikey'
+EMAIL_HOST_PASSWORD = 'your-sendgrid-api-key'
+r
+# On macOS/Linux:r
+source venv/bin/activate
+
+2.3 Install Python Dependencies
+--------------------------------
+r
+
+2.4 Database Configuration
+---------------------------r
+The project uses SQLite by default (no additional setup required).
+If you want to use PostgreSQL or MySQL, update the DATABASES setting in pneushop/settings.py
+
+2.5 Run Database Migrations
+----------------------------
+python manage.py makemigrations
+python manage.py migrate
+
+2.6 Create Superuser Account
+-----------------------------
+python manage.py createsuperuser
+# Follow prompts to create admin account
+
+2.7 Load Sample Data (Optional)
+--------------------------------
+# The project includes Excel import functionality
+# You can import tire data through the admin panel or use the sample data
+python manage.py loaddata fixtures/sample_data.json  # if available
+
+STEP 3: EMAIL CONFIGURATION
+============================
+
+3.1 Gmail SMTP Setup (Recommended)
+-----------------------------------
+1. Go to your Gmail account settings
+2. Enable 2-Factor Authentication
+3. Generate an App Password:
+   - Google Account → Security → 2-Step Verification → App passwords
+   - Select "Mail" and generate password
+
+3.2 Update Django Settings
+---------------------------
+Edit backend/pneushop/settings.py and update these lines:
+
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = 'your-email@gmail.com'
+EMAIL_HOST_PASSWORD = 'your-app-password'  # Use the generated app password
+DEFAULT_FROM_EMAIL = 'your-email@gmail.com'
+
+3.3 Alternative Email Providers
+--------------------------------
+For SendGrid:
+EMAIL_HOST = 'smtp.sendgrid.net'
+EMAIL_PORT = 587
+EMAIL_HOST_USER = 'apikey'
+EMAIL_HOST_PASSWORD = 'your-sendgrid-api-key'
+r
+# On macOS/Linux:r
+source venv/bin/activate
+
+2.3 Install Python Dependencies
+--------------------------------
+r
+
+2.4 Database Configuration
+---------------------------r
+The project uses SQLite by default (no additional setup required).
+If you want to use PostgreSQL or MySQL, update the DATABASES setting in pneushop/settings.py
+
+2.5 Run Database Migrations
+----------------------------
+python manage.py makemigrations
+python manage.py migrate
+
+2.6 Create Superuser Account
+-----------------------------
+python manage.py createsuperuser
+# Follow prompts to create admin account
+
+2.7 Load Sample Data (Optional)
+--------------------------------
+# The project includes Excel import functionality
+# You can import tire data through the admin panel or use the sample data
+python manage.py loaddata fixtures/sample_data.json  # if available
+
+STEP 3: EMAIL CONFIGURATION
+============================
+
+3.1 Gmail SMTP Setup (Recommended)
+-----------------------------------
+1. Go to your Gmail account settings
+2. Enable 2-Factor Authentication
+3. Generate an App Password:
+   - Google Account → Security → 2-Step Verification → App passwords
+   - Select "Mail" and generate password
+
+3.2 Update Django Settings
+---------------------------
+Edit backend/pneushop/settings.py and update these lines:
+
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = 'your-email@gmail.com'
+EMAIL_HOST_PASSWORD = 'your-app-password'  # Use the generated app password
+DEFAULT_FROM_EMAIL = 'your-email@gmail.com'
+
+3.3 Alternative Email Providers
+--------------------------------
+For SendGrid:
+EMAIL_HOST = 'smtp.sendgrid.net'
+EMAIL_PORT = 587
+EMAIL_HOST_USER = 'apikey'
+EMAIL_HOST_PASSWORD = 'your-sendgrid-api-key'
+r
+# On macOS/Linux:r
+source venv/bin/activate
+
+2.3 Install Python Dependencies
+--------------------------------
+r
+
+2.4 Database Configuration
+---------------------------r
+The project uses SQLite by default (no additional setup required).
+If you want to use PostgreSQL or MySQL, update the DATABASES setting in pneushop/settings.py
+
+2.5 Run Database Migrations
+----------------------------
+python manage.py makemigrations
+python manage.py migrate
+
+2.6 Create Superuser Account
+-----------------------------
+python manage.py createsuperuser
+# Follow prompts to create admin account
+
+2.7 Load Sample Data (Optional)
+--------------------------------
+# The project includes Excel import functionality
+# You can import tire data through the admin panel or use the sample data
+python manage.py loaddata fixtures/sample_data.json  # if available
+
+STEP 3: EMAIL CONFIGURATION
+============================
+
+3.1 Gmail SMTP Setup (Recommended)
+-----------------------------------
+1. Go to your Gmail account settings
+2. Enable 2-Factor Authentication
+3. Generate an App Password:
+   - Google Account → Security → 2-Step Verification → App passwords
+   - Select "Mail" and generate password
+
+3.2 Update Django Settings
+---------------------------
+Edit backend/pneushop/settings.py and update these lines:
+
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = 'your-email@gmail.com'
+EMAIL_HOST_PASSWORD = 'your-app-password'  # Use the generated app password
+DEFAULT_FROM_EMAIL = 'your-email@gmail.com'
+
+3.3 Alternative Email Providers
+--------------------------------
+For SendGrid:
+EMAIL_HOST = 'smtp.sendgrid.net'
+EMAIL_PORT = 587
+EMAIL_HOST_USER = 'apikey'
+EMAIL_HOST_PASSWORD = 'your-sendgrid-api-key'
+r
+# On macOS/Linux:r
+source venv/bin/activate
+
+2.3 Install Python Dependencies
+--------------------------------
+r
+
+2.4 Database Configuration
+---------------------------r
+The project uses SQLite by default (no additional setup required).
+If you want to use PostgreSQL or MySQL, update the DATABASES setting in pneushop/settings.py
+
+2.5 Run Database Migrations
+----------------------------
+python manage.py makemigrations
+python manage.py migrate
+
+2.6 Create Superuser Account
+-----------------------------
+python manage.py createsuperuser
+# Follow prompts to create admin account
+
+2.7 Load Sample Data (Optional)
+--------------------------------
+# The project includes Excel import functionality
+# You can import tire data through the admin panel or use the sample data
+python manage.py loaddata fixtures/sample_data.json  # if available
+
+STEP 3: EMAIL CONFIGURATION
+============================
+
+3.1 Gmail SMTP Setup (Recommended)
+-----------------------------------
+1. Go to your Gmail account settings
+2. Enable 2-Factor Authentication
+3. Generate an App Password:
+   - Google Account → Security → 2-Step Verification → App passwords
+   - Select "Mail" and generate password
+
+3.2 Update Django Settings
+---------------------------
+Edit backend/pneushop/settings.py and update these lines:
+
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = 'your-email@gmail.com'
+EMAIL_HOST_PASSWORD = 'your-app-password'  # Use the generated app password
+DEFAULT_FROM_EMAIL = 'your-email@gmail.com'
+
+3.3 Alternative Email Providers
+--------------------------------
+For SendGrid:
+EMAIL_HOST = 'smtp.sendgrid.net'
+EMAIL_PORT = 587
+EMAIL_HOST_USER = 'apikey'
+EMAIL_HOST_PASSWORD = 'your-sendgrid-api-key'
+r
+# On macOS/Linux:r
+source venv/bin/activate
+
+2.3 Install Python Dependencies
+--------------------------------
+r
+
+2.4 Database Configuration
+---------------------------r
+The project uses SQLite by default (no additional setup required).
+If you want to use PostgreSQL or MySQL, update the DATABASES setting in pneushop/settings.py
+
+2.5 Run Database Migrations
+----------------------------
+python manage.py makemigrations
+python manage.py migrate
+
+2.6 Create Superuser Account
+-----------------------------
+python manage.py createsuperuser
+# Follow prompts to create admin account
+
+2.7 Load Sample Data (Optional)
+--------------------------------
+# The project includes Excel import functionality
+# You can import tire data through the admin panel or use the sample data
+python manage.py loaddata fixtures/sample_data.json  # if available
+
+STEP 3: EMAIL CONFIGURATION
+============================
+
+3.1 Gmail SMTP Setup (Recommended)
+-----------------------------------
+1. Go to your Gmail account settings
+2. Enable 2-Factor Authentication
+3. Generate an App Password:
+   - Google Account → Security → 2-Step Verification → App passwords
+   - Select "Mail" and generate password
+
+3.2 Update Django Settings
+---------------------------
+Edit backend/pneushop/settings.py and update these lines:
+
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = 'your-email@gmail.com'
+EMAIL_HOST_PASSWORD = 'your-app-password'  # Use the generated app password
+DEFAULT_FROM_EMAIL = 'your-email@gmail.com'
+
+3.3 Alternative Email Providers
+--------------------------------
+For SendGrid:
+EMAIL_HOST = 'smtp.sendgrid.net'
+EMAIL_PORT = 587
+EMAIL_HOST_USER = 'apikey'
+EMAIL_HOST_PASSWORD = 'your-sendgrid-api-key'
+r
+# On macOS/Linux:r
+source venv/bin/activate
+
+2.3 Install Python Dependencies
+--------------------------------
+r
+
+2.4 Database Configuration
+---------------------------r
+The project uses SQLite by default (no additional setup required).
+If you want to use PostgreSQL or MySQL, update the DATABASES setting in pneushop/settings.py
+
+2.5 Run Database Migrations
+----------------------------
+python manage.py makemigrations
+python manage.py migrate
+
+2.6 Create Superuser Account
+-----------------------------
+python manage.py createsuperuser
+# Follow prompts to create admin account
+
+2.7 Load Sample Data (Optional)
+--------------------------------
+# The project includes Excel import functionality
+# You can import tire data through the admin panel or use the sample data
+python manage.py loaddata fixtures/sample_data.json  # if available
+
+STEP 3: EMAIL CONFIGURATION
+============================
+
+3.1 Gmail SMTP Setup (Recommended)
+-----------------------------------
+1. Go to your Gmail account settings
+2. Enable 2-Factor Authentication
+3. Generate an App Password:
+   - Google Account → Security → 2-Step Verification → App passwords
+   - Select "Mail" and generate password
+
+3.2 Update Django Settings
+---------------------------
+Edit backend/pneushop/settings.py and update these lines:
+
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = 'your-email@gmail.com'
+EMAIL_HOST_PASSWORD = 'your-app-password'  # Use the generated app password
+DEFAULT_FROM_EMAIL = 'your-email@gmail.com'
+
+3.3 Alternative Email Providers
+--------------------------------
+For SendGrid:
+EMAIL_HOST = 'smtp.sendgrid.net'
+EMAIL_PORT = 587
+EMAIL_HOST_USER = 'apikey'
+EMAIL_HOST_PASSWORD = 'your-sendgrid-api-key'
+r
+# On macOS/Linux:r
+source venv/bin/activate
+
+2.3 Install Python Dependencies
+--------------------------------
+r
+
+2.4 Database Configuration
+---------------------------r
+The project uses SQLite by default (no additional setup required).
+If you want to use PostgreSQL or MySQL, update the DATABASES setting in pneushop/settings.py
+
+2.5 Run Database Migrations
+----------------------------
+python manage.py makemigrations
+python manage.py migrate
+
+2.6 Create Superuser Account
+-----------------------------
+python manage.py createsuperuser
+# Follow prompts to create admin account
+
+2.7 Load Sample Data (Optional)
+--------------------------------
+# The project includes Excel import functionality
+# You can import tire data through the admin panel or use the sample data
+python manage.py loaddata fixtures/sample_data.json  # if available
+
+STEP 3: EMAIL CONFIGURATION
+============================
+
+3.1 Gmail SMTP Setup (Recommended)
+-----------------------------------
+1. Go to your Gmail account settings
+2. Enable 2-Factor Authentication
+3. Generate an App Password:
+   - Google Account → Security → 2-Step Verification → App passwords
+   - Select "Mail" and generate password
+
+3.2 Update Django Settings
+---------------------------
+Edit backend/pneushop/settings.py and update these lines:
+
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = 'your-email@gmail.com'
+EMAIL_HOST_PASSWORD = 'your-app-password'  # Use the generated app password
+DEFAULT_FROM_EMAIL = 'your-email@gmail.com'
+
+3.3 Alternative Email Providers
+--------------------------------
+For SendGrid:
+EMAIL_HOST = 'smtp.sendgrid.net'
+EMAIL_PORT = 587
+EMAIL_HOST_USER = 'apikey'
+EMAIL_HOST_PASSWORD = 'your-sendgrid-api-key'
+r
+# On macOS/Linux:r
+source venv/bin/activate
+
+2.3 Install Python Dependencies
+--------------------------------
+r
+
+2.4 Database Configuration
+---------------------------r
+The project uses SQLite by default (no additional setup required).
+If you want to use PostgreSQL or MySQL, update the DATABASES setting in pneushop/settings.py
+
+2.5 Run Database Migrations
+----------------------------
+python manage.py makemigrations
+python manage.py migrate
+
+2.6 Create Superuser Account
+-----------------------------
+python manage.py createsuperuser
+# Follow prompts to create admin account
+
+2.7 Load Sample Data (Optional)
+--------------------------------
+# The project includes Excel import functionality
+# You can import tire data through the admin panel or use the sample data
+python manage.py loaddata fixtures/sample_data.json  # if available
+
+STEP 3: EMAIL CONFIGURATION
+============================
+
+3.1 Gmail SMTP Setup (Recommended)
+-----------------------------------
+1. Go to your Gmail account settings
+2. Enable 2-Factor Authentication
+3. Generate an App Password:
+   - Google Account → Security → 2-Step Verification → App passwords
+   - Select "Mail" and generate password
+
+3.2 Update Django Settings
+---------------------------
+Edit backend/pneushop/settings.py and update these lines:
+
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = 'your-email@gmail.com'
+EMAIL_HOST_PASSWORD = 'your-app-password'  # Use the generated app password
+DEFAULT_FROM_EMAIL = 'your-email@gmail.com'
+
+3.3 Alternative Email Providers
+--------------------------------
+For SendGrid:
+EMAIL_HOST = 'smtp.sendgrid.net'
+EMAIL_PORT = 587
+EMAIL_HOST_USER = 'apikey'
+EMAIL_HOST_PASSWORD = 'your-sendgrid-api-key'
+r
+# On macOS/Linux:r
+source venv/bin/activate
+
+2.3 Install Python Dependencies
+--------------------------------
+r
+
+2.4 Database Configuration
+---------------------------r
+The project uses SQLite by default (no additional setup required).
+If you want to use PostgreSQL or MySQL, update the DATABASES setting in pneushop/settings.py
+
+2.5 Run Database Migrations
+----------------------------
+python manage.py makemigrations
+python manage.py migrate
+
+2.6 Create Superuser Account
+-----------------------------
+python manage.py createsuperuser
+# Follow prompts to create admin account
+
+2.7 Load Sample Data (Optional)
+--------------------------------
+# The project includes Excel import functionality
+# You can import tire data through the admin panel or use the sample data
+python manage.py loaddata fixtures/sample_data.json  # if available
+
+STEP 3: EMAIL CONFIGURATION
+============================
+
+3.1 Gmail SMTP Setup (Recommended)
+-----------------------------------
+1. Go to your Gmail account settings
+2. Enable 2-Factor Authentication
+3. Generate an App Password:
+   - Google Account → Security → 2-Step Verification → App passwords
+   - Select "Mail" and generate password
+
+3.2 Update Django Settings
+---------------------------
+Edit backend/pneushop/settings.py and update these lines:
+
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = 'your-email@gmail.com'
+EMAIL_HOST_PASSWORD = 'your-app-password'  # Use the generated app password
+DEFAULT_FROM_EMAIL = 'your-email@gmail.com'
+
+3.3 Alternative Email Providers
+--------------------------------
+For SendGrid:
+EMAIL_HOST = 'smtp.sendgrid.net'
+EMAIL_PORT = 587
+EMAIL_HOST_USER = 'apikey'
+EMAIL_HOST_PASSWORD = 'your-sendgrid-api-key'
+r
 For Outlook/Hotmail:
 EMAIL_HOST = 'smtp-mail.outlook.com'
 EMAIL_PORT = 587

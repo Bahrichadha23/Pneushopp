@@ -30,7 +30,7 @@ export interface Product {
     diameter: number // Diamètre (ex: 17)
     loadIndex: number // Indice de charge (ex: 91)
     speedRating: string // Indice de vitesse (ex: 'W')
-    season: "ete" | "hiver" | "toutes-saisons"
+    season: "été" | "hiver" | "toutes-saisons"
     specialty?: "tourisme" | "sport" | "eco"
   }
 

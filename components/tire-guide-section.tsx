@@ -53,6 +53,41 @@ export default function TireGuideSection() {
 
   const dimensionText = `${filters.width || "205"}/${filters.height || "55"} R${filters.diameter || "16"}`;
   const textPositions = generateTextPath(dimensionText, -90, 168, 400, 280);
+  const getCharColor = (index: number) => {
+  // Texte complet ex: "205/55 R16"
+  // Indices : 0 1 2 3 4 5 6 7 8 ...
+  //          2 0 5 / 5 5   R 1 6
+
+  const widthDone = !!filters.width;
+  const heightDone = !!filters.height;
+  const diameterDone = !!filters.diameter;
+
+  // Trouver les positions dans la string
+  const s = dimensionText; // ex "205/55 R16"
+  const slashIndex = s.indexOf("/");
+  const spaceIndex = s.indexOf(" ");
+  const rIndex = s.indexOf("R");
+
+  // Largeur = avant "/"
+  const isWidthChar = index < slashIndex;
+
+  // Hauteur = après "/" et avant " "
+  const isHeightChar = index > slashIndex && index < spaceIndex;
+
+  // Diamètre = de "R" jusqu’à la fin
+  const isDiameterChar = index >= rIndex;
+
+  // Couleurs
+  const yellow = "#facc15"; // Tailwind yellow-400
+  const white = "#ffffff";
+
+  if (isWidthChar) return widthDone ? yellow : white;
+  if (isHeightChar) return heightDone ? yellow : white;
+  if (isDiameterChar) return diameterDone ? yellow : white;
+
+  // "/" et espaces restent blancs
+  return white;
+};
 
   return (
     <section className="bg-white mt-2 lg:ml-58 lg:mr-58 m-14">
@@ -80,19 +115,36 @@ export default function TireGuideSection() {
             style={{ filter: "drop-shadow(0 15px 30px rgba(0,0,0,0.25))" }}
           >
             <defs>
+              {/* === RUBBER GRADIENTS === */}
               <radialGradient id="outerRubber" cx="40%" cy="40%">
                 <stop offset="0%" stopColor="#5a5a5a" />
                 <stop offset="30%" stopColor="#3a3a3a" />
                 <stop offset="70%" stopColor="#252525" />
                 <stop offset="100%" stopColor="#0f0f0f" />
               </radialGradient>
-              
+
               <radialGradient id="innerRubber" cx="50%" cy="50%">
                 <stop offset="0%" stopColor="#3a3a3a" />
                 <stop offset="50%" stopColor="#1f1f1f" />
                 <stop offset="100%" stopColor="#0a0a0a" />
               </radialGradient>
 
+              {/* === RUBBER HIGHLIGHT (LIGHT SOURCE) === */}
+              <radialGradient id="rubberHighlight" cx="35%" cy="25%">
+                <stop offset="0%" stopColor="#ffffff" stopOpacity="0.15" />
+                <stop offset="40%" stopColor="#ffffff" stopOpacity="0.07" />
+                <stop offset="100%" stopColor="#ffffff" stopOpacity="0" />
+              </radialGradient>
+
+              {/* === RUBBER NOISE TEXTURE === */}
+              <pattern id="rubberNoise" width="10" height="10" patternUnits="userSpaceOnUse">
+                <rect width="10" height="10" fill="#000" opacity="0.02" />
+                <circle cx="2" cy="2" r="1" fill="#fff" opacity="0.05" />
+                <circle cx="8" cy="4" r="1" fill="#fff" opacity="0.04" />
+                <circle cx="5" cy="8" r="1" fill="#fff" opacity="0.035" />
+              </pattern>
+
+              {/* === METALLIC RIM GRADIENT === */}
               <linearGradient id="rimShine" x1="0%" y1="0%" x2="0%" y2="100%">
                 <stop offset="0%" stopColor="#ffffff" />
                 <stop offset="40%" stopColor="#f5f5f5" />
@@ -100,22 +152,53 @@ export default function TireGuideSection() {
                 <stop offset="100%" stopColor="#d0d0d0" />
               </linearGradient>
 
+              {/* === CLIP (TOP HALF TIRE) === */}
               <clipPath id="topHalf">
                 <rect x="0" y="0" width="800" height="280" />
               </clipPath>
 
+              {/* === INNER SHADOW === */}
               <filter id="innerShadow">
-                <feGaussianBlur in="SourceAlpha" stdDeviation="3"/>
-                <feOffset dx="0" dy="2" result="offsetblur"/>
+                <feGaussianBlur in="SourceAlpha" stdDeviation="3" />
+                <feOffset dx="0" dy="2" result="offsetblur" />
                 <feComponentTransfer>
-                  <feFuncA type="linear" slope="0.5"/>
+                  <feFuncA type="linear" slope="0.5" />
                 </feComponentTransfer>
                 <feMerge>
-                  <feMergeNode/>
-                  <feMergeNode in="SourceGraphic"/>
+                  <feMergeNode />
+                  <feMergeNode in="SourceGraphic" />
                 </feMerge>
               </filter>
+
+              {/* === SOFT SHADOW (REALISTIC DEPTH) === */}
+              <filter id="softShadow" x="-30%" y="-30%" width="160%" height="160%">
+                <feDropShadow
+                  dx="0"
+                  dy="14"
+                  stdDeviation="14"
+                  floodColor="#000"
+                  floodOpacity="0.35"
+                />
+              </filter>
+
+              {/* === SPECULAR LIGHTING FOR METAL RIM === */}
+              <filter id="rimSpecular" x="-30%" y="-30%" width="160%" height="160%">
+                <feGaussianBlur in="SourceAlpha" stdDeviation="1" result="blur" />
+                <feSpecularLighting
+                  in="blur"
+                  surfaceScale="4"
+                  specularConstant="0.6"
+                  specularExponent="25"
+                  lightingColor="#ffffff"
+                  result="spec"
+                >
+                  <feDistantLight azimuth="220" elevation="35" />
+                </feSpecularLighting>
+                <feComposite in="spec" in2="SourceGraphic" operator="in" result="specMask" />
+                <feBlend in="SourceGraphic" in2="specMask" mode="screen" />
+              </filter>
             </defs>
+
 
             <g clipPath="url(#topHalf)">
               {/* Main tire outer circle */}
@@ -124,16 +207,44 @@ export default function TireGuideSection() {
                 cy="280" 
                 r="200" 
                 fill="url(#outerRubber)"
+                filter="url(#softShadow)"
               />
-
+              <circle
+                cx="400"
+                cy="280"
+                r="200"
+                fill="url(#rubberNoise)"
+                opacity="0.35"
+              />
+              <circle
+                cx="400"
+                cy="280"
+                r="200"
+                fill="url(#rubberHighlight)"
+              />
               {/* Middle sidewall */}
               <circle 
                 cx="400" 
                 cy="280" 
                 r="175" 
                 fill="url(#innerRubber)"
+                filter="url(#softShadow)"
               />
-
+              {/* Tread lines (simple) */}
+              <g opacity="0.25">
+                {[...Array(18)].map((_, k) => (
+                  <line
+                    key={k}
+                    x1="400"
+                    y1="80"
+                    x2="400"
+                    y2="140"
+                    stroke="#000"
+                    strokeWidth="6"
+                    transform={`rotate(${k * 10} 400 280)`}
+                  />
+                ))}
+              </g>
               {/* Sidewall detail lines */}
               <circle 
                 cx="400" 
@@ -169,7 +280,7 @@ export default function TireGuideSection() {
                 cy="280" 
                 r="140" 
                 fill="url(#rimShine)"
-                filter="url(#innerShadow)"
+                filter="url(#rimSpecular)"
               />
 
               {/* Rim highlight edge */}
@@ -206,7 +317,7 @@ export default function TireGuideSection() {
                     fontSize="40"
                     fontWeight="bold"
                     fontFamily="Arial, sans-serif"
-                    fill="white"
+                    fill={getCharColor(i)}
                     textAnchor="middle"
                     dominantBaseline="middle"
                     transform={`rotate(${pos.rotation} ${pos.x} ${pos.y})`}
@@ -263,8 +374,8 @@ export default function TireGuideSection() {
 
       <div className="max-w-7xl mx-auto">
         {/* Form */}
-        <div className="bg-yellow-300 py-12 px-6">
-          <div className="space-y-6 text-center">
+        <div className="bg-yellow-300 py-6 px-6 rounded-xl shadow-md">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 text-center">
             {/* Largeur */}
             <div>
               <label className="block text-sm font-bold text-black mb-1">
@@ -273,7 +384,7 @@ export default function TireGuideSection() {
               <select
                 value={filters.width}
                 onChange={(e) => handleChange("width", e.target.value)}
-                className="w-full px-4 py-3 border text-center border-black rounded text-black focus:outline-none appearance-none"
+                className="w-full px-3 py-2 text-sm border text-center border-black rounded text-black focus:outline-none appearance-none"
               >
                 <option value="">Choisir la largeur</option>
                 <option value="8">8</option>
@@ -344,7 +455,7 @@ export default function TireGuideSection() {
               <select
                 value={filters.height}
                 onChange={(e) => handleChange("height", e.target.value)}
-                className="w-full px-4 py-3 border text-center border-black rounded text-black focus:outline-none appearance-none"
+                className="w-full px-3 py-2 text-sm border text-center border-black rounded text-black focus:outline-none appearance-none"
               >
                 <option value="">Choisir la hauteur</option>
                 <option value="7">7</option>
@@ -378,7 +489,7 @@ export default function TireGuideSection() {
               <select
                 value={filters.diameter}
                 onChange={(e) => handleChange("diameter", e.target.value)}
-                className="w-full px-4 py-3 border text-center border-black rounded text-black focus:outline-none appearance-none"
+                className="w-full px-3 py-2 text-sm border text-center border-black rounded text-black focus:outline-none appearance-none"
               >
                 <option value="">Choisir le diamètre</option>
                 <option value="10">10</option>
@@ -411,7 +522,7 @@ export default function TireGuideSection() {
               <select
                 value={filters.loadIndex}
                 onChange={(e) => handleChange("loadIndex", e.target.value)}
-                className="w-full px-4 py-3 border text-center border-black rounded text-black focus:outline-none appearance-none"
+                className="w-full px-3 py-2 text-sm border text-center border-black rounded text-black focus:outline-none appearance-none"
               >
                 <option value="">Choisir la charge</option>
                 <option value="19">19</option>
@@ -450,7 +561,7 @@ export default function TireGuideSection() {
         </div>
 
         {/* Button */}
-        <div className="text-center pt-8">
+        <div className="text-center pt-4">
           <motion.button
             onClick={handleSearch}
             className="bg-black text-white font-bold p-3 rounded hover:bg-gray-800 transition"

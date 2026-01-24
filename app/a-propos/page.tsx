@@ -24,7 +24,7 @@ export default function AProposPage() {
               </p>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12 text-center">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12 text-left">
               <div>
                 <h3 className="text-xl font-semibold mb-4">Notre Mission</h3>
                 <p className="text-gray-700 mb-4">
