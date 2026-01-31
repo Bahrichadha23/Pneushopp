@@ -336,7 +336,7 @@ export default function ProductForm({
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
+            {/* <div>
               <Label htmlFor="reference" className="mb-2">
                 Référence
               </Label>
@@ -345,7 +345,7 @@ export default function ProductForm({
                 value={formData.reference}
                 onChange={(e) => handleInputChange("reference", e.target.value)}
               />
-            </div>
+            </div> */}
 
             <div>
               <Label htmlFor="designation" className="mb-2">
@@ -384,19 +384,66 @@ export default function ProductForm({
               />
             </div>
 
-            <div>
-              <Label htmlFor="fabrication_date" className="mb-2">
-                Date de Fabrication
-              </Label>
-              <Input
-                id="fabrication_date"
-                type="date"
-                value={formData.fabrication_date}
-                onChange={(e) =>
-                  handleInputChange("fabrication_date", e.target.value)
-                }
-              />
-            </div>
+           <div className="md:col-span-2">
+  <Label className="mb-2">
+    Date de Fabrication (Mois/Année)
+  </Label>
+
+  <div className="grid grid-cols-2 gap-2">
+    {/* Month Select */}
+    <Select
+      value={formData.fabrication_date.split("-")[1] || ""}
+      onValueChange={(month) => {
+        const year =
+          formData.fabrication_date.split("-")[0] ||
+          new Date().getFullYear().toString();
+        handleInputChange("fabrication_date", `${year}-${month}`);
+      }}
+    >
+      <SelectTrigger className="w-full">
+        <SelectValue placeholder="Sélectionner le mois" />
+      </SelectTrigger>
+      <SelectContent>
+        <SelectItem value="01">Janvier</SelectItem>
+        <SelectItem value="02">Février</SelectItem>
+        <SelectItem value="03">Mars</SelectItem>
+        <SelectItem value="04">Avril</SelectItem>
+        <SelectItem value="05">Mai</SelectItem>
+        <SelectItem value="06">Juin</SelectItem>
+        <SelectItem value="07">Juillet</SelectItem>
+        <SelectItem value="08">Août</SelectItem>
+        <SelectItem value="09">Septembre</SelectItem>
+        <SelectItem value="10">Octobre</SelectItem>
+        <SelectItem value="11">Novembre</SelectItem>
+        <SelectItem value="12">Décembre</SelectItem>
+      </SelectContent>
+    </Select>
+
+    {/* Year Select */}
+    <Select
+      value={formData.fabrication_date.split("-")[0] || ""}
+      onValueChange={(year) => {
+        const month =
+          formData.fabrication_date.split("-")[1] || "01";
+        handleInputChange("fabrication_date", `${year}-${month}`);
+      }}
+    >
+      <SelectTrigger className="w-full">
+        <SelectValue placeholder="Sélectionner l'année" />
+      </SelectTrigger>
+      <SelectContent>
+        {Array.from({ length: 20 }, (_, i) => {
+          const year = new Date().getFullYear() - i;
+          return (
+            <SelectItem key={year} value={year.toString()}>
+              {year}
+            </SelectItem>
+          );
+        })}
+      </SelectContent>
+    </Select>
+  </div>
+</div>
           </div>
         </CardContent>
       </Card>
