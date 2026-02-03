@@ -43,7 +43,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Search, Plus, Trash2, Printer, Save, X, List, Loader2, Eye } from "lucide-react";
+import { Search, Plus, Trash2, Printer, Save, X, List, Loader2, Eye, Edit } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { API_URL } from "@/lib/config";
 import type { Supplier } from "@/types/supplier";
@@ -107,6 +107,12 @@ export default function AchatsPage() {
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear().toString());
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [showProductDetail, setShowProductDetail] = useState(false);
+  const [showProductEdit, setShowProductEdit] = useState(false);
+  const [editProductData, setEditProductData] = useState({
+    emplacement: '',
+    fabrication_week: '',
+    fabrication_year: ''
+  });
 
   // Fetch brands on mount
   useEffect(() => {
@@ -205,12 +211,12 @@ export default function AchatsPage() {
   };
 
   const formatFabricationDate = (product: Product): string => {
-    // If product has fabrication_date field, format it as week/year
+    // If product has fabrication_date field, format it as week.year (e.g., 05.22)
     if (product.fabrication_date) {
       const date = new Date(product.fabrication_date);
       const week = Math.ceil((date.getDate() + 6 - date.getDay()) / 7);
       const year = date.getFullYear();
-      return `${week}/${year}`;
+      return `${String(week).padStart(2, '0')}.${String(year).slice(-2)}`;
     }
     return 'N/A';
   };
@@ -218,6 +224,98 @@ export default function AchatsPage() {
   const handleProductDetail = (product: Product) => {
     setSelectedProduct(product);
     setShowProductDetail(true);
+  };
+
+  const handleProductEdit = (product: Product) => {
+    setSelectedProduct(product);
+    
+    // Parse existing fabrication_date if it exists
+    let week = '';
+    let year = '';
+    if (product.fabrication_date) {
+      const date = new Date(product.fabrication_date);
+      const weekNum = Math.ceil((date.getDate() + 6 - date.getDay()) / 7);
+      week = String(weekNum).padStart(2, '0');
+      year = String(date.getFullYear()).slice(-2);
+    }
+    
+    setEditProductData({
+      emplacement: product.emplacement || '',
+      fabrication_week: week,
+      fabrication_year: year
+    });
+    setShowProductEdit(true);
+  };
+
+  const handleSaveProductEdit = async () => {
+    if (!selectedProduct) return;
+
+    // Convert week.year format to actual date for backend storage
+    let fabrication_date = null;
+    if (editProductData.fabrication_week && editProductData.fabrication_year) {
+      const week = parseInt(editProductData.fabrication_week);
+      const year = parseInt(`20${editProductData.fabrication_year}`); // Convert 22 to 2022
+      
+      // Calculate the date from week and year
+      const firstDayOfYear = new Date(year, 0, 1);
+      const daysToAdd = (week - 1) * 7;
+      const fabricationDate = new Date(firstDayOfYear.getTime() + daysToAdd * 24 * 60 * 60 * 1000);
+      fabrication_date = fabricationDate.toISOString().split('T')[0]; // YYYY-MM-DD format
+    }
+
+    const updateData = {
+      emplacement: editProductData.emplacement || null,
+      fabrication_date: fabrication_date
+    };
+
+    try {
+      const token = localStorage.getItem("access_token");
+      console.log('🔄 Updating product ID:', selectedProduct.id);
+      console.log('📤 Sending update data:', updateData);
+      console.log('🔗 API URL:', `${API_URL}/products/${selectedProduct.id}/`);
+      
+      const response = await fetch(`${API_URL}/products/${selectedProduct.id}/`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(updateData),
+      });
+
+      console.log('📥 Response status:', response.status);
+      console.log('📥 Response headers:', Object.fromEntries(response.headers.entries()));
+      
+      const responseData = await response.json();
+      console.log('📥 Response data:', responseData);
+
+      if (response.ok) {
+        // Update the product in search results with the actual response data
+        setSearchResults(searchResults.map(product => 
+          product.id === selectedProduct.id 
+            ? { ...product, ...responseData }
+            : product
+        ));
+        
+        // Also update the selected product
+        setSelectedProduct({ ...selectedProduct, ...responseData });
+        
+        setShowProductEdit(false);
+        alert('✅ Produit mis à jour avec succès dans la base de données!');
+        
+        // Refresh search results to get latest data from database
+        if (searchRef || searchBrand !== 'all' || searchCategory !== 'all') {
+          handleSearch();
+        }
+        
+      } else {
+        console.error('❌ API Error:', responseData);
+        alert(`❌ Erreur lors de la mise à jour: ${JSON.stringify(responseData)}`);
+      }
+    } catch (error) {
+      console.error('💥 Network error:', error);
+      alert(`❌ Erreur de connexion: ${error.message}`);
+    }
   };
 
 
@@ -366,7 +464,7 @@ export default function AchatsPage() {
         setSelectedWeek("");
         setGlobalDiscount(0);
         
-        alert("✅ Commande confirmée avec succès!");
+        alert("produit ajouté avec succès!");
       } else {
         const msg = isJson ? JSON.stringify(body) : (errorText || `HTTP ${response.status}`);
         console.error("❌ Error response:", msg);
@@ -385,6 +483,24 @@ export default function AchatsPage() {
     setInvoiceNumber("");
     setSelectedWeek("");
     setGlobalDiscount(0);
+  };
+
+  const refreshOrders = async () => {
+    try {
+      const token = localStorage.getItem("access_token");
+      const response = await fetch(`${API_URL}/purchase-orders/`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      
+      const { data: orders, isJson } = await safeResponseJson(response);
+      if (response.ok && isJson) {
+        setConfirmedOrders(Array.isArray(orders) ? orders : orders?.results || []);
+      }
+    } catch (error) {
+      console.error("Error refreshing purchase orders:", error);
+    }
   };
 
   return (
@@ -527,6 +643,15 @@ export default function AchatsPage() {
                             >
                               <Eye className="h-3 w-3 mr-1" />
                               Détail
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => handleProductEdit(product)}
+                              className="border-yellow-500 text-yellow-600 hover:bg-yellow-50"
+                            >
+                              <Edit className="h-3 w-3 mr-1" />
+                              Modifier
                             </Button>
                             <Button
                               size="sm"
@@ -749,6 +874,85 @@ export default function AchatsPage() {
         </Card>
       </div>
 
+      {/* Confirmed Orders Section */}
+      <Card className="mt-6">
+        <CardHeader className="flex flex-row items-center justify-between">
+          <CardTitle>Commandes d'Achat Confirmées</CardTitle>
+          <Button 
+            onClick={refreshOrders}
+            variant="outline"
+            size="sm"
+            className="ml-auto"
+          >
+            🔄 Actualiser
+          </Button>
+        </CardHeader>
+        <CardContent>
+          {confirmedOrders && confirmedOrders.length > 0 ? (
+            <div className="space-y-4">
+              {confirmedOrders.map((order) => (
+                <div key={order.id} className="border rounded-lg p-4 bg-gray-50">
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <div>
+                      <span className="font-bold text-gray-700">N° Commande:</span>
+                      <div className="text-sm">{order.order_number}</div>
+                    </div>
+                    <div>
+                      <span className="font-bold text-gray-700">Fournisseur:</span>
+                      <div className="text-sm text-blue-600">{order.supplier_name || order.supplier}</div>
+                    </div>
+                    <div>
+                      <span className="font-bold text-gray-700">Semaine/Année:</span>
+                      <div className="text-sm font-medium text-green-600">
+                        {order.week && order.year ? `${order.week}.${order.year}` : 'N/A'}
+                      </div>
+                    </div>
+                    <div>
+                      <span className="font-bold text-gray-700">Total HT:</span>
+                      <div className="text-sm font-bold text-orange-600">
+                        {Number(order.total || 0).toFixed(3)} DT
+                      </div>
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-3 pt-3 border-t">
+                    <div>
+                      <span className="font-bold text-gray-700">Statut:</span>
+                      <div className={`text-sm inline-block px-2 py-1 rounded ${
+                        order.status === 'confirmed' ? 'bg-green-100 text-green-800' :
+                        order.status === 'received' ? 'bg-blue-100 text-blue-800' :
+                        order.status === 'cancelled' ? 'bg-red-100 text-red-800' :
+                        'bg-gray-100 text-gray-800'
+                      }`}>
+                        {order.status === 'confirmed' ? 'Confirmée' :
+                         order.status === 'received' ? 'Reçue' :
+                         order.status === 'cancelled' ? 'Annulée' :
+                         order.status || 'Brouillon'}
+                      </div>
+                    </div>
+                    <div>
+                      <span className="font-bold text-gray-700">Date:</span>
+                      <div className="text-sm">
+                        {order.order_date ? new Date(order.order_date).toLocaleDateString('fr-FR') : 'N/A'}
+                      </div>
+                    </div>
+                    {order.invoice_number && (
+                      <div>
+                        <span className="font-bold text-gray-700">N° Facture:</span>
+                        <div className="text-sm">{order.invoice_number}</div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="text-center text-gray-500 py-8">
+              Aucune commande d'achat confirmée
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
       {/* Product Detail Modal */}
       <Dialog open={showProductDetail} onOpenChange={setShowProductDetail}>
         <DialogContent className="max-w-md">
@@ -814,6 +1018,92 @@ export default function AchatsPage() {
               >
                 Fermer
               </Button>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Product Edit Modal */}
+      <Dialog open={showProductEdit} onOpenChange={setShowProductEdit}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-xl font-bold text-center bg-gradient-to-r from-yellow-500 to-orange-500 text-white py-3 -mt-6 -mx-6 px-6 rounded-t-lg">
+              Modifier Produit: {selectedProduct?.reference || selectedProduct?.id}
+            </DialogTitle>
+          </DialogHeader>
+          
+          {selectedProduct && (
+            <div className="space-y-4 p-4">
+              {/* Product Info */}
+              <div className="bg-gray-50 p-3 rounded-lg">
+                <h3 className="font-bold text-gray-800">{selectedProduct.name}</h3>
+                <p className="text-sm text-gray-600">{getBrandName(selectedProduct.brand)} - {selectedProduct.designation}</p>
+              </div>
+
+              {/* Emplacement */}
+              <div>
+                <Label htmlFor="emplacement" className="font-bold text-gray-700">
+                  Emplacement
+                </Label>
+                <Input
+                  id="emplacement"
+                  value={editProductData.emplacement}
+                  onChange={(e) => setEditProductData(prev => ({ ...prev, emplacement: e.target.value }))}
+                  className="mt-1"
+                />
+              </div>
+
+              {/* Fabrication Date */}
+              <div>
+                <Label className="font-bold text-gray-700">
+                  Date de Fabrication (Semaine.Année)
+                </Label>
+                <div className="flex gap-2 mt-1">
+                  <Input
+                    value={editProductData.fabrication_week}
+                    onChange={(e) => {
+                      const value = e.target.value.replace(/[^0-9]/g, '').slice(0, 2);
+                      if (value === '' || (parseInt(value) >= 1 && parseInt(value) <= 52)) {
+                        setEditProductData(prev => ({ ...prev, fabrication_week: value }));
+                      }
+                    }}
+                    className="flex-1 text-center"
+                    maxLength={2}
+                  />
+                  <span className="flex items-center text-gray-500">.</span>
+                  <Input
+                    value={editProductData.fabrication_year}
+                    onChange={(e) => {
+                      const value = e.target.value.replace(/[^0-9]/g, '').slice(0, 2);
+                      setEditProductData(prev => ({ ...prev, fabrication_year: value }));
+                    }}
+                    className="flex-1 text-center"
+                    maxLength={2}
+                  />
+                </div>
+                <p className="text-xs text-gray-500 mt-1">
+                  Format: Semaine (01-52) . Année (22 pour 2022)
+                </p>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex gap-2 pt-4">
+                <Button
+                  onClick={handleSaveProductEdit}
+                  className="bg-yellow-600 hover:bg-yellow-700 text-white flex-1"
+                >
+                  <Save className="h-4 w-4 mr-2" />
+                  Sauvegarder
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={() => setShowProductEdit(false)}
+                  className="flex-1"
+                >
+                  <X className="h-4 w-4 mr-2" />
+                  Annuler
+                </Button>
+              </div>
             </div>
           )}
         </DialogContent>
