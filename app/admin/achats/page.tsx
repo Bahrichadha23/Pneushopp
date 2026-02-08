@@ -513,58 +513,20 @@ export default function AchatsPage() {
         {/* Left Panel - Product Search */}
         <Card>
           <CardHeader>
-            <CardTitle>Recherche par <br className="mb-2"/> Titre,<br className="mb-2"/> Ref,<br className="mb-2"/> Code Barre,<br className="mb-2"/> Voiture</CardTitle>
+            <CardTitle>Recherche</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-3 gap-4">
-                  <div>
-                    <Label>Voiture</Label>
-                    <Input placeholder="Titre" />
-                  </div>
-                  <div>
+            <div className="flex items-center gap-3">
                     <Label>Réf.</Label>
                     <Input
                       placeholder="2055516C7"
                       value={searchRef}
                       onChange={(e) => setSearchRef(e.target.value)}
+                      className="flex-1"
                     />
-                  </div>
-                  <div>
-                    <Label>Marque</Label>
-                    <Select value={searchBrand} onValueChange={setSearchBrand}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Sélectionner" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="all">Toutes</SelectItem>
-                        {brands.map((brand) => (
-                          <SelectItem key={brand} value={brand}>
-                            {brand}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  
                 </div>
 
-                <div className="flex gap-2 mt-2 mb-4">
-                  <Select value={searchCategory} onValueChange={setSearchCategory}>
-                    <SelectTrigger className="flex-1">
-                      <SelectValue placeholder="Catégories" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">Toutes</SelectItem>
-                      <SelectItem value="Tourisme">Tourisme</SelectItem>
-                      <SelectItem value="suv">SUV</SelectItem>
-                      <SelectItem value="camionnette">Camionnette</SelectItem>
-                      <SelectItem value="agricole">Agricole</SelectItem>
-                      <SelectItem value="poids-lourd">Poids lourd</SelectItem>
-                      <SelectItem value="utilitaire">Utilitaire</SelectItem>
-                      <SelectItem value="4x4">4X4</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <Button onClick={handleSearch} disabled={isSearching}>
+                  <Button className="mt-2 ml-120 mb-2" onClick={handleSearch} disabled={isSearching}>
                     {isSearching ? (
                       <Loader2 className="h-4 w-4 mr-2 animate-spin" />
                     ) : (
@@ -572,10 +534,9 @@ export default function AchatsPage() {
                     )}
                     Rechercher
                   </Button>
-                </div>
 
                 {/* Search Results */}
-                <div className="border rounded-lg p-4 min-h-[300px] max-h-[500px] overflow-y-auto">
+                <div className="border rounded-lg p-4 min-h-[300px] max-h-[500px] overflow-y-auto"> 
                   {isSearching ? (
                     <div className="flex items-center justify-center py-12">
                       <Loader2 className="h-8 w-8 animate-spin text-gray-400" />

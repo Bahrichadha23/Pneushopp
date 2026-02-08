@@ -187,8 +187,32 @@ export async function handleDownloadInvoice(order: any) {
         h = textHeight + 2; // Add some padding
       }
 
-      // Use specifications (tire size) as reference
-      pdf.text(item.specifications || "-", x + 2, y + 5);
+      // Extract tire specification from product name if not available in specifications field
+      const getTireSpecification = (productName: string, specifications?: string): string => {
+        console.log('Product Name:', productName, 'Specifications:', specifications);
+        
+        // Always extract from product name first to ensure we get the correct tire size for this specific product
+        const tireSpecMatch = productName.match(/(\d{3}\/\d{2}\s+R\s*\d{1,2}[A-Z]*)/i);
+        if (tireSpecMatch) {
+          const extracted = tireSpecMatch[1].replace(/\s+/g, ' ').trim();
+          console.log('Extracted from product name:', extracted);
+          return extracted;
+        }
+        
+        // If specifications field has a valid tire size pattern and we couldn't extract from name, use it as fallback
+        if (specifications && /\d+\/\d+\s+R\s*\d+[A-Z]*/.test(specifications)) {
+          console.log('Using specifications field as fallback:', specifications);
+          return specifications;
+        }
+        
+        console.log('No match found, using fallback:', specifications || "-");
+        return specifications || "-";
+      };
+
+      const tireSpec = getTireSpecification(productName, item.specifications);
+      
+      // Use extracted tire specification as reference with better spacing
+      pdf.text(tireSpec, x , y + 5);
       x += headers[0].width;
       
       // Draw wrapped product name
@@ -257,23 +281,6 @@ export async function handleDownloadInvoice(order: any) {
   const totalRowH = 7;
   const totalTableX = pageWidth - 85;
 
-  // Left side QUATRE CENT box
-  const leftBoxW = totalTableX - margin - 5;
-  drawCell(margin, boxY, leftBoxW, boxH, {
-    top: true,
-    bottom: true,
-    left: true,
-    right: true,
-  });
-  pdf.setFont("helvetica", "bold");
-  pdf.setFontSize(10);
-  pdf.text(
-    `QUATRE CENT ${Math.floor(totalTTC)} Dinar(s) Tunisien ${Math.round(
-      (totalTTC % 1) * 1000
-    )} Millime(s)`,
-    margin + 3,
-    boxY + 8
-  );
 
   // === Vertical Totals table (right side, inline with QUATRE box) ===
   const totals = [
@@ -308,35 +315,35 @@ export async function handleDownloadInvoice(order: any) {
   });
 
   // === Horizontal Totals box (below QUATRE box, aligned left) ===
-  const tvaBoxY = boxY + boxH + 3; // small gap below QUATRE box
-  const colW = leftBoxW / 3;
-  const labels = ["Base TVA", "Taux", "TOTAL TVA"];
-  const values = [netHT.toFixed(3), "19.00", totalTVA.toFixed(3)];
+  // const tvaBoxY = boxY + boxH + 3; // small gap below QUATRE box
+  // const colW = leftBoxW / 3;
+  // const labels = ["Base TVA", "Taux", "TOTAL TVA"];
+  // const values = [netHT.toFixed(3), "19.00", totalTVA.toFixed(3)];
 
-  pdf.setFont("helvetica", "bold");
-  labels.forEach((label, i) => {
-    const x = margin + i * colW;
-    drawCell(x, tvaBoxY, colW, 7, {
-      top: true,
-      bottom: true,
-      left: true,
-      right: true,
-    });
-    pdf.text(label, x + 2, tvaBoxY + 5);
-  });
+  // pdf.setFont("helvetica", "bold");
+  // labels.forEach((label, i) => {
+  //   const x = margin + i * colW;
+  //   drawCell(x, tvaBoxY, colW, 7, {
+  //     top: true,
+  //     bottom: true,
+  //     left: true,
+  //     right: true,
+  //   });
+  //   pdf.text(label, x + 2, tvaBoxY + 5);
+  // });
 
-  pdf.setFont("helvetica", "normal");
-  const valY = tvaBoxY + 7;
-  values.forEach((val, i) => {
-    const x = margin + i * colW;
-    drawCell(x, valY, colW, 7, {
-      top: true,
-      bottom: true,
-      left: true,
-      right: true,
-    });
-    pdf.text(val, x + colW - 2, valY + 5, { align: "right" });
-  });
+  // pdf.setFont("helvetica", "normal");
+  // const valY = tvaBoxY + 7;
+  // values.forEach((val, i) => {
+  //   const x = margin + i * colW;
+  //   drawCell(x, valY, colW, 7, {
+  //     top: true,
+  //     bottom: true,
+  //     left: true,
+  //     right: true,
+  //   });
+  //   pdf.text(val, x + colW - 2, valY + 5, { align: "right" });
+  // });
 
   // === Signature ===
   pdf.setFont("helvetica", "italic");

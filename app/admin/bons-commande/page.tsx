@@ -150,16 +150,42 @@ const handleDownloadPurchaseOrder = async (bon: BonCommande) => {
     pdf.setFont("helvetica", "normal");
     bon.articles.forEach((item: any) => {
       currentX = margin;
-      const productName = item.product_name || item.productName || item.product?.name || item.nom || "-";
+      
+      // Try multiple fields to get the product name, including tire specifications
+      const productName = item.product_name || 
+                         item.productName || 
+                         item.product?.name || 
+                         item.nom || 
+                         item.designation || 
+                         item.name ||
+                         `Produit ${item.id || 'N/A'}`;
+                         
       const quantity = parseInt(item.quantity || item.quantite || 0);
       const unitPrice = parseFloat(item.unit_price || item.unitPrice || item.price || item.prix_unitaire || 0);
       const total = quantity * unitPrice;
 
-      console.log("🔍 Processing item:", { productName, quantity, unitPrice, total });
+      console.log("🔍 Processing item:", { 
+        productName, 
+        quantity, 
+        unitPrice, 
+        total,
+        rawItem: item 
+      });
 
-      // Product name (full name)
+      // Product name (with better text wrapping for long tire names)
       pdf.rect(currentX, y, colWidths[0], 8);
-      pdf.text(productName, currentX + 2, y + 5.5);
+      
+      // Handle long product names by wrapping text
+      const maxWidth = colWidths[0] - 4; // Leave some padding
+      const wrappedText = pdf.splitTextToSize(productName, maxWidth);
+      
+      if (wrappedText.length > 1) {
+        // If text needs wrapping, show first line and truncate with "..."
+        pdf.text(wrappedText[0].substring(0, wrappedText[0].length - 3) + "...", currentX + 2, y + 5.5);
+      } else {
+        pdf.text(productName, currentX + 2, y + 5.5);
+      }
+      
       currentX += colWidths[0];
 
       // Quantity
@@ -199,9 +225,6 @@ const handleDownloadPurchaseOrder = async (bon: BonCommande) => {
   pdf.roundedRect(boxX, boxY, 65, 36, 2, 2, "S");
   
   pdf.setFontSize(10);
-  pdf.text(`Total HT:`, boxX + 3, boxY + 8);
-  pdf.text(`${(bon.totalHT ?? 0).toLocaleString("fr-FR", { minimumFractionDigits: 2 })} TND`, boxX + 60, boxY + 8, { align: "right" });
-  
   pdf.text(`Frais de livraison:`, boxX + 3, boxY + 16);
   pdf.text(`${deliveryCost.toLocaleString("fr-FR", { minimumFractionDigits: 2 })} TND`, boxX + 60, boxY + 16, { align: "right" });
   
@@ -247,7 +270,7 @@ export default function BonsCommandePage() {
     const fetchData = async () => {
       try {
         const token = localStorage.getItem("access_token");
-        const res = await fetch(`${API_URL}/purchase-orders/`, {
+        const res = await fetch(`${API_URL}/orders/purchase-orders/`, {
           headers: {
             "Content-Type": "application/json",
             Authorization: `Bearer ${token}`,
@@ -291,30 +314,6 @@ export default function BonsCommandePage() {
     fetchData();
   }, []);
 
-  // const handleConfirmBon = async (id: number) => {
-  //   try {
-  //     const token = localStorage.getItem("access_token");
-  //     const res = await fetch(`${API_URL}/purchase-orders/${id}/`, {
-  //       method: "PUT", // or PATCH
-  //       headers: {
-  //         "Content-Type": "application/json",
-  //         Authorization: `Bearer ${token}`,
-  //       },
-  //       body: JSON.stringify({ statut: "confirmé" }),
-  //     });
-
-  //     if (!res.ok) throw new Error("Erreur lors de la confirmation");
-
-  //     // Update state
-  //     setBonsCommande((prev) =>
-  //       prev.map((bon) =>
-  //         bon.id === id ? { ...bon, statut: "confirmé" } : bon
-  //       )
-  //     );
-  //   } catch (err) {
-  //     console.error(err);
-  //   }
-  // };
   const handleConfirmBon = (
     id: number,
     bonNumber: string,
