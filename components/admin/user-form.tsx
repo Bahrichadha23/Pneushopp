@@ -185,20 +185,35 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Loader2 } from 'lucide-react';
 import { useEffect } from 'react';
 
-// Schema validation
-// Update the schema to make fields required
+// Schema validation with improved French validation messages
 const baseUserSchema = {
-    email: z.string().min(1, 'Email est requis').email('Email invalide'),
-    firstName: z.string().min(1, 'Le prénom est requis'),
-    lastName: z.string().min(1, 'Le nom est requis'),
-    role: z.enum(['sales', 'purchasing', 'admin']),
+    email: z.string()
+        .min(1, 'L\'email est requis')
+        .email('Veuillez entrer une adresse email valide'),
+    firstName: z.string()
+        .min(1, 'Le prénom est requis')
+        .min(2, 'Le prénom doit contenir au moins 2 caractères')
+        .max(50, 'Le prénom ne doit pas dépasser 50 caractères'),
+    lastName: z.string()
+        .min(1, 'Le nom est requis')
+        .min(2, 'Le nom doit contenir au moins 2 caractères')
+        .max(50, 'Le nom ne doit pas dépasser 50 caractères'),
+    role: z.enum(['sales', 'purchasing', 'admin'], {
+        errorMap: () => ({ message: 'Veuillez sélectionner un rôle valide' })
+    }),
 };
 
 // Schema for creating a new user (password is required)
 const createUserSchema = z.object({
     ...baseUserSchema,
-    password: z.string().min(6, 'Le mot de passe doit contenir au moins 6 caractères'),
-    password_confirm: z.string().min(1, 'La confirmation du mot de passe est requise'),
+    password: z.string()
+        .min(1, 'Le mot de passe est requis')
+        .min(8, 'Le mot de passe doit contenir au moins 8 caractères')
+        .max(128, 'Le mot de passe ne doit pas dépasser 128 caractères')
+        .regex(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/, 
+            'Le mot de passe doit contenir au moins une majuscule, une minuscule et un chiffre'),
+    password_confirm: z.string()
+        .min(1, 'La confirmation du mot de passe est requise'),
 }).refine((data) => data.password === data.password_confirm, {
     message: 'Les mots de passe ne correspondent pas',
     path: ['password_confirm'],
@@ -207,12 +222,23 @@ const createUserSchema = z.object({
 // Schema for updating a user (password is optional)
 const updateUserSchema = z.object({
     ...baseUserSchema,
-    password: z.string().min(6, 'Le mot de passe doit contenir au moins 6 caractères').optional(),
+    password: z.string()
+        .min(8, 'Le mot de passe doit contenir au moins 8 caractères')
+        .max(128, 'Le mot de passe ne doit pas dépasser 128 caractères')
+        .regex(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/, 
+            'Le mot de passe doit contenir au moins une majuscule, une minuscule et un chiffre')
+        .optional(),
     password_confirm: z.string().optional(),
 }).refine(
-    (data) => !data.password || data.password === data.password_confirm,
+    (data) => !data.password || (data.password === data.password_confirm),
     {
         message: 'Les mots de passe ne correspondent pas',
+        path: ['password_confirm'],
+    }
+).refine(
+    (data) => !data.password || data.password_confirm,
+    {
+        message: 'Veuillez confirmer votre mot de passe',
         path: ['password_confirm'],
     }
 );
@@ -367,7 +393,7 @@ export function UserForm({ onSubmit, isLoading, initialData }: UserFormProps) {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {/* Password */}
                 <div className="space-y-2">
-                    <Label htmlFor="password">Mot de passe *</Label>
+                    <Label htmlFor="password">Mot de passe {!isEdit && '*'}</Label>
                     <Input
                         id="password"
                         type="password"
@@ -376,6 +402,9 @@ export function UserForm({ onSubmit, isLoading, initialData }: UserFormProps) {
                         disabled={isLoading}
                         className={errors.password ? 'border-red-500' : ''}
                     />
+                    <p className="text-xs text-gray-500">
+                        Minimum 8 caractères avec au moins une majuscule, une minuscule et un chiffre
+                    </p>
                     {errors.password && (
                         <p className="text-sm text-red-500">{errors.password.message}</p>
                     )}
@@ -383,7 +412,7 @@ export function UserForm({ onSubmit, isLoading, initialData }: UserFormProps) {
 
                 {/* Confirm Password */}
                 <div className="space-y-2">
-                    <Label htmlFor="password_confirm">Confirmer le mot de passe *</Label>
+                    <Label htmlFor="password_confirm">Confirmer le mot de passe {!isEdit && '*'}</Label>
                     <Input
                         id="password_confirm"
                         type="password"

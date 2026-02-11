@@ -247,8 +247,14 @@ class AuthModal {
       return
     }
 
-    if (password.length < 6) {
-      alert("Le mot de passe doit contenir au moins 6 caractères")
+    if (password.length < 8) {
+      alert("Le mot de passe doit contenir au moins 8 caractères")
+      return
+    }
+
+    // Additional password strength validation
+    if (!/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/.test(password)) {
+      alert("Le mot de passe doit contenir au moins une majuscule, une minuscule et un chiffre")
       return
     }
 

@@ -526,7 +526,7 @@ export default function AchatsPage() {
                     />
                 </div>
 
-                  <Button className="mt-2 ml-120 mb-2" onClick={handleSearch} disabled={isSearching}>
+                  <Button className="mt-3 w-full" onClick={handleSearch} disabled={isSearching}>
                     {isSearching ? (
                       <Loader2 className="h-4 w-4 mr-2 animate-spin" />
                     ) : (
@@ -816,7 +816,7 @@ export default function AchatsPage() {
             <div className="flex gap-2 pt-4">
               <Button
                 onClick={handleSave}
-                className="bg-black hover:bg-black text-white flex-1"
+                className="bg-black  text-white flex-1"
                 disabled={items.length === 0 || !supplier}
               >
                 <Save className="h-4 w-4 mr-2" />

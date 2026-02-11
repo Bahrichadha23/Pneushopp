@@ -85,6 +85,11 @@ export default function ResetPasswordPage() {
       return;
     }
 
+    if (!/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/.test(password)) {
+      setError("Le mot de passe doit contenir au moins une majuscule, une minuscule et un chiffre");
+      return;
+    }
+
     setIsLoading(true);
     setError("");
 
@@ -263,7 +268,9 @@ export default function ResetPasswordPage() {
                 <p>Le mot de passe doit contenir :</p>
                 <ul className="list-disc list-inside mt-1 space-y-1">
                   <li>Au moins 8 caractères</li>
-                  <li>Une combinaison de lettres et chiffres</li>
+                  <li>Au moins une majuscule (A-Z)</li>
+                  <li>Au moins une minuscule (a-z)</li>
+                  <li>Au moins un chiffre (0-9)</li>
                 </ul>
               </div>
 
