@@ -103,7 +103,7 @@ const convertApiProduct = (apiProduct: ApiProduct): Product => {
       // Convert season to union type
       season:
         apiProduct.season === "summer"
-          ? "ete"
+          ? "été"
           : apiProduct.season === "winter"
           ? "hiver"
           : "toutes-saisons",

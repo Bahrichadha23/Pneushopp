@@ -312,7 +312,7 @@ export default function AchatsPage() {
         console.error('❌ API Error:', responseData);
         alert(`❌ Erreur lors de la mise à jour: ${JSON.stringify(responseData)}`);
       }
-    } catch (error) {
+    } catch (error :any) {
       console.error('💥 Network error:', error);
       alert(`❌ Erreur de connexion: ${error.message}`);
     }
