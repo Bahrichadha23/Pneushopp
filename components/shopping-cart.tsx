@@ -53,11 +53,13 @@ export default function ShoppingCart({
           <div key={item.product.id} className="bg-white rounded-lg border p-4">
             <div className="flex items-start gap-4">
               {/* Image produit */}
-              <img
-                src={item.product.image || "/placeholder.svg"}
-                alt={item.product.name}
-                className="w-20 h-20 object-cover rounded-md"
-              />
+              <div className="w-20 h-20 bg-gray-100 rounded-md flex items-center justify-center p-1">
+                <img
+                  src={item.product.image || "/placeholder.svg"}
+                  alt={item.product.name}
+                  className="w-full h-full object-contain"
+                />
+              </div>
 
               {/* Informations produit */}
               <div className="flex-1">

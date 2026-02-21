@@ -21,6 +21,7 @@ export default function ProductCard({
 }: ProductCardProps) {
   const { addToCart } = useCart();
   const [isAdding, setIsAdding] = useState(false);
+  const [imageError, setImageError] = useState(false);
 
   const handleAddToCart = async (e: React.MouseEvent) => {
     e.preventDefault(); // Empêche la navigation vers la page produit
@@ -43,12 +44,17 @@ export default function ProductCard({
         className={`bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300 overflow-hidden ${className}`}
       >
         {/* Image du produit avec badges */}
-        <div className="relative">
-          <img
-            src={product.image || "/placeholder.svg"}
-            alt={product.name}
-            className="w-full h-48 object-cover"
-          />
+        <div className="relative bg-gray-50">
+          <div className="w-full h-48 flex items-center justify-center p-4">
+            <img
+              src={imageError || !product.image 
+                ? "https://placehold.co/400x400/e5e7eb/6b7280?text=Pneu" 
+                : product.image}
+              alt={product.name}
+              className="max-w-full max-h-full object-contain"
+              onError={() => setImageError(true)}
+            />
+          </div>
 
           {/* Badges promotions et stock */}
           <div className="absolute top-2 left-2 flex flex-col gap-1">

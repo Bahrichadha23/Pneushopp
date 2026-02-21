@@ -181,7 +181,7 @@ const CartModal = ({ onClose }: CartModalProps) => {
                         <img
                           src={item.product.image || "/placeholder.svg"}
                           alt={item.product.name}
-                          className="w-full h-full object-cover"
+                          className="w-full h-full object-contain p-1"
                         />
                       </div>
                       <div className="ml-4 flex-1">

@@ -2,33 +2,33 @@
 
 export default function ManufacturersSection() {
   const manufacturers = [
-    { name: "BARUM", logo: "/barum-logo.jpg" },
-    { name: "AMINE", logo: "/amine.png" },
-    { name: "BRIDGESTONE", logo: "/bridgestone.png" },
-    { name: "CONTINENTAL", logo: "/continental-logo.jpg" },
-    { name: "DAYTON", logo: "/dayton.png" },
-    { name: "PIRELLI", logo: "/pirelli-tire-brand-logo.png" },
-    { name: "GENERAL", logo: "/general-tire-logo.jpg" },
-    { name: "GOODYEAR", logo: "/goodyear-logo.jpg" },
-    { name: "NEXEN", logo: "/nexen-logo.png" },
-    { name: "WATERFALL", logo: "/logo_waterfall.png" },
-    { name: "KLEBER", logo: "/kleber.png" },
-    { name: "HANKOOK", logo: "/hankook.jpg" },
-    { name: "LASSA", logo: "/lassa-logo.jpg" },
-    { name: "FULDA", logo: "/Logo_Fulda.jpg" },
-    { name: "ALLIANCE", logo: "/alliance.png" },
-    { name: "APOLLO", logo: "/APOLLO.png" },
-    { name: "ARMOUR", logo: "/ARMOUR.png" },
-    { name: "BF GOODRICH", logo: "/BF GOODRICH.png" },
-    { name: "DEBICA", logo: "/DEBICA.png" },
-    { name: "DUNLOP", logo: "/dunlop.png" },
-    { name: "FIRESTONE", logo: "/FIRESTONE.png" },
-    { name: "LAUFENN", logo: "/laufenn_logo.png" },
-    { name: "MAXXIS", logo: "/MAXXIS.avif" },
-    { name: "MICHELIN", logo: "/MICHELIN.png" },
-    { name: "SEMPERIT", logo: "/SEMPERIT.png" },
-    { name: "TIGAR", logo: "/tigar-tire-brand-logo.png" },
-    { name: "WESTLAKE", logo: "/WEST LAKE.png" },
+    { name: "BARUM",       logo: "/barum-logo.jpg",                w: 110, h: 80 },
+    { name: "AMINE",       logo: "/amine.png",                     w: 100, h: 60 },
+    { name: "BRIDGESTONE", logo: "/bridgestone.png",               w: 160, h: 32 },
+    { name: "CONTINENTAL", logo: "/continental-logo.jpg",          w: 120, h: 35 },
+    { name: "DAYTON",      logo: "/dayton.png",                    w: 130, h: 40 },
+    { name: "PIRELLI",     logo: "/pirelli-tire-brand-logo.png",   w: 120, h: 35 },
+    { name: "GENERAL",     logo: "/general-tire-logo.jpg",         w: 130, h: 65 },
+    { name: "GOODYEAR",    logo: "/goodyear-logo.jpg",             w: 120, h: 60 },
+    { name: "NEXEN",       logo: "/nexen-logo.png",                w: 110, h: 70 },
+    { name: "WATERFALL",   logo: "/logo_waterfall.png",            w: 120, h: 90 },
+    { name: "KLEBER",      logo: "/kleber.png",                    w: 110, h: 30 },
+    { name: "HANKOOK",     logo: "/hankook.jpg",                   w: 120, h: 90 },
+    { name: "LASSA",       logo: "/lassa-logo.jpg",                w: 100, h: 100 },
+    { name: "FULDA",       logo: "/Logo_Fulda.jpg",                w: 110, h: 44 },
+    { name: "ALLIANCE",    logo: "/alliance.png",                  w: 130, h: 40 },
+    { name: "APOLLO",      logo: "/APOLLO.png",                    w: 120, h: 44 },
+    { name: "ARMOUR",      logo: "/ARMOUR.png",                    w: 50,  h: 35 },
+    { name: "BF GOODRICH", logo: "/BF GOODRICH.png",               w: 130, h: 44 },
+    { name: "DEBICA",      logo: "/DEBICA.png",                    w: 110, h: 100 },
+    { name: "DUNLOP",      logo: "/dunlop.png",                    w: 130, h: 44 },
+    { name: "FIRESTONE",   logo: "/FIRESTONE.png",                 w: 130, h: 40 },
+    { name: "LAUFENN",     logo: "/laufenn_logo.png",              w: 120, h: 100 },
+    { name: "MAXXIS",      logo: "/MAXXIS.avif",                   w: 120, h: 100 },
+    { name: "MICHELIN",    logo: "/MICHELIN.png",                  w: 130, h: 48 },
+    { name: "SEMPERIT",    logo: "/SEMPERIT.png",                  w: 120, h: 100 },
+    { name: "TIGAR",       logo: "/tigar-tire-brand-logo.png",     w: 110, h: 60 },
+    { name: "WESTLAKE",    logo: "/WEST LAKE.png",                 w: 130, h: 100 },
   ];
 
   return (
@@ -44,21 +44,18 @@ export default function ManufacturersSection() {
 
         {/* Marquee */}
         <div className="relative overflow-hidden">
-          <div className="flex gap-16 animate-marquee items-center">
+          <div className="flex gap-12 animate-marquee items-center">
             {[...manufacturers, ...manufacturers].map((manufacturer, index) => (
               <div
                 key={index}
-                className="flex items-center justify-center min-w-[180px]"
+                className="flex-shrink-0 flex items-center justify-center"
+                style={{ width: manufacturer.w, height: manufacturer.h }}
               >
                 <img
                   src={manufacturer.logo}
                   alt={manufacturer.name}
-                  className="
-                    max-h-20 max-w-[160px]
-                    object-contain
-                    transition-transform duration-300
-                    hover:scale-105
-                  "
+                  style={{ width: manufacturer.w, height: manufacturer.h }}
+                  className="object-contain transition-transform duration-300 hover:scale-105"
                 />
               </div>
             ))}
