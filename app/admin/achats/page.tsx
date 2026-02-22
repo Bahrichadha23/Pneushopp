@@ -71,6 +71,8 @@ interface PurchaseItem {
   discount: number;
   quantity: number;
   totalHT: number;
+  dot: string;
+  emplacement: string;
 }
 
 interface Product {
@@ -105,6 +107,7 @@ export default function AchatsPage() {
   const [confirmedOrders, setConfirmedOrders] = useState<any[]>([]);
   const [selectedWeek, setSelectedWeek] = useState("");
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear().toString());
+  const [selectedDot, setSelectedDot] = useState("");
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [showProductDetail, setShowProductDetail] = useState(false);
   const [showProductEdit, setShowProductEdit] = useState(false);
@@ -349,6 +352,14 @@ export default function AchatsPage() {
 
   const addItem = (product: Product) => {
     const price = Number(product.price) || 0;
+    // Compute DOT string (week.year) from fabrication_date
+    let dot = '';
+    if (product.fabrication_date) {
+      const date = new Date(product.fabrication_date);
+      const week = Math.ceil((date.getDate() + 6 - date.getDay()) / 7);
+      const year = date.getFullYear();
+      dot = `${String(week).padStart(2, '0')}.${String(year).slice(-2)}`;
+    }
     const newItem: PurchaseItem = {
       id: Date.now().toString(),
       productId: product.id,
@@ -358,6 +369,8 @@ export default function AchatsPage() {
       discount: 0,
       quantity: 1,
       totalHT: price,
+      dot,
+      emplacement: product.emplacement || product.location || '',
     };
     setItems([...items, newItem]);
   };
@@ -391,9 +404,44 @@ export default function AchatsPage() {
     return subtotal - discount;
   };
 
+  /** Return all unique non-empty DOT values across all items (sorted oldest first). */
+  const getUniqueDots = (): string[] => {
+    const seen = new Set<string>();
+    const unique: string[] = [];
+    for (const item of items) {
+      if (item.dot && item.dot.trim() && !seen.has(item.dot.trim())) {
+        seen.add(item.dot.trim());
+        unique.push(item.dot.trim());
+      }
+    }
+    return unique.sort((a, b) => parseDot(a) - parseDot(b));
+  };
+
+  /** Parse "WW.YY" → numeric sort key. Lower = older = minimum. */
+  const parseDot = (dot: string): number => {
+    const parts = dot.trim().split('.');
+    if (parts.length !== 2) return Infinity;
+    const week = parseInt(parts[0], 10);
+    const year = parseInt(parts[1], 10);
+    if (isNaN(week) || isNaN(year)) return Infinity;
+    return year * 100 + week;
+  };
+
+  const getMinDot = (): string => {
+    const valid = items.filter((i) => i.dot && i.dot.trim());
+    if (valid.length === 0) return '';
+    return valid.reduce((min, i) => (parseDot(i.dot) < parseDot(min.dot) ? i : min)).dot;
+  };
+
+  // Auto-select the minimum DOT whenever items change
+  useEffect(() => {
+    const min = getMinDot();
+    if (min) setSelectedDot(min);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [items]);
+
   const handleSave = async () => {
     const now = new Date();
-    const deliveryDate = new Date(now.getTime() + 14 * 24 * 60 * 60 * 1000); // 14 days from now
     const total = calculateTotal();
     
     // Format dates as YYYY-MM-DD
@@ -410,7 +458,6 @@ export default function AchatsPage() {
     const orderData = {
       supplier: parseInt(supplier),
       date_commande: formatDate(now),
-      date_livraison_prevue: formatDate(deliveryDate),
       total_ht: totalRounded,
       total_ttc: totalRounded,
       articles: items.map((item) => ({
@@ -421,10 +468,13 @@ export default function AchatsPage() {
         reference: item.reference,
         discount: Number(item.discount),
         total_ht: Number(item.totalHT),
+        dot: item.dot || '',
+        emplacement: item.emplacement || '',
       })),
       week: selectedWeek,
       year: selectedYear,
       invoice_number: invoiceNumber,
+      dot: selectedDot,
     };
 
     try {
@@ -462,6 +512,7 @@ export default function AchatsPage() {
         setNote("");
         setInvoiceNumber("");
         setSelectedWeek("");
+        setSelectedDot("");
         setGlobalDiscount(0);
         
         alert("produit ajouté avec succès!");
@@ -482,6 +533,7 @@ export default function AchatsPage() {
     setNote("");
     setInvoiceNumber("");
     setSelectedWeek("");
+    setSelectedDot("");
     setGlobalDiscount(0);
   };
 
@@ -634,7 +686,7 @@ export default function AchatsPage() {
         {/* Right Panel - Purchase Order */}
         <Card>
           <CardHeader>
-            <CardTitle>Bon de Commande Fournisseur</CardTitle>
+            <CardTitle>Bon de livraison</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             {/* Supplier */}
@@ -664,12 +716,12 @@ export default function AchatsPage() {
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>Réf.</TableHead>
                       <TableHead>Désignation</TableHead>
-                      <TableHead className="text-right">Prix U HT</TableHead>
+                      <TableHead className="text-right">Prix</TableHead>
                       <TableHead className="text-right">Remise</TableHead>
                       <TableHead className="text-right">Quantité</TableHead>
-                      <TableHead className="text-right">Total HT</TableHead>
+                      <TableHead className="text-center">DOT</TableHead>
+                      <TableHead>Emplacement</TableHead>
                       <TableHead className="w-10"></TableHead>
                     </TableRow>
                   </TableHeader>
@@ -683,9 +735,6 @@ export default function AchatsPage() {
                     ) : (
                       items.map((item) => (
                         <TableRow key={item.id}>
-                          <TableCell className="font-mono text-xs">
-                            {item.reference}
-                          </TableCell>
                           <TableCell className="text-sm">{item.designation}</TableCell>
                           <TableCell className="text-right">
                             <Input
@@ -730,8 +779,31 @@ export default function AchatsPage() {
                               className="w-16 text-right"
                             />
                           </TableCell>
-                          <TableCell className="text-right font-semibold">
-                            {Number(item.totalHT).toFixed(3)}
+                          <TableCell className="text-center">
+                            <select
+                              value={item.dot || ""}
+                              onChange={(e) => updateItem(item.id, "dot", e.target.value)}
+                              className="w-24 text-center text-sm border border-input rounded-md px-1 py-1 bg-background focus:outline-none focus:ring-1 focus:ring-ring"
+                            >
+                              {getUniqueDots().length === 0 ? (
+                                <option value="">—</option>
+                              ) : (
+                                getUniqueDots().map((d) => (
+                                  <option key={d} value={d}>{d}</option>
+                                ))
+                              )}
+                            </select>
+                          </TableCell>
+                          <TableCell>
+                            <Input
+                              type="text"
+                              value={item.emplacement}
+                              onChange={(e) =>
+                                updateItem(item.id, "emplacement", e.target.value)
+                              }
+                              placeholder="Emplacement"
+                              className="w-28"
+                            />
                           </TableCell>
                           <TableCell>
                             <Button
@@ -752,20 +824,10 @@ export default function AchatsPage() {
 
             {/* Discount */}
             <div className="flex items-center gap-4">
-              <Label>Remise</Label>
-              <div className="flex items-center gap-2">
-                <Input
-                  type="number"
-                  value={globalDiscount}
-                  onChange={(e) => setGlobalDiscount(parseFloat(e.target.value) || 0)}
-                  className="w-24"
-                />
-                <span>%</span>
-              </div>
               <div className="flex-1"></div>
               <div className="text-right">
-                <Label>Total Achat HT</Label>
-                <div className="text-2xl font-bold text-orange-600">
+                <Label> Total Achat HT</Label>
+                <div className="text-2xl font-bold text-black">
                   {calculateTotal().toFixed(3)} DT
                 </div>
               </div>
@@ -774,9 +836,9 @@ export default function AchatsPage() {
             {/* Invoice Details */}
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <Label>Achat</Label>
+                <Label>Date Achat</Label>
                 <Input
-                  placeholder="Achat"
+                  placeholder="Date Achat"
                   value={invoiceNumber}
                   onChange={(e) => setInvoiceNumber(e.target.value)}
                 />
