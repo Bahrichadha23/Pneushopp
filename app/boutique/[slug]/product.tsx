@@ -312,7 +312,7 @@ export default function ProductDetailsPage() {
                   className={`w-full text-black font-semibold text-lg py-6
                     transition-all duration-500 ease-out
                     ${isAdding 
-                      ? 'bg-green-500 hover:bg-green-500 scale-110 shadow-2xl shadow-green-500/50 -translate-y-2' 
+                      ? 'bg-yellow-500 hover:bg-yellow-500 scale-110 shadow-2xl shadow-yellow-500/50 -translate-y-2' 
                       : 'bg-yellow-500 hover:bg-yellow-600 hover:-translate-y-1 hover:shadow-lg active:translate-y-0 active:shadow-md'
                     }
                   `}

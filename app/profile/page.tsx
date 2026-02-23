@@ -460,10 +460,9 @@ export default function UserProfile() {
                       <td className="p-2 border text-center">
                         {order.status === 'pending' && (
                           <Button
-                            variant="destructive"
                             size="sm"
                             onClick={() => handleCancelOrder(order.id, order.order_number)}
-                            className="bg-red-500 hover:bg-red-600"
+                            className="bg-black text-white hover:bg-gray-800"
                           >
                             Annuler
                           </Button>
@@ -529,7 +528,7 @@ export default function UserProfile() {
                         variant="destructive"
                         size="sm"
                         onClick={() => handleCancelOrder(order.id, order.order_number)}
-                        className="w-full bg-red-500 hover:bg-red-600"
+                        className="w-full bg-black text-white hover:bg-gray-800"
                       >
                         Annuler la commande
                       </Button>

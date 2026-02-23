@@ -82,7 +82,7 @@ export default function RegisterForm({
         formData.phone.replace(/\s/g, "")
       )
     ) {
-      newErrors.phone = "Format de téléphone invalide (ex: +216 20 123 456)";
+      newErrors.phone = "Format de téléphone invalide (ex: +216 )";
     }
 
     setErrors(newErrors);
@@ -284,7 +284,7 @@ export default function RegisterForm({
             type="tel"
             value={formData.phone}
             onChange={handleInputChange}
-            placeholder="+216 20 123 456"
+            placeholder="+216 "
             disabled={isLoading}
             className={errors.phone ? "border-red-500" : ""}
           />

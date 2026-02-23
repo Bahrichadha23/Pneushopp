@@ -1,7 +1,6 @@
 import Header from "@/components/header";
 import Footer from "@/components/footer";
-import { Trophy, DollarSign, Truck } from "lucide-react";
-import { Coins } from "lucide-react";
+import { Trophy, Truck, Coins } from "lucide-react";
 
 export default function AProposPage() {
   return (
@@ -19,11 +18,13 @@ export default function AProposPage() {
               <h2 className="text-2xl font-bold mb-4">
                 PNEUSHOP, LE SPÉCIALISTE DU PNEU PAS CHER
               </h2>
-              <p className="text-lg ">
-                Leader en Tunisie de la vente en ligne de pneumatiques
+              <p className="text-lg">
+                Une nouvelle référence en Tunisie de la vente en ligne de
+                pneumatiques
               </p>
             </div>
 
+            {/* ✅ Mission à gauche + Services à droite */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12 text-left">
               <div>
                 <h3 className="text-xl font-semibold mb-4">Notre Mission</h3>
@@ -40,7 +41,7 @@ export default function AProposPage() {
                 </p>
               </div>
 
-              <div>
+              <div className="md:pl-16 lg:pl-24">
                 <h3 className="text-xl font-semibold mb-4">Nos Services</h3>
                 <ul className="space-y-2 text-gray-700 list-none">
                   <li>• Large gamme de pneumatiques</li>
@@ -53,10 +54,11 @@ export default function AProposPage() {
               </div>
             </div>
 
-            <div className="bg-gray-50 p-8 rounded-lg ">
+            <div className="bg-gray-50 p-8 rounded-lg">
               <h3 className="text-xl font-semibold mb-4 text-center">
                 Pourquoi Choisir Pneu Shop ?
               </h3>
+
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div className="text-center">
                   <div className="w-16 h-16 bg-yellow-500 rounded-full flex items-center justify-center mx-auto mb-4">

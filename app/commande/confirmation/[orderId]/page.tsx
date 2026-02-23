@@ -101,7 +101,7 @@ export default async function OrderConfirmationPage({
   if (!order) {
     return (
       <div className="container mx-auto px-4 py-8 text-center">
-        <h1 className="text-3xl font-bold text-green-600 mb-4">
+        <h1 className="text-3xl font-bold text-yellow-600 mb-4">
           Commande confirmée !
         </h1>
         <p className="text-gray-600">
@@ -121,8 +121,8 @@ export default async function OrderConfirmationPage({
     <div className="container mx-auto px-4 py-8">
       <div className="max-w-2xl mx-auto">
         <div className="text-center mb-8">
-          <CheckCircle className="h-16 w-16 text-green-500 mx-auto mb-4" />
-          <h1 className="text-3xl font-bold text-green-600 mb-2">
+          <CheckCircle className="h-16 w-16 text-yellow-500 mx-auto mb-4" />
+          <h1 className="text-3xl font-bold text-yellow-600 mb-2">
             Commande confirmée !
           </h1>
           <p className="text-gray-600">
@@ -150,7 +150,7 @@ export default async function OrderConfirmationPage({
               </div>
               <div className="flex justify-between">
                 <span className="font-semibold">Statut:</span>
-                <span className="text-green-600 font-semibold">Confirmée</span>
+                <span className="text-yellow-600 font-semibold">Confirmée</span>
               </div>
               <div className="flex justify-between">
                 <span className="font-semibold">Numéro de suivi:</span>

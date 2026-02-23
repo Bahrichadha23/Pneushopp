@@ -390,7 +390,7 @@ export default function BoutiquePage() {
           onClick={() => fetchProducts(pagination.page - 1)}
           className="w-full sm:w-auto"
         >
-          Previous
+          Précédent
         </Button>
 
         <span className="text-gray-700 self-center">
@@ -406,7 +406,7 @@ export default function BoutiquePage() {
           onClick={() => fetchProducts(pagination.page + 1)}
           className="w-full sm:w-auto"
         >
-          Next
+          Suivant
         </Button>
       </div>
 
