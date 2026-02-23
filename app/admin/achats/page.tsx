@@ -72,6 +72,7 @@ interface PurchaseItem {
   quantity: number;
   totalHT: number;
   dot: string;
+  availableDots: string[];
   emplacement: string;
 }
 
@@ -350,16 +351,35 @@ export default function AchatsPage() {
     }
   };
 
+  const computeDot = (fabrication_date: string | undefined): string => {
+    if (!fabrication_date) return '';
+    const date = new Date(fabrication_date);
+    const week = Math.ceil((date.getDate() + 6 - date.getDay()) / 7);
+    const year = date.getFullYear();
+    return `${String(week).padStart(2, '0')}.${String(year).slice(-2)}`;
+  };
+
   const addItem = (product: Product) => {
     const price = Number(product.price) || 0;
-    // Compute DOT string (week.year) from fabrication_date
-    let dot = '';
-    if (product.fabrication_date) {
-      const date = new Date(product.fabrication_date);
-      const week = Math.ceil((date.getDate() + 6 - date.getDay()) / 7);
-      const year = date.getFullYear();
-      dot = `${String(week).padStart(2, '0')}.${String(year).slice(-2)}`;
+    const dot = computeDot(product.fabrication_date);
+
+    // Collect all unique DOTs from search results that share the same reference/name (same model, different batches)
+    const seen = new Set<string>();
+    const availableDots: string[] = [];
+    for (const p of searchResults) {
+      const sameName = (p.name || p.designation) === (product.name || product.designation);
+      const sameRef = p.reference && product.reference && p.reference === product.reference;
+      if (sameName || sameRef) {
+        const d = computeDot(p.fabrication_date);
+        if (d && !seen.has(d)) {
+          seen.add(d);
+          availableDots.push(d);
+        }
+      }
     }
+    // Ensure current product's own DOT is always included
+    if (dot && !seen.has(dot)) availableDots.unshift(dot);
+
     const newItem: PurchaseItem = {
       id: Date.now().toString(),
       productId: product.id,
@@ -370,6 +390,7 @@ export default function AchatsPage() {
       quantity: 1,
       totalHT: price,
       dot,
+      availableDots,
       emplacement: product.emplacement || product.location || '',
     };
     setItems([...items, newItem]);
@@ -402,19 +423,6 @@ export default function AchatsPage() {
     const subtotal = items.reduce((sum, item) => sum + Number(item.totalHT || 0), 0);
     const discount = (subtotal * Number(globalDiscount)) / 100;
     return subtotal - discount;
-  };
-
-  /** Return all unique non-empty DOT values across all items (sorted oldest first). */
-  const getUniqueDots = (): string[] => {
-    const seen = new Set<string>();
-    const unique: string[] = [];
-    for (const item of items) {
-      if (item.dot && item.dot.trim() && !seen.has(item.dot.trim())) {
-        seen.add(item.dot.trim());
-        unique.push(item.dot.trim());
-      }
-    }
-    return unique.sort((a, b) => parseDot(a) - parseDot(b));
   };
 
   /** Parse "WW.YY" → numeric sort key. Lower = older = minimum. */
@@ -780,19 +788,21 @@ export default function AchatsPage() {
                             />
                           </TableCell>
                           <TableCell className="text-center">
-                            <select
-                              value={item.dot || ""}
-                              onChange={(e) => updateItem(item.id, "dot", e.target.value)}
-                              className="w-24 text-center text-sm border border-input rounded-md px-1 py-1 bg-background focus:outline-none focus:ring-1 focus:ring-ring"
-                            >
-                              {getUniqueDots().length === 0 ? (
-                                <option value="">—</option>
-                              ) : (
-                                getUniqueDots().map((d) => (
+                            {item.availableDots.length > 1 ? (
+                              <select
+                                value={item.dot || ""}
+                                onChange={(e) => updateItem(item.id, "dot", e.target.value)}
+                                className="w-24 text-center text-sm border border-input rounded-md px-1 py-1 bg-background focus:outline-none focus:ring-1 focus:ring-ring"
+                              >
+                                {item.availableDots.map((d) => (
                                   <option key={d} value={d}>{d}</option>
-                                ))
-                              )}
-                            </select>
+                                ))}
+                              </select>
+                            ) : item.dot ? (
+                              <span className="text-sm font-mono">{item.dot}</span>
+                            ) : (
+                              <span className="text-xs text-gray-400">—</span>
+                            )}
                           </TableCell>
                           <TableCell>
                             <Input
