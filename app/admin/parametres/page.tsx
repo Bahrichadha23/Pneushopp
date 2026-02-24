@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Settings, Store, Bell, Shield, Database, Users } from "lucide-react";
+import { Settings, Store, Bell, Shield, Database, Users, Loader2 } from "lucide-react";
 import { API_URL } from "@/lib/config";
 import { useAuth } from "@/contexts/auth-context";
 import { useRouter } from "next/navigation";
@@ -16,6 +16,7 @@ import { useRouter } from "next/navigation";
 export default function ParametresPage() {
   const [parametres, setParametres] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
   const [activeTab, setActiveTab] = useState("boutique");
   const { user } = useAuth();
   const router = useRouter();
@@ -52,13 +53,10 @@ export default function ParametresPage() {
             notifications: {
               emailCommandes: data.email_commandes,
               emailStock: data.email_stock,
-              smsClients: data.sms_clients,
-              pushAdmin: data.push_admin,
             },
             securite: {
               sessionTimeout: data.session_timeout,
               motDePasseForce: data.mot_de_passe_force,
-              authentificationDouble: data.authentification_double,
               journalisation: data.journalisation,
             },
             systeme: {
@@ -153,6 +151,7 @@ export default function ParametresPage() {
   const handleSave = async () => {
     if (!parametres) return;
 
+    setSaving(true);
     try {
       const token = localStorage.getItem("access_token");
       // Transform frontend data to backend format
@@ -165,11 +164,8 @@ export default function ParametresPage() {
         horaires: parametres.boutique.horaires,
         email_commandes: parametres.notifications.emailCommandes,
         email_stock: parametres.notifications.emailStock,
-        sms_clients: parametres.notifications.smsClients,
-        push_admin: parametres.notifications.pushAdmin,
         session_timeout: parametres.securite.sessionTimeout,
         mot_de_passe_force: parametres.securite.motDePasseForce,
-        authentification_double: parametres.securite.authentificationDouble,
         journalisation: parametres.securite.journalisation,
         maintenance_mode: parametres.systeme.maintenanceMode,
         sauvegarde_auto: parametres.systeme.sauvegaudeAuto,
@@ -193,6 +189,8 @@ export default function ParametresPage() {
     } catch (error) {
       console.error("Error saving settings:", error);
       alert("Erreur lors de la sauvegarde");
+    } finally {
+      setSaving(false);
     }
   };
   // Save settings to backend
@@ -232,9 +230,13 @@ export default function ParametresPage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <h1 className="text-3xl font-bold text-gray-900">Paramètres système</h1>
-        <Button onClick={handleSave} className="flex items-center px-4 py-2">
-          <Settings className="h-5 w-5 mr-2" />
-          Sauvegarder
+        <Button onClick={handleSave} disabled={saving} className="flex items-center px-4 py-2">
+          {saving ? (
+            <Loader2 className="h-5 w-5 mr-2 animate-spin" />
+          ) : (
+            <Settings className="h-5 w-5 mr-2" />
+          )}
+          {saving ? "Sauvegarde..." : "Sauvegarder"}
         </Button>
       </div>
 
@@ -393,15 +395,11 @@ export default function ParametresPage() {
               const labels: Record<string, string> = {
                 emailCommandes: "Notifications email pour nouvelles commandes",
                 emailStock: "Alertes de stock bas",
-                smsClients: "SMS aux clients",
-                pushAdmin: "Notifications push admin",
               };
               const descriptions: Record<string, string> = {
                 emailCommandes: "Recevoir un email à chaque nouvelle commande",
                 emailStock:
                   "Notification quand le stock descend en dessous du seuil",
-                smsClients: "Envoyer des SMS de confirmation aux clients",
-                pushAdmin: "Notifications push dans l'interface admin",
               };
               return renderSwitch(
                 labels[key],
@@ -443,17 +441,14 @@ export default function ParametresPage() {
 
             {[
               "motDePasseForce",
-              "authentificationDouble",
               "journalisation",
             ].map((key) => {
               const labels: Record<string, string> = {
                 motDePasseForce: "Mot de passe fort obligatoire",
-                authentificationDouble: "Authentification à double facteur",
                 journalisation: "Journal des activités",
               };
               const descriptions: Record<string, string> = {
                 motDePasseForce: "Exiger des mots de passe complexes",
-                authentificationDouble: "Sécurité renforcée avec 2FA",
                 journalisation:
                   "Enregistrer toutes les actions administratives",
               };
@@ -474,17 +469,6 @@ export default function ParametresPage() {
         {/* Système */}
         <TabsContent value="systeme" className="space-y-6 pt-6">
           <div className="space-y-4">
-            {renderSwitch(
-              "Mode maintenance",
-              "Désactiver temporairement le site",
-              parametres.systeme.maintenanceMode,
-              (checked) =>
-                setParametres({
-                  ...parametres,
-                  systeme: { ...parametres.systeme, maintenanceMode: checked },
-                })
-            )}
-
             {renderSwitch(
               "Sauvegarde automatique",
               "Sauvegarde automatique de la base de données",

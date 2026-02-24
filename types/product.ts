@@ -15,7 +15,7 @@ export interface Product {
 
   image: string
   images: File[]
-  category: "auto" | "suv" | "camionnette" | "agricole" | "poids-lourd" | "utilitaire" | "4x4"
+  category: "agricole" |"utilitaire" | "4x4" | "tourisme" | "moto"
 
   // Champs additionnels pour l'ajout manuel
   reference?: string

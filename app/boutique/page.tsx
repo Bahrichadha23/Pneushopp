@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useSearchParams } from "next/navigation";
+import { useSearchParams, useRouter } from "next/navigation";
 import Header from "@/components/header";
 import Footer from "@/components/footer";
 import { Button } from "@/components/ui/button";
@@ -41,14 +41,11 @@ interface ApiProduct {
   };
 }
 const categoryMap: Record<string, Product["category"]> = {
-  auto: "auto",
-  suv: "suv",
-  camionnette: "camionnette",
   utilitaire: "utilitaire",
   agricole: "agricole",
-  "poids-lourd": "poids-lourd",
   "4x4": "4x4",
-  tourisme: "auto",
+  tourisme: "tourisme",
+  moto: "moto",
 };
 
 const convertApiProduct = (apiProduct: ApiProduct): Product => {
@@ -126,6 +123,7 @@ const convertApiProduct = (apiProduct: ApiProduct): Product => {
 
 export default function BoutiquePage() {
   const searchParams = useSearchParams();
+  const router = useRouter();
   const categoryFromUrl = searchParams.get("category") || "all";
 
   const [products, setProducts] = useState<Product[]>([]);
@@ -143,6 +141,15 @@ export default function BoutiquePage() {
     total: 0,
     limit: 20, // number of products per page
   });
+
+  const handleCategoryChange = (value: string) => {
+    setCategoryFilter(value);
+    if (value === "all") {
+      router.push("/boutique");
+    } else {
+      router.push(`/boutique?category=${value}`);
+    }
+  };
 
   // Update category filter when URL changes
   useEffect(() => {
@@ -289,16 +296,17 @@ export default function BoutiquePage() {
               />
             </div>
 
-            <Select value={categoryFilter} onValueChange={setCategoryFilter}>
+            <Select value={categoryFilter} onValueChange={handleCategoryChange}>
               <SelectTrigger>
                 <SelectValue placeholder="Catégorie" />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">Toutes catégories</SelectItem>
-                <SelectItem value="auto">Auto</SelectItem>
-                <SelectItem value="suv">SUV</SelectItem>
-                <SelectItem value="camionnette">Camionnette</SelectItem>
+                <SelectItem value="agricole">Agricole</SelectItem>
+                <SelectItem value="4x4">4x4</SelectItem>
+                <SelectItem value="tourisme">Tourisme</SelectItem>
                 <SelectItem value="utilitaire">Utilitaire</SelectItem>
+                <SelectItem value="moto">Moto</SelectItem>
               </SelectContent>
             </Select>
 
@@ -336,6 +344,7 @@ export default function BoutiquePage() {
                 setCategoryFilter("all");
                 setPriceFilter("");
                 setSortBy("name");
+                router.push("/boutique");
               }}
               className="flex items-center gap-2"
             >
@@ -374,6 +383,7 @@ export default function BoutiquePage() {
                 setCategoryFilter("all");
                 setPriceFilter("");
                 setSortBy("name");
+                router.push("/boutique");
               }}
               className="mt-4"
             >
