@@ -82,7 +82,7 @@ export default function LoginForm({
       console.log("🔐 Login response:", data);
 
       // Check role BEFORE storing anything
-      if (data.user && data.user.role && ["admin", "purchasing", "sales"].includes(data.user.role)) {
+      if (data.user && data.user.role && ["admin", "purchasing", "sales", "responsable_achats"].includes(data.user.role)) {
         setError("Accès refusé.");
         setIsLoading(false);
         return;
@@ -95,7 +95,19 @@ export default function LoginForm({
 
       if (result.success) {
         console.log("✅ Login successful");
-        
+
+        // Block admin/staff roles from accessing the customer login
+        const adminRoles = ["admin", "purchasing", "sales", "responsable_achats"];
+        if (result.user && adminRoles.includes(result.user.role as string)) {
+          // Log them out immediately
+          localStorage.removeItem("access_token");
+          localStorage.removeItem("refresh_token");
+          localStorage.removeItem("user");
+          setError("Accès refusé. Veuillez utiliser la page de connexion administrateur.");
+          setIsLoading(false);
+          return;
+        }
+
         if (onSuccess) {
           onSuccess();
         } else {

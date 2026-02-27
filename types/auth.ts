@@ -6,7 +6,7 @@ export interface User {
   lastName: string
   phone?: string
   dateOfBirth?: Date
-  role: "customer" | "admin" | "purchasing" | "sales";
+  role: "customer" | "admin" | "purchasing" | "sales" | "responsable_achats";
   isEmailVerified: boolean
   createdAt: Date
   updatedAt: Date

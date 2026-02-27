@@ -63,7 +63,7 @@ export async function handleDownloadInvoice(order: any) {
     if (right) pdf.line(x + w, y, x + w, y + h);
   };
 
-  let y = 30;
+  let y = 50.8; // 2 inches top margin (1 inch = 25.4 mm)
   let page = 1;
 
   // === Header ===
@@ -80,7 +80,7 @@ export async function handleDownloadInvoice(order: any) {
 
     // Client box (rounded)
     const boxX = pageWidth - 70;
-    const boxY = 15;
+    const boxY = y - 15; // aligned to 3-inch top margin, slightly above FACTURE title
     const boxW = 60;
     const boxH = 40; // increased height
     pdf.roundedRect(boxX, boxY, boxW, boxH, 3, 3, "S");
@@ -314,38 +314,6 @@ export async function handleDownloadInvoice(order: any) {
     totalY += totalRowH;
   });
 
-  // === Horizontal Totals box (below QUATRE box, aligned left) ===
-  // const tvaBoxY = boxY + boxH + 3; // small gap below QUATRE box
-  // const colW = leftBoxW / 3;
-  // const labels = ["Base TVA", "Taux", "TOTAL TVA"];
-  // const values = [netHT.toFixed(3), "19.00", totalTVA.toFixed(3)];
-
-  // pdf.setFont("helvetica", "bold");
-  // labels.forEach((label, i) => {
-  //   const x = margin + i * colW;
-  //   drawCell(x, tvaBoxY, colW, 7, {
-  //     top: true,
-  //     bottom: true,
-  //     left: true,
-  //     right: true,
-  //   });
-  //   pdf.text(label, x + 2, tvaBoxY + 5);
-  // });
-
-  // pdf.setFont("helvetica", "normal");
-  // const valY = tvaBoxY + 7;
-  // values.forEach((val, i) => {
-  //   const x = margin + i * colW;
-  //   drawCell(x, valY, colW, 7, {
-  //     top: true,
-  //     bottom: true,
-  //     left: true,
-  //     right: true,
-  //   });
-  //   pdf.text(val, x + colW - 2, valY + 5, { align: "right" });
-  // });
-
-  // === Signature ===
   pdf.setFont("helvetica", "italic");
   pdf.text("Cachet et Signature", margin + 5, pageHeight - 20);
 

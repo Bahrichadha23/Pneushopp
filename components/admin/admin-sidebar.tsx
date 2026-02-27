@@ -22,6 +22,7 @@ import {
   CheckCircle,
   CircleX,
   Timer,
+  Receipt,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -72,6 +73,11 @@ const menuItems: MenuItem[] = [
         href: "/admin/bons-commande",
         icon: FileText,
       },
+      {
+        title: "Factures",
+        href: "/admin/factures",
+        icon: Receipt,
+      },
       { title: "Livraisons", href: "/admin/livraisons", icon: Truck },
     ],
   },
@@ -115,7 +121,14 @@ const menuItems: MenuItem[] = [
       },
     ],
   },
-  { title: "Achats", href: "/admin/achats",icon: CircleX,},
+  {
+    title: "Achats",
+    icon: ShoppingCart,
+    children: [
+      { title: "Achat", href: "/admin/achats", icon: ShoppingCart },
+      { title: "Bons de commande achat", href: "/admin/achats/commandes", icon: ClipboardList },
+    ],
+  },
   { title: "Clients", href: "/admin/clients", icon: Users },
   { title: "Rapports", href: "/admin/rapports", icon: BarChart3 },
   { title: "Paramètres", href: "/admin/parametres", icon: Settings },
@@ -236,6 +249,26 @@ export default function AdminSidebar({
             title: "Bons de commande",
             href: "/admin/bons-commande",
             icon: FileText,
+          },
+        ],
+      },
+    ];
+  } else if (user?.role === "responsable_achats") {
+    roleLabel = "Responsable Achats";
+    filteredMenuItems = [
+      {
+        title: "Achats",
+        icon: ShoppingCart,
+        children: [
+          {
+            title: "Passer une commande",
+            href: "/admin/achats",
+            icon: ShoppingCart,
+          },
+          {
+            title: "Bons de commande achat",
+            href: "/admin/achats/commandes",
+            icon: ClipboardList,
           },
         ],
       },

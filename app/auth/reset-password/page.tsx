@@ -85,11 +85,6 @@ export default function ResetPasswordPage() {
       return;
     }
 
-    if (!/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/.test(password)) {
-      setError("Le mot de passe doit contenir au moins une majuscule, une minuscule et un chiffre");
-      return;
-    }
-
     setIsLoading(true);
     setError("");
 

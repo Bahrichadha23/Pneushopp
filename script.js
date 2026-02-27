@@ -252,12 +252,6 @@ class AuthModal {
       return
     }
 
-    // Additional password strength validation
-    if (!/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/.test(password)) {
-      alert("Le mot de passe doit contenir au moins une majuscule, une minuscule et un chiffre")
-      return
-    }
-
     // Store user data temporarily
     this.pendingUserData = { name, email, password }
 

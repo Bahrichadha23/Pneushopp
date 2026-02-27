@@ -198,7 +198,7 @@ const baseUserSchema = {
         .min(1, 'Le nom est requis')
         .min(2, 'Le nom doit contenir au moins 2 caractères')
         .max(50, 'Le nom ne doit pas dépasser 50 caractères'),
-    role: z.enum(['sales', 'purchasing', 'admin'], {
+    role: z.enum(['sales', 'purchasing', 'admin', 'responsable_achats'], {
         errorMap: () => ({ message: 'Veuillez sélectionner un rôle valide' })
     }),
 };
@@ -209,9 +209,7 @@ const createUserSchema = z.object({
     password: z.string()
         .min(1, 'Le mot de passe est requis')
         .min(8, 'Le mot de passe doit contenir au moins 8 caractères')
-        .max(128, 'Le mot de passe ne doit pas dépasser 128 caractères')
-        .regex(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/, 
-            'Le mot de passe doit contenir au moins une majuscule, une minuscule et un chiffre'),
+        .max(128, 'Le mot de passe ne doit pas dépasser 128 caractères'),
     password_confirm: z.string()
         .min(1, 'La confirmation du mot de passe est requise'),
 }).refine((data) => data.password === data.password_confirm, {
@@ -225,8 +223,6 @@ const updateUserSchema = z.object({
     password: z.string()
         .min(8, 'Le mot de passe doit contenir au moins 8 caractères')
         .max(128, 'Le mot de passe ne doit pas dépasser 128 caractères')
-        .regex(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/, 
-            'Le mot de passe doit contenir au moins une majuscule, une minuscule et un chiffre')
         .optional(),
     password_confirm: z.string().optional(),
 }).refine(
@@ -381,6 +377,7 @@ export function UserForm({ onSubmit, isLoading, initialData }: UserFormProps) {
                             <SelectContent>
                                 <SelectItem value="sales">Ventes</SelectItem>
                                 <SelectItem value="purchasing">Achats</SelectItem>
+                                <SelectItem value="responsable_achats">Responsable Achats</SelectItem>
                             </SelectContent>
                         </Select>
                     )}
@@ -402,9 +399,6 @@ export function UserForm({ onSubmit, isLoading, initialData }: UserFormProps) {
                         disabled={isLoading}
                         className={errors.password ? 'border-red-500' : ''}
                     />
-                    <p className="text-xs text-gray-500">
-                        Minimum 8 caractères avec au moins une majuscule, une minuscule et un chiffre
-                    </p>
                     {errors.password && (
                         <p className="text-sm text-red-500">{errors.password.message}</p>
                     )}

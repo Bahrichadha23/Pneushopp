@@ -481,9 +481,19 @@ export function CheckoutForm() {
               />
             </div>
 
-            <Button type="submit" className="w-full">
-              Continuer vers le paiement
-            </Button>
+            <div className="flex gap-4">
+              <Button
+                type="button"
+                variant="outline"
+                className="flex-1 bg-transparent"
+                onClick={() => router.back()}
+              >
+                Retour
+              </Button>
+              <Button type="submit" className="flex-1">
+                Continuer vers le paiement
+              </Button>
+            </div>
           </form>
         </CardContent>
       </Card>

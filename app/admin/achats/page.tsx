@@ -18,6 +18,8 @@
  */
 
 import { useState, useEffect } from "react";
+import { useAuth } from "@/contexts/auth-context";
+import { useRouter } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -92,6 +94,14 @@ interface Product {
 }
 
 export default function AchatsPage() {
+  const { user } = useAuth();
+  const router = useRouter();
+
+  if (user && user.role !== "admin" && user.role !== "responsable_achats") {
+    router.push("/admin");
+    return null;
+  }
+
   const [supplier, setSupplier] = useState("");
   const [note, setNote] = useState("");
   const [invoiceNumber, setInvoiceNumber] = useState("");
@@ -868,7 +878,7 @@ export default function AchatsPage() {
                       ))}
                     </SelectContent>
                   </Select>
-                  <Select value={selectedYear} onValueChange={setSelectedYear}>
+                  {/* <Select value={selectedYear} onValueChange={setSelectedYear}>
                     <SelectTrigger className="w-28">
                       <SelectValue placeholder="Année" />
                     </SelectTrigger>
@@ -879,7 +889,7 @@ export default function AchatsPage() {
                         </SelectItem>
                       ))}
                     </SelectContent>
-                  </Select>
+                  </Select> */}
                 </div>
               </div>
             </div>
@@ -906,85 +916,6 @@ export default function AchatsPage() {
           </CardContent>
         </Card>
       </div>
-
-      {/* Confirmed Orders Section */}
-      <Card className="mt-6">
-        <CardHeader className="flex flex-row items-center justify-between">
-          <CardTitle>Commandes d'Achat Confirmées</CardTitle>
-          <Button 
-            onClick={refreshOrders}
-            variant="outline"
-            size="sm"
-            className="ml-auto"
-          >
-            🔄 Actualiser
-          </Button>
-        </CardHeader>
-        <CardContent>
-          {confirmedOrders && confirmedOrders.length > 0 ? (
-            <div className="space-y-4">
-              {confirmedOrders.map((order) => (
-                <div key={order.id} className="border rounded-lg p-4 bg-gray-50">
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                    <div>
-                      <span className="font-bold text-gray-700">N° Commande:</span>
-                      <div className="text-sm">{order.order_number}</div>
-                    </div>
-                    <div>
-                      <span className="font-bold text-gray-700">Fournisseur:</span>
-                      <div className="text-sm text-blue-600">{order.supplier_name || order.supplier}</div>
-                    </div>
-                    <div>
-                      <span className="font-bold text-gray-700">Semaine/Année:</span>
-                      <div className="text-sm font-medium text-green-600">
-                        {order.week && order.year ? `${order.week}.${order.year}` : 'N/A'}
-                      </div>
-                    </div>
-                    <div>
-                      <span className="font-bold text-gray-700">Total HT:</span>
-                      <div className="text-sm font-bold text-orange-600">
-                        {Number(order.total || 0).toFixed(3)} DT
-                      </div>
-                    </div>
-                  </div>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-3 pt-3 border-t">
-                    <div>
-                      <span className="font-bold text-gray-700">Statut:</span>
-                      <div className={`text-sm inline-block px-2 py-1 rounded ${
-                        order.status === 'confirmed' ? 'bg-green-100 text-green-800' :
-                        order.status === 'received' ? 'bg-blue-100 text-blue-800' :
-                        order.status === 'cancelled' ? 'bg-red-100 text-red-800' :
-                        'bg-gray-100 text-gray-800'
-                      }`}>
-                        {order.status === 'confirmed' ? 'Confirmée' :
-                         order.status === 'received' ? 'Reçue' :
-                         order.status === 'cancelled' ? 'Annulée' :
-                         order.status || 'Brouillon'}
-                      </div>
-                    </div>
-                    <div>
-                      <span className="font-bold text-gray-700">Date:</span>
-                      <div className="text-sm">
-                        {order.order_date ? new Date(order.order_date).toLocaleDateString('fr-FR') : 'N/A'}
-                      </div>
-                    </div>
-                    {order.invoice_number && (
-                      <div>
-                        <span className="font-bold text-gray-700">N° Facture:</span>
-                        <div className="text-sm">{order.invoice_number}</div>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <div className="text-center text-gray-500 py-8">
-              Aucune commande d'achat confirmée
-            </div>
-          )}
-        </CardContent>
-      </Card>
 
       {/* Product Detail Modal */}
       <Dialog open={showProductDetail} onOpenChange={setShowProductDetail}>

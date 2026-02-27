@@ -27,7 +27,6 @@ type ConfirmationDialog = {
   bonId: number | null;
   bonNumber: string;
   orderId: number | null;
-  fournisseur: string;
 };
 
 // Download Purchase Order PDF
@@ -59,7 +58,7 @@ const handleDownloadPurchaseOrder = async (bon: BonCommande) => {
     }
   }
 
-  let y = 20;
+  let y = 50.8; // 2 inches top margin (1 inch = 25.4 mm)
 
   // === Header ===
   pdf.setFont("helvetica", "bold");
@@ -257,7 +256,6 @@ export default function BonsCommandePage() {
     bonId: null,
     bonNumber: "",
     orderId: null,
-    fournisseur: "",
   });
 
   const handleViewBon = (bon: BonCommande) => {
@@ -317,35 +315,31 @@ export default function BonsCommandePage() {
   const handleConfirmBon = (
     id: number,
     bonNumber: string,
-    order_id: number | null,
-    fournisseur: string
+    order_id: number | null
   ) => {
     setConfirmation({
       isOpen: true,
       bonId: id,
       bonNumber,
       orderId: order_id,
-      fournisseur,
     });
   };
 
   const handleConfirmDialogAction = async () => {
     if (!confirmation.bonId) return;
 
-    const { bonId, orderId, fournisseur } = confirmation;
-    console.log("🔍 Confirming:", { bonId, orderId, fournisseur });
-    console.log("🔍 Request URL:", `${API_URL}/purchase-orders/${bonId}/`);
+    const { bonId, orderId } = confirmation;
     
     try {
       const token = localStorage.getItem("access_token");
 
-      // Prepare the request body - only include order if it's valid
-      const requestBody: any = { statut: "confirmé", fournisseur };
+      // Prepare the request body without fournisseur (orders.PurchaseOrder has no supplier)
+      const requestBody: any = { statut: "confirmé" };
       if (orderId && orderId > 0) {
         requestBody.order = orderId;
       }
 
-      const res = await fetch(`${API_URL}/purchase-orders/${bonId}/`, {
+      const res = await fetch(`${API_URL}/orders/purchase-orders/${bonId}/`, {
         method: "PATCH",
         headers: {
           "Content-Type": "application/json",
@@ -379,7 +373,6 @@ export default function BonsCommandePage() {
         bonId: null,
         bonNumber: "",
         orderId: null,
-        fournisseur: "",
       });
     }
   };
@@ -390,7 +383,6 @@ export default function BonsCommandePage() {
       bonId: null,
       bonNumber: "",
       orderId: null,
-      fournisseur: "",
     });
   };
   const getStatutBadge = (statut: string) => {
@@ -571,8 +563,7 @@ export default function BonsCommandePage() {
                     handleConfirmBon(
                       Number(bon.id),
                       bon.id.toString(),
-                      bon.order_id,
-                      bon.fournisseur
+                      bon.order_id
                     )
                   }
                 >
@@ -646,8 +637,7 @@ export default function BonsCommandePage() {
                             handleConfirmBon(
                               Number(bon.id),
                               bon.id.toString(),
-                              bon.order_id,
-                              bon.fournisseur
+                              bon.order_id
                             )
                           }
                         >

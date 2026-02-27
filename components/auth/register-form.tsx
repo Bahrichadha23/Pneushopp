@@ -63,8 +63,6 @@ export default function RegisterForm({
       newErrors.password = "Le mot de passe est requis";
     } else if (formData.password.length < 8) {
       newErrors.password = "Le mot de passe doit contenir au moins 8 caractères";
-    } else if (!/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/.test(formData.password)) {
-      newErrors.password = "Le mot de passe doit contenir au moins une majuscule, une minuscule et un chiffre";
     }
 
     if (formData.password !== formData.confirmPassword) {
@@ -324,9 +322,7 @@ export default function RegisterForm({
           {errors.password && (
             <p className="text-red-500 text-xs mt-1">{errors.password}</p>
           )}
-          <p className="text-xs text-gray-500 mt-1">
-            Minimum 8 caractères avec au moins une majuscule, une minuscule et un chiffre
-          </p>
+
         </div>{" "}
         <div>
           <Label htmlFor="confirmPassword">Confirmer le mot de passe *</Label>

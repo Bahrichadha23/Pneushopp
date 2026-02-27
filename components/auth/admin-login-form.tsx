@@ -53,7 +53,7 @@ export default function AdminLoginForm() {
         const loggedInUser = result.user;
 
         // Check if user has admin privileges
-        if (loggedInUser && loggedInUser.role && ["admin", "purchasing", "sales"].includes(loggedInUser.role as string)) {
+        if (loggedInUser && loggedInUser.role && ["admin", "purchasing", "sales", "responsable_achats"].includes(loggedInUser.role as string)) {
           console.log(`✅ Admin access granted: ${loggedInUser.role}`);
 
           switch (loggedInUser.role) {
@@ -65,6 +65,9 @@ export default function AdminLoginForm() {
               break;
             case "sales":
               router.push("/admin/commandes");
+              break;
+            case "responsable_achats":
+              router.push("/admin/achats");
               break;
           }
         } else {

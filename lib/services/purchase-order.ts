@@ -39,7 +39,7 @@ export const createPurchaseOrder = async (order: any) => {
 
         console.log("📦 Payload being sent:", JSON.stringify(payload, null, 2));
 
-        const response = await fetch(`${API_URL}/purchase-orders/`, {
+        const response = await fetch(`${API_URL}/orders/purchase-orders/`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
