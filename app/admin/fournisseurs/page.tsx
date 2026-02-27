@@ -45,6 +45,7 @@ export default function FournisseursPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [editingSupplier, setEditingSupplier] = useState<Supplier | null>(null);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
   const { user } = useAuth();
   const router = useRouter();
 
@@ -108,8 +109,8 @@ export default function FournisseursPage() {
     try {
       await deleteSupplier(id);
       setFournisseurs(fournisseurs.filter((f) => f.id !== id));
-    } catch (err) {
-      console.error("Erreur suppression fournisseur:", err);
+    } catch (err: any) {
+      setDeleteError(err?.message || "Impossible de supprimer ce fournisseur.");
     }
   };
 
@@ -510,6 +511,21 @@ export default function FournisseursPage() {
               </Button>
             </div>
           </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete error dialog */}
+      <Dialog open={!!deleteError} onOpenChange={() => setDeleteError(null)}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-red-600 flex items-center gap-2">
+              <span>⚠️</span> Suppression impossible
+            </DialogTitle>
+          </DialogHeader>
+          <p className="text-sm text-gray-700 mt-2">{deleteError}</p>
+          <div className="flex justify-end mt-4">
+            <Button onClick={() => setDeleteError(null)}>Fermer</Button>
+          </div>
         </DialogContent>
       </Dialog>
     </div>

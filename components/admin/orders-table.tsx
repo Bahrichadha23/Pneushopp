@@ -21,7 +21,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Eye, Edit, Truck, Search, Package, Download, X } from "lucide-react";
+import { Eye, Edit, Truck, Search, Package, Download, X, Check, Ban } from "lucide-react";
 import { createPurchaseOrder } from "@/lib/services/purchase-order";
 import { motion, AnimatePresence } from "framer-motion";
 interface OrdersTableProps {
@@ -533,7 +533,7 @@ export default function OrdersTable({
                     {getPaymentStatusBadge(order.paymentStatus)}
                   </TableCell>
                   <TableCell>
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2 flex-wrap">
                       <Button
                         variant="ghost"
                         size="icon"
@@ -542,6 +542,30 @@ export default function OrdersTable({
                       >
                         <Eye className="h-4 w-4" />
                       </Button>
+
+                      {["pending", "processing"].includes(order.status) && (
+                        <Button
+                          variant="default"
+                          size="sm"
+                          className="bg-black text-white hover:bg-gray-800 h-7 px-2 text-xs gap-1"
+                          onClick={() => onUpdateStatus(order.id, "confirmed")}
+                          title="Confirmer la commande"
+                        >
+                          <Check className="h-3 w-3" /> Confirmer
+                        </Button>
+                      )}
+
+                      {["pending", "confirmed", "processing"].includes(order.status) && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="border-red-400 text-red-600 hover:bg-red-50 h-7 px-2 text-xs gap-1"
+                          onClick={() => onUpdateStatus(order.id, "cancelled")}
+                          title="Annuler la commande"
+                        >
+                          <Ban className="h-3 w-3" /> Annuler
+                        </Button>
+                      )}
 
                       {order.status === "confirmed" && (
                         <Button
@@ -621,7 +645,7 @@ export default function OrdersTable({
                 <p>Montant: {formatCurrency(order.totalAmount + (order.deliveryCost || 0))}</p>
                 <p>Paiement: {getPaymentStatusBadge(order.paymentStatus)}</p>
               </div>
-              <div className="flex items-center gap-2 mt-3">
+              <div className="flex items-center gap-2 mt-3 flex-wrap">
                 <Button
                   variant="ghost"
                   size="icon"
@@ -629,6 +653,28 @@ export default function OrdersTable({
                 >
                   <Eye className="h-4 w-4" />
                 </Button>
+
+                {["pending", "processing"].includes(order.status) && (
+                  <Button
+                    variant="default"
+                    size="sm"
+                    className="bg-black text-white hover:bg-gray-800 h-7 px-2 text-xs gap-1"
+                    onClick={() => onUpdateStatus(order.id, "confirmed")}
+                  >
+                    <Check className="h-3 w-3" /> Confirmer
+                  </Button>
+                )}
+
+                {["pending", "confirmed", "processing"].includes(order.status) && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="border-red-400 text-red-600 hover:bg-red-50 h-7 px-2 text-xs gap-1"
+                    onClick={() => onUpdateStatus(order.id, "cancelled")}
+                  >
+                    <Ban className="h-3 w-3" /> Annuler
+                  </Button>
+                )}
 
                 {order.status === "confirmed" && (
                   <Button

@@ -170,13 +170,14 @@ export default function UserProfile() {
 
       <div className="flex justify-center mt-10">
         <div className="w-full max-w-md md:max-w-lg lg:max-w-xl bg-white shadow-lg hover:shadow-xl transition-shadow p-6 rounded-lg">
+          <div className="flex justify-end mb-4">
           <button
             onClick={async () => {
               setIsLoggingOut(true);
               await logout();
               window.location.href = "/auth/login";
             }}
-            className={`ml-86 px-4 py-2 bg-yellow-500 text-white rounded cursor-pointer hover:bg-yellow-600 transition-all duration-150 flex items-center gap-2 ${
+            className={`px-4 py-2 bg-yellow-500 text-white rounded cursor-pointer hover:bg-yellow-600 transition-all duration-150 flex items-center gap-2 ${
               isLoggingOut ? "opacity-60 cursor-not-allowed" : ""
             }`}
             disabled={isLoggingOut}
@@ -200,6 +201,7 @@ export default function UserProfile() {
             )}
             Se déconnecter
           </button>
+          </div>
           <h1 className="text-2xl font-bold mb-2 text-yellow-600 animate-pulse">
             Bonjour, {user.firstName}!
           </h1>
@@ -458,7 +460,7 @@ export default function UserProfile() {
                         </span>
                       </td>
                       <td className="p-2 border text-center">
-                        {order.status === 'pending' && (
+                        {order.status === 'pending' ? (
                           <Button
                             size="sm"
                             onClick={() => handleCancelOrder(order.id, order.order_number)}
@@ -466,7 +468,20 @@ export default function UserProfile() {
                           >
                             Annuler
                           </Button>
-                        )}
+                        ) : ['confirmed', 'processing', 'shipped'].includes(order.status) ? (
+                          <div className="relative group inline-block">
+                            <Button
+                              size="sm"
+                              disabled
+                              className="bg-gray-300 text-gray-500 cursor-not-allowed opacity-60"
+                            >
+                              Annuler
+                            </Button>
+                            <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 hidden group-hover:block z-10 bg-gray-800 text-white text-xs rounded px-2 py-1 whitespace-nowrap">
+                              Commande déjà confirmée
+                            </div>
+                          </div>
+                        ) : null}
                       </td>
                     </tr>
                   ))}
@@ -522,10 +537,9 @@ export default function UserProfile() {
                        order.status === 'cancelled' ? 'Annulée' : order.status}
                     </span>
                   </div>
-                  {order.status === 'pending' && (
+                  {order.status === 'pending' ? (
                     <div className="mt-2 pt-2 border-t">
                       <Button
-                        variant="destructive"
                         size="sm"
                         onClick={() => handleCancelOrder(order.id, order.order_number)}
                         className="w-full bg-black text-white hover:bg-gray-800"
@@ -533,7 +547,20 @@ export default function UserProfile() {
                         Annuler la commande
                       </Button>
                     </div>
-                  )}
+                  ) : ['confirmed', 'processing', 'shipped'].includes(order.status) ? (
+                    <div className="mt-2 pt-2 border-t">
+                      <div title="Commande déjà confirmée">
+                        <Button
+                          size="sm"
+                          disabled
+                          className="w-full bg-gray-300 text-gray-500 cursor-not-allowed opacity-60"
+                        >
+                          Annuler la commande
+                        </Button>
+                      </div>
+                      <p className="text-xs text-gray-500 mt-1 text-center">Commande déjà confirmée</p>
+                    </div>
+                  ) : null}
                 </div>
               ))}
             </div>

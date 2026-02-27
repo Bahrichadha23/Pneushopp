@@ -62,5 +62,12 @@ export async function deleteSupplier(id: number): Promise<void> {
     method: "DELETE",
     headers: { Authorization: `Bearer ${token}` },
   });
-  if (!res.ok) throw new Error("Erreur suppression fournisseur");
+  if (!res.ok) {
+    let msg = "Erreur suppression fournisseur";
+    try {
+      const data = await res.json();
+      if (data?.error) msg = data.error;
+    } catch {}
+    throw new Error(msg);
+  }
 }

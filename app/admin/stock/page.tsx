@@ -116,7 +116,7 @@ export default function StockManagementPage() {
             stock: item.stock,
             stockMin: item.stockMin ?? 0,
             stockMax: item.stockMax ?? 100,
-            prixAchat: parseFloat(item.old_price || "0"),
+            prixAchat: parseFloat(item.purchase_price || item.old_price || "0"),
             prixVente: parseFloat(item.price || "0"),
             emplacement: item.location || "-",
           })
@@ -257,7 +257,7 @@ export default function StockManagementPage() {
   );
 
   const totalValue = stock.reduce(
-    (sum, item) => sum + item.stock * item.prixAchat,
+    (sum, item) => sum + item.stock * item.prixVente,
     0
   );
 
@@ -390,7 +390,6 @@ export default function StockManagementPage() {
                   <th className="px-2 py-1 text-center">Stock</th>
                   <th className="px-2 py-1">Status</th>
                   <th className="px-2 py-1">Min/Max</th>
-                  <th className="px-2 py-1">Prix achat</th>
                   <th className="px-2 py-1">Prix vente</th>
                   <th className="px-2 py-1">Actions</th>
                 </tr>
@@ -417,9 +416,6 @@ export default function StockManagementPage() {
                       </td>
                       <td className="px-2 py-1">
                         {item.stockMin} / {item.stockMax}
-                      </td>
-                      <td className="px-2 py-1">
-                        {formatCurrency(item.prixAchat)}
                       </td>
                       <td className="px-2 py-1">
                         {formatCurrency(item.prixVente)}
