@@ -14,6 +14,16 @@ type CartAction =
 
 // API endpoints
 import { API_URL } from "@/lib/config";
+
+type ProductCategory = Product["category"];
+function mapApiCategory(raw: string): ProductCategory {
+  const s = raw.toLowerCase();
+  if (s.includes("agricole")) return "agricole";
+  if (s.includes("moto")) return "moto";
+  if (s.includes("4x4") || s.includes("suv")) return "4x4";
+  if (s.includes("utilitaire") || s.includes("camionnette") || s.includes("poids")) return "utilitaire";
+  return "tourisme";
+}
 // Helper function to get auth token
 const getAuthToken = () => {
   if (typeof window !== "undefined") {
@@ -99,7 +109,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
           brand: item.product.brand,
           image: item.product.image || "/placeholder.jpg",
           model: item.product.size,
-          category: "auto",
+          category: mapApiCategory(item.product.category_name || item.product.category?.name || ""),
           inStock: item.product.stock > 0,
           stock: item.product.stock,
           originalPrice: item.product.old_price

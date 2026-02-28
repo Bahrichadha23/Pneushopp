@@ -14,7 +14,7 @@ export interface Product {
   discount_percentage?: number
 
   image: string
-  images: File[]
+  images: (string | File)[]
   category: "agricole" |"utilitaire" | "4x4" | "tourisme" | "moto"
 
   // Champs additionnels pour l'ajout manuel

@@ -40,14 +40,15 @@ interface ApiProduct {
   };
 }
 const categoryMap: Record<string, Product["category"]> = {
-  auto: "auto",
-  suv: "suv",
-  camionnette: "camionnette",
+  auto: "tourisme",
+  suv: "4x4",
+  camionnette: "utilitaire",
   utilitaire: "utilitaire",
   agricole: "agricole",
-  "poids-lourd": "poids-lourd",
+  "poids-lourd": "utilitaire",
   "4x4": "4x4",
-  tourisme: "auto",
+  tourisme: "tourisme",
+  moto: "moto",
 };
 
 const convertApiProduct = (apiProduct: ApiProduct): Product => {
@@ -88,7 +89,7 @@ const convertApiProduct = (apiProduct: ApiProduct): Product => {
       }),
     ],
 
-    category: categoryMap[apiProduct.category.slug] ?? "auto",
+    category: categoryMap[apiProduct.category?.slug] ?? "tourisme",
 
     specifications: {
       width,
@@ -100,7 +101,7 @@ const convertApiProduct = (apiProduct: ApiProduct): Product => {
       // Convert season to union type
       season:
         apiProduct.season === "summer"
-          ? "ete"
+          ? "été"
           : apiProduct.season === "winter"
           ? "hiver"
           : "toutes-saisons",

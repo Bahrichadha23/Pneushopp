@@ -11,6 +11,16 @@ import type { Product } from "@/types/product";
 import { API_URL } from "@/lib/config";
 import { useCart } from "@/contexts/cart-context";
 
+type ProductCategory = Product["category"];
+function mapApiCategory(raw: string): ProductCategory {
+  const s = raw.toLowerCase();
+  if (s.includes("agricole")) return "agricole";
+  if (s.includes("moto")) return "moto";
+  if (s.includes("4x4") || s.includes("suv")) return "4x4";
+  if (s.includes("utilitaire") || s.includes("camionnette") || s.includes("poids")) return "utilitaire";
+  return "tourisme";
+}
+
 async function fetchProduct(slug: string) {
   const res = await fetch(`${API_URL}/products/${slug}`);
   console.log("REsult", res.body);
@@ -69,7 +79,7 @@ export default function ProductDetailsPage() {
             allImages.length > 0
               ? allImages
               : [data.image || "/placeholder.jpg"],
-          category: "auto",
+          category: mapApiCategory(data.category_name || data.category?.name || ""),
           specifications: {
             width: 225,
             height: 45,
