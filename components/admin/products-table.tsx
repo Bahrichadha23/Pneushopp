@@ -406,18 +406,7 @@ export default function ProductsTable({
                     </div>
                   </td>
                   <td className="w-[100px] px-4 py-4 hidden md:table-cell">
-                    <Input
-                      type="number"
-                      value={product.stock}
-                      onChange={(e) =>
-                        onUpdateStock(
-                          product.id,
-                          Number.parseInt(e.target.value) || 0
-                        )
-                      }
-                      className="w-20 h-8"
-                      min="0"
-                    />
+                    <span className="font-medium text-sm">{product.stock}</span>
                   </td>
                   <td className="w-[120px] px-4 py-4">
                     <Badge variant={stockStatus.variant}>

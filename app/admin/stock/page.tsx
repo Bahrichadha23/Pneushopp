@@ -18,11 +18,11 @@ interface StockStatus {
   variant: StockVariant;
 }
 
-const getStockStatus = (current: number): StockStatus => {
+const getStockStatus = (current: number, min = 5, max = 100): StockStatus => {
   if (current <= 0)
     return { status: "Rupture de stock", variant: "destructive" };
-  if (current <= 5) return { status: "Stock faible", variant: "secondary" };
-  if (current <= 20) return { status: "En stock", variant: "default" };
+  if (current <= min) return { status: "Stock faible", variant: "secondary" };
+  if (current < max) return { status: "En stock", variant: "default" };
   return { status: "Stock élevé", variant: "outline" };
 };
 
@@ -38,6 +38,8 @@ interface AdminProduct {
   prixAchat: number;
   prixVente: number;
   emplacement: string;
+  isOnSale: boolean;
+  discountPct: number;
 }
 
 export default function StockManagementPage() {
@@ -47,13 +49,13 @@ export default function StockManagementPage() {
   const [statusPanel, setStatusPanel] = useState<{
     isOpen: boolean;
     product: AdminProduct | null;
-    selectedStatus: string;
-    targetStock: number;
+    minStock: number;
+    maxStock: number;
   }>({
     isOpen: false,
     product: null,
-    selectedStatus: "",
-    targetStock: 0,
+    minStock: 5,
+    maxStock: 100,
   });
   const [confirmation, setConfirmation] = useState<{
     isOpen: boolean;
@@ -112,13 +114,15 @@ export default function StockManagementPage() {
             name: item.name,
             brand: item.brand,
             size: item.size,
-            category: item.category?.name || "Auto",
+            category: item.category_name || item.category?.name || "-",
             stock: item.stock,
-            stockMin: item.stockMin ?? 0,
-            stockMax: item.stockMax ?? 100,
+            stockMin: item.stock_min ?? 5,
+            stockMax: item.stock_max ?? 100,
             prixAchat: parseFloat(item.purchase_price || item.old_price || "0"),
             prixVente: parseFloat(item.price || "0"),
             emplacement: item.location || "-",
+            isOnSale: item.is_on_sale || false,
+            discountPct: item.discount_percentage || 0,
           })
         );
 
@@ -141,55 +145,38 @@ export default function StockManagementPage() {
       currency: "TND",
     }).format(amount);
 
-  const statusOptions = [
-    { label: "Stock élevé", value: "Stock élevé", defaultStock: 30 },
-    { label: "En stock", value: "En stock", defaultStock: 10 },
-    { label: "Stock faible", value: "Stock faible", defaultStock: 3 },
-    { label: "Rupture de stock", value: "Rupture de stock", defaultStock: 0 },
-  ];
-
   const openStatusPanel = (item: AdminProduct) => {
     setStatusPanel({
       isOpen: true,
       product: item,
-      selectedStatus: getStockStatus(item.stock).status,
-      targetStock: item.stock,
+      minStock: item.stockMin,
+      maxStock: item.stockMax,
     });
   };
 
   const closeStatusPanel = () => {
-    setStatusPanel({ isOpen: false, product: null, selectedStatus: "", targetStock: 0 });
-  };
-
-  const handleStatusChange = (newStatus: string) => {
-    const opt = statusOptions.find((o) => o.value === newStatus);
-    setStatusPanel((prev) => ({
-      ...prev,
-      selectedStatus: newStatus,
-      targetStock: opt ? opt.defaultStock : prev.targetStock,
-    }));
+    setStatusPanel({ isOpen: false, product: null, minStock: 5, maxStock: 100 });
   };
 
   const handleStatusPanelConfirm = async () => {
     if (!statusPanel.product) return;
     const { id } = statusPanel.product;
-    const newStock = statusPanel.targetStock;
-    try {
+    const { minStock, maxStock } = statusPanel;    try {
       const response = await fetch(`${API_URL}/admin/products/${id}/`, {
         method: "PATCH",
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${localStorage.getItem("access_token")}`,
         },
-        body: JSON.stringify({ stock: newStock }),
+        body: JSON.stringify({ stock_min: minStock, stock_max: maxStock }),
       });
-      if (!response.ok) throw new Error("Erreur lors de la mise à jour du stock");
+      if (!response.ok) throw new Error("Erreur lors de la mise à jour");
       setStock((prev) =>
-        prev.map((p) => (p.id === id ? { ...p, stock: newStock } : p))
+        prev.map((p) => (p.id === id ? { ...p, stockMin: minStock, stockMax: maxStock } : p))
       );
       closeStatusPanel();
     } catch (err) {
-      console.error("❌ Échec mise à jour statut:", err);
+      console.error("Échec mise à jour seuils:", err);
     }
   };
 
@@ -247,13 +234,13 @@ export default function StockManagementPage() {
       item.brand.toLowerCase().includes(searchTerm.toLowerCase()) ||
       item.size.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesStatus = statusFilter
-      ? getStockStatus(item.stock).status === statusFilter
+      ? getStockStatus(item.stock, item.stockMin, item.stockMax).status === statusFilter
       : true;
     return matchesSearch && matchesStatus;
   });
 
   const lowStockItems = stock.filter(
-    (item) => item.stock > 0 && item.stock <= 5
+    (item) => item.stock > 0 && item.stock <= item.stockMin
   );
 
   const totalValue = stock.reduce(
@@ -365,7 +352,7 @@ export default function StockManagementPage() {
               {label}
               {value !== null && (
                 <span className="ml-1 text-xs opacity-75">
-                  ({stock.filter((i) => getStockStatus(i.stock).status === value).length})
+                  ({stock.filter((i) => getStockStatus(i.stock, i.stockMin, i.stockMax).status === value).length})
                 </span>
               )}
             </button>
@@ -396,7 +383,7 @@ export default function StockManagementPage() {
               </thead>
               <tbody>
                 {filteredStock.map((item) => {
-                  const stockStatus = getStockStatus(item.stock);
+                  const stockStatus = getStockStatus(item.stock, item.stockMin, item.stockMax);
                   return (
                     <tr key={item.id} className="border-t">
                       <td className="px-2 py-1 font-medium">{item.name}</td>
@@ -470,7 +457,7 @@ export default function StockManagementPage() {
                 {/* Panel Header */}
                 <div className="flex items-center justify-between mb-4 border-b pb-2">
                   <h2 className="text-lg font-bold text-gray-900">
-                    Modifier le statut du stock
+                    Seuils Min / Max du stock
                   </h2>
                   <button
                     onClick={closeStatusPanel}
@@ -505,50 +492,52 @@ export default function StockManagementPage() {
                   </div>
                   <div className="flex justify-between">
                     <span className="text-gray-500">Statut actuel</span>
-                    <Badge variant={getStockStatus(statusPanel.product.stock).variant}>
-                      {getStockStatus(statusPanel.product.stock).status}
+                    <Badge variant={getStockStatus(statusPanel.product.stock, statusPanel.product.stockMin, statusPanel.product.stockMax).variant}>
+                      {getStockStatus(statusPanel.product.stock, statusPanel.product.stockMin, statusPanel.product.stockMax).status}
                     </Badge>
                   </div>
                 </div>
 
-                {/* Status Dropdown */}
-                <div className="mb-4">
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Nouveau statut
-                  </label>
-                  <select
-                    value={statusPanel.selectedStatus}
-                    onChange={(e) => handleStatusChange(e.target.value)}
-                    className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  >
-                    {statusOptions.map((opt) => (
-                      <option key={opt.value} value={opt.value}>
-                        {opt.label}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                {/* Stock Input */}
-                <div className="mb-5">
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Quantité de stock cible
-                  </label>
-                  <input
-                    type="number"
-                    min={0}
-                    max={statusPanel.product.stockMax}
-                    value={statusPanel.targetStock}
-                    onChange={(e) =>
-                      setStatusPanel((prev) => ({
-                        ...prev,
-                        targetStock: Math.max(0, parseInt(e.target.value) || 0),
-                        selectedStatus: getStockStatus(Math.max(0, parseInt(e.target.value) || 0)).status,
-                      }))
-                    }
-                    className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  />
-                  <p className="text-xs text-gray-400 mt-1">Max : {statusPanel.product.stockMax} unités</p>
+                {/* Min / Max Inputs */}
+                <div className="grid grid-cols-2 gap-4 mb-5">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Minimum
+                      <span className="ml-1 text-xs text-orange-500 font-normal">(Stock faible)</span>
+                    </label>
+                    <input
+                      type="number"
+                      min={0}
+                      value={statusPanel.minStock}
+                      onChange={(e) =>
+                        setStatusPanel((prev) => ({
+                          ...prev,
+                          minStock: Math.max(0, parseInt(e.target.value) || 0),
+                        }))
+                      }
+                      className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-400"
+                    />
+                    <p className="text-xs text-gray-400 mt-1">En dessous = stock faible</p>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Maximum
+                      <span className="ml-1 text-xs text-green-600 font-normal">(Stock élevé)</span>
+                    </label>
+                    <input
+                      type="number"
+                      min={0}
+                      value={statusPanel.maxStock}
+                      onChange={(e) =>
+                        setStatusPanel((prev) => ({
+                          ...prev,
+                          maxStock: Math.max(0, parseInt(e.target.value) || 0),
+                        }))
+                      }
+                      className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-400"
+                    />
+                    <p className="text-xs text-gray-400 mt-1">Au-dessus = stock élevé</p>
+                  </div>
                 </div>
 
                 {/* Actions */}
