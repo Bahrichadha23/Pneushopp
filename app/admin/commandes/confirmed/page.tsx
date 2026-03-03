@@ -59,26 +59,39 @@ export default function ConfirmedOrdersPage() {
   async function fetchConfirmedOrders() {
     const token = localStorage.getItem("access_token");
 
-    const res = await fetch(`${API_URL}/orders/?status=confirmed`, {
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-    });
+    // Fetch all active statuses: confirmed, processing, shipped, delivered
+    const statuses = ["confirmed", "processing", "shipped", "delivered"];
+    const allOrders: ConfirmedOrder[] = [];
 
-    if (!res.ok) return [];
-    const data = await res.json();
+    for (const status of statuses) {
+      const res = await fetch(`${API_URL}/orders/?status=${status}`, {
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      if (!res.ok) continue;
+      const data = await res.json();
+      const mapped = (data.results || []).map((o: any) => ({
+        id: o.order_number,
+        numericId: o.id,
+        client:
+          (o.shipping_address?.first_name || o.shipping_address?.firstName || "") +
+          " " +
+          (o.shipping_address?.last_name || o.shipping_address?.lastName || ""),
+        email: o.user?.email || "",
+        total: parseFloat(o.total_amount),
+        items: o.items?.length || 0,
+        date: new Date(o.created_at).toLocaleDateString("fr-FR"),
+        status: o.status,
+      }));
+      allOrders.push(...mapped);
+    }
 
-    return data.results.map((o: any) => ({
-      id: o.order_number,
-      numericId: o.id,
-      client: o.shipping_address.first_name + " " + o.shipping_address.last_name,
-      email: o.user.email || "",
-      total: parseFloat(o.total_amount),
-      items: o.items.length,
-      date: new Date(o.created_at).toLocaleDateString("fr-FR"),
-      status: o.status,
-    }));
+    // Sort by date desc
+    return allOrders.sort(
+      (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
+    );
   }
 
   const formatCurrency = (amount: number) => {
@@ -104,7 +117,7 @@ export default function ConfirmedOrdersPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold text-gray-900">
-          Commandes confirmées
+          Commandes actives
         </h1>
         <Badge variant="secondary" className="bg-green-100 text-green-800 text-sm">
           {filteredOrders.length} commandes
@@ -168,7 +181,7 @@ export default function ConfirmedOrdersPage() {
       {/* Orders Table */}
       <Card>
         <CardHeader>
-          <CardTitle>Liste des commandes confirmées</CardTitle>
+          <CardTitle>Commandes actives (confirmées, en cours, expédiées, livrées)</CardTitle>
         </CardHeader>
         <CardContent>
           <Table>
@@ -197,8 +210,18 @@ export default function ConfirmedOrdersPage() {
                   </TableCell>
                   <TableCell>{order.date}</TableCell>
                   <TableCell>
-                    <Badge className="bg-green-500 text-white">
-                      Confirmée
+                    <Badge className={{
+                      confirmed: "bg-blue-500 text-white",
+                      processing: "bg-yellow-500 text-white",
+                      shipped: "bg-purple-500 text-white",
+                      delivered: "bg-green-500 text-white",
+                    }[order.status] || "bg-gray-500 text-white"}>
+                      {{
+                        confirmed: "Confirmée",
+                        processing: "En cours",
+                        shipped: "Expédiée",
+                        delivered: "Livrée",
+                      }[order.status] || order.status}
                     </Badge>
                   </TableCell>
                 </TableRow>

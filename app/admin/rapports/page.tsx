@@ -21,6 +21,7 @@ import {
   Users,
   Calendar,
   Loader2,
+  Euro,
 } from "lucide-react";
 import { API_URL } from "@/lib/config";
 import { useAuth } from "@/contexts/auth-context";
@@ -36,6 +37,9 @@ interface StatsVentes {
   commandes_mensuel: number;
   clients_actifs: number;
   produits_vendus: number;
+  ventes_total: number;
+  commandes_total: number;
+  panier_moyen: number;
 }
 
 interface VentesParMois {
@@ -154,72 +158,22 @@ export default function RapportsPage() {
         <h1 className="text-2xl font-bold text-gray-900">
           Rapports & Analyses
         </h1>
-        {/* <div className="flex space-x-2">
-          <Button variant={periodeSelectionnee === "jour" ? "default" : "outline"}
-            onClick={() => setPeriodeSelectionnee("jour")}>
-            Jour
-          </Button>
-          <Button variant={periodeSelectionnee === "semaine" ? "default" : "outline"}
-            onClick={() => setPeriodeSelectionnee("semaine")}>
-            Semaine
-          </Button>
-          <Button variant={periodeSelectionnee === "mois" ? "default" : "outline"}
-            onClick={() => setPeriodeSelectionnee("mois")}>
-            Mois
-          </Button>
-          <Button variant="outline" onClick={fetchReportsData}>
-            <Calendar className="h-4 w-4 mr-2" />
-            Actualiser
-          </Button>
-        </div> */}
       </div>
-
-      {!hasData && (
-        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-          <div className="flex">
-            <div className="flex-shrink-0">
-              <svg
-                className="h-5 w-5 text-yellow-400"
-                viewBox="0 0 20 20"
-                fill="currentColor"
-              >
-                <path
-                  fillRule="evenodd"
-                  d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z"
-                  clipRule="evenodd"
-                />
-              </svg>
-            </div>
-            <div className="ml-3">
-              <h3 className="text-sm font-medium text-yellow-800">
-                Aucune donnée de vente disponible
-              </h3>
-              <div className="mt-2 text-sm text-yellow-700">
-                <p>
-                  Il semble qu'il n'y ait pas encore de commandes terminées dans
-                  la base de données. Les rapports s'afficheront automatiquement
-                  dès qu'il y aura des données de vente.
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* KPIs principaux */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">
-              Ventes du mois
+              Ventes totales
             </CardTitle>
-            <DollarSign className="h-4 w-4 text-green-500" />
+            <p className="h-4 w-4 text-green-500" >DT</p>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-green-600">
-              {stats_ventes.ventes_mensuel.toLocaleString()} DT
+              {stats_ventes.ventes_total.toLocaleString()} DT
             </div>
-            <p className="text-xs text-green-600 mt-1">Données en temps réel</p>
+            <p className="text-xs text-green-600 mt-1">Toutes périodes confondues</p>
           </CardContent>
         </Card>
 
@@ -230,9 +184,9 @@ export default function RapportsPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-blue-600">
-              {stats_ventes.commandes_mensuel}
+              {stats_ventes.commandes_total}
             </div>
-            <p className="text-xs text-blue-600 mt-1">Données en temps réel</p>
+            <p className="text-xs text-blue-600 mt-1">Toutes périodes confondues</p>
           </CardContent>
         </Card>
 
@@ -260,15 +214,10 @@ export default function RapportsPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-orange-600">
-              {stats_ventes.commandes_mensuel > 0
-                ? Math.round(
-                    stats_ventes.ventes_mensuel / stats_ventes.commandes_mensuel
-                  )
-                : 0}{" "}
-              DT
+              {stats_ventes.panier_moyen.toLocaleString()} DT
             </div>
             <p className="text-xs text-orange-600 mt-1">
-              Données en temps réel
+              Toutes périodes confondues
             </p>
           </CardContent>
         </Card>

@@ -100,10 +100,12 @@ export default function PendingOrdersPage() {
       id: o.order_number, // or o.id if you prefer
       numericId: o.id, // ✅ numeric backend ID for PATCH
       client:
-        o.shipping_address.first_name + " " + o.shipping_address.last_name,
-      email: o.user.email || "",
+        (o.shipping_address?.first_name || o.shipping_address?.firstName || "") +
+        " " +
+        (o.shipping_address?.last_name || o.shipping_address?.lastName || ""),
+      email: o.user?.email || "",
       total: parseFloat(o.total_amount), // convert to number
-      items: o.items.length,
+      items: o.items || [], // keep as array
       date: new Date(o.created_at).toLocaleDateString("fr-FR"),
       urgence: o.urgence || "normale",
     }));
