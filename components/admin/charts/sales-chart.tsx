@@ -17,12 +17,11 @@ interface SalesChartProps {
 
 export default function SalesChart({ data, title }: SalesChartProps) {
   const formatCurrency = (value: number) => {
-    return new Intl.NumberFormat("fr-TN", {
-      style: "currency",
-      currency: "TND",
+    return new Intl.NumberFormat("fr-FR", {
+      style: "decimal",
       minimumFractionDigits: 0,
       maximumFractionDigits: 0,
-    }).format(value)
+    }).format(value) + " DT"
   }
 
   const CustomTooltip = ({ active, payload }: any) => {
@@ -94,7 +93,7 @@ export default function SalesChart({ data, title }: SalesChartProps) {
               strokeWidth={2}
               fillOpacity={1} 
               fill="url(#colorVentes)"
-              name="Ventes (TND)"
+              name="Ventes (DT)"
             />
             <Area 
               yAxisId="right"

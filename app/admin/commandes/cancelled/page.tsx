@@ -82,12 +82,11 @@ export default function CancelledOrdersPage() {
   }
 
   const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat("fr-TN", {
-      style: "currency",
-      currency: "TND",
+    return new Intl.NumberFormat("fr-FR", {
+      style: "decimal",
       minimumFractionDigits: 0,
       maximumFractionDigits: 0,
-    }).format(amount);
+    }).format(amount) + " DT";
   };
 
   const filteredOrders = orders.filter(

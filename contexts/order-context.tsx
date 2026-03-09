@@ -107,6 +107,12 @@ export function OrderProvider({ children }: { children: React.ReactNode }) {
             },
             payment_method: orderData.paymentMethod.type,
             total_amount: parseFloat(orderData.total.toFixed(2)), // Fix decimal places
+            // CRI payment fields
+            ...(orderData.paymentMethod.type === "cri" && {
+              cri_amount_paid: orderData.paymentMethod.reste || 0,
+              cri_remaining: orderData.paymentMethod.montant || 0,
+              cri_remarque: orderData.paymentMethod.remarque || "",
+            }),
             // Warranty information (if provided)
             ...(orderData.warranty &&
               orderData.warranty.accepted && {

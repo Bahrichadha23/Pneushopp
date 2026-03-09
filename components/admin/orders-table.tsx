@@ -383,11 +383,11 @@ export default function OrdersTable({
 
   const formatCurrency = (amount: string | number) => {
     const numAmount = typeof amount === "string" ? parseFloat(amount) : amount;
-    return new Intl.NumberFormat("fr-TN", {
-      style: "currency",
-      currency: "TND",
+    return new Intl.NumberFormat("fr-FR", {
+      style: "decimal",
       minimumFractionDigits: 2,
-    }).format(numAmount);
+      maximumFractionDigits: 2,
+    }).format(numAmount) + " DT";
   };
 
   const formatDate = (date: Date) =>

@@ -19,8 +19,12 @@ export interface OrderItem {
   specifications?: Record<string, any>;
 }
 export type PaymentMethod = {
-  type: "card" | "cash_on_delivery"| "bank_transfer";
+  type: "card" | "cash_on_delivery" | "bank_transfer" | "cri";
   details?: string;
+  montant?: number;
+  reste?: number;
+  totalTicket?: number;
+  remarque?: string;
 };
 
 // Interface for shipping address

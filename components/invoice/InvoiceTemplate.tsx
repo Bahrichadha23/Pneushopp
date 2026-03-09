@@ -42,17 +42,17 @@ const InvoiceTemplate = forwardRef<HTMLDivElement, InvoiceTemplateProps>(
                             <tr key={index}>
                                 <td className="border border-gray-300 p-1">{item.product_name}</td>
                                 <td className="border border-gray-300 p-1 text-center">{item.quantity}</td>
-                                <td className="border border-gray-300 p-1 text-right">{item.unit_price} TND</td>
-                                <td className="border border-gray-300 p-1 text-right">{item.total_price} TND</td>
+                                <td className="border border-gray-300 p-1 text-right">{item.unit_price} DT</td>
+                                <td className="border border-gray-300 p-1 text-right">{item.total_price} DT</td>
                             </tr>
                         ))}
                     </tbody>
                 </table>
 
                 <div className="mt-6 text-right">
-                    <p><strong>Total HT:</strong> {order.totalAmount} TND</p>
-                    <p><strong>TVA (19%):</strong> {(order.totalAmount * 0.19).toFixed(2)} TND</p>
-                    <p><strong>Total TTC:</strong> {(order.totalAmount * 1.19).toFixed(2)} TND</p>
+                    <p><strong>Total HT:</strong> {order.totalAmount} DT</p>
+                    <p><strong>TVA (19%):</strong> {(order.totalAmount * 0.19).toFixed(2)} DT</p>
+                    <p><strong>Total TTC:</strong> {(order.totalAmount * 1.19).toFixed(2)} DT</p>
                 </div>
                 <div className="mt-8 text-center">
                     <p className="italic">Cachet et Signature</p>

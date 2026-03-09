@@ -529,7 +529,7 @@ export default function ProductsPage() {
                     <div>
                       <span className="font-medium text-gray-600">Prix:</span>
                       <p className="text-gray-900 text-lg font-bold">
-                        {viewingProduct.price.toFixed(3)} TND
+                        {viewingProduct.price.toFixed(3)} DT
                       </p>
                     </div>
                     {viewingProduct.old_price && (
@@ -538,7 +538,7 @@ export default function ProductsPage() {
                           Ancien prix:
                         </span>
                         <p className="text-gray-500 line-through">
-                          {viewingProduct.old_price.toFixed(3)} TND
+                          {viewingProduct.old_price.toFixed(3)} DT
                         </p>
                       </div>
                     )}

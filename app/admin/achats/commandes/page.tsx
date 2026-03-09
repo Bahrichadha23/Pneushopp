@@ -130,9 +130,9 @@ const handleDownloadAchat = (order: any) => {
         ref,
         designation,
         qty.toString(),
-        `${unitPrice.toFixed(3)} TND`,
+        `${unitPrice.toFixed(3)} DT`,
         discount > 0 ? `${discount}%` : "-",
-        `${totalHT.toFixed(3)} TND`,
+        `${totalHT.toFixed(3)} DT`,
       ];
       cx = margin;
       values.forEach((v, i) => {
@@ -167,17 +167,17 @@ const handleDownloadAchat = (order: any) => {
   if (globalDiscount > 0) {
     pdf.text("Sous-total HT:", boxX + 3, y + 10);
     pdf.setFont("helvetica", "normal");
-    pdf.text(`${subtotal.toFixed(3)} TND`, boxX + 62, y + 10, { align: "right" });
+    pdf.text(`${subtotal.toFixed(3)} DT`, boxX + 62, y + 10, { align: "right" });
     pdf.setFont("helvetica", "bold");
     pdf.text(`Remise (${globalDiscount}%):`, boxX + 3, y + 20);
     pdf.setFont("helvetica", "normal");
-    pdf.text(`-${(subtotal * globalDiscount / 100).toFixed(3)} TND`, boxX + 62, y + 20, { align: "right" });
+    pdf.text(`-${(subtotal * globalDiscount / 100).toFixed(3)} DT`, boxX + 62, y + 20, { align: "right" });
     pdf.setFont("helvetica", "bold");
     pdf.text("Total HT:", boxX + 3, y + 30);
-    pdf.text(`${total.toFixed(3)} TND`, boxX + 62, y + 30, { align: "right" });
+    pdf.text(`${total.toFixed(3)} DT`, boxX + 62, y + 30, { align: "right" });
   } else {
     pdf.text("Total HT:", boxX + 3, y + 10);
-    pdf.text(`${total.toFixed(3)} TND`, boxX + 62, y + 10, { align: "right" });
+    pdf.text(`${total.toFixed(3)} DT`, boxX + 62, y + 10, { align: "right" });
   }
 
   // Footer

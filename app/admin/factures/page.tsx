@@ -81,11 +81,11 @@ export default function FacturesPage() {
   }, [orders, searchClient, searchDate]);
 
   const formatCurrency = (amount: number) =>
-    new Intl.NumberFormat("fr-TN", {
-      style: "currency",
-      currency: "TND",
+    new Intl.NumberFormat("fr-FR", {
+      style: "decimal",
       minimumFractionDigits: 2,
-    }).format(amount);
+      maximumFractionDigits: 2,
+    }).format(amount) + " DT";
 
   const formatDate = (date: Date) =>
     new Intl.DateTimeFormat("fr-FR", {

@@ -140,10 +140,11 @@ export default function StockManagementPage() {
   };
 
   const formatCurrency = (amount: number) =>
-    new Intl.NumberFormat("fr-TN", {
-      style: "currency",
-      currency: "TND",
-    }).format(amount);
+    new Intl.NumberFormat("fr-FR", {
+      style: "decimal",
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    }).format(amount) + " DT";
 
   const openStatusPanel = (item: AdminProduct) => {
     setStatusPanel({

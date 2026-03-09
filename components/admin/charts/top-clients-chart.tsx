@@ -18,12 +18,11 @@ const COLORS = ['#0ea5e9', '#06b6d4', '#14b8a6', '#10b981', '#22c55e']
 
 export default function TopClientsChart({ data }: TopClientsChartProps) {
   const formatCurrency = (value: number) => {
-    return new Intl.NumberFormat("fr-TN", {
-      style: "currency",
-      currency: "TND",
+    return new Intl.NumberFormat("fr-FR", {
+      style: "decimal",
       minimumFractionDigits: 0,
       maximumFractionDigits: 0,
-    }).format(value)
+    }).format(value) + " DT"
   }
 
   const CustomTooltip = ({ active, payload }: any) => {

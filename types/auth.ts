@@ -37,7 +37,7 @@ export interface UserPreferences {
   smsNotifications: boolean
   emailNotifications: boolean
   language: "fr" | "ar"
-  currency: "TND"
+  currency: "DT"
 }
 
 export interface AuthContextType {

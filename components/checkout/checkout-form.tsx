@@ -505,6 +505,7 @@ export function CheckoutForm() {
       <PaymentForm
         onSubmit={handlePaymentSubmit}
         onBack={() => setStep("shipping")}
+        totalPrice={total}
       />
     );
   }

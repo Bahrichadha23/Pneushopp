@@ -431,7 +431,7 @@ export default function UserProfile() {
                       <td className="p-2 border">
                         {new Date(order.created_at).toLocaleDateString()}
                       </td>
-                      <td className="p-2 border">{order.total_amount} TND</td>
+                      <td className="p-2 border">{Number(order.total_amount).toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} DT</td>
                       <td className="p-2 border">
                         <span
                           className={`px-2 py-1 rounded text-xs font-bold
@@ -507,7 +507,7 @@ export default function UserProfile() {
                   </div>
                   <div className="flex justify-between items-center">
                     <span className="font-semibold text-sm">Montant:</span>
-                    <span>{order.total_amount} TND</span>
+                    <span>{Number(order.total_amount).toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} DT</span>
                   </div>
                   <div className="flex justify-between items-center">
                     <span className="font-semibold text-sm">Statut:</span>

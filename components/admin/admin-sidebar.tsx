@@ -23,6 +23,7 @@ import {
   CircleX,
   Timer,
   Receipt,
+  Wallet,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -127,6 +128,17 @@ const menuItems: MenuItem[] = [
     children: [
       { title: "Achat", href: "/admin/achats", icon: ShoppingCart },
       { title: "Bons de commande achat", href: "/admin/achats/commandes", icon: ClipboardList },
+    ],
+  },
+  {
+    title: "Trésorerie",
+    icon: Wallet,
+    children: [
+      {
+        title: "Trésorerie Vente",
+        href: "/admin/tresorerie",
+        icon: Receipt,
+      },
     ],
   },
   { title: "Clients", href: "/admin/clients", icon: Users },
@@ -301,6 +313,17 @@ export default function AdminSidebar({
             icon: CircleX,
           },
           { title: "Livraisons", href: "/admin/livraisons", icon: Truck },
+        ],
+      },
+      {
+        title: "Trésorerie",
+        icon: Wallet,
+        children: [
+          {
+            title: "Trésorerie Vente",
+            href: "/admin/tresorerie",
+            icon: Receipt,
+          },
         ],
       },
       { title: "Clients", href: "/admin/clients", icon: Users },

@@ -72,7 +72,6 @@ const handleDownloadPurchaseOrder = async (bon: BonCommande) => {
   y += 4;
   pdf.setFontSize(9);
   pdf.setFont("helvetica", "normal");
-  pdf.text(`Date: ${new Date().toLocaleDateString("fr-FR")} - ${new Date().toLocaleTimeString("fr-FR")}`, pageWidth / 2, y, { align: "center" });
 
   y += 15;
 
@@ -194,12 +193,12 @@ const handleDownloadPurchaseOrder = async (bon: BonCommande) => {
 
       // Unit price
       pdf.rect(currentX, y, colWidths[2], 8);
-      pdf.text(`${unitPrice.toFixed(2)} TND`, currentX + colWidths[2] / 2, y + 5.5, { align: "center" });
+      pdf.text(`${unitPrice.toFixed(2)} DT`, currentX + colWidths[2] / 2, y + 5.5, { align: "center" });
       currentX += colWidths[2];
 
       // Total
       pdf.rect(currentX, y, colWidths[3], 8);
-      pdf.text(`${total.toFixed(2)} TND`, currentX + colWidths[3] / 2, y + 5.5, { align: "center" });
+      pdf.text(`${total.toFixed(2)} DT`, currentX + colWidths[3] / 2, y + 5.5, { align: "center" });
 
       y += 8;
     });
@@ -225,11 +224,11 @@ const handleDownloadPurchaseOrder = async (bon: BonCommande) => {
   
   pdf.setFontSize(10);
   pdf.text(`Frais de livraison:`, boxX + 3, boxY + 16);
-  pdf.text(`${deliveryCost.toLocaleString("fr-FR", { minimumFractionDigits: 2 })} TND`, boxX + 60, boxY + 16, { align: "right" });
+  pdf.text(`${deliveryCost.toLocaleString("fr-FR", { minimumFractionDigits: 2 })} DT`, boxX + 60, boxY + 16, { align: "right" });
   
   const totalWithDelivery = (bon.totalTTC ?? 0) + deliveryCost;
   pdf.text(`Total TTC:`, boxX + 3, boxY + 26);
-  pdf.text(`${totalWithDelivery.toLocaleString("fr-FR", { minimumFractionDigits: 2 })} TND`, boxX + 60, boxY + 26, { align: "right" });
+  pdf.text(`${totalWithDelivery.toLocaleString("fr-FR", { minimumFractionDigits: 2 })} DT`, boxX + 60, boxY + 26, { align: "right" });
 
   // === Footer ===
   pdf.setFont("helvetica", "italic");

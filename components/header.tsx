@@ -346,10 +346,10 @@ export default function Header() {
               variant="ghost"
               size="icon"
               onClick={handleCartClick}
-              className={`relative h-7 w-7 sm:h-8 sm:w-8 md:h-10 md:w-10 
+              className={`relative h-5 w-5 sm:h-8 sm:w-8 md:h-10 md:w-10 
                 transition-all duration-500 ease-out
                 ${showCartAnimation 
-                  ? 'animate-bounce scale-125 bg-yellow-100' 
+                  ? 'animate-bounce scale-100 bg-yellow-100' 
                   : ''
                 }
               `}

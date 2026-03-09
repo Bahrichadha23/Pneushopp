@@ -45,11 +45,11 @@ interface DashboardStatsProps {
 export default function DashboardStatsComponent({ stats, analytics }: DashboardStatsProps) {
   const formatCurrency = (amount: number | string) => {
     const numAmount = typeof amount === 'string' ? parseFloat(amount) : amount
-    return new Intl.NumberFormat("fr-TN", {
-      style: "currency",
-      currency: "TND",
+    return new Intl.NumberFormat("fr-FR", {
+      style: "decimal",
       minimumFractionDigits: 2,
-    }).format(numAmount)
+      maximumFractionDigits: 2,
+    }).format(numAmount) + " DT"
   }
 
   return (

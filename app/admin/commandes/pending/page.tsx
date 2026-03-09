@@ -112,18 +112,17 @@ export default function PendingOrdersPage() {
   }
 
   // const formatCurrency = (amount: number) => {
-  //   return new Intl.NumberFormat("fr-TN", {
-  //     style: "currency",
+  //   return new Intl.NumberFormat("fr-FR", {
+  //     style: "decimal",
   //     currency: "TND",
-  //   }).format(amount);
+  //   }).format(amount) + " DT";
   // };
   const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat("fr-TN", {
-      style: "currency",
-      currency: "TND",
+    return new Intl.NumberFormat("fr-FR", {
+      style: "decimal",
       minimumFractionDigits: 0,
       maximumFractionDigits: 0,
-    }).format(amount);
+    }).format(amount) + " DT";
   };
 
   const handleApprove = (numericId: number, orderName: string) => {
@@ -438,7 +437,7 @@ export default function PendingOrdersPage() {
               {confirmation.action === "approve" && (
                 <div className="mb-4">
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Frais de livraison (TND)
+                    Frais de livraison (DT)
                   </label>
                   <Input
                     type="number"

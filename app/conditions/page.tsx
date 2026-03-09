@@ -57,7 +57,7 @@ export default function ConditionsPage() {
                 3. Prix et Paiement
               </h3>
               <ul className="space-y-2 text-gray-700">
-                <li>• Les prix sont indiqués en TND toutes taxes comprises.</li>
+                <li>• Les prix sont indiqués en DT toutes taxes comprises.</li>
                 <li>
                   • Les modes de paiement acceptés sont ceux affichés au moment
                   du checkout (paiement sécurisé).

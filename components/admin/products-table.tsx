@@ -53,11 +53,11 @@ export default function ProductsTable({
   const [promoFilter, setPromoFilter] = useState<string>("all");
 
   const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat("fr-TN", {
-      style: "currency",
-      currency: "TND",
-      minimumFractionDigits: 0,
-    }).format(amount);
+    return new Intl.NumberFormat("fr-FR", {
+      style: "decimal",
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    }).format(amount) + " DT";
   };
 
   const getStockStatus = (product: Product) => {
