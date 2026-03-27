@@ -19,12 +19,33 @@ export interface OrderItem {
   specifications?: Record<string, any>;
 }
 export type PaymentMethod = {
-  type: "card" | "cash_on_delivery" | "bank_transfer" | "cri";
+  type: "card" | "cash_on_delivery" | "bank_transfer" | "cri" | "lettre_de_change" | "cheque";
   details?: string;
+  // `montant` = amount paid now, `reste` = amount left to pay
   montant?: number;
   reste?: number;
   totalTicket?: number;
   remarque?: string;
+  bankName?: string;
+  transferNumber?: string;
+  transferHolderName?: string;
+  transferImageName?: string;
+  // Cash on delivery / TPE fields
+  authorizationNumber?: string;
+  // Lettre de change fields
+  lettreNumber?: string;
+  lettreDate?: string;
+  lettreName?: string;
+  lettreBankName?: string;
+  lettreImageName?: string;
+  lettreRIB?: string;
+  lettreLieu?: string;
+  // Chèque fields
+  chequeNumber?: string;
+  chequeDate?: string;
+  chequeName?: string;
+  chequeBankName?: string;
+  chequeImageName?: string;
 };
 
 // Interface for shipping address

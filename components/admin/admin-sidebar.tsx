@@ -150,9 +150,11 @@ const menuItems: MenuItem[] = [
 export default function AdminSidebar({
   sidebarOpen,
   setSidebarOpen,
+  desktopSidebarOpen,
 }: {
   sidebarOpen: boolean;
   setSidebarOpen: (open: boolean) => void;
+  desktopSidebarOpen: boolean;
 }) {
   const [pendingCount, setPendingCount] = useState(0);
   const [bonsCount, setBonsCount] = useState(0);
@@ -409,7 +411,7 @@ export default function AdminSidebar({
         className={`fixed inset-y-0 left-0 z-40 w-64 bg-white border-r border-gray-200 transform transition-transform duration-200 ease-in-out overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]
         ${
           sidebarOpen ? "translate-x-0" : "-translate-x-full"
-        } md:translate-x-0`}
+        } ${desktopSidebarOpen ? "md:translate-x-0" : "md:-translate-x-full"}`}
       >
         {/* Desktop logo */}
         <div className="p-3 justify-center items-center space-x-2 sticky top-0 bg-white z-10 border-b border-gray-100">

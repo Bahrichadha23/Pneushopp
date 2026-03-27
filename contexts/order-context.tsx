@@ -109,9 +109,51 @@ export function OrderProvider({ children }: { children: React.ReactNode }) {
             total_amount: parseFloat(orderData.total.toFixed(2)), // Fix decimal places
             // CRI payment fields
             ...(orderData.paymentMethod.type === "cri" && {
-              cri_amount_paid: orderData.paymentMethod.reste || 0,
-              cri_remaining: orderData.paymentMethod.montant || 0,
+              cri_amount_paid: orderData.paymentMethod.montant || 0,
+              cri_remaining: orderData.paymentMethod.reste || 0,
               cri_remarque: orderData.paymentMethod.remarque || "",
+            }),
+            // Bank Transfer (Virement) fields
+            ...(orderData.paymentMethod.type === "bank_transfer" && {
+              transfer_amount_paid: orderData.paymentMethod.montant || 0,
+              transfer_remaining: orderData.paymentMethod.reste || 0,
+              transfer_number: orderData.paymentMethod.transferNumber || "",
+              transfer_holder_name: orderData.paymentMethod.transferHolderName || "",
+              transfer_bank_name: orderData.paymentMethod.bankName || "",
+              transfer_image_name: orderData.paymentMethod.transferImageName || "",
+              transfer_remarque: orderData.paymentMethod.remarque || "",
+            }),
+            // Letter of Change (Lettre de change) fields
+            ...(orderData.paymentMethod.type === "lettre_de_change" && {
+              lettre_amount_paid: orderData.paymentMethod.montant || 0,
+              lettre_remaining: orderData.paymentMethod.reste || 0,
+              lettre_number: orderData.paymentMethod.lettreNumber || "",
+              lettre_date: orderData.paymentMethod.lettreDate || "",
+              lettre_name: orderData.paymentMethod.lettreName || "",
+              lettre_bank_name: orderData.paymentMethod.lettreBankName || "",
+              lettre_rib: orderData.paymentMethod.lettreRIB || "",
+              lettre_lieu: orderData.paymentMethod.lettreLieu || "",
+              lettre_image_name: orderData.paymentMethod.lettreImageName || "",
+              lettre_remarque: orderData.paymentMethod.remarque || "",
+            }),
+            // Check (Chèque) fields
+            ...(orderData.paymentMethod.type === "cheque" && {
+              cheque_amount_paid: orderData.paymentMethod.montant || 0,
+              cheque_remaining: orderData.paymentMethod.reste || 0,
+              cheque_number: orderData.paymentMethod.chequeNumber || "",
+              cheque_date: orderData.paymentMethod.chequeDate || "",
+              cheque_name: orderData.paymentMethod.chequeName || "",
+              cheque_bank_name: orderData.paymentMethod.chequeBankName || "",
+              cheque_image_name: orderData.paymentMethod.chequeImageName || "",
+              cheque_remarque: orderData.paymentMethod.remarque || "",
+            }),
+            // Cash on Delivery (TPE à la livraison) fields
+            ...(orderData.paymentMethod.type === "cash_on_delivery" && {
+              cod_amount_paid: orderData.paymentMethod.montant || 0,
+              cod_remaining: orderData.paymentMethod.reste || 0,
+              cod_authorization_number: orderData.paymentMethod.authorizationNumber || "",
+              cod_bank_name: orderData.paymentMethod.bankName || "",
+              cod_remarque: orderData.paymentMethod.remarque || "",
             }),
             // Warranty information (if provided)
             ...(orderData.warranty &&

@@ -14,6 +14,7 @@ export default function AdminLayout({
   children: React.ReactNode;
 }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [desktopSidebarOpen, setDesktopSidebarOpen] = useState(true);
   const router = useRouter();
   const { logout } = useAuth();
 
@@ -22,13 +23,17 @@ export default function AdminLayout({
     router.push("/");
   };
   return (
-    <div className="min-h-screen bg-gray-50 flex overflow-hidden">
+    <div className="min-h-screen bg-gray-50 flex overflow-x-auto">
 
       {/* Sidebar */}
-      <AdminSidebar sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} />
+      <AdminSidebar
+        sidebarOpen={sidebarOpen}
+        setSidebarOpen={setSidebarOpen}
+        desktopSidebarOpen={desktopSidebarOpen}
+      />
 
       {/* Main content */}
-      <div className="flex-1 flex flex-col md:pl-64">
+      <div className={`flex-1 flex flex-col ${desktopSidebarOpen ? "md:pl-64" : "md:pl-0"}`}>
         {/* Mobile top bar */}
         <div className="md:hidden fixed top-0 left-0 right-0 z-50 bg-white border-b flex items-center justify-between px-3 py-2">
           {/* Logo */}
@@ -67,13 +72,23 @@ export default function AdminLayout({
           </div>
         </div>
         {/* Page content */}
-        <main className="flex-1 overflow-y-auto  pt-14 md:pt-0">
+        <main className="flex-1 overflow-auto pt-14 md:pt-0">
           {/* Logout button aligned right */}
           <div className="flex w-full justify-between items-center pt-8 px-6 mb-4">
-            <Button variant="outline" onClick={() => router.back()}>
-              <ArrowLeft className="h-4 w-4 mr-2" />
-              Retour
-            </Button>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                size="icon"
+                className="hidden md:inline-flex"
+                onClick={() => setDesktopSidebarOpen((prev) => !prev)}
+              >
+                <Menu className="h-4 w-4" />
+              </Button>
+              <Button variant="outline" onClick={() => router.back()}>
+                <ArrowLeft className="h-4 w-4 mr-2" />
+                Retour
+              </Button>
+            </div>
             <Button
               onClick={handleLogout}
               variant="outline"
