@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -31,14 +31,87 @@ interface ImportResult {
   errors: string[];
 }
 
+interface ImportStartResponse {
+  message: string;
+  job_id: string;
+  status: "queued" | "processing" | "completed" | "failed";
+  status_endpoint?: string;
+}
+
+interface ImportStatusResponse {
+  job_id: string;
+  status: "queued" | "processing" | "completed" | "failed";
+  message: string;
+  summary: {
+    total_rows: number;
+    created: number;
+    errors: number;
+    images_processed: boolean;
+  };
+  errors: string[];
+}
+
+interface LiveSummary {
+  total_rows: number;
+  created: number;
+  errors: number;
+}
+
+type NoticeType = "success" | "info" | "error";
+
 export default function ImportPage() {
   const [file, setFile] = useState<File | null>(null);
   const [isUploading, setIsUploading] = useState(false);
+  const [isPolling, setIsPolling] = useState(false);
+  const [jobStatus, setJobStatus] = useState<
+    "queued" | "processing" | "completed" | "failed" | null
+  >(null);
+  const [jobMessage, setJobMessage] = useState<string | null>(null);
+  const [liveSummary, setLiveSummary] = useState<LiveSummary | null>(null);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [importResult, setImportResult] = useState<ImportResult | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [notice, setNotice] = useState<{ type: NoticeType; text: string } | null>(
+    null
+  );
+  const isMountedRef = useRef(true);
+  const processingNotifiedRef = useRef(false);
   const { user } = useAuth();
   const router = useRouter();
+
+  const statusBanner = (() => {
+    if (jobStatus === "queued") {
+      return {
+        type: "info" as NoticeType,
+        text: "Téléversement terminé : le fichier a été reçu et placé dans la file de traitement.",
+      };
+    }
+    if (jobStatus === "processing") {
+      return {
+        type: "info" as NoticeType,
+        text: "Traitement en cours : extraction et création des produits...",
+      };
+    }
+    if (jobStatus === "completed") {
+      return {
+        type: "success" as NoticeType,
+        text: "Terminé : extraction finalisée, produits créés avec succès.",
+      };
+    }
+    if (jobStatus === "failed") {
+      return {
+        type: "error" as NoticeType,
+        text: "Échec de l'import : consultez les détails dans la section des erreurs.",
+      };
+    }
+    return null;
+  })();
+
+  useEffect(() => {
+    return () => {
+      isMountedRef.current = false;
+    };
+  }, []);
 
   // Only allow admin
   if (user && user.role !== "admin") {
@@ -51,7 +124,103 @@ export default function ImportPage() {
       setFile(selectedFile);
       setImportResult(null);
       setError(null);
+      setJobStatus(null);
+      setJobMessage(null);
+      setLiveSummary(null);
     }
+  };
+
+  const sleep = (ms: number) =>
+    new Promise((resolve) => {
+      setTimeout(resolve, ms);
+    });
+
+  const showNotice = (type: NoticeType, text: string) => {
+    setNotice({ type, text });
+
+    setTimeout(() => {
+      setNotice((current) => (current?.text === text ? null : current));
+    }, 6000);
+  };
+
+  const pollImportStatus = async (jobId: string) => {
+    setIsPolling(true);
+    const maxAttempts = 300; // ~10 minutes (300 * 2s)
+
+    for (let attempt = 0; attempt < maxAttempts; attempt += 1) {
+      const statusResponse = await fetch(
+        `${API_URL}/products/import/status/${jobId}/`,
+        {
+          method: "GET",
+        }
+      );
+
+      if (!statusResponse.ok) {
+        throw new Error("Unable to fetch import status");
+      }
+
+      const statusData: ImportStatusResponse = await statusResponse.json();
+
+      if (!isMountedRef.current) {
+        return;
+      }
+
+      setJobStatus(statusData.status);
+      setJobMessage(statusData.message || null);
+      setLiveSummary({
+        total_rows: statusData.summary.total_rows,
+        created: statusData.summary.created,
+        errors: statusData.summary.errors,
+      });
+
+      const processedRows = statusData.summary.created + statusData.summary.errors;
+      const totalRows = statusData.summary.total_rows;
+      if (totalRows > 0) {
+        const calculated = Math.min(
+          98,
+          Math.max(20, Math.round((processedRows / totalRows) * 100))
+        );
+        setUploadProgress(calculated);
+      }
+
+      if (statusData.status === "queued") {
+        setUploadProgress(20);
+      }
+
+      if (statusData.status === "processing" && !processingNotifiedRef.current) {
+        processingNotifiedRef.current = true;
+        showNotice("info", "Téléversement validé. L'extraction et la création des produits ont commencé.");
+      }
+
+      if (statusData.status === "completed") {
+        setUploadProgress(100);
+        showNotice("success", "Extraction terminée. Les produits ont été créés avec succès.");
+        setImportResult({
+          message: statusData.message || "Import completed",
+          summary: {
+            total_rows: statusData.summary.total_rows,
+            created: statusData.summary.created,
+            updated: 0,
+            errors: statusData.summary.errors,
+          },
+          created_products: [],
+          updated_products: [],
+          errors: statusData.errors || [],
+        });
+        setIsPolling(false);
+        return;
+      }
+
+      if (statusData.status === "failed") {
+        const firstError = statusData.errors?.[0];
+        showNotice("error", "L'import a échoué. Consultez les détails dans la section des erreurs.");
+        throw new Error(firstError || statusData.message || "Import failed");
+      }
+
+      await sleep(2000);
+    }
+
+    throw new Error("Import is taking too long. Please check again in a moment.");
   };
 
   const handleImport = async () => {
@@ -60,13 +229,21 @@ export default function ImportPage() {
     setIsUploading(true);
     setUploadProgress(0);
     setError(null);
+    setImportResult(null);
+    setJobStatus(null);
+    setJobMessage(null);
+    setLiveSummary(null);
+    setNotice(null);
+    processingNotifiedRef.current = false;
+
+    let progressInterval: ReturnType<typeof setInterval> | null = null;
 
     try {
       const formData = new FormData();
       formData.append("file", file);
 
       // Simulate progress
-      const progressInterval = setInterval(() => {
+      progressInterval = setInterval(() => {
         setUploadProgress((prev) => Math.min(prev + 10, 90));
       }, 200);
 
@@ -75,7 +252,9 @@ export default function ImportPage() {
         body: formData,
       });
 
-      clearInterval(progressInterval);
+      if (progressInterval) {
+        clearInterval(progressInterval);
+      }
       setUploadProgress(100);
 
       if (!response.ok) {
@@ -83,14 +262,30 @@ export default function ImportPage() {
         throw new Error(errorData.error || "Import failed");
       }
 
-      const result = await response.json();
-      setImportResult(result);
+      const result: ImportStartResponse = await response.json();
+
+      if (!result.job_id) {
+        throw new Error("No import job id received from server");
+      }
+
+      setJobStatus(result.status);
+      setJobMessage(result.message || "Import queued");
+      setUploadProgress(15);
+      showNotice("success", "Fichier téléversé avec succès. Traitement en file d'attente côté serveur.");
+
+      await pollImportStatus(result.job_id);
     } catch (err) {
       setError(
         err instanceof Error ? err.message : "An error occurred during import"
       );
+      setJobStatus("failed");
+      showNotice("error", "Un problème est survenu pendant l'import. Vérifiez les erreurs affichées.");
     } finally {
+      if (progressInterval) {
+        clearInterval(progressInterval);
+      }
       setIsUploading(false);
+      setIsPolling(false);
       setTimeout(() => setUploadProgress(0), 1000);
     }
   };
@@ -120,6 +315,46 @@ export default function ImportPage() {
 
   return (
     <div className="space-y-6">
+      {notice && (
+        <div className="fixed right-4 top-4 z-[9999] max-w-md">
+          <Alert
+            className={
+              notice.type === "success"
+                ? "border-green-300 bg-green-50 shadow-lg"
+                : notice.type === "error"
+                ? "border-red-300 bg-red-50 shadow-lg"
+                : "border-blue-300 bg-blue-50 shadow-lg"
+            }
+          >
+            {notice.type === "error" ? (
+              <AlertCircle className="h-4 w-4" />
+            ) : (
+              <CheckCircle className="h-4 w-4" />
+            )}
+            <AlertDescription className="font-medium">{notice.text}</AlertDescription>
+          </Alert>
+        </div>
+      )}
+
+      {notice && (
+        <Alert
+          className={
+            notice.type === "success"
+              ? "border-green-200 bg-green-50"
+              : notice.type === "error"
+              ? "border-red-200 bg-red-50"
+              : "border-blue-200 bg-blue-50"
+          }
+        >
+          {notice.type === "error" ? (
+            <AlertCircle className="h-4 w-4" />
+          ) : (
+            <CheckCircle className="h-4 w-4" />
+          )}
+          <AlertDescription className="font-medium">{notice.text}</AlertDescription>
+        </Alert>
+      )}
+
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold text-gray-900">
           Import des produits
@@ -129,6 +364,25 @@ export default function ImportPage() {
           Télécharger modèle
         </Button>
       </div>
+
+      {statusBanner && (
+        <Alert
+          className={
+            statusBanner.type === "success"
+              ? "border-green-200 bg-green-50"
+              : statusBanner.type === "error"
+              ? "border-red-200 bg-red-50"
+              : "border-blue-200 bg-blue-50"
+          }
+        >
+          {statusBanner.type === "error" ? (
+            <AlertCircle className="h-4 w-4" />
+          ) : (
+            <CheckCircle className="h-4 w-4" />
+          )}
+          <AlertDescription className="font-medium">{statusBanner.text}</AlertDescription>
+        </Alert>
+      )}
 
       {/* Instructions */}
       <Card>
@@ -223,21 +477,42 @@ export default function ImportPage() {
               </div>
               <Button
                 onClick={handleImport}
-                disabled={isUploading}
+                disabled={isUploading || isPolling}
                 className="ml-4"
               >
-                {isUploading ? "Import en cours..." : "Importer"}
+                {isUploading || isPolling ? "Import en cours..." : "Importer"}
               </Button>
             </div>
           )}
 
-          {isUploading && (
+          {(isUploading || isPolling) && (
             <div className="space-y-2">
               <div className="flex justify-between text-sm">
-                <span>Import en cours...</span>
+                <span>
+                  {jobStatus === "queued"
+                    ? "Fichier reçu, en attente de traitement..."
+                    : "Traitement en cours..."}
+                </span>
                 <span>{uploadProgress}%</span>
               </div>
               <Progress value={uploadProgress} className="w-full" />
+              {jobStatus && (
+                <div className="text-xs text-gray-600">
+                  Statut: <strong>{jobStatus}</strong>
+                </div>
+              )}
+              {liveSummary && liveSummary.total_rows > 0 && (
+                <div className="text-xs text-gray-600">
+                  Produits créés en direct: <strong>{liveSummary.created}</strong>
+                  {" / "}
+                  <strong>{liveSummary.total_rows}</strong>
+                  {" | Erreurs: "}
+                  <strong>{liveSummary.errors}</strong>
+                </div>
+              )}
+              {jobMessage && (
+                <div className="text-xs text-gray-600">{jobMessage}</div>
+              )}
             </div>
           )}
         </CardContent>
