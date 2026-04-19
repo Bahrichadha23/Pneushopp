@@ -435,10 +435,10 @@ export function UsersList() {
     };
 
     const getRoleBadge = (role: string) => {
-        const roleMap = {
-            admin: { label: 'Admin', variant: 'destructive' as const },
-            purchasing: { label: 'Achats', variant: 'secondary' as const },
-            sales: { label: 'Ventes', variant: 'default' as const },
+        const roleMap: Record<string, { label: string; variant: 'destructive' | 'secondary' | 'default' | 'outline' }> = {
+            admin: { label: 'Administrateur', variant: 'destructive' },
+            purchasing: { label: 'Resp. Achat', variant: 'secondary' },
+            sales: { label: 'Resp. Vente', variant: 'default' },
         };
 
         const roleKey = role.toLowerCase() as keyof typeof roleMap;

@@ -1,13 +1,3 @@
-// module.exports = {
-//     async rewrites() {
-//         return [
-//             {
-//                 source: '/api/:path*',
-//                 destination: 'http://localhost:8000/api/:path*', // proxy to Django
-//             },
-//         ]
-//     },
-// }
 /** @type {import('next').NextConfig} */
 const nextConfig = {
     eslint: {

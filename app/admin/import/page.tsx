@@ -148,15 +148,17 @@ export default function ImportPage() {
     const maxAttempts = 300; // ~10 minutes (300 * 2s)
 
     for (let attempt = 0; attempt < maxAttempts; attempt += 1) {
+      const statusToken = localStorage.getItem("access_token");
       const statusResponse = await fetch(
         `${API_URL}/products/import/status/${jobId}/`,
         {
           method: "GET",
+          headers: statusToken ? { Authorization: `Bearer ${statusToken}` } : {},
         }
       );
 
       if (!statusResponse.ok) {
-        throw new Error("Unable to fetch import status");
+        throw new Error("Impossible de récupérer le statut de l'import");
       }
 
       const statusData: ImportStatusResponse = await statusResponse.json();
@@ -196,7 +198,7 @@ export default function ImportPage() {
         setUploadProgress(100);
         showNotice("success", "Extraction terminée. Les produits ont été créés avec succès.");
         setImportResult({
-          message: statusData.message || "Import completed",
+          message: statusData.message || "Import terminé",
           summary: {
             total_rows: statusData.summary.total_rows,
             created: statusData.summary.created,
@@ -214,13 +216,13 @@ export default function ImportPage() {
       if (statusData.status === "failed") {
         const firstError = statusData.errors?.[0];
         showNotice("error", "L'import a échoué. Consultez les détails dans la section des erreurs.");
-        throw new Error(firstError || statusData.message || "Import failed");
+        throw new Error(firstError || statusData.message || "L'import a échoué");
       }
 
       await sleep(2000);
     }
 
-    throw new Error("Import is taking too long. Please check again in a moment.");
+    throw new Error("L'import prend trop de temps. Veuillez réessayer dans un moment.");
   };
 
   const handleImport = async () => {
@@ -247,8 +249,10 @@ export default function ImportPage() {
         setUploadProgress((prev) => Math.min(prev + 10, 90));
       }, 200);
 
+      const token = localStorage.getItem("access_token");
       const response = await fetch(`${API_URL}/products/import/excel/`, {
         method: "POST",
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
         body: formData,
       });
 
@@ -259,24 +263,24 @@ export default function ImportPage() {
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.error || "Import failed");
+        throw new Error(errorData.error || "L'import a échoué");
       }
 
       const result: ImportStartResponse = await response.json();
 
       if (!result.job_id) {
-        throw new Error("No import job id received from server");
+        throw new Error("Aucun identifiant de job reçu du serveur");
       }
 
       setJobStatus(result.status);
-      setJobMessage(result.message || "Import queued");
+      setJobMessage(result.message || "Import en file d'attente");
       setUploadProgress(15);
       showNotice("success", "Fichier téléversé avec succès. Traitement en file d'attente côté serveur.");
 
       await pollImportStatus(result.job_id);
     } catch (err) {
       setError(
-        err instanceof Error ? err.message : "An error occurred during import"
+        err instanceof Error ? err.message : "Une erreur est survenue pendant l'import"
       );
       setJobStatus("failed");
       showNotice("error", "Un problème est survenu pendant l'import. Vérifiez les erreurs affichées.");
@@ -395,26 +399,27 @@ export default function ImportPage() {
         <CardContent className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <h3 className="font-medium mb-2">Format de fichier supporté:</h3>
+              <h3 className="font-medium mb-2">Format de fichier supporté :</h3>
               <ul className="text-sm text-gray-600 space-y-1">
                 <li>• Excel (.xlsx, .xls)</li>
-                <li>• Encodage UTF-8 recommandé</li>
+                <li>• Plusieurs feuilles acceptées (toutes seront fusionnées)</li>
+                <li>• Pas de limite de lignes</li>
               </ul>
             </div>
             <div>
-              <h3 className="font-medium mb-2">Colonnes requises:</h3>
+              <h3 className="font-medium mb-2">Colonnes reconnues :</h3>
               <ul className="text-sm text-gray-600 space-y-1">
                 <li>
-                  • <strong>Nom du produit</strong> (première colonne)
+                  • <strong>Nom</strong> : NOM, REFERENCE, DESIGNATION, LIBELLE, ARTICLE…
                 </li>
                 <li>
-                  • <strong>PRIX TTC</strong> (prix en dinars)
+                  • <strong>Prix</strong> : PRIX TTC, PRIX, PRIX VENTE, TARIF…
                 </li>
                 <li>
-                  • <strong>DESCRIPTION</strong> (description détaillée)
+                  • <strong>DESCRIPTION</strong> (optionnel)
                 </li>
                 <li>
-                  • <strong>IMAGE</strong> (optionnel)
+                  • <strong>STOCK</strong> (optionnel, défaut : 10)
                 </li>
               </ul>
             </div>
@@ -423,9 +428,8 @@ export default function ImportPage() {
           <Alert>
             <AlertCircle className="h-4 w-4" />
             <AlertDescription>
-              Les produits seront automatiquement catégorisés selon la marque
-              détectée dans le nom. Les tailles de pneus seront extraites
-              automatiquement du nom du produit.
+              Les noms de colonnes sont insensibles à la casse (majuscules/minuscules) et aux espaces supplémentaires.
+              La marque, la taille et la saison sont extraites automatiquement du nom du produit.
             </AlertDescription>
           </Alert>
         </CardContent>

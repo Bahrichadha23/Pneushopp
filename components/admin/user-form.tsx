@@ -198,7 +198,7 @@ const baseUserSchema = {
         .min(1, 'Le nom est requis')
         .min(2, 'Le nom doit contenir au moins 2 caractères')
         .max(50, 'Le nom ne doit pas dépasser 50 caractères'),
-    role: z.enum(['sales', 'purchasing', 'admin', 'responsable_achats'], {
+    role: z.enum(['admin', 'purchasing', 'sales'], {
         errorMap: () => ({ message: 'Veuillez sélectionner un rôle valide' })
     }),
 };
@@ -375,9 +375,9 @@ export function UserForm({ onSubmit, isLoading, initialData }: UserFormProps) {
                                 <SelectValue placeholder="Sélectionner un rôle" />
                             </SelectTrigger>
                             <SelectContent>
-                                <SelectItem value="sales">Ventes</SelectItem>
-                                <SelectItem value="purchasing">Achats</SelectItem>
-                                <SelectItem value="responsable_achats">Responsable Achats</SelectItem>
+                                <SelectItem value="admin">Administrateur</SelectItem>
+                                <SelectItem value="purchasing">Responsable Achat</SelectItem>
+                                <SelectItem value="sales">Responsable Vente</SelectItem>
                             </SelectContent>
                         </Select>
                     )}

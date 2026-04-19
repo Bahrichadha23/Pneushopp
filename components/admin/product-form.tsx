@@ -94,7 +94,7 @@ export default function ProductForm({
         features: product.features,
         inStock: product.inStock,
         isPromotion: product.is_on_sale || false,
-        images: product.images,
+        images: (product.images || []).filter((img: any): img is File => img instanceof File),
         // New manual fields
         reference: product.reference || "",
         designation: product.designation || "",

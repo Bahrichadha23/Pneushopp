@@ -1,10 +1,10 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import Header from "@/components/header";
 import Footer from "@/components/footer";
-import { Loader2, ShoppingCart, ChevronLeft, ChevronRight } from "lucide-react";
+import { Loader2, ShoppingCart, ChevronLeft, ChevronRight, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import type { Product } from "@/types/product";
@@ -37,6 +37,7 @@ async function fetchProduct(slug: string) {
 
 export default function ProductDetailsPage() {
   const { slug } = useParams();
+  const router = useRouter();
   const [product, setProduct] = useState<Product | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -137,33 +138,38 @@ export default function ProductDetailsPage() {
   const formatDescription = (desc: string) => {
     if (!desc) return [];
 
-    // Split description into sections
-    const sections = [];
-    const lines = desc.split(/\n+/);
+    const HEADINGS = [
+      "Points forts", "Conduite sûre", "Grande maniabilité",
+      "Durée de vie", "Dimensions et spécificités",
+    ];
 
-    for (const line of lines) {
-      const trimmed = line.trim();
+    const sections: { type: string; text: string }[] = [];
+
+    // 1) Découper d'abord par sauts de ligne
+    const rawLines = desc.split(/\n+/);
+
+    for (const rawLine of rawLines) {
+      const trimmed = rawLine.trim();
       if (!trimmed) continue;
 
-      // Check if it's a heading (contains : or ends with specific keywords)
-      if (
-        trimmed.includes("Points forts") ||
-        trimmed.includes("Conduite sûre") ||
-        trimmed.includes("Grande maniabilité") ||
-        trimmed.includes("Durée de vie") ||
-        trimmed.includes("Dimensions et spécificités")
-      ) {
+      // 2) Si la ligne contient des • on re-découpe autour de chaque •
+      if (trimmed.includes("•")) {
+        // ex: "Points forts • Adhérence • Longue durée"
+        const parts = trimmed.split(/\s*•\s*/);
+        for (let i = 0; i < parts.length; i++) {
+          const part = parts[i].trim();
+          if (!part) continue;
+          if (i === 0 && HEADINGS.some((h) => part.includes(h))) {
+            sections.push({ type: "heading", text: part.replace(/:/g, "") });
+          } else if (part) {
+            sections.push({ type: "bullet", text: part });
+          }
+        }
+      } else if (HEADINGS.some((h) => trimmed.includes(h))) {
         sections.push({ type: "heading", text: trimmed.replace(/:/g, "") });
-      }
-      // Check if it's a bullet point
-      else if (trimmed.startsWith("•") || trimmed.startsWith("-")) {
-        sections.push({
-          type: "bullet",
-          text: trimmed.replace(/^[•\-]\s*/, ""),
-        });
-      }
-      // Regular paragraph
-      else {
+      } else if (trimmed.startsWith("-")) {
+        sections.push({ type: "bullet", text: trimmed.replace(/^-\s*/, "") });
+      } else {
         sections.push({ type: "paragraph", text: trimmed });
       }
     }
@@ -202,6 +208,15 @@ export default function ProductDetailsPage() {
       <Header />
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Back button */}
+        <button
+          onClick={() => router.back()}
+          className="flex items-center gap-2 text-gray-600 hover:text-black mb-6 transition-colors font-medium"
+        >
+          <ArrowLeft className="w-4 h-4" />
+          Retour
+        </button>
+
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
           {/* Left: Image Gallery */}
           <div className="lg:col-span-5">

@@ -146,14 +146,14 @@ export default function AddProductPage() {
       {error && (
         <Alert variant="destructive" className="mb-6">
           <AlertDescription>{error}</AlertDescription>
+        </Alert>
+      )}
+
       {success && (
         <Alert className="mb-6 bg-yellow-50 border-yellow-200">
           <AlertDescription className="text-yellow-800">
             ✅ Produit créé avec succès! Redirection en cours...
           </AlertDescription>
-        </Alert>
-      )}
-
         </Alert>
       )}
 

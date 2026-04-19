@@ -131,7 +131,7 @@ export default function RootLayout({
         <AuthProvider>
           <CartProvider>
             <OrderProvider>
-              <Suspense fallback={<div>Loading...</div>}>
+              <Suspense fallback={<div>Chargement...</div>}>
                 {children}
                 <Toaster position="top-right" />
               </Suspense>

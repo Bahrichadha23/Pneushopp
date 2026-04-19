@@ -3,8 +3,9 @@
 import { useCart } from "@/contexts/cart-context";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Minus, Plus, Trash2, ShoppingBag } from "lucide-react";
+import { Minus, Plus, Trash2, ShoppingBag, ArrowLeft } from "lucide-react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 interface ShoppingCartProps {
   isOpen?: boolean;
@@ -17,6 +18,7 @@ export default function ShoppingCart({
 }: ShoppingCartProps) {
   const { items, updateQuantity, removeFromCart, getTotalPrice, clearCart } =
     useCart();
+  const router = useRouter();
 
   if (items.length === 0) {
     return (
@@ -39,6 +41,15 @@ export default function ShoppingCart({
 
   return (
     <div className="max-w-2xl mx-auto p-4">
+      {/* Back button */}
+      <button
+        onClick={() => router.back()}
+        className="flex items-center gap-2 text-gray-600 hover:text-black mb-4 transition-colors font-medium"
+      >
+        <ArrowLeft className="w-4 h-4" />
+        Continuer les achats
+      </button>
+
       {/* En-tête du panier */}
       <div className="flex items-center justify-between mb-6">
         <h2 className="text-2xl font-bold text-gray-900">Votre panier</h2>

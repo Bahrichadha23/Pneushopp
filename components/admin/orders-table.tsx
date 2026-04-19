@@ -146,116 +146,99 @@ export async function handleDownloadInvoice(order: any) {
   let totalHT = 0,
     totalRemise = 0,
     totalTVA = 0;
-  const maxRowsPerPage = 12;
   let currentRow = 0;
 
   const addRow = (item?: any, isEmpty = false) => {
-    let x = margin;
-    let h = 8; 
+    let h = 8;
+    let wrappedText: string[] = [];
+    let tireSpec = "-";
+    let unitHT = 0, montantHT = 0, montantTVA = 0, montantTTC = 0;
+    let qty = 1, remise = 0;
+    const tvaRate = 19;
+    const lineHeight = 4;
+
+    // === Pre-calculate row height and values BEFORE any drawing ===
     if (!isEmpty && item) {
-      const unitTTC = Number(item.unitPrice || 0); // backend price already includes TVA
-      const qty = Number(item.quantity || 1);
-      const remise = Number(item.discount || 0);
-      const tvaRate = 19;
+      const unitTTC = Number(item.unitPrice || 0);
+      qty = Number(item.quantity || 1);
+      remise = Number(item.discount || 0);
 
-      // 1. Extract HT (before TVA)
-      const unitHT = unitTTC / (1 + tvaRate / 100);
-
-      // 2. Apply discount
+      unitHT = unitTTC / (1 + tvaRate / 100);
       const unitHTAfterRemise = unitHT * (1 - remise / 100);
+      montantHT = unitHTAfterRemise * qty;
+      montantTVA = montantHT * (tvaRate / 100);
+      montantTTC = unitTTC * qty;
 
-      // 3. Calculate totals
-      const montantHT = unitHTAfterRemise * qty;
-      const montantTVA = montantHT * (tvaRate / 100);
+      const productName = item.productName || "-";
+      const maxWidth = headers[1].width - 4;
+      wrappedText = pdf.splitTextToSize(productName, maxWidth);
+      const textHeight = wrappedText.length * lineHeight;
+      if (textHeight > h) h = textHeight + 2;
 
-      // 4. Final TTC = backend TTC price * quantity
-      const montantTTC = unitTTC * qty;
+      // Extract tire specification
+      const tireSpecMatch = productName.match(/(\d{3}\/\d{2}\s+R\s*\d{1,2}[A-Z]*)/i);
+      if (tireSpecMatch) {
+        tireSpec = tireSpecMatch[1].replace(/\s+/g, ' ').trim();
+      } else if (item.specifications && /\d+\/\d+\s+R\s*\d+[A-Z]*/.test(item.specifications)) {
+        tireSpec = item.specifications;
+      } else {
+        tireSpec = item.specifications || "-";
+      }
+    }
 
+    // === Page break check BEFORE drawing anything ===
+    if (y + h > pageHeight - 50) {
+      pdf.addPage();
+      page++;
+      y = 20;
+      addHeader();
+      drawTableHeader();
+      pdf.setFont("helvetica", "normal");
+      currentRow = 0;
+    }
+
+    // === Now draw text and borders at correct y position ===
+    if (!isEmpty && item) {
       totalHT += montantHT;
-      totalRemise += (unitHT - unitHTAfterRemise) * qty;
+      totalRemise += (unitHT - unitHT * (1 - remise / 100)) * qty;
       totalTVA += montantTVA;
 
-      // Wrap product name text to fit within column width
-      const productName = item.productName || "-";
-      const maxWidth = headers[1].width - 4; // Leave 2mm padding on each side
-      const wrappedText = pdf.splitTextToSize(productName, maxWidth);
-      const lineHeight = 4;
-      const textHeight = wrappedText.length * lineHeight;
-      
-      // Adjust row height if text needs more space
-      if (textHeight > h) {
-        h = textHeight + 2; // Add some padding
-      }
-
-      // Extract tire specification from product name if not available in specifications field
-      const getTireSpecification = (productName: string, specifications?: string): string => {
-        console.log('Product Name:', productName, 'Specifications:', specifications);
-        
-        // Always extract from product name first to ensure we get the correct tire size for this specific product
-        const tireSpecMatch = productName.match(/(\d{3}\/\d{2}\s+R\s*\d{1,2}[A-Z]*)/i);
-        if (tireSpecMatch) {
-          const extracted = tireSpecMatch[1].replace(/\s+/g, ' ').trim();
-          console.log('Extracted from product name:', extracted);
-          return extracted;
-        }
-        
-        // If specifications field has a valid tire size pattern and we couldn't extract from name, use it as fallback
-        if (specifications && /\d+\/\d+\s+R\s*\d+[A-Z]*/.test(specifications)) {
-          console.log('Using specifications field as fallback:', specifications);
-          return specifications;
-        }
-        
-        console.log('No match found, using fallback:', specifications || "-");
-        return specifications || "-";
-      };
-
-      const tireSpec = getTireSpecification(productName, item.specifications);
-      
-      // Use extracted tire specification as reference with better spacing
-      pdf.text(tireSpec, x , y + 5);
+      let x = margin;
+      pdf.text(tireSpec, x, y + 5);
       x += headers[0].width;
-      
-      // Draw wrapped product name
+
       wrappedText.forEach((line: string, index: number) => {
         pdf.text(line, x + 2, y + 5 + (index * lineHeight));
       });
       x += headers[1].width;
-      
-      pdf.text(qty.toFixed(2), x + headers[2].width / 2, y + 5, {
-        align: "center",
-      });
+
+      pdf.text(qty.toFixed(2), x + headers[2].width / 2, y + 5, { align: "center" });
       x += headers[2].width;
-      // Show HT price in PU column (price without TVA)
-      pdf.text(unitHT.toFixed(3), x + headers[3].width - 2, y + 5, {
-        align: "right",
-      });
+
+      pdf.text(unitHT.toFixed(3), x + headers[3].width - 2, y + 5, { align: "right" });
       x += headers[3].width;
-      pdf.text(tvaRate.toFixed(0), x + headers[4].width / 2, y + 5, {
-        align: "center",
-      });
+
+      pdf.text(tvaRate.toFixed(0), x + headers[4].width / 2, y + 5, { align: "center" });
       x += headers[4].width;
-      pdf.text(remise.toFixed(0), x + headers[5].width / 2, y + 5, {
-        align: "center",
-      });
+
+      pdf.text(remise.toFixed(0), x + headers[5].width / 2, y + 5, { align: "center" });
       x += headers[5].width;
-      pdf.text((montantHT || 0).toFixed(3), x + headers[6].width - 2, y + 5, {
-        align: "right",
-      });
+
+      pdf.text((montantHT || 0).toFixed(3), x + headers[6].width - 2, y + 5, { align: "right" });
       x += headers[6].width;
-      pdf.text((montantTTC || 0).toFixed(3), x + headers[7].width - 2, y + 5, {
-        align: "right",
-      });
+
+      pdf.text((montantTTC || 0).toFixed(3), x + headers[7].width - 2, y + 5, { align: "right" });
     }
 
     // Draw borders
-    x = margin;
-    headers.forEach((h) => {
-      drawCell(x, y, h.width, 8, {
+    let x = margin;
+    headers.forEach((hdr) => {
+      drawCell(x, y, hdr.width, h, {
         top: currentRow === 0,
         left: true,
         right: true,
       });
-      x += h.width;
+      x += hdr.width;
     });
 
     y += h;
@@ -263,7 +246,9 @@ export async function handleDownloadInvoice(order: any) {
   };
 
   order.items?.forEach((item: any) => addRow(item));
-  while (currentRow < maxRowsPerPage) addRow(undefined, true); // Fill empty rows
+  // Fill at least 8 rows minimum on the last page
+  const minRowsOnLastPage = 8;
+  while (currentRow < minRowsOnLastPage) addRow(undefined, true);
 
   const tableWidth = headers.reduce((sum, h) => sum + h.width, 0);
   pdf.setLineWidth(0.2);
@@ -820,7 +805,15 @@ export default function OrdersTable({
                     </p>
                     <p className="text-sm">
                       <strong>Méthode de paiement:</strong>{" "}
-                      {selectedOrder.paymentMethod === "card" ? "Carte" : "À la livraison"}
+                      {({
+                        card: "Carte bancaire",
+                        bank_transfer: "Virement bancaire",
+                        cash_on_delivery: "TPE à la livraison",
+                        cri: "CRI",
+                        cheque: "Chèque",
+                        lettre_de_change: "Lettre de change",
+                        mixed: "Multi-modalités",
+                      } as Record<string, string>)[selectedOrder.paymentMethod] || selectedOrder.paymentMethod || "N/A"}
                     </p>
                   </div>
 

@@ -1,8 +1,9 @@
 // API configuration and base client
 import axios, { AxiosResponse, AxiosError, InternalAxiosRequestConfig } from 'axios'
 import { API_URL } from './config';
+
 // API base URL
-export const API_BASE_URL = API_URL 
+export const API_BASE_URL = API_URL
 
 // Create axios instance with default configuration
 export const apiClient = axios.create({
@@ -13,25 +14,7 @@ export const apiClient = axios.create({
   },
 })
 
-// Request interceptor to add auth token
-// apiClient.interceptors.request.use(
-//   (config: InternalAxiosRequestConfig) => {
-//     // Get token from localStorage
-//     if (typeof window !== 'undefined') {
-//       const token = localStorage.getItem('access_token')
-//       if (token && config.headers) {
-//         config.headers.Authorization = `Bearer ${token}`
-//       }
-//     }
-//     return config
-//   },
-//   (error: AxiosError) => {
-//     return Promise.reject(error)
-//   }
-// )
-
-
-// lib/api-client.ts
+// Intercepteur de requête : ajoute le token JWT à chaque appel
 apiClient.interceptors.request.use(
   (config: InternalAxiosRequestConfig) => {
     if (typeof window !== 'undefined') {
@@ -42,9 +25,7 @@ apiClient.interceptors.request.use(
     }
     return config;
   },
-  (error: AxiosError) => {
-    return Promise.reject(error);
-  }
+  (error: AxiosError) => Promise.reject(error)
 );
 
 // Response interceptor to handle token refresh
@@ -60,7 +41,7 @@ apiClient.interceptors.response.use(
         // Try to refresh token
         const refreshToken = localStorage.getItem('refresh_token')
         if (refreshToken) {
-          const response = await axios.post(`${API_BASE_URL}/auth/token/refresh/`, {
+          const response = await axios.post(`${API_BASE_URL}/accounts/auth/token/refresh/`, {
             refresh: refreshToken
           })
 

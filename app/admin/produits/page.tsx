@@ -435,7 +435,7 @@ export default function ProductsPage() {
           onClick={() => loadProducts(pagination.page - 1)}
           className="w-full sm:w-auto"
         >
-          Previous
+          Précédent
         </Button>
 
         <span className="text-gray-700 self-center">
@@ -451,7 +451,7 @@ export default function ProductsPage() {
           onClick={() => loadProducts(pagination.page + 1)}
           className="w-full sm:w-auto"
         >
-          Next
+          Suivant
         </Button>
       </div>
 

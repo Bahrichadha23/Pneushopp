@@ -5,11 +5,13 @@ import { useCart } from "@/contexts/cart-context";
 import { useAuth } from "@/contexts/auth-context";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
-import { ShoppingCart } from "lucide-react";
+import { ShoppingCart, ArrowLeft } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 export default function CheckoutPage() {
   const { items } = useCart();
   const { user } = useAuth();
+  const router = useRouter();
 
   if (items.length === 0) {
     return (
@@ -47,6 +49,13 @@ export default function CheckoutPage() {
 
   return (
     <div className="container mx-auto px-4 py-8">
+      <button
+        onClick={() => router.back()}
+        className="flex items-center gap-2 text-gray-600 hover:text-black mb-6 transition-colors font-medium"
+      >
+        <ArrowLeft className="w-4 h-4" />
+        Retour au panier
+      </button>
       <h1 className="text-3xl font-bold text-center mb-8">
         Finaliser votre commande
       </h1>

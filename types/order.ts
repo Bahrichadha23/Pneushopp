@@ -19,7 +19,7 @@ export interface OrderItem {
   specifications?: Record<string, any>;
 }
 export type PaymentMethod = {
-  type: "card" | "cash_on_delivery" | "bank_transfer" | "cri" | "lettre_de_change" | "cheque";
+  type: "card" | "cash_on_delivery" | "bank_transfer" | "cri" | "lettre_de_change" | "cheque" | "mixed";
   details?: string;
   // `montant` = amount paid now, `reste` = amount left to pay
   montant?: number;
@@ -75,7 +75,7 @@ export const createOrder = async (orderData: CreateOrderData) => {
   if (!token) throw new Error("No auth token found");
 
   try {
-    const response = await fetch(`${API_URL}/api/orders/`, {
+    const response = await fetch(`${API_URL}/orders/`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

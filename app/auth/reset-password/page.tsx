@@ -43,10 +43,7 @@ export default function ResetPasswordPage() {
 
   const verifyToken = async () => {
     try {
-      console.log("🔍 Verifying token with:", { uid, token });
-      console.log("🔍 API URL:", `${API_URL}/auth/verify-reset-token/`);
-
-      const response = await fetch(`${API_URL}/auth/verify-reset-token/`, {
+      const response = await fetch(`${API_URL}/accounts/auth/verify-reset-token/`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -54,9 +51,7 @@ export default function ResetPasswordPage() {
         body: JSON.stringify({ uid, token }),
       });
 
-      console.log("🔍 Response status:", response.status);
       const data = await response.json();
-      console.log("🔍 Response data:", data);
 
       if (response.ok && data.valid) {
         setTokenValid(true);
@@ -66,7 +61,6 @@ export default function ResetPasswordPage() {
         setError(data.message || data.error || "Token invalide ou expiré");
       }
     } catch (err) {
-      console.error("❌ Token verification error:", err);
       setTokenValid(false);
       setError("Erreur de vérification du token");
     }
@@ -89,7 +83,7 @@ export default function ResetPasswordPage() {
     setError("");
 
     try {
-      const response = await fetch(`${API_URL}/auth/reset-password/`, {
+      const response = await fetch(`${API_URL}/accounts/auth/reset-password/`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

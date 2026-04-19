@@ -107,26 +107,27 @@ export function OrderProvider({ children }: { children: React.ReactNode }) {
             },
             payment_method: orderData.paymentMethod.type,
             total_amount: parseFloat(orderData.total.toFixed(2)), // Fix decimal places
+            // Use per-method private amounts (_criMontant etc.) for both single and multi-modal
             // CRI payment fields
-            ...(orderData.paymentMethod.type === "cri" && {
-              cri_amount_paid: orderData.paymentMethod.montant || 0,
-              cri_remaining: orderData.paymentMethod.reste || 0,
+            ...((orderData.paymentMethod as any)._criMontant > 0 ? {
+              cri_amount_paid: parseFloat(((orderData.paymentMethod as any)._criMontant || 0).toFixed(2)),
+              cri_remaining: parseFloat(((orderData.paymentMethod as any)._criReste || 0).toFixed(2)),
               cri_remarque: orderData.paymentMethod.remarque || "",
-            }),
+            } : {}),
             // Bank Transfer (Virement) fields
-            ...(orderData.paymentMethod.type === "bank_transfer" && {
-              transfer_amount_paid: orderData.paymentMethod.montant || 0,
-              transfer_remaining: orderData.paymentMethod.reste || 0,
+            ...((orderData.paymentMethod as any)._bankMontant > 0 ? {
+              transfer_amount_paid: parseFloat(((orderData.paymentMethod as any)._bankMontant || 0).toFixed(2)),
+              transfer_remaining: parseFloat(((orderData.paymentMethod as any)._bankReste || 0).toFixed(2)),
               transfer_number: orderData.paymentMethod.transferNumber || "",
               transfer_holder_name: orderData.paymentMethod.transferHolderName || "",
               transfer_bank_name: orderData.paymentMethod.bankName || "",
               transfer_image_name: orderData.paymentMethod.transferImageName || "",
               transfer_remarque: orderData.paymentMethod.remarque || "",
-            }),
+            } : {}),
             // Letter of Change (Lettre de change) fields
-            ...(orderData.paymentMethod.type === "lettre_de_change" && {
-              lettre_amount_paid: orderData.paymentMethod.montant || 0,
-              lettre_remaining: orderData.paymentMethod.reste || 0,
+            ...((orderData.paymentMethod as any)._lettreMontant > 0 ? {
+              lettre_amount_paid: parseFloat(((orderData.paymentMethod as any)._lettreMontant || 0).toFixed(2)),
+              lettre_remaining: parseFloat(((orderData.paymentMethod as any)._lettreReste || 0).toFixed(2)),
               lettre_number: orderData.paymentMethod.lettreNumber || "",
               lettre_date: orderData.paymentMethod.lettreDate || "",
               lettre_name: orderData.paymentMethod.lettreName || "",
@@ -134,27 +135,27 @@ export function OrderProvider({ children }: { children: React.ReactNode }) {
               lettre_rib: orderData.paymentMethod.lettreRIB || "",
               lettre_lieu: orderData.paymentMethod.lettreLieu || "",
               lettre_image_name: orderData.paymentMethod.lettreImageName || "",
-              lettre_remarque: orderData.paymentMethod.remarque || "",
-            }),
+              lettre_remarque: (orderData.paymentMethod as any).lettreRemarque || orderData.paymentMethod.remarque || "",
+            } : {}),
             // Check (Chèque) fields
-            ...(orderData.paymentMethod.type === "cheque" && {
-              cheque_amount_paid: orderData.paymentMethod.montant || 0,
-              cheque_remaining: orderData.paymentMethod.reste || 0,
+            ...((orderData.paymentMethod as any)._chequeMontant > 0 ? {
+              cheque_amount_paid: parseFloat(((orderData.paymentMethod as any)._chequeMontant || 0).toFixed(2)),
+              cheque_remaining: parseFloat(((orderData.paymentMethod as any)._chequeReste || 0).toFixed(2)),
               cheque_number: orderData.paymentMethod.chequeNumber || "",
               cheque_date: orderData.paymentMethod.chequeDate || "",
               cheque_name: orderData.paymentMethod.chequeName || "",
               cheque_bank_name: orderData.paymentMethod.chequeBankName || "",
               cheque_image_name: orderData.paymentMethod.chequeImageName || "",
-              cheque_remarque: orderData.paymentMethod.remarque || "",
-            }),
+              cheque_remarque: (orderData.paymentMethod as any).chequeRemarque || orderData.paymentMethod.remarque || "",
+            } : {}),
             // Cash on Delivery (TPE à la livraison) fields
-            ...(orderData.paymentMethod.type === "cash_on_delivery" && {
-              cod_amount_paid: orderData.paymentMethod.montant || 0,
-              cod_remaining: orderData.paymentMethod.reste || 0,
+            ...((orderData.paymentMethod as any)._codMontant > 0 ? {
+              cod_amount_paid: parseFloat(((orderData.paymentMethod as any)._codMontant || 0).toFixed(2)),
+              cod_remaining: parseFloat(((orderData.paymentMethod as any)._codReste || 0).toFixed(2)),
               cod_authorization_number: orderData.paymentMethod.authorizationNumber || "",
-              cod_bank_name: orderData.paymentMethod.bankName || "",
-              cod_remarque: orderData.paymentMethod.remarque || "",
-            }),
+              cod_bank_name: (orderData.paymentMethod as any).codBankName || orderData.paymentMethod.bankName || "",
+              cod_remarque: (orderData.paymentMethod as any).codRemarque || orderData.paymentMethod.remarque || "",
+            } : {}),
             // Warranty information (if provided)
             ...(orderData.warranty &&
               orderData.warranty.accepted && {
@@ -175,6 +176,31 @@ export function OrderProvider({ children }: { children: React.ReactNode }) {
         if (response.ok) {
           const backendOrder = await response.json();
           console.log("✅ Order created in backend:", backendOrder);
+
+          // Upload payment image if provided
+          const pm = orderData.paymentMethod as any;
+          const imageUploadMap: { type: string; file: File | undefined }[] = [
+            { type: "transfer", file: pm._transferImageFile },
+            { type: "cheque",   file: pm._chequeImageFile },
+            { type: "lettre",   file: pm._lettreImageFile },
+          ];
+          for (const { type, file } of imageUploadMap) {
+            if (file) {
+              try {
+                const imgForm = new FormData();
+                imgForm.append("image_type", type);
+                imgForm.append("image", file);
+                await fetch(`${API_URL}/orders/${backendOrder.id}/upload-payment-image/`, {
+                  method: "POST",
+                  headers: token ? { Authorization: `Bearer ${token}` } : {},
+                  body: imgForm,
+                });
+                console.log(`✅ Uploaded ${type} image`);
+              } catch (imgErr) {
+                console.warn(`⚠️ Image upload failed for ${type}:`, imgErr);
+              }
+            }
+          }
 
           // Also save to localStorage as backup
           const localOrder: Order = {

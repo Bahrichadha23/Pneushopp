@@ -3,16 +3,35 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useAuth } from "@/contexts/auth-context";
 import { useRouter } from "next/navigation";
+import apiClient from "@/lib/api-client";
 import { API_URL } from "@/lib/config";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { FileDown, Printer } from "lucide-react";
+
+// Convert relative media path (/media/...) to full backend URL
+function mediaUrl(path: string): string {
+  if (!path) return "";
+  if (path.startsWith("http")) return path;
+  const base = API_URL.replace(/\/api\/?$/, "");
+  return `${base}${path.startsWith("/") ? "" : "/"}${path}`;
+}
 import ExcelJS from "exceljs";
+
+const COMMERCIAUX = [
+  "Zeineb Assali",
+  "Khawla",
+  "Zeineb",
+  "Amal",
+  "Sonia",
+  "Amara",
+];
 
 interface TresorerieRecord {
   id: string;
   createdAt: Date;
   dateFormatted: string;
+  commercial: string;
   document: string;
   refDoc: string;
   type: string;
@@ -87,6 +106,7 @@ const PAYMENT_LABELS: Record<string, string> = {
   cheque: "Chèque",
   check: "Chèque",
   lettre_de_change: "Lettre de change",
+  mixed: "Multi-modalités",
 };
 
 const CHEQUE_STATUS_LABELS: Record<string, string> = {
@@ -113,30 +133,17 @@ function formatCurrency(value: number): string {
 }
 
 function getPaidAmount(record: TresorerieRecord): number {
-  if (record.paymentMethod === "cri") {
-    return record.criAmountPaid;
+  if (record.paymentMethod === "mixed") {
+    // Sum all non-zero payment amounts
+    return (record.criAmountPaid || 0) + (record.transferAmountPaid || 0) +
+      (record.lettreAmountPaid || 0) + (record.chequeAmountPaid || 0) + (record.codAmountPaid || 0);
   }
-
-  if (record.paymentMethod === "bank_transfer") {
-    return record.transferAmountPaid;
-  }
-
-  if (record.paymentMethod === "lettre_de_change") {
-    return record.lettreAmountPaid;
-  }
-
-  if (record.paymentMethod === "cheque" || record.paymentMethod === "check") {
-    return record.chequeAmountPaid;
-  }
-
-  if (record.paymentMethod === "cash_on_delivery") {
-    return record.codAmountPaid;
-  }
-
-  if (record.paymentStatus === "paid") {
-    return record.totalAmount;
-  }
-
+  if (record.paymentMethod === "cri") return record.criAmountPaid;
+  if (record.paymentMethod === "bank_transfer") return record.transferAmountPaid;
+  if (record.paymentMethod === "lettre_de_change") return record.lettreAmountPaid;
+  if (record.paymentMethod === "cheque" || record.paymentMethod === "check") return record.chequeAmountPaid;
+  if (record.paymentMethod === "cash_on_delivery") return record.codAmountPaid;
+  if (record.paymentStatus === "paid") return record.totalAmount;
   return 0;
 }
 
@@ -261,6 +268,70 @@ function matchesDateFilter(
   return true;
 }
 
+function printFacture(record: TresorerieRecord) {
+  const win = window.open("", "_blank", "width=900,height=700");
+  if (!win) return;
+  const getPaymentDetails = () => {
+    if (record.paymentMethod === "bank_transfer") return `N° Virement : ${record.transferNumber || "-"} | Banque : ${record.transferBankName || "-"} | Titulaire : ${record.transferHolderName || "-"}`;
+    if (record.paymentMethod === "lettre_de_change") return `N° Lettre : ${record.lettreNumber || "-"} | Date : ${record.lettreDate || "-"} | Banque : ${record.lettreBankName || "-"}`;
+    if (record.paymentMethod === "cheque" || record.paymentMethod === "check") return `N° Chèque : ${record.chequeNumberValue || "-"} | Date : ${record.chequeDate || "-"} | Banque : ${record.chequeBankName || "-"}`;
+    if (record.paymentMethod === "cash_on_delivery") return `N° Auth : ${record.codAuthorizationNumber || "-"} | Banque : ${record.codBankName || "-"}`;
+    if (record.paymentMethod === "cri") return `Remarque : ${record.criRemarque || "-"}`;
+    return "Carte bancaire";
+  };
+  const rows = record.items.map((item, i) => `
+    <tr style="background:${i % 2 === 0 ? "#fff" : "#f8f9fa"}">
+      <td style="padding:4px 6px;border:1px solid #ddd">${i + 1}</td>
+      <td style="padding:4px 6px;border:1px solid #ddd">${item.product_name}</td>
+      <td style="padding:4px 6px;border:1px solid #ddd;text-align:center">${item.quantity}</td>
+      <td style="padding:4px 6px;border:1px solid #ddd;text-align:right">${item.unit_price.toFixed(2)} DT</td>
+      <td style="padding:4px 6px;border:1px solid #ddd;text-align:right">${item.total_price.toFixed(2)} DT</td>
+    </tr>`).join("");
+  const paidAmount = record.criAmountPaid || record.transferAmountPaid || record.lettreAmountPaid || record.chequeAmountPaid || record.codAmountPaid || record.totalAmount;
+  const remaining = Math.max(record.totalAmount - paidAmount, 0);
+  win.document.write(`<!DOCTYPE html><html><head><title>Facture ${record.refDoc || record.id}</title>
+    <style>body{font-family:Arial,sans-serif;font-size:12px;padding:20px;color:#222}
+    table{width:100%;border-collapse:collapse}th{background:#475569;color:#fff;padding:5px 8px;text-align:left}
+    .grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px}
+    .box{border:1px solid #ddd;border-radius:4px;padding:8px}
+    .box-title{font-weight:bold;font-size:11px;text-transform:uppercase;color:#64748b;margin-bottom:6px;border-bottom:1px solid #eee;padding-bottom:3px}
+    .row{display:flex;gap:6px;margin-bottom:2px}.label{font-weight:bold;min-width:120px}
+    .totals{display:flex;justify-content:flex-end;margin-top:12px}
+    .totals table{width:280px}.totals td{padding:3px 8px;border:1px solid #ddd}
+    @media print{body{padding:0}}</style></head><body>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;border-bottom:2px solid #475569;padding-bottom:8px">
+      <div><div style="font-size:18px;font-weight:bold">FACTURE</div><div style="color:#64748b">${record.refDoc || record.id}</div></div>
+      <div style="text-align:right"><div style="font-weight:bold;font-size:16px">PneuShop</div><div style="color:#64748b;font-size:11px">Date : ${record.dateFormatted}</div></div>
+    </div>
+    <div class="grid2">
+      <div class="box"><div class="box-title">Informations Facture</div>
+        <div class="row"><span class="label">N° Facture :</span>${record.refDoc || "-"}</div>
+        <div class="row"><span class="label">Date :</span>${record.dateFormatted}</div>
+        <div class="row"><span class="label">Méthode :</span>${record.type}</div>
+        ${record.commercial ? `<div class="row"><span class="label">Commercial :</span>${record.commercial}</div>` : ""}
+        <div class="row"><span class="label">Paiement :</span>${getPaymentDetails()}</div>
+      </div>
+      <div class="box"><div class="box-title">Client</div>
+        <div class="row"><span class="label">Nom :</span>${record.client || "-"}</div>
+        <div class="row"><span class="label">Téléphone :</span>${record.shippingAddress.phone || "-"}</div>
+        <div class="row"><span class="label">Adresse :</span>${[record.shippingAddress.address, record.shippingAddress.city].filter(Boolean).join(", ") || "-"}</div>
+      </div>
+    </div>
+    <table><thead><tr><th>#</th><th>Désignation</th><th style="text-align:center">Qté</th><th style="text-align:right">P.U. TTC</th><th style="text-align:right">Total TTC</th></tr></thead>
+    <tbody>${rows}</tbody></table>
+    <div class="totals"><table>
+      <tr><td>Montant Facture</td><td style="text-align:right;font-weight:bold">${record.totalAmount.toFixed(2)} DT</td></tr>
+      <tr style="color:#059669"><td>Montant Payé</td><td style="text-align:right;font-weight:bold">${paidAmount.toFixed(2)} DT</td></tr>
+      <tr style="color:#dc2626"><td>Reste à payer</td><td style="text-align:right;font-weight:bold">${remaining.toFixed(2)} DT</td></tr>
+    </table></div>
+    <div style="margin-top:40px;display:flex;justify-content:space-between">
+      <div><div style="font-weight:bold">Cachet et Signature</div><div style="margin-top:30px;border-top:1px solid #ddd;width:150px"></div></div>
+      <div style="font-size:10px;color:#64748b;text-align:right">Facture générée par PneuShop<br>${new Date().toLocaleDateString("fr-FR")}</div>
+    </div>
+    <script>window.onload=()=>{window.print();window.close();}<\/script></body></html>`);
+  win.document.close();
+}
+
 export default function TresoreriePage() {
   const [records, setRecords] = useState<TresorerieRecord[]>([]);
   const [loading, setLoading] = useState(true);
@@ -281,6 +352,7 @@ export default function TresoreriePage() {
   const [clientFilter, setClientFilter] = useState("");
   const [supplierFilter, setSupplierFilter] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
+  const [commercialFilter, setCommercialFilter] = useState("");
   const tableScrollRef = useRef<HTMLDivElement | null>(null);
   const bottomScrollRef = useRef<HTMLDivElement | null>(null);
   const syncLockRef = useRef(false);
@@ -297,111 +369,126 @@ export default function TresoreriePage() {
   useEffect(() => {
     const loadRecords = async () => {
       try {
-        const token = localStorage.getItem("access_token");
-        if (!token) return;
+        // no_pagination=true → retourne TOUTES les commandes sans limite de page
+        const { data } = await apiClient.get("/orders/?no_pagination=true");
 
-        const res = await fetch(`${API_URL}/orders/`, {
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-        });
+        // Le backend retourne soit un tableau direct, soit { results: [...] }
+        const orders: any[] = Array.isArray(data) ? data : (data.results ?? []);
 
-        if (!res.ok) throw new Error("Failed to fetch orders");
+        const mapped: TresorerieRecord[] = orders.map((o: any) => {
+          const createdAt = new Date(o.created_at);
 
-        const data = await res.json();
-        const mapped: TresorerieRecord[] = (data.results || []).map(
-          (o: any) => {
-            const createdAt = new Date(o.created_at);
-            const dueDate = new Date(o.created_at);
-            const firstName = o.shipping_address?.first_name || "";
-            const lastName = o.shipping_address?.last_name || "";
-            const fullName = `${firstName} ${lastName}`.trim() || "N/A";
-
-            return {
-              id: String(o.id),
-              createdAt,
-              dateFormatted: createdAt.toLocaleDateString("fr-FR", {
-                day: "2-digit",
-                month: "2-digit",
-                year: "numeric",
-              }),
-              dueDate,
-              dueDateFormatted: dueDate.toLocaleDateString("fr-FR", {
-                day: "2-digit",
-                month: "2-digit",
-                year: "numeric",
-              }),
-              document: "Facture Vente",
-              refDoc: o.order_number || "",
-              type:
-                PAYMENT_LABELS[o.payment_method] || o.payment_method || "N/A",
-              client: fullName,
-              fournisseur: o.supplier?.name || "",
-              chequeNumber: String(o.id).padStart(4, "0"),
-              remarque:
-                o.cri_remarque ||
-                o.transfer_remarque ||
-                o.lettre_remarque ||
-                o.cheque_remarque ||
-                o.cod_remarque ||
-                "",
-              chequeStatus: CHEQUE_STATUS_LABELS[o.payment_status] || "",
-              displayName: fullName,
-              paymentMethod: o.payment_method || "",
-              paymentStatus: o.payment_status || "pending",
-              utilisateur: o.user?.email || o.user?.username || "",
-              caisse: "Tk",
-              valeur: parseFloat(o.total_amount || "0"),
-              totalAmount: parseFloat(o.total_amount || "0"),
-              items: (o.items || []).map((item: any) => ({
-                product_name: item.product_name || "-",
-                quantity: Number(item.quantity || 0),
-                unit_price: parseFloat(item.unit_price || "0"),
-                total_price: parseFloat(item.total_price || "0"),
-                specifications: item.specifications || "",
-              })),
-              shippingAddress: o.shipping_address || {},
-              criAmountPaid: parseFloat(o.cri_amount_paid || "0"),
-              criRemaining: parseFloat(o.cri_remaining || "0"),
-              criRemarque: o.cri_remarque || "",
-              transferAmountPaid: parseFloat(o.transfer_amount_paid || "0"),
-              transferRemaining: parseFloat(o.transfer_remaining || "0"),
-              transferNumber: o.transfer_number || "",
-              transferHolderName: o.transfer_holder_name || "",
-              transferBankName: o.transfer_bank_name || "",
-              transferImageName: o.transfer_image_name || "",
-              transferRemarque: o.transfer_remarque || "",
-              lettreAmountPaid: parseFloat(o.lettre_amount_paid || "0"),
-              lettreRemaining: parseFloat(o.lettre_remaining || "0"),
-              lettreNumber: o.lettre_number || "",
-              lettreDate: o.lettre_date || "",
-              lettreName: o.lettre_name || "",
-              lettreBankName: o.lettre_bank_name || "",
-              lettreRib: o.lettre_rib || "",
-              lettreLieu: o.lettre_lieu || "",
-              lettreImageName: o.lettre_image_name || "",
-              lettreRemarque: o.lettre_remarque || "",
-              chequeAmountPaid: parseFloat(o.cheque_amount_paid || "0"),
-              chequeRemaining: parseFloat(o.cheque_remaining || "0"),
-              chequeNumberValue: o.cheque_number || "",
-              chequeDate: o.cheque_date || "",
-              chequeName: o.cheque_name || "",
-              chequeBankName: o.cheque_bank_name || "",
-              chequeImageName: o.cheque_image_name || "",
-              chequeRemarque: o.cheque_remarque || "",
-              codAmountPaid: parseFloat(o.cod_amount_paid || "0"),
-              codRemaining: parseFloat(o.cod_remaining || "0"),
-              codAuthorizationNumber: o.cod_authorization_number || "",
-              codBankName: o.cod_bank_name || "",
-              codRemarque: o.cod_remarque || "",
-            };
+          // Date d'échéance : spécifique au mode de paiement
+          let dueDate: Date;
+          if (
+            (o.payment_method === "cheque" || o.payment_method === "check") &&
+            o.cheque_date
+          ) {
+            dueDate = new Date(o.cheque_date);
+          } else if (o.payment_method === "lettre_de_change" && o.lettre_date) {
+            dueDate = new Date(o.lettre_date);
+          } else {
+            // Pour CRI et autres : pas d'échéance propre → même date que la commande
+            dueDate = new Date(o.created_at);
           }
-        );
+
+          const firstName = o.shipping_address?.first_name || "";
+          const lastName = o.shipping_address?.last_name || "";
+          const fullName = `${firstName} ${lastName}`.trim() || "N/A";
+
+          // Remarque : première remarque non-vide parmi les modes de paiement
+          const remarque =
+            o.cri_remarque ||
+            o.transfer_remarque ||
+            o.lettre_remarque ||
+            o.cheque_remarque ||
+            o.cod_remarque ||
+            "";
+
+          return {
+            id: String(o.id),
+            createdAt,
+            dateFormatted: createdAt.toLocaleDateString("fr-FR", {
+              day: "2-digit",
+              month: "2-digit",
+              year: "numeric",
+            }),
+            dueDate,
+            dueDateFormatted: dueDate.toLocaleDateString("fr-FR", {
+              day: "2-digit",
+              month: "2-digit",
+              year: "numeric",
+            }),
+            commercial: o.commercial || "",
+            document: "Facture Vente",
+            refDoc: o.order_number || "",
+            type: PAYMENT_LABELS[o.payment_method] || o.payment_method || "N/A",
+            client: fullName,
+            // Les commandes de vente n'ont pas de fournisseur ; champ conservé pour compatibilité
+            fournisseur: "",
+            // Numéro de ticket (référence interne = ID commande)
+            chequeNumber: o.order_number || String(o.id).padStart(6, "0"),
+            remarque,
+            chequeStatus: CHEQUE_STATUS_LABELS[o.payment_status] || "",
+            displayName: fullName,
+            paymentMethod: o.payment_method || "",
+            paymentStatus: o.payment_status || "pending",
+            utilisateur: o.user?.email || o.user?.username || "",
+            caisse: "Tk",
+            valeur: parseFloat(o.total_amount || "0"),
+            totalAmount: parseFloat(o.total_amount || "0"),
+            items: (o.items || []).map((item: any) => ({
+              product_name: item.product_name || "-",
+              quantity: Number(item.quantity || 0),
+              unit_price: parseFloat(item.unit_price || "0"),
+              total_price: parseFloat(item.total_price || "0"),
+              specifications: item.specifications || "",
+            })),
+            shippingAddress: o.shipping_address || {},
+            // CRI
+            criAmountPaid: parseFloat(o.cri_amount_paid || "0"),
+            criRemaining: parseFloat(o.cri_remaining || "0"),
+            criRemarque: o.cri_remarque || "",
+            // Virement bancaire
+            transferAmountPaid: parseFloat(o.transfer_amount_paid || "0"),
+            transferRemaining: parseFloat(o.transfer_remaining || "0"),
+            transferNumber: o.transfer_number || "",
+            transferHolderName: o.transfer_holder_name || "",
+            transferBankName: o.transfer_bank_name || "",
+            transferImageName: o.transfer_image_name || "",
+            transferRemarque: o.transfer_remarque || "",
+            // Lettre de change
+            lettreAmountPaid: parseFloat(o.lettre_amount_paid || "0"),
+            lettreRemaining: parseFloat(o.lettre_remaining || "0"),
+            lettreNumber: o.lettre_number || "",
+            lettreDate: o.lettre_date || "",
+            lettreName: o.lettre_name || "",
+            lettreBankName: o.lettre_bank_name || "",
+            lettreRib: o.lettre_rib || "",
+            lettreLieu: o.lettre_lieu || "",
+            lettreImageName: o.lettre_image_name || "",
+            lettreRemarque: o.lettre_remarque || "",
+            // Chèque
+            chequeAmountPaid: parseFloat(o.cheque_amount_paid || "0"),
+            chequeRemaining: parseFloat(o.cheque_remaining || "0"),
+            chequeNumberValue: o.cheque_number || "",
+            chequeDate: o.cheque_date || "",
+            chequeName: o.cheque_name || "",
+            chequeBankName: o.cheque_bank_name || "",
+            chequeImageName: o.cheque_image_name || "",
+            chequeRemarque: o.cheque_remarque || "",
+            // TPE / Cash on delivery
+            codAmountPaid: parseFloat(o.cod_amount_paid || "0"),
+            codRemaining: parseFloat(o.cod_remaining || "0"),
+            codAuthorizationNumber: o.cod_authorization_number || "",
+            codBankName: o.cod_bank_name || "",
+            codRemarque: o.cod_remarque || "",
+          };
+        });
 
         setRecords(mapped);
       } catch (error) {
-        console.error("Failed to fetch tresorerie records:", error);
+        console.error("Échec du chargement de la trésorerie :", error);
       } finally {
         setLoading(false);
       }
@@ -442,11 +529,18 @@ export default function TresoreriePage() {
         return false;
       }
 
-      if (
-        chequeNumberFilter &&
-        !r.chequeNumber.toLowerCase().includes(chequeNumberFilter.toLowerCase())
-      ) {
-        return false;
+      // Filtre N° Chèque → recherche sur le vrai numéro de chèque/lettre/virement
+      if (chequeNumberFilter) {
+        const haystack = [
+          r.chequeNumberValue,
+          r.lettreNumber,
+          r.transferNumber,
+          r.codAuthorizationNumber,
+        ]
+          .filter(Boolean)
+          .join(" ")
+          .toLowerCase();
+        if (!haystack.includes(chequeNumberFilter.toLowerCase())) return false;
       }
 
       if (typeFilter && r.paymentMethod !== typeFilter) {
@@ -469,7 +563,15 @@ export default function TresoreriePage() {
         return false;
       }
 
-      if (statusFilter && r.chequeStatus !== statusFilter) {
+      // Filtre statut : vérifie à la fois chequeStatus ET le label paymentStatus
+      if (statusFilter) {
+        const paymentLabel = PAYMENT_STATUS_LABELS[r.paymentStatus] || "";
+        if (r.chequeStatus !== statusFilter && paymentLabel !== statusFilter) {
+          return false;
+        }
+      }
+
+      if (commercialFilter && r.commercial !== commercialFilter) {
         return false;
       }
 
@@ -491,6 +593,7 @@ export default function TresoreriePage() {
     clientFilter,
     supplierFilter,
     statusFilter,
+    commercialFilter,
   ]);
 
   const totalValue = useMemo(
@@ -507,6 +610,19 @@ export default function TresoreriePage() {
     () => filteredRecords.reduce((sum, r) => sum + getRemainingAmount(r), 0),
     [filteredRecords]
   );
+
+  // Sauvegarde du commercial via PATCH
+  const handleCommercialChange = async (recordId: string, value: string) => {
+    // Mise à jour optimiste locale
+    setRecords((prev) =>
+      prev.map((r) => (r.id === recordId ? { ...r, commercial: value } : r))
+    );
+    try {
+      await apiClient.patch(`/orders/${recordId}/`, { commercial: value });
+    } catch (err) {
+      console.error("Erreur sauvegarde commercial", err);
+    }
+  };
 
   const syncHorizontalScroll = (
     source: HTMLDivElement | null,
@@ -667,6 +783,8 @@ export default function TresoreriePage() {
                 <option value="Payé">Payé</option>
                 <option value="Annulé">Annulé</option>
                 <option value="Escompte">Escompte</option>
+                <option value="En attente">En attente</option>
+                <option value="Échoué">Échoué</option>
               </select>
             </div>
 
@@ -685,6 +803,7 @@ export default function TresoreriePage() {
                 <option value="check">Chèque (legacy)</option>
                 <option value="cri">CRI</option>
                 <option value="lettre_de_change">Lettre de change</option>
+                <option value="mixed">Multi-modalités</option>
               </select>
             </div>
 
@@ -734,18 +853,33 @@ export default function TresoreriePage() {
 
             <div>
               <label className="mb-1 block text-xs font-semibold text-slate-600">
-                Fournisseur
+                Statut Paiement
               </label>
               <select
-                value={supplierFilter}
-                onChange={(e) => setSupplierFilter(e.target.value)}
+                value={statusFilter}
+                onChange={(e) => setStatusFilter(e.target.value)}
                 className="w-full rounded border border-slate-300 px-2 py-2 text-sm"
               >
                 <option value="">Tout</option>
-                {suppliers.map((s) => (
-                  <option key={s} value={s}>
-                    {s}
-                  </option>
+                <option value="En attente">En attente</option>
+                <option value="Payé">Payé</option>
+                <option value="Échoué">Échoué</option>
+                <option value="En circulation">En circulation</option>
+                <option value="Escompte">Escompte</option>
+                <option value="Annulé">Annulé</option>
+              </select>
+            </div>
+
+            <div>
+              <label className="mb-1 block text-xs font-semibold text-slate-600">Commercial</label>
+              <select
+                value={commercialFilter}
+                onChange={(e) => setCommercialFilter(e.target.value)}
+                className="w-full rounded border border-slate-300 px-2 py-2 text-sm"
+              >
+                <option value="">Tout</option>
+                {COMMERCIAUX.map((c) => (
+                  <option key={c} value={c}>{c}</option>
                 ))}
               </select>
             </div>
@@ -872,7 +1006,7 @@ export default function TresoreriePage() {
             className="w-full overflow-x-auto rounded border border-slate-200"
             style={{ scrollbarGutter: "stable both-edges" }}
           >
-            <table className="min-w-[1500px] w-full text-xs">
+            <table className="min-w-[1700px] w-full text-xs">
               <thead>
                 <tr className="bg-slate-100 text-left text-slate-700">
                   <th className="px-2 py-2 font-semibold whitespace-nowrap">Date</th>
@@ -880,6 +1014,7 @@ export default function TresoreriePage() {
                   <th className="px-2 py-2 font-semibold whitespace-nowrap">Type</th>
                   <th className="px-2 py-2 font-semibold whitespace-nowrap">Détails Paiement</th>
                   <th className="px-2 py-2 font-semibold whitespace-nowrap">Client/Fournisseur</th>
+                  <th className="px-2 py-2 font-semibold whitespace-nowrap">Commercial</th>
                   <th className="px-2 py-2 font-semibold whitespace-nowrap">Etat Chèque</th>
                   <th className="px-2 py-2 font-semibold whitespace-nowrap">Date d'échéance</th>
                   <th className="px-2 py-2 text-right font-semibold whitespace-nowrap">Montant Facture</th>
@@ -891,7 +1026,7 @@ export default function TresoreriePage() {
               <tbody>
                 {filteredRecords.length === 0 ? (
                   <tr>
-                    <td colSpan={11} className="px-3 py-10 text-center text-slate-500">
+                    <td colSpan={12} className="px-3 py-10 text-center text-slate-500">
                       Aucun enregistrement trouvé
                     </td>
                   </tr>
@@ -920,7 +1055,17 @@ export default function TresoreriePage() {
                             <div>N° Virement: {record.transferNumber || "-"}</div>
                             <div>Nom: {record.transferHolderName || "-"}</div>
                             <div>Banque: {record.transferBankName || "-"}</div>
-                            <div>Image: {record.transferImageName || "-"}</div>
+                            {record.transferImageName && (
+                              <a href={mediaUrl(record.transferImageName)} target="_blank" rel="noreferrer">
+                                <img
+                                  src={mediaUrl(record.transferImageName)}
+                                  alt="Virement"
+                                  className="mt-1 h-14 w-auto rounded border border-slate-200 object-contain cursor-pointer"
+                                  onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; (e.target as HTMLImageElement).nextElementSibling?.classList.remove("hidden"); }}
+                                />
+                                <span className="hidden text-xs text-gray-400 italic">Image non disponible</span>
+                              </a>
+                            )}
                             <div>Montant: {formatCurrency(record.transferAmountPaid)}</div>
                             <div>Reste: {formatCurrency(record.transferRemaining)}</div>
                           </>
@@ -933,7 +1078,17 @@ export default function TresoreriePage() {
                             <div>Banque: {record.lettreBankName || "-"}</div>
                             <div>RIB: {record.lettreRib || "-"}</div>
                             <div>Lieu: {record.lettreLieu || "-"}</div>
-                            <div>Image: {record.lettreImageName || "-"}</div>
+                            {record.lettreImageName && (
+                              <a href={mediaUrl(record.lettreImageName)} target="_blank" rel="noreferrer">
+                                <img
+                                  src={mediaUrl(record.lettreImageName)}
+                                  alt="Lettre"
+                                  className="mt-1 h-14 w-auto rounded border border-slate-200 object-contain cursor-pointer"
+                                  onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; (e.target as HTMLImageElement).nextElementSibling?.classList.remove("hidden"); }}
+                                />
+                                <span className="hidden text-xs text-gray-400 italic">Image non disponible</span>
+                              </a>
+                            )}
                             <div>Montant: {formatCurrency(record.lettreAmountPaid)}</div>
                             <div>Reste: {formatCurrency(record.lettreRemaining)}</div>
                           </>
@@ -944,7 +1099,17 @@ export default function TresoreriePage() {
                             <div>Date: {record.chequeDate || "-"}</div>
                             <div>Nom: {record.chequeName || "-"}</div>
                             <div>Banque: {record.chequeBankName || "-"}</div>
-                            <div>Image: {record.chequeImageName || "-"}</div>
+                            {record.chequeImageName && (
+                              <a href={mediaUrl(record.chequeImageName)} target="_blank" rel="noreferrer">
+                                <img
+                                  src={mediaUrl(record.chequeImageName)}
+                                  alt="Chèque"
+                                  className="mt-1 h-14 w-auto rounded border border-slate-200 object-contain cursor-pointer"
+                                  onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; (e.target as HTMLImageElement).nextElementSibling?.classList.remove("hidden"); }}
+                                />
+                                <span className="hidden text-xs text-gray-400 italic">Image non disponible</span>
+                              </a>
+                            )}
                             <div>Montant: {formatCurrency(record.chequeAmountPaid)}</div>
                             <div>Reste: {formatCurrency(record.chequeRemaining)}</div>
                           </>
@@ -959,6 +1124,13 @@ export default function TresoreriePage() {
                           </>
                         )}
                         {record.paymentMethod === "card" && <div>Carte bancaire</div>}
+                        {record.paymentMethod === "mixed" && (<>
+                          {record.criAmountPaid > 0 && <div>CRI: {formatCurrency(record.criAmountPaid)}</div>}
+                          {record.transferAmountPaid > 0 && <div>Virement: {formatCurrency(record.transferAmountPaid)}</div>}
+                          {record.chequeAmountPaid > 0 && <div>Chèque: {formatCurrency(record.chequeAmountPaid)}</div>}
+                          {record.lettreAmountPaid > 0 && <div>Lettre: {formatCurrency(record.lettreAmountPaid)}</div>}
+                          {record.codAmountPaid > 0 && <div>TPE: {formatCurrency(record.codAmountPaid)}</div>}
+                        </>)}
                       </td>
                       <td className="px-2 py-2 align-top min-w-[180px] max-w-[220px]">
                         <div className="font-medium text-slate-700">{record.client || record.fournisseur || "-"}</div>
@@ -966,8 +1138,23 @@ export default function TresoreriePage() {
                           {record.remarque || "-"}
                         </div>
                       </td>
+                      {/* Colonne Commercial */}
                       <td className="px-2 py-2 align-top whitespace-nowrap">
-                        {record.chequeStatus || "-"}
+                        <select
+                          value={record.commercial}
+                          onChange={(e) => handleCommercialChange(record.id, e.target.value)}
+                          className="w-36 rounded border border-slate-300 bg-white px-1.5 py-1 text-xs focus:outline-none focus:ring-1 focus:ring-yellow-400"
+                        >
+                          <option value="">— Choisir —</option>
+                          {COMMERCIAUX.map((c) => (
+                            <option key={c} value={c}>{c}</option>
+                          ))}
+                        </select>
+                      </td>
+                      <td className="px-2 py-2 align-top whitespace-nowrap">
+                        {record.chequeStatus
+                          ? record.chequeStatus
+                          : PAYMENT_STATUS_LABELS[record.paymentStatus] || "-"}
                       </td>
                       <td className="px-2 py-2 align-top whitespace-nowrap">{record.dueDateFormatted}</td>
                       <td className="px-2 py-2 text-right align-top whitespace-nowrap font-semibold">
@@ -1012,74 +1199,71 @@ export default function TresoreriePage() {
       </div>
 
       {selectedRecord && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-          <div className="max-h-[90vh] w-full max-w-6xl overflow-auto rounded-md bg-white shadow-2xl">
-            <div className="sticky top-0 flex items-center justify-between border-b bg-slate-100 px-4 py-3">
-              <h2 className="text-lg font-semibold text-slate-800">Facture Vente</h2>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-3">
+          <div className="max-h-[92vh] w-full max-w-3xl overflow-auto rounded-lg bg-white shadow-2xl text-xs">
+            {/* Header */}
+            <div className="sticky top-0 flex items-center justify-between border-b bg-slate-800 px-4 py-2.5">
+              <h2 className="text-sm font-semibold text-white">
+                Facture {selectedRecord.refDoc || selectedRecord.id}
+              </h2>
               <button
                 onClick={() => setSelectedRecord(null)}
-                className="text-xl leading-none text-slate-500 hover:text-slate-700"
-              >
-                ×
-              </button>
+                className="text-slate-300 hover:text-white text-lg leading-none"
+              >×</button>
             </div>
 
-            <div className="space-y-4 p-4 text-sm">
-              <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                <div className="rounded border">
-                  <div className="bg-slate-900 px-3 py-2 font-semibold text-white">Facture Vente</div>
-                  <div className="space-y-1 p-3 text-slate-700">
-                    <p><span className="font-semibold">Num :</span> {selectedRecord.refDoc || "-"}</p>
-                    <p><span className="font-semibold">Date :</span> {selectedRecord.dateFormatted}</p>
-                    <p><span className="font-semibold">Ticket :</span> {selectedRecord.chequeNumber}</p>
-                    <p><span className="font-semibold">Méthode :</span> {selectedRecord.type}</p>
+            <div className="p-4 space-y-3">
+              {/* Ligne 1 : Infos facture + Client côte à côte */}
+              <div className="grid grid-cols-2 gap-3">
+                <div className="rounded border border-slate-200">
+                  <div className="bg-slate-100 px-2 py-1 text-[11px] font-semibold uppercase tracking-wide text-slate-600">Facture</div>
+                  <div className="px-2 py-1.5 space-y-0.5 text-slate-700">
+                    <div className="flex gap-1"><span className="font-semibold w-28 shrink-0">N° Facture :</span><span>{selectedRecord.refDoc || "-"}</span></div>
+                    <div className="flex gap-1"><span className="font-semibold w-28 shrink-0">Date :</span><span>{selectedRecord.dateFormatted}</span></div>
+                    <div className="flex gap-1"><span className="font-semibold w-28 shrink-0">Date échéance :</span><span>{selectedRecord.dueDateFormatted}</span></div>
+                    <div className="flex gap-1"><span className="font-semibold w-28 shrink-0">Méthode :</span><span>{selectedRecord.type}</span></div>
+                    <div className="flex gap-1"><span className="font-semibold w-28 shrink-0">Statut :</span><span>{PAYMENT_STATUS_LABELS[selectedRecord.paymentStatus] || selectedRecord.paymentStatus}</span></div>
+                    {selectedRecord.commercial && (
+                      <div className="flex gap-1"><span className="font-semibold w-28 shrink-0">Commercial :</span><span>{selectedRecord.commercial}</span></div>
+                    )}
                   </div>
                 </div>
 
-                <div className="rounded border">
-                  <div className="bg-slate-900 px-3 py-2 font-semibold text-white">Client</div>
-                  <div className="space-y-1 p-3 text-slate-700">
-                    <p><span className="font-semibold">Nom :</span> {selectedRecord.client || "-"}</p>
-                    <p><span className="font-semibold">Tel :</span> {selectedRecord.shippingAddress.phone || "-"}</p>
-                    <p>
-                      <span className="font-semibold">Adresse :</span>{" "}
-                      {[
-                        selectedRecord.shippingAddress.address,
-                        selectedRecord.shippingAddress.city,
-                      ]
-                        .filter(Boolean)
-                        .join(", ") || "-"}
-                    </p>
+                <div className="rounded border border-slate-200">
+                  <div className="bg-slate-100 px-2 py-1 text-[11px] font-semibold uppercase tracking-wide text-slate-600">Client</div>
+                  <div className="px-2 py-1.5 space-y-0.5 text-slate-700">
+                    <div className="flex gap-1"><span className="font-semibold w-20 shrink-0">Nom :</span><span>{selectedRecord.client || "-"}</span></div>
+                    <div className="flex gap-1"><span className="font-semibold w-20 shrink-0">Tél :</span><span>{selectedRecord.shippingAddress.phone || "-"}</span></div>
+                    <div className="flex gap-1"><span className="font-semibold w-20 shrink-0">Adresse :</span>
+                      <span>{[selectedRecord.shippingAddress.address, selectedRecord.shippingAddress.city].filter(Boolean).join(", ") || "-"}</span>
+                    </div>
                   </div>
                 </div>
               </div>
 
-              <div className="overflow-x-auto rounded border">
-                <table className="w-full min-w-[800px] text-xs">
-                  <thead className="bg-slate-100">
-                    <tr>
-                      <th className="px-2 py-2 text-left">Ref</th>
-                      <th className="px-2 py-2 text-left">Désignation</th>
-                      <th className="px-2 py-2 text-right">Quantité</th>
-                      <th className="px-2 py-2 text-right">P.U.H.T</th>
-                      <th className="px-2 py-2 text-right">Total HT</th>
+              {/* Tableau articles */}
+              <div className="rounded border border-slate-200 overflow-hidden">
+                <table className="w-full text-xs">
+                  <thead>
+                    <tr className="bg-slate-100 text-slate-600">
+                      <th className="px-2 py-1.5 text-left font-semibold w-8">Réf</th>
+                      <th className="px-2 py-1.5 text-left font-semibold">Désignation</th>
+                      <th className="px-2 py-1.5 text-right font-semibold w-14">Qté</th>
+                      <th className="px-2 py-1.5 text-right font-semibold w-24">P.U. TTC</th>
+                      <th className="px-2 py-1.5 text-right font-semibold w-24">Total TTC</th>
                     </tr>
                   </thead>
                   <tbody>
                     {selectedRecord.items.length === 0 ? (
-                      <tr>
-                        <td colSpan={5} className="px-2 py-4 text-center text-slate-500">
-                          Aucun article
-                        </td>
-                      </tr>
+                      <tr><td colSpan={5} className="px-2 py-3 text-center text-slate-400">Aucun article</td></tr>
                     ) : (
                       selectedRecord.items.map((item, index) => (
-                        <tr key={`${selectedRecord.id}-${index}`} className="border-t">
-                          <td className="px-2 py-2">{index + 1}</td>
-                          <td className="px-2 py-2">{item.product_name}</td>
-                          <td className="px-2 py-2 text-right">{item.quantity}</td>
-                          <td className="px-2 py-2 text-right">{formatCurrency(item.unit_price)}</td>
-                          <td className="px-2 py-2 text-right">{formatCurrency(item.total_price)}</td>
+                        <tr key={`${selectedRecord.id}-${index}`} className={index % 2 === 0 ? "bg-white" : "bg-slate-50"}>
+                          <td className="px-2 py-1 text-slate-500">{index + 1}</td>
+                          <td className="px-2 py-1">{item.product_name}</td>
+                          <td className="px-2 py-1 text-right">{item.quantity}</td>
+                          <td className="px-2 py-1 text-right">{formatCurrency(item.unit_price)}</td>
+                          <td className="px-2 py-1 text-right font-medium">{formatCurrency(item.total_price)}</td>
                         </tr>
                       ))
                     )}
@@ -1087,65 +1271,108 @@ export default function TresoreriePage() {
                 </table>
               </div>
 
-              <div className="rounded border">
-                <div className="bg-slate-50 px-3 py-2 font-semibold text-slate-700">
-                  Détails Paiement
+              {/* Ligne 3 : Paiement + Totaux côte à côte */}
+              <div className="grid grid-cols-2 gap-3">
+                {/* Détails paiement */}
+                <div className="rounded border border-slate-200">
+                  <div className="bg-slate-100 px-2 py-1 text-[11px] font-semibold uppercase tracking-wide text-slate-600">Détails Paiement</div>
+                  <div className="px-2 py-1.5 space-y-0.5 text-slate-700">
+                    {selectedRecord.paymentMethod === "bank_transfer" && (<>
+                      <div><span className="font-semibold">N° Virement :</span> {selectedRecord.transferNumber || "-"}</div>
+                      <div><span className="font-semibold">Banque :</span> {selectedRecord.transferBankName || "-"}</div>
+                      <div><span className="font-semibold">Titulaire :</span> {selectedRecord.transferHolderName || "-"}</div>
+                      {selectedRecord.transferImageName && (
+                        <div className="mt-1">
+                          <span className="font-semibold">Justificatif :</span>
+                          <a href={mediaUrl(selectedRecord.transferImageName)} target="_blank" rel="noreferrer" className="block mt-1">
+                            <img src={mediaUrl(selectedRecord.transferImageName)} alt="Virement" className="max-h-40 w-auto rounded border border-slate-200 object-contain"
+                              onError={(e) => { (e.target as HTMLImageElement).style.display="none"; (e.target as HTMLImageElement).insertAdjacentHTML("afterend","<span class='text-xs text-gray-400 italic'>Image non disponible</span>"); }} />
+                          </a>
+                        </div>
+                      )}
+                    </>)}
+                    {selectedRecord.paymentMethod === "lettre_de_change" && (<>
+                      <div><span className="font-semibold">N° Lettre :</span> {selectedRecord.lettreNumber || "-"}</div>
+                      <div><span className="font-semibold">Date :</span> {selectedRecord.lettreDate || "-"}</div>
+                      <div><span className="font-semibold">Banque :</span> {selectedRecord.lettreBankName || "-"}</div>
+                      <div><span className="font-semibold">RIB :</span> {selectedRecord.lettreRib || "-"}</div>
+                      <div><span className="font-semibold">Lieu :</span> {selectedRecord.lettreLieu || "-"}</div>
+                      {selectedRecord.lettreImageName && (
+                        <div className="mt-1">
+                          <span className="font-semibold">Lettre scannée :</span>
+                          <a href={mediaUrl(selectedRecord.lettreImageName)} target="_blank" rel="noreferrer" className="block mt-1">
+                            <img src={mediaUrl(selectedRecord.lettreImageName)} alt="Lettre de change" className="max-h-40 w-auto rounded border border-slate-200 object-contain"
+                              onError={(e) => { (e.target as HTMLImageElement).style.display="none"; (e.target as HTMLImageElement).insertAdjacentHTML("afterend","<span class='text-xs text-gray-400 italic'>Image non disponible</span>"); }} />
+                          </a>
+                        </div>
+                      )}
+                    </>)}
+                    {(selectedRecord.paymentMethod === "cheque" || selectedRecord.paymentMethod === "check") && (<>
+                      <div><span className="font-semibold">N° Chèque :</span> {selectedRecord.chequeNumberValue || "-"}</div>
+                      <div><span className="font-semibold">Date :</span> {selectedRecord.chequeDate || "-"}</div>
+                      <div><span className="font-semibold">Nom :</span> {selectedRecord.chequeName || "-"}</div>
+                      <div><span className="font-semibold">Banque :</span> {selectedRecord.chequeBankName || "-"}</div>
+                      {selectedRecord.chequeImageName && (
+                        <div className="mt-1">
+                          <span className="font-semibold">Chèque scanné :</span>
+                          <a href={mediaUrl(selectedRecord.chequeImageName)} target="_blank" rel="noreferrer" className="block mt-1">
+                            <img src={mediaUrl(selectedRecord.chequeImageName)} alt="Chèque" className="max-h-40 w-auto rounded border border-slate-200 object-contain"
+                              onError={(e) => { (e.target as HTMLImageElement).style.display="none"; (e.target as HTMLImageElement).insertAdjacentHTML("afterend","<span class='text-xs text-gray-400 italic'>Image non disponible</span>"); }} />
+                          </a>
+                        </div>
+                      )}
+                    </>)}
+                    {selectedRecord.paymentMethod === "cash_on_delivery" && (<>
+                      <div><span className="font-semibold">N° Autorisation :</span> {selectedRecord.codAuthorizationNumber || "-"}</div>
+                      <div><span className="font-semibold">Banque :</span> {selectedRecord.codBankName || "-"}</div>
+                    </>)}
+                    {selectedRecord.paymentMethod === "cri" && (
+                      <div><span className="font-semibold">Remarque :</span> {selectedRecord.criRemarque || "-"}</div>
+                    )}
+                    {selectedRecord.paymentMethod === "card" && <div>Carte bancaire</div>}
+                    {/* Multi-modal: show all non-zero payment method details */}
+                    {selectedRecord.paymentMethod === "mixed" && (<>
+                      {selectedRecord.criAmountPaid > 0 && <div className="font-semibold text-slate-500 mt-1">CRI</div>}
+                      {selectedRecord.criAmountPaid > 0 && <div><span className="font-semibold">Montant CRI :</span> {formatCurrency(selectedRecord.criAmountPaid)}</div>}
+                      {selectedRecord.transferAmountPaid > 0 && <div className="font-semibold text-slate-500 mt-1">Virement</div>}
+                      {selectedRecord.transferAmountPaid > 0 && <><div><span className="font-semibold">N° Virement :</span> {selectedRecord.transferNumber || "-"}</div><div><span className="font-semibold">Banque :</span> {selectedRecord.transferBankName || "-"}</div><div><span className="font-semibold">Montant :</span> {formatCurrency(selectedRecord.transferAmountPaid)}</div></>}
+                      {selectedRecord.chequeAmountPaid > 0 && <div className="font-semibold text-slate-500 mt-1">Chèque</div>}
+                      {selectedRecord.chequeAmountPaid > 0 && <><div><span className="font-semibold">N° Chèque :</span> {selectedRecord.chequeNumberValue || "-"}</div><div><span className="font-semibold">Banque :</span> {selectedRecord.chequeBankName || "-"}</div><div><span className="font-semibold">Montant :</span> {formatCurrency(selectedRecord.chequeAmountPaid)}</div></>}
+                      {selectedRecord.lettreAmountPaid > 0 && <div className="font-semibold text-slate-500 mt-1">Lettre de change</div>}
+                      {selectedRecord.lettreAmountPaid > 0 && <><div><span className="font-semibold">N° Lettre :</span> {selectedRecord.lettreNumber || "-"}</div><div><span className="font-semibold">Banque :</span> {selectedRecord.lettreBankName || "-"}</div><div><span className="font-semibold">Montant :</span> {formatCurrency(selectedRecord.lettreAmountPaid)}</div></>}
+                      {selectedRecord.codAmountPaid > 0 && <div className="font-semibold text-slate-500 mt-1">TPE</div>}
+                      {selectedRecord.codAmountPaid > 0 && <><div><span className="font-semibold">N° Auth :</span> {selectedRecord.codAuthorizationNumber || "-"}</div><div><span className="font-semibold">Montant :</span> {formatCurrency(selectedRecord.codAmountPaid)}</div></>}
+                    </>)}
+                    {selectedRecord.remarque && (
+                      <div><span className="font-semibold">Note :</span> {selectedRecord.remarque}</div>
+                    )}
+                  </div>
                 </div>
-                <div className="grid grid-cols-1 gap-2 p-3 text-slate-700 md:grid-cols-2">
-                  <p><span className="font-semibold">Statut :</span> {PAYMENT_STATUS_LABELS[selectedRecord.paymentStatus] || selectedRecord.paymentStatus}</p>
-                  <p><span className="font-semibold">Montant Facture :</span> {formatCurrency(selectedRecord.totalAmount)}</p>
-                  <p><span className="font-semibold">Montant Payé :</span> {formatCurrency(getPaidAmount(selectedRecord))}</p>
-                  <p><span className="font-semibold">Reste :</span> {formatCurrency(getRemainingAmount(selectedRecord))}</p>
 
-                  {selectedRecord.paymentMethod === "bank_transfer" && (
-                    <>
-                      <p><span className="font-semibold">N° Virement :</span> {selectedRecord.transferNumber || "-"}</p>
-                      <p><span className="font-semibold">Banque :</span> {selectedRecord.transferBankName || "-"}</p>
-                      <p><span className="font-semibold">Nom :</span> {selectedRecord.transferHolderName || "-"}</p>
-                      <p><span className="font-semibold">Image :</span> {selectedRecord.transferImageName || "-"}</p>
-                    </>
-                  )}
-
-                  {selectedRecord.paymentMethod === "lettre_de_change" && (
-                    <>
-                      <p><span className="font-semibold">N° Lettre :</span> {selectedRecord.lettreNumber || "-"}</p>
-                      <p><span className="font-semibold">Date Lettre :</span> {selectedRecord.lettreDate || "-"}</p>
-                      <p><span className="font-semibold">Nom :</span> {selectedRecord.lettreName || "-"}</p>
-                      <p><span className="font-semibold">Banque :</span> {selectedRecord.lettreBankName || "-"}</p>
-                      <p><span className="font-semibold">RIB :</span> {selectedRecord.lettreRib || "-"}</p>
-                      <p><span className="font-semibold">Lieu :</span> {selectedRecord.lettreLieu || "-"}</p>
-                      <p><span className="font-semibold">Image :</span> {selectedRecord.lettreImageName || "-"}</p>
-                    </>
-                  )}
-
-                  {(selectedRecord.paymentMethod === "cheque" || selectedRecord.paymentMethod === "check") && (
-                    <>
-                      <p><span className="font-semibold">N° Chèque :</span> {selectedRecord.chequeNumberValue || "-"}</p>
-                      <p><span className="font-semibold">Date Chèque :</span> {selectedRecord.chequeDate || "-"}</p>
-                      <p><span className="font-semibold">Nom :</span> {selectedRecord.chequeName || "-"}</p>
-                      <p><span className="font-semibold">Banque :</span> {selectedRecord.chequeBankName || "-"}</p>
-                      <p><span className="font-semibold">Image :</span> {selectedRecord.chequeImageName || "-"}</p>
-                    </>
-                  )}
-
-                  {selectedRecord.paymentMethod === "cash_on_delivery" && (
-                    <>
-                      <p><span className="font-semibold">N° Autorisation :</span> {selectedRecord.codAuthorizationNumber || "-"}</p>
-                      <p><span className="font-semibold">Banque :</span> {selectedRecord.codBankName || "-"}</p>
-                    </>
-                  )}
-
-                  {selectedRecord.remarque && (
-                    <p className="md:col-span-2"><span className="font-semibold">Remarque :</span> {selectedRecord.remarque}</p>
-                  )}
+                {/* Totaux */}
+                <div className="rounded border border-slate-200">
+                  <div className="bg-slate-100 px-2 py-1 text-[11px] font-semibold uppercase tracking-wide text-slate-600">Totaux</div>
+                  <div className="px-2 py-1.5 space-y-1 text-slate-700">
+                    <div className="flex justify-between">
+                      <span>Montant Facture</span>
+                      <span className="font-semibold">{formatCurrency(selectedRecord.totalAmount)}</span>
+                    </div>
+                    <div className="flex justify-between text-emerald-700">
+                      <span>Montant Payé</span>
+                      <span className="font-semibold">{formatCurrency(getPaidAmount(selectedRecord))}</span>
+                    </div>
+                    <div className="flex justify-between border-t pt-1 text-rose-700">
+                      <span className="font-semibold">Reste à payer</span>
+                      <span className="font-bold">{formatCurrency(getRemainingAmount(selectedRecord))}</span>
+                    </div>
+                  </div>
                 </div>
               </div>
 
-              <div className="flex justify-end gap-2 border-t pt-3">
-                <Button variant="outline" onClick={() => setSelectedRecord(null)}>
-                  Fermer
-                </Button>
-                <Button onClick={() => window.print()}>Imprimer</Button>
+              {/* Actions */}
+              <div className="flex justify-end gap-2 border-t pt-2">
+                <Button size="sm" variant="outline" onClick={() => setSelectedRecord(null)}>Fermer</Button>
+                <Button size="sm" onClick={() => printFacture(selectedRecord!)}>Imprimer</Button>
               </div>
             </div>
           </div>

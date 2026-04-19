@@ -22,7 +22,7 @@ export default function ForgotPasswordPage() {
     setError("");
 
     try {
-      const response = await fetch(`${API_URL}/auth/forgot-password/`, {
+      const response = await fetch(`${API_URL}/accounts/auth/forgot-password/`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -31,7 +31,6 @@ export default function ForgotPasswordPage() {
       });
 
       const data = await response.json();
-      console.log(data);
       if (response.ok) {
         setSuccess(true);
       } else {

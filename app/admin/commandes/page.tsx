@@ -179,7 +179,7 @@ export default function OrdersPage() {
             paymentStatus: order.paymentStatus === 'pending' ? 'En attente' :
                           order.paymentStatus === 'paid' ? 'Payé' :
                           order.paymentStatus === 'failed' ? 'Échec' : 'Remboursé',
-            paymentMethod: order.paymentMethod === 'card' ? 'Carte' : 'À la livraison',
+            paymentMethod: ({card:'Carte bancaire',bank_transfer:'Virement',cash_on_delivery:'TPE livraison',cri:'CRI',cheque:'Chèque',lettre_de_change:'Lettre de change',mixed:'Multi-modalités'} as Record<string,string>)[order.paymentMethod] || order.paymentMethod || 'N/A',
             tracking: order.trackingNumber || 'N/A',
             address: order.shippingAddress ? 
               `${order.shippingAddress.street}, ${order.shippingAddress.city}, ${order.shippingAddress.postalCode}, ${order.shippingAddress.region}, ${order.shippingAddress.country}` : 'N/A',
