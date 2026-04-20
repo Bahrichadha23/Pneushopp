@@ -35,6 +35,59 @@ export default function TireGuideSection() {
     }
   };
 
+  // Generate curved text positions with proper spacing
+  const generateTextPath = (text: string, startAngle: number, radius: number, cx: number, cy: number) => {
+    const chars = text.split('');
+    const angleStep = 8; // Increased spacing to prevent overlap
+    
+    return chars.map((char, i) => {
+      const angle = startAngle + (i - chars.length / 2) * angleStep;
+      const rad = (angle * Math.PI) / 180;
+      const x = cx + Math.cos(rad) * radius;
+      const y = cy + Math.sin(rad) * radius;
+      const rotation = angle + 90;
+      
+      return { char, x, y, rotation };
+    });
+  };
+
+  const dimensionText = `${filters.width || "205"}/${filters.height || "55"} R${filters.diameter || "16"}`;
+  const textPositions = generateTextPath(dimensionText, -90, 168, 400, 280);
+  const getCharColor = (index: number) => {
+  // Texte complet ex: "205/55 R16"
+  // Indices : 0 1 2 3 4 5 6 7 8 ...
+  //          2 0 5 / 5 5   R 1 6
+
+  const widthDone = !!filters.width;
+  const heightDone = !!filters.height;
+  const diameterDone = !!filters.diameter;
+
+  // Trouver les positions dans la string
+  const s = dimensionText; // ex "205/55 R16"
+  const slashIndex = s.indexOf("/");
+  const spaceIndex = s.indexOf(" ");
+  const rIndex = s.indexOf("R");
+
+  // Largeur = avant "/"
+  const isWidthChar = index < slashIndex;
+
+  // Hauteur = après "/" et avant " "
+  const isHeightChar = index > slashIndex && index < spaceIndex;
+
+  // Diamètre = de "R" jusqu’à la fin
+  const isDiameterChar = index >= rIndex;
+
+  // Couleurs
+  const yellow = "#facc15"; // Tailwind yellow-400
+  const white = "#ffffff";
+
+  if (isWidthChar) return widthDone ? yellow : white;
+  if (isHeightChar) return heightDone ? yellow : white;
+  if (isDiameterChar) return diameterDone ? yellow : white;
+
+  // "/" et espaces restent blancs
+  return white;
+};
 
   return (
     <section className="bg-white mt-2 lg:ml-58 lg:mr-58 m-14">
@@ -47,38 +100,271 @@ export default function TireGuideSection() {
         className="w-full h-auto animate"
       />
 
-      {/* Realistic Tire + Dimension Badge Section */}
-      <div className="relative bg-white overflow-hidden">
+      {/* Animated Tire Section */}
+      <div className="relative bg-white py-6 overflow-hidden">
         <motion.div
-          className="relative w-full flex items-center justify-center"
-          initial={{ y: -20, opacity: 0 }}
+          className="relative w-full max-w-3xl mx-auto"
+          initial={{ y: -30, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
           transition={{ duration: 0.8 }}
         >
-          {/* Real tire photo */}
-          <img
-            src="/high-quality-luxury-car-tires-with-golden-rims-dark-background.jpg"
-            alt="Pneu haute qualité"
-            className="w-full max-h-52 object-cover object-center"
-            style={{ filter: "brightness(0.88)" }}
-          />
+          <svg
+            viewBox="0 0 800 250"
+            className="w-full h-auto"
+            preserveAspectRatio="xMidYMid meet"
+            style={{ filter: "drop-shadow(0 15px 30px rgba(0,0,0,0.25))" }}
+          >
+            <defs>
+              {/* === RUBBER GRADIENTS === */}
+              <radialGradient id="outerRubber" cx="40%" cy="40%">
+                <stop offset="0%" stopColor="#5a5a5a" />
+                <stop offset="30%" stopColor="#3a3a3a" />
+                <stop offset="70%" stopColor="#252525" />
+                <stop offset="100%" stopColor="#0f0f0f" />
+              </radialGradient>
 
-          {/* Dimension overlay badge */}
-          {(filters.width || filters.height || filters.diameter) && (
-            <motion.div
-              className="absolute inset-0 flex items-center justify-center pointer-events-none"
-              initial={{ opacity: 0, scale: 0.85 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 0.4 }}
-            >
-              <div className="bg-black/70 backdrop-blur-sm text-white rounded-xl px-8 py-4 text-center shadow-2xl border border-yellow-400/40">
-                <div className="text-3xl font-bold tracking-widest text-yellow-400 drop-shadow">
-                  {filters.width || "___"}&nbsp;/&nbsp;{filters.height || "__"}&nbsp;R{filters.diameter || "__"}
-                </div>
-                <div className="text-xs text-gray-300 mt-1 uppercase tracking-widest">Dimensions sélectionnées</div>
-              </div>
-            </motion.div>
-          )}
+              <radialGradient id="innerRubber" cx="50%" cy="50%">
+                <stop offset="0%" stopColor="#3a3a3a" />
+                <stop offset="50%" stopColor="#1f1f1f" />
+                <stop offset="100%" stopColor="#0a0a0a" />
+              </radialGradient>
+
+              {/* === RUBBER HIGHLIGHT (LIGHT SOURCE) === */}
+              <radialGradient id="rubberHighlight" cx="35%" cy="25%">
+                <stop offset="0%" stopColor="#ffffff" stopOpacity="0.15" />
+                <stop offset="40%" stopColor="#ffffff" stopOpacity="0.07" />
+                <stop offset="100%" stopColor="#ffffff" stopOpacity="0" />
+              </radialGradient>
+
+              {/* === RUBBER NOISE TEXTURE === */}
+              <pattern id="rubberNoise" width="10" height="10" patternUnits="userSpaceOnUse">
+                <rect width="10" height="10" fill="#000" opacity="0.02" />
+                <circle cx="2" cy="2" r="1" fill="#fff" opacity="0.05" />
+                <circle cx="8" cy="4" r="1" fill="#fff" opacity="0.04" />
+                <circle cx="5" cy="8" r="1" fill="#fff" opacity="0.035" />
+              </pattern>
+
+              {/* === METALLIC RIM GRADIENT === */}
+              <linearGradient id="rimShine" x1="0%" y1="0%" x2="0%" y2="100%">
+                <stop offset="0%" stopColor="#ffffff" />
+                <stop offset="40%" stopColor="#f5f5f5" />
+                <stop offset="70%" stopColor="#e8e8e8" />
+                <stop offset="100%" stopColor="#d0d0d0" />
+              </linearGradient>
+
+              {/* === CLIP (TOP HALF TIRE) === */}
+              <clipPath id="topHalf">
+                <rect x="0" y="0" width="800" height="280" />
+              </clipPath>
+
+              {/* === INNER SHADOW === */}
+              <filter id="innerShadow">
+                <feGaussianBlur in="SourceAlpha" stdDeviation="3" />
+                <feOffset dx="0" dy="2" result="offsetblur" />
+                <feComponentTransfer>
+                  <feFuncA type="linear" slope="0.5" />
+                </feComponentTransfer>
+                <feMerge>
+                  <feMergeNode />
+                  <feMergeNode in="SourceGraphic" />
+                </feMerge>
+              </filter>
+
+              {/* === SOFT SHADOW (REALISTIC DEPTH) === */}
+              <filter id="softShadow" x="-30%" y="-30%" width="160%" height="160%">
+                <feDropShadow
+                  dx="0"
+                  dy="14"
+                  stdDeviation="14"
+                  floodColor="#000"
+                  floodOpacity="0.35"
+                />
+              </filter>
+
+              {/* === SPECULAR LIGHTING FOR METAL RIM === */}
+              <filter id="rimSpecular" x="-30%" y="-30%" width="160%" height="160%">
+                <feGaussianBlur in="SourceAlpha" stdDeviation="1" result="blur" />
+                <feSpecularLighting
+                  in="blur"
+                  surfaceScale="4"
+                  specularConstant="0.6"
+                  specularExponent="25"
+                  lightingColor="#ffffff"
+                  result="spec"
+                >
+                  <feDistantLight azimuth="220" elevation="35" />
+                </feSpecularLighting>
+                <feComposite in="spec" in2="SourceGraphic" operator="in" result="specMask" />
+                <feBlend in="SourceGraphic" in2="specMask" mode="screen" />
+              </filter>
+            </defs>
+
+
+            <g clipPath="url(#topHalf)">
+              {/* Main tire outer circle */}
+              <circle 
+                cx="400" 
+                cy="280" 
+                r="200" 
+                fill="url(#outerRubber)"
+                filter="url(#softShadow)"
+              />
+              <circle
+                cx="400"
+                cy="280"
+                r="200"
+                fill="url(#rubberNoise)"
+                opacity="0.35"
+              />
+              <circle
+                cx="400"
+                cy="280"
+                r="200"
+                fill="url(#rubberHighlight)"
+              />
+              {/* Middle sidewall */}
+              <circle 
+                cx="400" 
+                cy="280" 
+                r="175" 
+                fill="url(#innerRubber)"
+                filter="url(#softShadow)"
+              />
+              {/* Tread lines (simple) */}
+              <g opacity="0.25">
+                {[...Array(18)].map((_, k) => (
+                  <line
+                    key={k}
+                    x1="400"
+                    y1="80"
+                    x2="400"
+                    y2="140"
+                    stroke="#000"
+                    strokeWidth="6"
+                    transform={`rotate(${k * 10} 400 280)`}
+                  />
+                ))}
+              </g>
+              {/* Sidewall detail lines */}
+              <circle 
+                cx="400" 
+                cy="280" 
+                r="172" 
+                fill="none" 
+                stroke="#1a1a1a" 
+                strokeWidth="2"
+                opacity="0.7"
+              />
+              <circle 
+                cx="400" 
+                cy="280" 
+                r="165" 
+                fill="none" 
+                stroke="#2a2a2a" 
+                strokeWidth="1.5"
+                opacity="0.5"
+              />
+              <circle 
+                cx="400" 
+                cy="280" 
+                r="158" 
+                fill="none" 
+                stroke="#1a1a1a" 
+                strokeWidth="1"
+                opacity="0.6"
+              />
+
+              {/* Inner rim area */}
+              <circle 
+                cx="400" 
+                cy="280" 
+                r="140" 
+                fill="url(#rimShine)"
+                filter="url(#rimSpecular)"
+              />
+
+              {/* Rim highlight edge */}
+              <circle 
+                cx="400" 
+                cy="280" 
+                r="140" 
+                fill="none" 
+                stroke="#c0c0c0" 
+                strokeWidth="3"
+              />
+
+              {/* Inner rim shadow */}
+              <circle 
+                cx="400" 
+                cy="280" 
+                r="128" 
+                fill="none" 
+                stroke="#b0b0b0" 
+                strokeWidth="2"
+                opacity="0.6"
+              />
+
+              {/* Curved dimension text - ALL characters on SAME baseline */}
+              {textPositions.map((pos, i) => {
+                // Calculate offset to keep all characters at same distance from center
+                const baselineOffset = 0; // Keep all text at exact same radius
+                
+                return (
+                  <motion.text
+                    key={i}
+                    x={pos.x}
+                    y={pos.y + baselineOffset}
+                    fontSize="40"
+                    fontWeight="bold"
+                    fontFamily="Arial, sans-serif"
+                    fill={getCharColor(i)}
+                    textAnchor="middle"
+                    dominantBaseline="middle"
+                    transform={`rotate(${pos.rotation} ${pos.x} ${pos.y})`}
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ duration: 0.5, delay: 0.3 + i * 0.03 }}
+                    style={{
+                      textShadow: "2px 2px 4px rgba(0,0,0,0.9)",
+                    }}
+                  >
+                    {pos.char}
+                  </motion.text>
+                );
+              })}
+
+
+
+              {/* Load index */}
+              {/* {filters.loadIndex && (
+                <motion.text
+                  x="560"
+                  y="190"
+                  fontSize="28"
+                  fontWeight="bold"
+                  fontFamily="Arial, sans-serif"
+                  fill="white"
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ duration: 0.5 }}
+                  style={{ textShadow: "2px 2px 4px rgba(0,0,0,0.8)" }}
+                >
+                  {filters.loadIndex}
+                </motion.text>
+              )} */}
+
+              {/* Subtle shine effect */}
+              <ellipse
+                cx="320"
+                cy="210"
+                rx="80"
+                ry="40"
+                fill="white"
+                opacity="0.08"
+                transform="rotate(-25 320 210)"
+              />
+            </g>
+          </svg>
         </motion.div>
       </div>
 
