@@ -212,9 +212,9 @@ export default function PendingOrdersPage() {
         "Content-Type": "application/json",
         Authorization: `Bearer ${token}`,
       },
-      body: JSON.stringify({ 
+      body: JSON.stringify({
         status,
-        delivery_cost: deliveryCost.toString()
+        delivery_cost: Math.round(deliveryCost).toString()
       }),
     });
     if (res.ok) {

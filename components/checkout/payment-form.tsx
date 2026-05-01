@@ -39,7 +39,7 @@ interface PaymentFormProps {
 }
 
 const ALL_PAYMENT_TYPES = [
-  { id: "card", label: "Carte bancaire", Icon: CreditCard },
+  { id: "card", label: "Carte bancaire", Icon: CreditCard, disabled: true },
   { id: "bank_transfer", label: "Virement bancaire", Icon: Building },
   { id: "cash_on_delivery", label: "Paiement à la livraison (TPE)", Icon: Truck },
   { id: "cri", label: "Paiement CRI", Icon: Receipt },
@@ -49,7 +49,7 @@ const ALL_PAYMENT_TYPES = [
 
 export function PaymentForm({ onSubmit, onBack, totalPrice }: PaymentFormProps) {
   // Multi-modal: array of selected payment types
-  const [selectedTypes, setSelectedTypes] = useState<string[]>(["card"]);
+  const [selectedTypes, setSelectedTypes] = useState<string[]>([]);
   const isSelected = (type: string) => selectedTypes.includes(type);
   const toggleType = (type: string) => {
     setSelectedTypes((prev) =>
@@ -94,8 +94,9 @@ export function PaymentForm({ onSubmit, onBack, totalPrice }: PaymentFormProps) 
   const [chequeImagePreview, setChequeImagePreview] = useState("");
   const [cashOnDeliveryMontantInput, setCashOnDeliveryMontantInput] = useState("");
   const [cashOnDeliveryRemarque, setCashOnDeliveryRemarque] = useState("");
-  const [authorizationNumber, setAuthorizationNumber] = useState("");
   const [cashOnDeliveryBankName, setCashOnDeliveryBankName] = useState("");
+  const [criImage, setCriImage] = useState<File | null>(null);
+  const [criImagePreview, setCriImagePreview] = useState("");
 
   // Total ticket = current order total + previous CRI balance (only relevant for CRI)
   const totalTicket = totalPrice + previousCriBalance;
@@ -141,12 +142,15 @@ export function PaymentForm({ onSubmit, onBack, totalPrice }: PaymentFormProps) 
     return selectedTypes[0] === self ? base : 0;
   };
 
+  // CRI amount = 1% of totalPrice (auto-calculated, read-only)
+  const criAutoAmount = Math.round(totalPrice * 0.01 * 100) / 100;
+
   // Initialisation des montants à la sélection d'un mode de paiement
   useEffect(() => {
-    if (isSelected("cri") && criMontantInput === "") {
-      setCriMontantInput(formatAmount(initAmountFor("cri", totalTicket)));
+    if (isSelected("cri")) {
+      setCriMontantInput(formatAmount(criAutoAmount));
     }
-  }, [selectedTypes, totalTicket]);
+  }, [selectedTypes, criAutoAmount]);
 
   useEffect(() => {
     if (isSelected("bank_transfer") && bankMontantInput === "") {
@@ -171,6 +175,13 @@ export function PaymentForm({ onSubmit, onBack, totalPrice }: PaymentFormProps) 
       setCashOnDeliveryMontantInput(formatAmount(initAmountFor("cash_on_delivery", totalPrice)));
     }
   }, [selectedTypes, totalPrice]);
+
+  useEffect(() => {
+    if (!criImage) { setCriImagePreview(""); return; }
+    const url = URL.createObjectURL(criImage);
+    setCriImagePreview(url);
+    return () => URL.revokeObjectURL(url);
+  }, [criImage]);
 
   useEffect(() => {
     if (!transferImage) { setTransferImagePreview(""); return; }
@@ -224,7 +235,11 @@ export function PaymentForm({ onSubmit, onBack, totalPrice }: PaymentFormProps) 
       ...(isSelected("card") ? cardData : {}),
 
       // CRI metadata
-      ...(isSelected("cri") ? { remarque: criRemarque || undefined } : {}),
+      ...(isSelected("cri") ? {
+        remarque: criRemarque || undefined,
+        criImageName: criImage?.name || undefined,
+        _criImageFile: criImage || undefined,
+      } : {}),
 
       // Virement bancaire metadata
       ...(isSelected("bank_transfer") ? {
@@ -263,7 +278,6 @@ export function PaymentForm({ onSubmit, onBack, totalPrice }: PaymentFormProps) 
       // TPE / Cash on delivery metadata
       ...(isSelected("cash_on_delivery") ? {
         codRemarque: cashOnDeliveryRemarque || undefined,
-        authorizationNumber: authorizationNumber || undefined,
         codBankName: cashOnDeliveryBankName || undefined,
       } : {}),
     };
@@ -279,6 +293,11 @@ export function PaymentForm({ onSubmit, onBack, totalPrice }: PaymentFormProps) 
     // Limite espèces à 4999 DT
     if (isSelected("cash_on_delivery") && cashOnDeliveryMontantNum > 4999) {
       alert("Le paiement en espèces est limité à 4 999 DT. Veuillez choisir un autre mode de paiement pour le montant excédentaire.");
+      return;
+    }
+    // Image obligatoire pour CRI
+    if (isSelected("cri") && !criImage) {
+      alert("Veuillez joindre une image pour le paiement CRI (obligatoire).");
       return;
     }
     // Image obligatoire pour virement, chèque, lettre de change
@@ -303,6 +322,7 @@ export function PaymentForm({ onSubmit, onBack, totalPrice }: PaymentFormProps) 
   };
 
   const isMultiModal = selectedTypes.length > 1;
+  const canContinue = selectedTypes.length > 0 && totalEnteredAllMethods >= totalPrice - 0.01;
 
   return (
     <Card className="max-w-2xl mx-auto">
@@ -321,25 +341,35 @@ export function PaymentForm({ onSubmit, onBack, totalPrice }: PaymentFormProps) 
             <p className="text-sm font-semibold text-slate-600 mb-2">
               Sélectionnez le(s) mode(s) de paiement
             </p>
-            {ALL_PAYMENT_TYPES.map(({ id, label, Icon }) => (
-              <label
-                key={id}
-                className={`flex items-center space-x-3 p-3 border rounded-lg cursor-pointer transition-colors ${
-                  isSelected(id)
-                    ? "border-blue-500 bg-blue-50"
-                    : "border-gray-200 hover:bg-gray-50"
-                }`}
-              >
-                <input
-                  type="checkbox"
-                  checked={isSelected(id)}
-                  onChange={() => toggleType(id)}
-                  className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                />
-                <Icon className="h-5 w-5 text-gray-500 shrink-0" />
-                <span className="flex-1 text-sm font-medium text-slate-700">{label}</span>
-              </label>
-            ))}
+            {ALL_PAYMENT_TYPES.map(({ id, label, Icon, disabled: itemDisabled }) => {
+              const isCriDisabled = id === "cri" && totalPrice <= 1000;
+              const isItemDisabled = itemDisabled || isCriDisabled;
+              return (
+                <label
+                  key={id}
+                  className={`flex items-center space-x-3 p-3 border rounded-lg transition-colors ${
+                    isItemDisabled
+                      ? "opacity-40 cursor-not-allowed pointer-events-none border-gray-200 bg-gray-50"
+                      : isSelected(id)
+                      ? "border-blue-500 bg-blue-50 cursor-pointer"
+                      : "border-gray-200 hover:bg-gray-50 cursor-pointer"
+                  }`}
+                >
+                  <input
+                    type="checkbox"
+                    checked={isSelected(id)}
+                    onChange={() => !isItemDisabled && toggleType(id)}
+                    disabled={isItemDisabled}
+                    className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                  />
+                  <Icon className="h-5 w-5 text-gray-500 shrink-0" />
+                  <span className="flex-1 text-sm font-medium text-slate-700">{label}</span>
+                  {isCriDisabled && (
+                    <span className="text-xs text-gray-400 italic">Disponible pour commandes &gt; 1000 DT</span>
+                  )}
+                </label>
+              );
+            })}
           </div>
 
           {/* Global balance indicator (only shown when multi-modal) */}
@@ -450,11 +480,7 @@ export function PaymentForm({ onSubmit, onBack, totalPrice }: PaymentFormProps) 
                 <Label className="text-sm font-semibold">Remarque</Label>
                 <Textarea className="mt-1 resize-y" rows={3} placeholder="Ajouter une remarque..." value={cashOnDeliveryRemarque} onChange={(e) => setCashOnDeliveryRemarque(e.target.value)} />
               </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label className="text-sm font-semibold">N° d'autorisation</Label>
-                  <Input type="text" placeholder="N° d'autorisation..." value={authorizationNumber} onChange={(e) => setAuthorizationNumber(e.target.value)} className="mt-1" />
-                </div>
+              <div className="grid grid-cols-1 gap-4">
                 <div>
                   <Label className="text-sm font-semibold">Banque</Label>
                   <select value={cashOnDeliveryBankName} onChange={(e) => setCashOnDeliveryBankName(e.target.value)} className="w-full mt-1 px-3 py-2 border border-gray-300 rounded-md text-sm bg-white">
@@ -542,6 +568,7 @@ export function PaymentForm({ onSubmit, onBack, totalPrice }: PaymentFormProps) 
           {isSelected("cri") && (
             <div className="space-y-4 p-4 bg-gray-50 rounded-lg">
               <h3 className="font-semibold">Paiement : CRI</h3>
+              <p className="text-xs text-blue-600">Montant CRI calculé automatiquement (1% du total commande)</p>
               <div className="grid grid-cols-3 gap-4">
                 <div>
                   <Label className="text-sm font-semibold">Total Ticket</Label>
@@ -558,17 +585,12 @@ export function PaymentForm({ onSubmit, onBack, totalPrice }: PaymentFormProps) 
                   </div>
                 </div>
                 <div>
-                  <Label className="text-sm font-semibold text-green-700">Montant</Label>
+                  <Label className="text-sm font-semibold text-green-700">Montant CRI (1%)</Label>
                   <div className="mt-1 flex">
                     <Input
-                      type="text" inputMode="decimal" placeholder="0,00"
+                      type="text" readOnly
                       value={criMontantInput}
-                      onChange={(e) => {
-                        const v = parseAmount(e.target.value);
-                        if (v > totalTicket) { setCriMontantInput(formatAmount(totalTicket)); return; }
-                        setCriMontantInput(e.target.value);
-                      }}
-                      className="rounded-r-none border-green-200 bg-green-50"
+                      className="rounded-r-none border-green-200 bg-green-50 cursor-not-allowed"
                     />
                     <span className="inline-flex items-center px-3 border border-l-0 rounded-r-md text-sm bg-green-100 text-green-700 border-green-200">DT</span>
                   </div>
@@ -577,6 +599,16 @@ export function PaymentForm({ onSubmit, onBack, totalPrice }: PaymentFormProps) 
               <div>
                 <Label className="text-sm font-semibold">Remarque</Label>
                 <Textarea className="mt-1 resize-y" rows={3} placeholder="Ajouter une remarque..." value={criRemarque} onChange={(e) => setCriRemarque(e.target.value)} />
+              </div>
+              <div>
+                <Label className="text-sm font-semibold">Image CRI <span className="text-red-600">*</span></Label>
+                <Input type="file" accept="image/*" onChange={(e) => setCriImage(e.target.files?.[0] || null)} className="mt-1" />
+                <div className="mt-2 h-28 rounded-md border border-dashed border-gray-300 bg-white flex items-center justify-center overflow-hidden">
+                  {criImagePreview
+                    ? <img src={criImagePreview} alt="Apercu CRI" className="h-full w-full object-contain" />
+                    : <span className="text-xs text-gray-500">Aucune image sélectionnée</span>
+                  }
+                </div>
               </div>
             </div>
           )}
@@ -738,7 +770,11 @@ export function PaymentForm({ onSubmit, onBack, totalPrice }: PaymentFormProps) 
               Retour
             </Button>
             {!showWarrantyButtons ? (
-              <Button type="submit" className="flex-1">
+              <Button
+                type="submit"
+                className={`flex-1 ${!canContinue ? "opacity-50 cursor-not-allowed" : ""}`}
+                disabled={!canContinue}
+              >
                 Continuer
               </Button>
             ) : (

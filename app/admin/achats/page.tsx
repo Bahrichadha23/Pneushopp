@@ -878,7 +878,7 @@ export default function AchatsPage() {
                       ))}
                     </SelectContent>
                   </Select>
-                  {/* <Select value={selectedYear} onValueChange={setSelectedYear}>
+                  <Select value={selectedYear} onValueChange={setSelectedYear}>
                     <SelectTrigger className="w-28">
                       <SelectValue placeholder="Année" />
                     </SelectTrigger>
@@ -889,7 +889,7 @@ export default function AchatsPage() {
                         </SelectItem>
                       ))}
                     </SelectContent>
-                  </Select> */}
+                  </Select>
                 </div>
               </div>
             </div>

@@ -179,56 +179,46 @@ export default function DeliveriesPage() {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>ID Livraison</TableHead>
-                <TableHead>Commande</TableHead>
+                <TableHead>N° Commande</TableHead>
                 <TableHead>Client</TableHead>
                 <TableHead>Adresse</TableHead>
-                <TableHead>Transporteur</TableHead>
                 <TableHead>Statut</TableHead>
+                <TableHead>Actions</TableHead>
                 <TableHead>Expédition</TableHead>
                 <TableHead>Livraison prévue</TableHead>
-                <TableHead>Colis</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {filteredDeliveries.map((delivery) => (
                 <TableRow key={delivery.id}>
-                  <TableCell className="font-medium">{delivery.id}</TableCell>
-                  <TableCell>{delivery.commande}</TableCell>
+                  <TableCell className="font-medium">{delivery.commande}</TableCell>
                   <TableCell>{delivery.client}</TableCell>
                   <TableCell className="max-w-xs truncate">
                     {delivery.adresse}
                   </TableCell>
-                  <TableCell>{delivery.transporteur}</TableCell>
+                  <TableCell>{getStatusBadge(delivery.statut)}</TableCell>
                   <TableCell>
-                    {getStatusBadge(delivery.statut)}
-                    <div className="flex gap-1 mt-1">
+                    <div className="flex gap-1 flex-wrap">
                       {delivery.statut !== "prepare" && (
                         <button
-                          className="px-2 py-1 bg-yellow-200 rounded"
-                          onClick={() =>
-                            handleUpdateStatus(delivery.id, "prepare")
-                          }
+                          className="px-2 py-1 text-xs bg-yellow-200 hover:bg-yellow-300 rounded"
+                          onClick={() => handleUpdateStatus(delivery.id, "prepare")}
                         >
-                          Préparer
+                          En préparation
                         </button>
                       )}
                       {delivery.statut !== "en_route" && (
                         <button
-                          className="px-2 py-1 bg-blue-200 rounded"
-                          onClick={() =>
-                            handleUpdateStatus(delivery.id, "en_route")
-                          }
+                          className="px-2 py-1 text-xs bg-blue-200 hover:bg-blue-300 rounded"
+                          onClick={() => handleUpdateStatus(delivery.id, "en_route")}
                         >
                           En route
                         </button>
                       )}
                       {delivery.statut !== "livre" && (
                         <button
-                          className="px-2 py-1 bg-green-200 rounded"
-                          onClick={() =>
-                            handleUpdateStatus(delivery.id, "livre")
-                          }
+                          className="px-2 py-1 text-xs bg-green-200 hover:bg-green-300 rounded"
+                          onClick={() => handleUpdateStatus(delivery.id, "livre")}
                         >
                           Livré
                         </button>
@@ -245,7 +235,6 @@ export default function DeliveriesPage() {
                       ? new Date(delivery.dateLivraison).toLocaleDateString()
                       : "Non définie"}
                   </TableCell>
-                  <TableCell>{delivery.colis} colis</TableCell>
                 </TableRow>
               ))}
             </TableBody>

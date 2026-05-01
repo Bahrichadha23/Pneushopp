@@ -70,7 +70,7 @@ export async function handleDownloadInvoice(order: any) {
   const addHeader = () => {
     pdf.setFont("helvetica", "bold");
     pdf.setFontSize(14);
-    pdf.text(`FACTURE ${order.orderNumber || ""}`, margin, y);
+    pdf.text(`FACTURE FPS${order.orderNumber?.replace(/^CPS/, '') || ""}`, margin, y);
     pdf.setFontSize(10);
     pdf.text(
       ` ${new Date(order.createdAt).toLocaleDateString("fr-FR")}`,

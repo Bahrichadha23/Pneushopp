@@ -16,6 +16,17 @@ export default function OrdersPage() {
   const { user } = useAuth();
   const router = useRouter();
 
+  const loadOrders = async () => {
+    try {
+      const data = await fetchOrders();
+      setOrders(data as unknown as Order[]);
+    } catch (error) {
+      console.error("Failed to fetch orders:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   // Only allow admin or purchasing
   useEffect(() => {
     if (user && !["admin", "sales"].includes(user.role)) {
@@ -24,17 +35,6 @@ export default function OrdersPage() {
   }, [user]);
 
   useEffect(() => {
-    const loadOrders = async () => {
-      try {
-        const data = await fetchOrders(); // now returns [] of mapped orders
-        setOrders(data as unknown as Order[]); // cast if type mismatch
-      } catch (error) {
-        console.error("Failed to fetch orders:", error);
-      } finally {
-        setLoading(false); // ✅ must stop loading
-      }
-    };
-
     loadOrders();
   }, []);
 
@@ -68,11 +68,7 @@ export default function OrdersPage() {
         },
         body: JSON.stringify({
           order: parseInt(orderId),
-          fournisseur: "Fournisseur par défaut",
           date_commande: new Date().toISOString().split("T")[0],
-          date_livraison_prevue: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
-            .toISOString()
-            .split("T")[0],
           total_ht: 0,
           total_ttc: 0,
           statut: "en_attente",
@@ -97,23 +93,29 @@ export default function OrdersPage() {
   ) => {
     if (!API_URL) return;
 
+    const token = localStorage.getItem("access_token");
+    if (!token) {
+      alert("Erreur: Vous n'êtes pas connecté.");
+      return;
+    }
+
     try {
-      await fetch(`${API_URL}/orders/${orderId}/`, {
+      const response = await fetch(`${API_URL}/orders/${orderId}/`, {
         method: "PATCH",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${localStorage.getItem("access_token")}`, // ✅ Add this line
+          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({ status }),
       });
 
-      setOrders((prev) =>
-        prev.map((order) =>
-          order.id === orderId
-            ? { ...order, status, updatedAt: new Date() }
-            : order
-        )
-      );
+      if (!response.ok) {
+        alert("Erreur: " + response.status);
+        return;
+      }
+
+      // Reload orders from API after successful update
+      await loadOrders();
     } catch (error) {
       console.error("Failed to update status:", error);
     }
