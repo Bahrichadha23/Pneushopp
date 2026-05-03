@@ -353,7 +353,11 @@ export default function AchatsPage() {
       );
 
       const { data, isJson } = await safeResponseJson(response);
-      if (response.ok && isJson) setSearchResults(data?.results || []);
+      if (response.ok && isJson) {
+        const raw: Product[] = data?.results || [];
+        // FIFO: sort by fabrication_date ascending (oldest DOT first)
+        setSearchResults(sortByFifo(raw));
+      }
     } catch (error) {
       console.error("Error searching products:", error);
     } finally {
@@ -361,34 +365,67 @@ export default function AchatsPage() {
     }
   };
 
+  /**
+   * Compute ISO week number (1-52/53) from a date string.
+   * Format returned: "WW.YY" e.g. "05.22" for week 5 of 2022.
+   */
   const computeDot = (fabrication_date: string | undefined): string => {
     if (!fabrication_date) return '';
     const date = new Date(fabrication_date);
-    const week = Math.ceil((date.getDate() + 6 - date.getDay()) / 7);
-    const year = date.getFullYear();
+    if (isNaN(date.getTime())) return '';
+    // ISO 8601 week: Thursday of the week determines the year
+    const tmp = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
+    // Set to nearest Thursday: current date + 4 - current day number (Mon=1..Sun=7)
+    tmp.setUTCDate(tmp.getUTCDate() + 4 - (tmp.getUTCDay() || 7));
+    const yearStart = new Date(Date.UTC(tmp.getUTCFullYear(), 0, 1));
+    const week = Math.ceil(((tmp.getTime() - yearStart.getTime()) / 86400000 + 1) / 7);
+    const year = tmp.getUTCFullYear();
     return `${String(week).padStart(2, '0')}.${String(year).slice(-2)}`;
+  };
+
+  /**
+   * Sort products by fabrication_date ascending (oldest first = FIFO).
+   * Products without a fabrication_date go last.
+   */
+  const sortByFifo = (products: Product[]): Product[] => {
+    return [...products].sort((a, b) => {
+      const da = a.fabrication_date ? new Date(a.fabrication_date).getTime() : Infinity;
+      const db = b.fabrication_date ? new Date(b.fabrication_date).getTime() : Infinity;
+      return da - db;
+    });
   };
 
   const addItem = (product: Product) => {
     const price = Number(product.price) || 0;
-    const dot = computeDot(product.fabrication_date);
 
     // Collect all unique DOTs from search results that share the same reference/name (same model, different batches)
-    const seen = new Set<string>();
-    const availableDots: string[] = [];
+    // Map DOT → fabrication_date for proper FIFO sorting
+    const dotMap = new Map<string, number>(); // dot string → timestamp for sorting
     for (const p of searchResults) {
       const sameName = (p.name || p.designation) === (product.name || product.designation);
       const sameRef = p.reference && product.reference && p.reference === product.reference;
       if (sameName || sameRef) {
         const d = computeDot(p.fabrication_date);
-        if (d && !seen.has(d)) {
-          seen.add(d);
-          availableDots.push(d);
+        if (d && !dotMap.has(d)) {
+          const ts = p.fabrication_date ? new Date(p.fabrication_date).getTime() : Infinity;
+          dotMap.set(d, ts);
         }
       }
     }
-    // Ensure current product's own DOT is always included
-    if (dot && !seen.has(dot)) availableDots.unshift(dot);
+    // Always include current product's DOT
+    const ownDot = computeDot(product.fabrication_date);
+    if (ownDot && !dotMap.has(ownDot)) {
+      const ts = product.fabrication_date ? new Date(product.fabrication_date).getTime() : Infinity;
+      dotMap.set(ownDot, ts);
+    }
+
+    // Sort available DOTs by fabrication date ascending (FIFO: oldest first)
+    const availableDots: string[] = [...dotMap.entries()]
+      .sort((a, b) => a[1] - b[1])
+      .map(([dot]) => dot);
+
+    // Auto-select the oldest (first) DOT for FIFO compliance
+    const selectedItemDot = availableDots.length > 0 ? availableDots[0] : ownDot;
 
     const newItem: PurchaseItem = {
       id: Date.now().toString(),
@@ -399,7 +436,7 @@ export default function AchatsPage() {
       discount: 0,
       quantity: 1,
       totalHT: price,
-      dot,
+      dot: selectedItemDot,
       availableDots,
       emplacement: product.emplacement || product.location || '',
     };
@@ -643,10 +680,17 @@ export default function AchatsPage() {
                                 <div>
                                   <span className="font-bold">CATÉGORIE :</span> {getCategoryName(product.category)}
                                 </div>
-                                {product.location && (
+                                {/* DOT — date de fabrication (FIFO: affiché pour toujours proposer le plus ancien en premier) */}
+                                <div>
+                                  <span className="font-bold text-orange-600">DOT :</span>{" "}
+                                  <span className={`font-mono font-bold ${computeDot(product.fabrication_date) ? "text-orange-600" : "text-gray-400"}`}>
+                                    {computeDot(product.fabrication_date) || "—"}
+                                  </span>
+                                </div>
+                                {(product.emplacement || product.location) && (
                                   <div>
                                     <span className="font-bold">LIEU :</span>{" "}
-                                    <span className="text-yellow-600">{product.location}</span>
+                                    <span className="text-yellow-600">{product.emplacement || product.location}</span>
                                   </div>
                                 )}
                                 {product.barcode && (

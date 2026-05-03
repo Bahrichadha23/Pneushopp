@@ -84,16 +84,54 @@ class PurchaseOrderSerializer(serializers.ModelSerializer):
         return value
 
     def create(self, validated_data):
-        articles_data = validated_data.pop('articles', [])
-        purchase_order = PurchaseOrder.objects.create(**validated_data)
+        from products.models import Product
+        from django.db import transaction
 
-        for article_data in articles_data:
-            PurchaseOrderItem.objects.create(
-                purchase_order=purchase_order,
-                nom=article_data.get('nom'),
-                quantite=article_data.get('quantite'),
-                prix_unitaire=article_data.get('prix_unitaire'),
-            )
+        articles_data = validated_data.pop('articles', [])
+
+        with transaction.atomic():
+            purchase_order = PurchaseOrder.objects.create(**validated_data)
+
+            for article_data in articles_data:
+                PurchaseOrderItem.objects.create(
+                    purchase_order=purchase_order,
+                    nom=article_data.get('nom'),
+                    quantite=article_data.get('quantite'),
+                    prix_unitaire=article_data.get('prix_unitaire'),
+                )
+
+                # ── Mise à jour du stock produit ──────────────────────────
+                product_id = article_data.get('id')
+                quantite = int(article_data.get('quantite') or 0)
+                if product_id and quantite > 0:
+                    try:
+                        product = Product.objects.select_for_update().get(pk=product_id)
+                        product.stock = (product.stock or 0) + quantite
+
+                        # Mettre à jour l'emplacement si fourni
+                        emplacement = article_data.get('emplacement', '')
+                        if emplacement:
+                            product.emplacement = emplacement
+
+                        # Mettre à jour la date de fabrication (DOT) si fournie
+                        dot = article_data.get('dot', '')
+                        if dot and '.' in dot:
+                            try:
+                                from datetime import date as _date
+                                week_str, year_str = dot.strip().split('.')
+                                week = int(week_str)
+                                year = int('20' + year_str) if len(year_str) == 2 else int(year_str)
+                                if 1 <= week <= 52:
+                                    jan1 = _date(year, 1, 1)
+                                    fab_date = _date.fromordinal(jan1.toordinal() + (week - 1) * 7)
+                                    product.fabrication_date = fab_date
+                            except (ValueError, AttributeError):
+                                pass
+
+                        product.save()
+                        print(f'[ACHAT] Stock +{quantite} → produit #{product_id} "{product.name}" nouveau stock: {product.stock}')
+                    except Product.DoesNotExist:
+                        print(f'[ACHAT] Produit #{product_id} introuvable — stock non mis à jour')
 
         return purchase_order
 

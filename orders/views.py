@@ -75,7 +75,7 @@ class OrderListCreateView(generics.ListCreateAPIView):
         from django.utils import timezone
         from products.models import Product
         from django.db import transaction
-        from accounts.email_utils import send_order_confirmation_email
+        from accounts.email_utils import send_order_confirmation_email, send_new_order_notification_email
 
         with transaction.atomic():
             order = serializer.save(user=self.request.user)
@@ -107,6 +107,11 @@ class OrderListCreateView(generics.ListCreateAPIView):
             send_order_confirmation_email(order)
         except Exception as e:
             print(f'[ORDER CREATE] Failed to send confirmation email: {str(e)}')
+
+        try:
+            send_new_order_notification_email(order)
+        except Exception as e:
+            print(f'[ORDER CREATE] Failed to send sales notification email: {str(e)}')
 
 
 class PurchaseOrderViewSet(viewsets.ModelViewSet):
