@@ -1,5 +1,5 @@
 import apiClient from "@/lib/api-client";
-import type { Livraison } from "@/types/livraison";
+import type { Livraison, DeliveryUpdate } from "@/types/livraison";
 
 export const fetchDeliveries = async (): Promise<Livraison[]> => {
   const { data } = await apiClient.get("/orders/deliveries/");
@@ -11,5 +11,13 @@ export const updateDeliveryStatus = async (
   statut: "prepare" | "en_route" | "livre"
 ): Promise<Livraison> => {
   const { data } = await apiClient.patch(`/orders/deliveries/${id}/`, { statut });
+  return data;
+};
+
+export const updateDelivery = async (
+  id: string,
+  payload: DeliveryUpdate
+): Promise<Livraison> => {
+  const { data } = await apiClient.patch(`/orders/deliveries/${id}/`, payload);
   return data;
 };

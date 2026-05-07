@@ -29,6 +29,13 @@ type ConfirmationDialog = {
   orderId: number | null;
 };
 
+const formatDate = (dateStr: string | null | undefined): string => {
+  if (!dateStr) return "—";
+  const d = new Date(dateStr);
+  if (isNaN(d.getTime())) return "—";
+  return d.toLocaleDateString("fr-FR");
+};
+
 // Download Purchase Order PDF
 const handleDownloadPurchaseOrder = async (bon: BonCommande) => {
   const pdf = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
@@ -85,8 +92,8 @@ const handleDownloadPurchaseOrder = async (bon: BonCommande) => {
   // Create horizontal table for order information
   const infoHeaders = ["Date commande", "Livraison prévue", "Priorité", "Statut"];
   const infoValues = [
-    new Date(bon.dateCommande).toLocaleDateString("fr-FR"),
-    new Date(bon.dateLivraisonPrevue).toLocaleDateString("fr-FR"),
+    formatDate(bon.dateCommande),
+    formatDate(bon.dateLivraisonPrevue),
     bon.priorite === "urgent" ? "URGENT" : "Normale",
     bon.statut === "en_attente" ? "En attente" : bon.statut === "confirmé" ? "Confirmé" : "Livré"
   ];
@@ -520,11 +527,11 @@ export default function BonsCommandePage() {
               {/* <div><strong>Fournisseur:</strong> {bon.fournisseur}</div> */}
               <div>
                 <strong>Date commande:</strong>{" "}
-                {new Date(bon.dateCommande).toLocaleDateString()}
+                {formatDate(bon.dateCommande)}
               </div>
               <div>
                 <strong>Livraison prévue:</strong>{" "}
-                {new Date(bon.dateLivraisonPrevue).toLocaleDateString()}
+                {formatDate(bon.dateLivraisonPrevue)}
               </div>
               <div>
                 <strong>Total TTC:</strong>{" "}
@@ -600,10 +607,10 @@ export default function BonsCommandePage() {
                     <TableCell className="font-medium">{bon.id}</TableCell>
                     {/* <TableCell>{bon.fournisseur}</TableCell> */}
                     <TableCell>
-                      {new Date(bon.dateCommande).toLocaleDateString()}
+                      {formatDate(bon.dateCommande)}
                     </TableCell>
                     <TableCell>
-                      {new Date(bon.dateLivraisonPrevue).toLocaleDateString()}
+                      {formatDate(bon.dateLivraisonPrevue)}
                     </TableCell>
                     <TableCell className="font-medium">
                       {(bon.totalTTC ?? 0).toLocaleString()} DT
@@ -666,13 +673,11 @@ export default function BonsCommandePage() {
               </div> */}
               <div>
                 <strong>Date commande:</strong>{" "}
-                {new Date(selectedBon!.dateCommande).toLocaleDateString()}
+                {formatDate(selectedBon!.dateCommande)}
               </div>
               <div>
                 <strong>Livraison prévue:</strong>{" "}
-                {new Date(
-                  selectedBon!.dateLivraisonPrevue
-                ).toLocaleDateString()}
+                {formatDate(selectedBon!.dateLivraisonPrevue)}
               </div>
               <div>
                 <strong>Total TTC:</strong>{" "}
@@ -729,7 +734,7 @@ export default function BonsCommandePage() {
                 </Button>
                 <Button
                   onClick={handleConfirmDialogAction}
-                  className="bg-green-500 hover:bg-green-600 text-white"
+                  className="bg-yellow-400 hover:bg-yellow-500 text-black font-semibold"
                 >
                   Oui
                 </Button>

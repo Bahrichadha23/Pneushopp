@@ -10,11 +10,13 @@ export const fetchOrders = async (): Promise<AdminOrder[]> => {
     id: o.id.toString(),
     orderNumber: o.order_number,
     customerId: o.user?.id?.toString() || "",
-    customerName: `${o.shipping_address.first_name} ${o.shipping_address.last_name}`,
+    customerName: o.shipping_address
+      ? `${o.shipping_address.first_name || ""} ${o.shipping_address.last_name || ""}`.trim() || o.user?.email || "—"
+      : o.user?.email || "—",
     customerEmail: o.user?.email || "",
-    customerPhone: o.shipping_address.phone,
+    customerPhone: o.shipping_address?.phone || "",
 
-    items: o.items.map((item: any) => ({
+    items: (o.items || []).map((item: any) => ({
       productId: item.product_id,
       productName: item.product_name,
       quantity: item.quantity,
@@ -30,11 +32,11 @@ export const fetchOrders = async (): Promise<AdminOrder[]> => {
     paymentMethod: o.payment_method,
 
     shippingAddress: {
-      street: o.shipping_address.address,
-      city: o.shipping_address.city,
-      postalCode: o.shipping_address.postal_code,
+      street: o.shipping_address?.address || "",
+      city: o.shipping_address?.city || "",
+      postalCode: o.shipping_address?.postal_code || "",
       region: "",
-      country: o.shipping_address.country,
+      country: o.shipping_address?.country || "",
     },
     billingAddress: {
       street: o.billing_address?.address || "",

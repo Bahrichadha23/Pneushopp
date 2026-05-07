@@ -79,13 +79,17 @@ export const API_ENDPOINTS = {
   // Products
   PRODUCTS: '/products/',
   PRODUCT_DETAIL: (id: string) => `/products/${id}/`,
-  PRODUCT_SEARCH: '/products/search/',
+  PRODUCT_SEARCH: '/products/search-suggestions/',
 
   // Categories
-  CATEGORIES: '/categories/',
+  CATEGORIES: '/products/categories/',
 
   // Cart
   CART: '/cart/',
+  CART_ADD: '/cart/add/',
+  CART_UPDATE: (id: string) => `/cart/update/${id}/`,
+  CART_REMOVE: (id: string) => `/cart/remove/${id}/`,
+  CART_CLEAR: '/cart/clear/',
   CART_ITEM: (id: string) => `/cart/items/${id}/`,
 
   // Orders
@@ -94,7 +98,7 @@ export const API_ENDPOINTS = {
 
   // Favorites
   FAVORITES: '/favorites/',
-  FAVORITE_TOGGLE: (productId: string) => `/favorites/${productId}/`,
+  FAVORITE_TOGGLE: (productId: string) => `/favorites/toggle/${productId}/`,
 } as const
 
 export default apiClient

@@ -143,12 +143,14 @@ export default function RapportsPage() {
     );
   }
 
-  const { stats_ventes, ventes_par_mois, top_produits, top_clients } =
-    reportsData;
+  const stats_ventes   = reportsData.stats_ventes   ?? {} as StatsVentes;
+  const ventes_par_mois = reportsData.ventes_par_mois ?? [];
+  const top_produits    = reportsData.top_produits    ?? [];
+  const top_clients     = reportsData.top_clients     ?? [];
 
   // Check if we have any real data
   const hasData =
-    stats_ventes.commandes_mensuel > 0 ||
+    (stats_ventes.commandes_mensuel ?? 0) > 0 ||
     top_produits.length > 0 ||
     top_clients.length > 0;
 
@@ -171,7 +173,7 @@ export default function RapportsPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-green-600">
-              {stats_ventes.ventes_total.toLocaleString()} DT
+              {(stats_ventes.ventes_total ?? 0).toLocaleString()} DT
             </div>
             <p className="text-xs text-green-600 mt-1">Toutes périodes confondues</p>
           </CardContent>
@@ -184,7 +186,7 @@ export default function RapportsPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-blue-600">
-              {stats_ventes.commandes_total}
+              {stats_ventes.commandes_total ?? 0}
             </div>
             <p className="text-xs text-blue-600 mt-1">Toutes périodes confondues</p>
           </CardContent>
@@ -199,7 +201,7 @@ export default function RapportsPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-purple-600">
-              {stats_ventes.clients_actifs}
+              {stats_ventes.clients_actifs ?? 0}
             </div>
             <p className="text-xs text-purple-600 mt-1">
               Données en temps réel
@@ -214,7 +216,7 @@ export default function RapportsPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-orange-600">
-              {stats_ventes.panier_moyen.toLocaleString()} DT
+              {(stats_ventes.panier_moyen ?? 0).toLocaleString()} DT
             </div>
             <p className="text-xs text-orange-600 mt-1">
               Toutes périodes confondues

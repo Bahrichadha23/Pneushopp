@@ -1,116 +1,158 @@
-export const dynamicParams = true; // allow unknown params
-export const dynamic = "force-dynamic";
+"use client";
 
-// ✅ Added only this small function at the top (no other changes)
-// export async function generateStaticParams() {
-//   // This lets Next.js build at least one dummy page during static export
-//   // You can add more sample IDs if needed
-//   return [{ orderId: "sample-order" }];
-// }
-// Page de confirmation de commande avec détails et suivi
-import { notFound } from "next/navigation";
+// Page de confirmation de commande — Client Component (required for localStorage/token access)
+import { useEffect, useState } from "react";
+import { useParams } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
-import { CheckCircle, Package, Truck, CreditCard } from "lucide-react";
+import { CheckCircle, Package, Truck, CreditCard, Loader2 } from "lucide-react";
 import { API_URL } from "@/lib/config";
 
-async function getOrder(orderId: string) {
+interface OrderDetail {
+  id: string | number;
+  orderNumber?: string;
+  status: string;
+  createdAt: Date;
+  items: { product: { name: string; price: number }; quantity: number }[];
+  shippingAddress: {
+    firstName: string;
+    lastName: string;
+    address: string;
+    city: string;
+    postalCode: string;
+  };
+  total: number;
+  trackingNumber?: string;
+}
+
+async function fetchOrderFromBackend(
+  orderId: string,
+  token: string
+): Promise<OrderDetail | null> {
   try {
-    // First try to get from backend API
-    const token =
-      typeof window !== "undefined"
-        ? localStorage.getItem("access_token")
-        : null;
-
-    if (token && !orderId.startsWith("ORD-")) {
-      // This looks like a backend order ID (numeric)
-      const res = await fetch(`${API_URL}/orders/${orderId}/`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
+    const res = await fetch(`${API_URL}/orders/${orderId}/`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    if (!res.ok) return null;
+    const o = await res.json();
+    return {
+      id: o.id,
+      orderNumber: o.order_number,
+      status: o.status,
+      createdAt: new Date(o.created_at),
+      items: (o.items || []).map((item: any) => ({
+        product: {
+          name: item.product_name || item.product?.name || "Produit",
+          price: parseFloat(item.unit_price || item.price || 0),
         },
-      });
-
-      if (res.ok) {
-        const o = await res.json();
-        console.log("✅ Found backend order:", o);
-
-        return {
-          id: o.id,
-          status: o.status,
-          createdAt: new Date(o.created_at),
-          items: o.items.map((item: any) => ({
-            product: {
-              name: item.product_name || item.product?.name,
-              price: parseFloat(item.unit_price || item.price),
-            },
-            quantity: item.quantity,
-          })),
-          shippingAddress: {
-            firstName: o.shipping_address.first_name,
-            lastName: o.shipping_address.last_name,
-            address: o.shipping_address.address,
-            city: o.shipping_address.city,
-            postalCode: o.shipping_address.postal_code,
-          },
-          total: parseFloat(o.total_amount),
-          trackingNumber: o.tracking_number || `TRK-${o.id}`,
-        };
-      }
-    }
-
-    // Fallback to localStorage for local orders
-    console.log("⚠️ Checking localStorage for order:", orderId);
-    if (typeof window !== "undefined") {
-      const savedOrders = localStorage.getItem("pneushop-orders");
-      if (savedOrders) {
-        const orders = JSON.parse(savedOrders);
-        const localOrder = orders.find((order: any) => order.id === orderId);
-
-        if (localOrder) {
-          console.log("✅ Found localStorage order:", localOrder);
-          return {
-            id: localOrder.id,
-            status: localOrder.status,
-            createdAt: new Date(localOrder.createdAt),
-            items: localOrder.items,
-            shippingAddress: localOrder.shippingAddress,
-            total: localOrder.total,
-            trackingNumber: `TRK-LOCAL-${localOrder.id.slice(-6)}`,
-          };
-        }
-      }
-    }
-
-    return null;
-  } catch (error) {
+        quantity: item.quantity,
+      })),
+      shippingAddress: {
+        firstName: o.shipping_address?.first_name || "",
+        lastName: o.shipping_address?.last_name || "",
+        address: o.shipping_address?.address || "",
+        city: o.shipping_address?.city || "",
+        postalCode: o.shipping_address?.postal_code || "",
+      },
+      total: parseFloat(o.total_amount),
+      trackingNumber: o.tracking_number || undefined,
+    };
+  } catch {
     return null;
   }
 }
 
-export default async function OrderConfirmationPage({
-  params,
-}: {
-  params: { orderId: string };
-}) {
-  const order = await getOrder(params.orderId);
+function getOrderFromLocalStorage(orderId: string): OrderDetail | null {
+  try {
+    const savedOrders = localStorage.getItem("pneushop-orders");
+    if (!savedOrders) return null;
+    const orders = JSON.parse(savedOrders);
+    const localOrder = orders.find((o: any) => o.id === orderId);
+    if (!localOrder) return null;
+    return {
+      id: localOrder.id,
+      status: localOrder.status,
+      createdAt: new Date(localOrder.createdAt),
+      items: localOrder.items || [],
+      shippingAddress: {
+        firstName: localOrder.shippingAddress?.first_name || localOrder.shippingAddress?.firstName || "",
+        lastName: localOrder.shippingAddress?.last_name || localOrder.shippingAddress?.lastName || "",
+        address: localOrder.shippingAddress?.address || "",
+        city: localOrder.shippingAddress?.city || "",
+        postalCode: localOrder.shippingAddress?.postal_code || localOrder.shippingAddress?.postalCode || "",
+      },
+      total: localOrder.total,
+      trackingNumber: `TRK-LOCAL-${localOrder.id.slice(-6)}`,
+    };
+  } catch {
+    return null;
+  }
+}
 
-  // if (!order) {
-  //   notFound();
-  // }
+export default function OrderConfirmationPage() {
+  const params = useParams();
+  const orderId = params.orderId as string;
+
+  const [order, setOrder] = useState<OrderDetail | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (!orderId) return;
+
+    async function loadOrder() {
+      setLoading(true);
+      try {
+        const token = localStorage.getItem("access_token");
+
+        if (token) {
+          const backendOrder = await fetchOrderFromBackend(orderId, token);
+          if (backendOrder) {
+            setOrder(backendOrder);
+            setLoading(false);
+            return;
+          }
+        }
+
+        // Fallback: try localStorage (for offline/legacy orders)
+        const localOrder = getOrderFromLocalStorage(orderId);
+        setOrder(localOrder);
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    loadOrder();
+  }, [orderId]);
+
+  if (loading) {
+    return (
+      <div className="container mx-auto px-4 py-16 text-center">
+        <Loader2 className="h-10 w-10 animate-spin text-yellow-500 mx-auto mb-4" />
+        <p className="text-gray-500">Chargement de votre commande…</p>
+      </div>
+    );
+  }
+
   if (!order) {
     return (
       <div className="container mx-auto px-4 py-8 text-center">
+        <CheckCircle className="h-16 w-16 text-yellow-500 mx-auto mb-4" />
         <h1 className="text-3xl font-bold text-yellow-600 mb-4">
           Commande confirmée !
         </h1>
-        <p className="text-gray-600">
-          Votre commande a été créée avec succès, mais les détails ne sont pas
-          disponibles pour le moment.
+        <p className="text-gray-600 mb-2">
+          Votre commande <strong>#{orderId}</strong> a été créée avec succès.
         </p>
-        <div className="mt-6">
+        <p className="text-gray-500 text-sm mb-6">
+          Les détails seront disponibles dans votre espace client.
+        </p>
+        <div className="flex gap-4 justify-center">
           <Button asChild>
             <Link href="/boutique">Continuer vos achats</Link>
+          </Button>
+          <Button variant="outline" asChild>
+            <Link href="/compte/commandes">Mes commandes</Link>
           </Button>
         </div>
       </div>
@@ -141,21 +183,23 @@ export default async function OrderConfirmationPage({
           <CardContent>
             <div className="space-y-4">
               <div className="flex justify-between">
-                <span className="font-semibold">Numéro de commande:</span>
-                <span>{order.id}</span>
+                <span className="font-semibold">Numéro de commande :</span>
+                <span className="font-mono">{order.orderNumber || `#${order.id}`}</span>
               </div>
               <div className="flex justify-between">
-                <span className="font-semibold">Date:</span>
+                <span className="font-semibold">Date :</span>
                 <span>{order.createdAt.toLocaleDateString("fr-FR")}</span>
               </div>
               <div className="flex justify-between">
-                <span className="font-semibold">Statut:</span>
+                <span className="font-semibold">Statut :</span>
                 <span className="text-yellow-600 font-semibold">Confirmée</span>
               </div>
-              <div className="flex justify-between">
-                <span className="font-semibold">Numéro de suivi:</span>
-                <span className="font-mono">{order.trackingNumber}</span>
-              </div>
+              {order.trackingNumber && (
+                <div className="flex justify-between">
+                  <span className="font-semibold">Numéro de suivi :</span>
+                  <span className="font-mono">{order.trackingNumber}</span>
+                </div>
+              )}
             </div>
           </CardContent>
         </Card>
@@ -168,7 +212,7 @@ export default async function OrderConfirmationPage({
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-sm">
+            <div className="text-sm space-y-1">
               <p className="font-semibold">
                 {order.shippingAddress.firstName}{" "}
                 {order.shippingAddress.lastName}
@@ -190,36 +234,27 @@ export default async function OrderConfirmationPage({
           </CardHeader>
           <CardContent>
             <div className="space-y-3">
-              {order.items.map(
-                (
-                  item: {
-                    product: { name: string; price: number };
-                    quantity: number;
-                  },
-                  index: number
-                ) => (
-                  <div key={index} className="flex justify-between">
-                    <span>
-                      {item.product.name} x {item.quantity}
-                    </span>
-                    <span>
-                      {(item.product.price * item.quantity).toFixed(2)} DT
-                    </span>
-                  </div>
-                )
-              )}
-
+              {order.items.map((item, index) => (
+                <div key={index} className="flex justify-between text-sm">
+                  <span>
+                    {item.product.name} × {item.quantity}
+                  </span>
+                  <span>
+                    {(item.product.price * item.quantity).toFixed(3)} DT
+                  </span>
+                </div>
+              ))}
               <div className="border-t pt-3">
                 <div className="flex justify-between font-bold text-lg">
-                  <span>Total:</span>
-                  <span>{order.total.toFixed(2)} DT</span>
+                  <span>Total :</span>
+                  <span>{order.total.toFixed(3)} DT</span>
                 </div>
               </div>
             </div>
           </CardContent>
         </Card>
 
-        <div className="text-center space-y-4">
+        <div className="text-center">
           <div className="flex gap-4 justify-center">
             <Button asChild>
               <Link href="/boutique">Continuer vos achats</Link>

@@ -16,6 +16,7 @@ export default function UserProfile() {
 
   const [orders, setOrders] = useState<any[]>([]);
   const [loadingOrders, setLoadingOrders] = useState(true);
+  const [expandedOrder, setExpandedOrder] = useState<number | null>(null);
 
   const [isEditing, setIsEditing] = useState(false);
   
@@ -145,12 +146,20 @@ export default function UserProfile() {
             Authorization: `Bearer ${localStorage.getItem("access_token")}`,
           },
         });
+        if (!res.ok) {
+          console.error("Orders fetch failed:", res.status);
+          setOrders([]);
+          return;
+        }
         const data = await res.json();
-        setOrders(data.results || []);
+        // Handle both paginated ({results: [...]}) and raw array responses
+        setOrders(Array.isArray(data) ? data : (data.results || []));
       } catch (err) {
+        console.error("Orders fetch error:", err);
         setOrders([]);
+      } finally {
+        setLoadingOrders(false);
       }
-      setLoadingOrders(false);
     };
     fetchOrders();
   }, []);
@@ -416,74 +425,98 @@ export default function UserProfile() {
                     <th className="p-2 border">Date</th>
                     <th className="p-2 border">Montant</th>
                     <th className="p-2 border">Statut</th>
+                    <th className="p-2 border text-center">Détails</th>
                     <th className="p-2 border text-center">Actions</th>
                   </tr>
                 </thead>
                 <tbody>
                   {orders.map((order: any) => (
-                    <tr
-                      key={order.id}
-                      className="hover:bg-yellow-50 transition"
-                    >
-                      <td className="p-2 border font-semibold">
-                        {order.order_number}
-                      </td>
-                      <td className="p-2 border">
-                        {new Date(order.created_at).toLocaleDateString()}
-                      </td>
-                      <td className="p-2 border">{Number(order.total_amount).toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} DT</td>
-                      <td className="p-2 border">
-                        <span
-                          className={`px-2 py-1 rounded text-xs font-bold
-                    ${
-                      order.status === "pending"
-                        ? "bg-yellow-100 text-yellow-800"
-                        : order.status === "confirmed"
-                        ? "bg-blue-100 text-blue-800"
-                        : order.status === "processing"
-                        ? "bg-purple-100 text-purple-800"
-                        : order.status === "shipped"
-                        ? "bg-indigo-100 text-indigo-800"
-                        : order.status === "delivered"
-                        ? "bg-green-100 text-green-800"
-                        : order.status === "cancelled"
-                        ? "bg-red-100 text-red-800"
-                        : "bg-gray-100 text-gray-800"
-                    }`}
-                        >
-                          {order.status === 'pending' ? 'En attente' :
-                           order.status === 'confirmed' ? 'Confirmée' :
-                           order.status === 'processing' ? 'En cours' :
-                           order.status === 'shipped' ? 'Expédiée' :
-                           order.status === 'delivered' ? 'Livrée' :
-                           order.status === 'cancelled' ? 'Annulée' : order.status}
-                        </span>
-                      </td>
-                      <td className="p-2 border text-center">
-                        {order.status === 'pending' ? (
-                          <Button
-                            size="sm"
-                            onClick={() => handleCancelOrder(order.id, order.order_number)}
-                            className="bg-black text-white hover:bg-gray-800"
+                    <>
+                      <tr key={order.id} className="hover:bg-yellow-50 transition">
+                        <td className="p-2 border font-semibold">{order.order_number}</td>
+                        <td className="p-2 border">{new Date(order.created_at).toLocaleDateString()}</td>
+                        <td className="p-2 border font-semibold">{Number(order.total_amount).toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} DT</td>
+                        <td className="p-2 border">
+                          <span className={`px-2 py-1 rounded text-xs font-bold ${
+                            order.status === "pending" ? "bg-yellow-100 text-yellow-800" :
+                            order.status === "confirmed" ? "bg-blue-100 text-blue-800" :
+                            order.status === "processing" ? "bg-purple-100 text-purple-800" :
+                            order.status === "shipped" ? "bg-indigo-100 text-indigo-800" :
+                            order.status === "delivered" ? "bg-green-100 text-green-800" :
+                            order.status === "cancelled" ? "bg-red-100 text-red-800" :
+                            "bg-gray-100 text-gray-800"}`}>
+                            {order.status === 'pending' ? 'En attente' :
+                             order.status === 'confirmed' ? 'Confirmée' :
+                             order.status === 'processing' ? 'En cours' :
+                             order.status === 'shipped' ? 'Expédiée' :
+                             order.status === 'delivered' ? 'Livrée' :
+                             order.status === 'cancelled' ? 'Annulée' : order.status}
+                          </span>
+                        </td>
+                        <td className="p-2 border text-center">
+                          <button
+                            onClick={() => setExpandedOrder(expandedOrder === order.id ? null : order.id)}
+                            className="text-yellow-600 hover:text-yellow-800 text-xs font-semibold underline"
                           >
-                            Annuler
-                          </Button>
-                        ) : ['confirmed', 'processing', 'shipped'].includes(order.status) ? (
-                          <div className="relative group inline-block">
-                            <Button
-                              size="sm"
-                              disabled
-                              className="bg-gray-300 text-gray-500 cursor-not-allowed opacity-60"
-                            >
+                            {expandedOrder === order.id ? '▲ Masquer' : '▼ Voir articles'}
+                          </button>
+                        </td>
+                        <td className="p-2 border text-center">
+                          {order.status === 'pending' ? (
+                            <Button size="sm" onClick={() => handleCancelOrder(order.id, order.order_number)} className="bg-black text-white hover:bg-gray-800">
                               Annuler
                             </Button>
-                            <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 hidden group-hover:block z-10 bg-gray-800 text-white text-xs rounded px-2 py-1 whitespace-nowrap">
-                              Commande déjà confirmée
+                          ) : ['confirmed', 'processing', 'shipped'].includes(order.status) ? (
+                            <div className="relative group inline-block">
+                              <Button size="sm" disabled className="bg-gray-300 text-gray-500 cursor-not-allowed opacity-60">Annuler</Button>
+                              <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 hidden group-hover:block z-10 bg-gray-800 text-white text-xs rounded px-2 py-1 whitespace-nowrap">
+                                Commande déjà confirmée
+                              </div>
                             </div>
-                          </div>
-                        ) : null}
-                      </td>
-                    </tr>
+                          ) : null}
+                        </td>
+                      </tr>
+                      {/* Ligne expandable — articles de la commande */}
+                      {expandedOrder === order.id && (
+                        <tr key={`detail-${order.id}`}>
+                          <td colSpan={6} className="p-0 border bg-yellow-50">
+                            <div className="p-4">
+                              <p className="text-xs font-semibold text-gray-500 uppercase mb-2">Articles commandés</p>
+                              {order.items && order.items.length > 0 ? (
+                                <table className="w-full text-sm">
+                                  <thead>
+                                    <tr className="text-left text-gray-600 border-b">
+                                      <th className="pb-1 pr-4">Produit</th>
+                                      <th className="pb-1 pr-4 text-center">Qté</th>
+                                      <th className="pb-1 pr-4 text-right">Prix unitaire</th>
+                                      <th className="pb-1 text-right">Total</th>
+                                    </tr>
+                                  </thead>
+                                  <tbody>
+                                    {order.items.map((item: any, idx: number) => (
+                                      <tr key={idx} className="border-b last:border-0">
+                                        <td className="py-1 pr-4 font-medium">{item.product_name || item.name || `Produit #${item.product_id}`}</td>
+                                        <td className="py-1 pr-4 text-center">{item.quantity}</td>
+                                        <td className="py-1 pr-4 text-right">{Number(item.unit_price).toLocaleString('fr-FR', {minimumFractionDigits: 2})} DT</td>
+                                        <td className="py-1 text-right font-semibold">{(Number(item.unit_price) * item.quantity).toLocaleString('fr-FR', {minimumFractionDigits: 2})} DT</td>
+                                      </tr>
+                                    ))}
+                                  </tbody>
+                                  <tfoot>
+                                    <tr>
+                                      <td colSpan={3} className="pt-2 text-right font-bold">Total :</td>
+                                      <td className="pt-2 text-right font-bold text-yellow-700">{Number(order.total_amount).toLocaleString('fr-FR', {minimumFractionDigits: 2})} DT</td>
+                                    </tr>
+                                  </tfoot>
+                                </table>
+                              ) : (
+                                <p className="text-sm text-gray-400 italic">Aucun article trouvé.</p>
+                              )}
+                            </div>
+                          </td>
+                        </tr>
+                      )}
+                    </>
                   ))}
                 </tbody>
               </table>
@@ -537,27 +570,41 @@ export default function UserProfile() {
                        order.status === 'cancelled' ? 'Annulée' : order.status}
                     </span>
                   </div>
+                  {/* Bouton voir articles */}
+                  <div className="mt-2 pt-2 border-t">
+                    <button
+                      onClick={() => setExpandedOrder(expandedOrder === order.id ? null : order.id)}
+                      className="w-full text-yellow-600 hover:text-yellow-800 text-sm font-semibold py-1"
+                    >
+                      {expandedOrder === order.id ? '▲ Masquer les articles' : '▼ Voir les articles'}
+                    </button>
+                    {expandedOrder === order.id && order.items && order.items.length > 0 && (
+                      <div className="mt-2 space-y-2">
+                        {order.items.map((item: any, idx: number) => (
+                          <div key={idx} className="flex justify-between text-sm bg-yellow-50 rounded p-2">
+                            <span className="font-medium flex-1 pr-2">{item.product_name || `Produit #${item.product_id}`}</span>
+                            <span className="text-gray-500 mr-2">x{item.quantity}</span>
+                            <span className="font-semibold">{(Number(item.unit_price) * item.quantity).toLocaleString('fr-FR', {minimumFractionDigits: 2})} DT</span>
+                          </div>
+                        ))}
+                        <div className="flex justify-between font-bold text-sm pt-1 border-t">
+                          <span>Total</span>
+                          <span className="text-yellow-700">{Number(order.total_amount).toLocaleString('fr-FR', {minimumFractionDigits: 2})} DT</span>
+                        </div>
+                      </div>
+                    )}
+                  </div>
                   {order.status === 'pending' ? (
-                    <div className="mt-2 pt-2 border-t">
-                      <Button
-                        size="sm"
-                        onClick={() => handleCancelOrder(order.id, order.order_number)}
-                        className="w-full bg-black text-white hover:bg-gray-800"
-                      >
+                    <div className="mt-2">
+                      <Button size="sm" onClick={() => handleCancelOrder(order.id, order.order_number)} className="w-full bg-black text-white hover:bg-gray-800">
                         Annuler la commande
                       </Button>
                     </div>
                   ) : ['confirmed', 'processing', 'shipped'].includes(order.status) ? (
-                    <div className="mt-2 pt-2 border-t">
-                      <div title="Commande déjà confirmée">
-                        <Button
-                          size="sm"
-                          disabled
-                          className="w-full bg-gray-300 text-gray-500 cursor-not-allowed opacity-60"
-                        >
-                          Annuler la commande
-                        </Button>
-                      </div>
+                    <div className="mt-2">
+                      <Button size="sm" disabled className="w-full bg-gray-300 text-gray-500 cursor-not-allowed opacity-60">
+                        Annuler la commande
+                      </Button>
                       <p className="text-xs text-gray-500 mt-1 text-center">Commande déjà confirmée</p>
                     </div>
                   ) : null}

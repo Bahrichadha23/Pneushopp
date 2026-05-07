@@ -9,7 +9,9 @@ class PurchaseOrderItemSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = PurchaseOrderItem
-        fields = ('id', 'product', 'reference', 'designation', 'unit_price_ht', 'quantity', 'discount', 'total_ht', 'received_quantity', 'created_at')
+        fields = ('id', 'product', 'reference', 'designation', 'unit_price_ht',
+                  'quantity', 'discount', 'total_ht', 'dot', 'emplacement',
+                  'received_quantity', 'created_at')
         read_only_fields = ('id', 'total_ht', 'created_at')
 
 
@@ -107,6 +109,23 @@ class PurchaseOrderCreateSerializer(serializers.Serializer):
             discount = float(article.get('discount') or 0)
             total_item_ht = float(article.get('totalHT') or (unit_price * quantity * (1 - discount / 100)))
 
+            # ── DOT → fabrication_date conversion ──────────────────────────
+            dot_str = str(article.get('dot') or '').strip()
+            fab_date = None
+            if dot_str and '.' in dot_str:
+                try:
+                    from datetime import date as _date
+                    week_str, year_str = dot_str.split('.')
+                    week = int(week_str)
+                    year = int('20' + year_str) if len(year_str) == 2 else int(year_str)
+                    if 1 <= week <= 52:
+                        jan1 = _date(year, 1, 1)
+                        fab_date = _date.fromordinal(jan1.toordinal() + (week - 1) * 7)
+                except (ValueError, AttributeError):
+                    pass
+
+            emplacement_str = str(article.get('emplacement') or '').strip()
+
             item = PurchaseOrderItem.objects.create(
                 purchase_order=purchase_order,
                 product=product,
@@ -117,12 +136,19 @@ class PurchaseOrderCreateSerializer(serializers.Serializer):
                 discount=discount,
                 total_ht=total_item_ht,
                 received_quantity=quantity,
+                dot=dot_str or None,
+                emplacement=emplacement_str or None,
             )
             subtotal += total_item_ht
 
-            # Update stock: buying from supplier → stock INCREASES
+            # Update stock + fabrication_date + emplacement
             if product:
                 product.stock = product.stock + quantity
+                if fab_date:
+                    product.fabrication_date = fab_date
+                    print(f'📅 DOT updated: {product.name} → {dot_str} ({fab_date})')
+                if emplacement_str:
+                    product.emplacement = emplacement_str
                 product.save()
                 print(f'✅ Stock updated: {product.name} - Added {quantity} units. New stock: {product.stock}')
 

@@ -2,21 +2,36 @@ import uuid
 from rest_framework import generics, permissions, viewsets
 from rest_framework.decorators import api_view, permission_classes as perm_classes
 from rest_framework.response import Response
-from .models import Delivery, Order, PurchaseOrder, CRIBalance
-from .serializers import DeliverySerializer, OrderSerializer, PurchaseOrderSerializer
+from .models import Delivery, Order, PurchaseOrder, CRIBalance, Avoir
+from .serializers import DeliverySerializer, OrderSerializer, PurchaseOrderSerializer, AvoirSerializer
 from rest_framework.permissions import IsAuthenticated
-from accounts.permanent_permissions import IsAdmin, IsAdminOrSales
+from accounts.permanent_permissions import IsAdmin, IsAdminOrSales, IsAdminOrSalesOrOwner
 
 
 class OrderDetailView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Order.objects.all().prefetch_related('items').select_related('user')
     serializer_class = OrderSerializer
-    permission_classes = [IsAdminOrSales]
+    permission_classes = [IsAdminOrSalesOrOwner]
 
     def perform_update(self, serializer):
         from accounts.email_utils import send_order_status_update_email, send_delivery_invoice_email
-        old_status = self.get_object().status
+        from decimal import Decimal
+        old_order = self.get_object()
+        old_status = old_order.status
+        old_delivery_cost = old_order.delivery_cost or Decimal('0')
+
         order = serializer.save()
+
+        # Si les frais de livraison ont changé → recalculer le total_amount
+        new_delivery_cost = order.delivery_cost or Decimal('0')
+        if new_delivery_cost != old_delivery_cost:
+            # total_amount = montant produits + nouveaux frais de livraison
+            items_total = sum(
+                item.unit_price * item.quantity for item in order.items.all()
+            )
+            order.total_amount = items_total + new_delivery_cost
+            order.save(update_fields=['total_amount'])
+
         try:
             send_order_status_update_email(order)
         except Exception as e:
@@ -82,7 +97,7 @@ class OrderListCreateView(generics.ListCreateAPIView):
 
             for item_data in order.items.all():
                 try:
-                    product = Product.objects.select_for_update().get(product_id=item_data.product_id)
+                    product = Product.objects.select_for_update().get(pk=item_data.product_id)
                     print(f'[ORDER CREATE] Product: {product.name}, Stock before: {product.stock}, Ordered: {item_data.quantity}')
                     if product.stock >= item_data.quantity:
                         product.stock = product.stock - item_data.quantity
@@ -92,12 +107,6 @@ class OrderListCreateView(generics.ListCreateAPIView):
                         print(f'[ORDER CREATE] WARNING: Insufficient stock for {product.name}. Available: {product.stock}, Ordered: {item_data.quantity}')
                 except Product.DoesNotExist:
                     print(f'[ORDER CREATE] WARNING: Product ID {item_data.product_id} not found')
-
-            year = timezone.now().strftime('%y')
-            year_start = timezone.datetime(int('20' + year), 1, 1, 0, 0, 0, 0)
-            order_count = Order.objects.filter(created_at__gte=year_start).count()
-            order.order_number = f"CPS{year}{order_count:06d}"
-            order.save()
 
             if not order.tracking_number:
                 order.tracking_number = f"TRK-{order.id:06d}"
@@ -144,7 +153,9 @@ def upload_payment_image(request, pk):
         return Response({'error': 'Commande introuvable.'}, status=404)
 
     user = request.user
-    if not (user.is_staff or user.is_superuser or getattr(user, 'role', None) in ('admin', 'sales')):
+    is_staff = user.is_staff or user.is_superuser or getattr(user, 'role', None) in ('admin', 'sales')
+    is_owner = order.user == user
+    if not (is_staff or is_owner):
         return Response({'error': 'Non autorisé.'}, status=403)
 
     image_type = request.data.get('image_type')
@@ -183,3 +194,61 @@ def get_cri_balance(request):
     """Get the current user's CRI (loan) balance from previous orders."""
     balance_obj, _ = CRIBalance.objects.get_or_create(user=request.user)
     return Response({'balance': float(balance_obj.balance), 'updated_at': balance_obj.updated_at})
+
+
+class AvoirListCreateView(generics.ListCreateAPIView):
+    """
+    GET  /api/orders/avoirs/        → liste des avoirs
+    POST /api/orders/avoirs/        → créer un avoir + remettre en stock
+    """
+    serializer_class = AvoirSerializer
+    permission_classes = [IsAdminOrSales]
+
+    def get_queryset(self):
+        return Avoir.objects.prefetch_related('items').select_related('created_by', 'original_order').order_by('-created_at')
+
+    def perform_create(self, serializer):
+        serializer.save(created_by=self.request.user)
+
+
+class AvoirDetailView(generics.RetrieveAPIView):
+    """GET /api/orders/avoirs/<id>/"""
+    queryset = Avoir.objects.prefetch_related('items').select_related('created_by', 'original_order')
+    serializer_class = AvoirSerializer
+    permission_classes = [IsAdminOrSales]
+
+
+@api_view(['GET'])
+@perm_classes([IsAdminOrSales])
+def search_order_for_avoir(request):
+    """
+    GET /api/orders/avoirs/search/?q=CPS26000001
+    Cherche une commande par numéro pour préparer un avoir.
+    """
+    q = request.query_params.get('q', '').strip()
+    if not q:
+        return Response({'error': 'Paramètre q requis.'}, status=400)
+
+    order = Order.objects.filter(order_number__icontains=q).prefetch_related('items').select_related('user').first()
+    if not order:
+        return Response({'error': 'Commande introuvable.'}, status=404)
+
+    return Response({
+        'id': order.id,
+        'order_number': order.order_number,
+        'created_at': order.created_at,
+        'total_amount': str(order.total_amount),
+        'client_name': order.user.get_full_name() or order.user.email,
+        'client_email': order.user.email,
+        'items': [
+            {
+                'id': item.id,
+                'product_id': item.product_id,
+                'product_name': item.product_name,
+                'quantity': item.quantity,
+                'unit_price': str(item.unit_price),
+                'total_price': str(item.total_price),
+            }
+            for item in order.items.all()
+        ]
+    })

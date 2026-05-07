@@ -59,3 +59,15 @@ class IsAdminOrSales(BasePermission):
                 getattr(request.user, 'role', None) in ('admin', 'sales')
             )
         )
+
+
+class IsAdminOrSalesOrOwner(BasePermission):
+    """Allow admin/sales full access; allow authenticated users access to their own objects."""
+
+    def has_permission(self, request, view):
+        return bool(request.user and request.user.is_authenticated)
+
+    def has_object_permission(self, request, view, obj):
+        if request.user.is_superuser or getattr(request.user, 'role', None) in ('admin', 'sales'):
+            return True
+        return getattr(obj, 'user', None) == request.user

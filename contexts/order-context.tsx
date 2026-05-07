@@ -78,14 +78,13 @@ export function OrderProvider({ children }: { children: React.ReactNode }) {
             items: orderData.items.map((item) => ({
               product_id: parseInt(item.productId),
               quantity: item.quantity,
-              unit_price: parseFloat(item.unitPrice.toFixed(2)), // Ensure 2 decimal places
+              // Convert to Number first — DRF DecimalField returns string "99.990" from API
+              unit_price: parseFloat(Number(item.unitPrice).toFixed(2)),
               total_price: parseFloat(
-                (item.unitPrice * item.quantity).toFixed(2)
-              ), // Add total_price
+                (Number(item.unitPrice) * item.quantity).toFixed(2)
+              ),
               product_name: item.productName,
               specifications: item.specifications,
-              // specifications: `${item.product.specifications.width}/${item.product.specifications.height} R${item.product.specifications.diameter}`
-              // Remove 'order' field - it will be set by Django automatically
             })),
             shipping_address: {
               first_name: orderData.shippingAddress.first_name,
@@ -106,7 +105,7 @@ export function OrderProvider({ children }: { children: React.ReactNode }) {
               phone: orderData.shippingAddress.phone,
             },
             payment_method: orderData.paymentMethod.type,
-            total_amount: parseFloat(orderData.total.toFixed(2)), // Fix decimal places
+            total_amount: parseFloat(Number(orderData.total).toFixed(2)),
             // Use per-method private amounts (_criMontant etc.) for both single and multi-modal
             // CRI payment fields
             ...((orderData.paymentMethod as any)._criMontant > 0 ? {

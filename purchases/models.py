@@ -69,6 +69,8 @@ class PurchaseOrderItem(models.Model):
     quantity = models.PositiveIntegerField('Quantité', default=1)
     discount = models.DecimalField('Remise (%)', max_digits=5, decimal_places=2, default=0)
     total_ht = models.DecimalField('Total HT', max_digits=12, decimal_places=3, default=0)
+    dot = models.CharField('DOT (sem.année)', max_length=20, blank=True, null=True)
+    emplacement = models.CharField('Emplacement', max_length=100, blank=True, null=True)
     received_quantity = models.PositiveIntegerField('Quantité reçue', default=0)
     created_at = models.DateTimeField('Créé le', auto_now_add=True)
 

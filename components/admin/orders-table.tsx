@@ -82,7 +82,8 @@ export async function handleDownloadInvoice(order: any) {
     const boxX = pageWidth - 70;
     const boxY = y - 15; // aligned to 3-inch top margin, slightly above FACTURE title
     const boxW = 60;
-    const boxH = 40; // increased height
+    const hasWarranty = !!order.warrantyInfo?.accepted;
+    const boxH = hasWarranty ? 50 : 40; // extra row for warranty badge
     pdf.roundedRect(boxX, boxY, boxW, boxH, 3, 3, "S");
 
     pdf.setFontSize(10);
@@ -103,6 +104,19 @@ export async function handleDownloadInvoice(order: any) {
       boxX + 2,
       boxY + 30
     );
+
+    // Warranty badge at the bottom of the client box
+    if (hasWarranty) {
+      // Light grey fill behind the badge
+      pdf.setFillColor(220, 220, 220);
+      pdf.roundedRect(boxX + 2, boxY + 34, boxW - 4, 10, 2, 2, "F");
+      pdf.setFont("helvetica", "bold");
+      pdf.setFontSize(9);
+      pdf.setTextColor(0, 0, 0);
+      pdf.text("AVEC GARANTIE", boxX + boxW / 2, boxY + 41, { align: "center" });
+      pdf.setFontSize(10);
+      pdf.setTextColor(0, 0, 0);
+    }
     pdf.text(`Page ${page}`, margin, pageHeight - 10);
     y += 35;
     pdf.setFont("helvetica", "bold");
@@ -385,25 +399,29 @@ export default function OrdersTable({
     }).format(date);
 
   const getStatusBadge = (status: Order["status"]) => {
-    const variants = {
-      pending: "destructive",
-      confirmed: "outline",
-      processing: "secondary",
-      shipped: "default",
-      delivered: "default",
-      cancelled: "destructive",
-    } as const;
-
-    const labels = {
-      pending: "En attente",
-      confirmed: "Confirmée",
-      processing: "En cours",
-      shipped: "Expédiée",
-      delivered: "Livrée",
-      cancelled: "Annulée",
+    const styles: Record<string, string> = {
+      pending:    "bg-orange-100 text-orange-800 border border-orange-200",
+      confirmed:  "bg-blue-100 text-blue-800 border border-blue-200",
+      processing: "bg-yellow-400 text-black font-semibold",
+      shipped:    "bg-purple-100 text-purple-800 border border-purple-200",
+      delivered:  "bg-green-100 text-green-800 border border-green-200",
+      cancelled:  "bg-red-100 text-red-800 border border-red-200",
     };
 
-    return <Badge variant={variants[status]}>{labels[status]}</Badge>;
+    const labels: Record<string, string> = {
+      pending:    "En attente",
+      confirmed:  "Confirmée",
+      processing: "En cours",
+      shipped:    "Expédiée",
+      delivered:  "Livrée",
+      cancelled:  "Annulée",
+    };
+
+    return (
+      <Badge className={`${styles[status] ?? "bg-gray-100 text-gray-700"} rounded-full px-3 py-0.5 text-xs`}>
+        {labels[status] ?? status}
+      </Badge>
+    );
   };
 
   const getPaymentStatusBadge = (status: Order["paymentStatus"]) => {

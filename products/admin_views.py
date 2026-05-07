@@ -87,28 +87,60 @@ def admin_dashboard_stats(request):
     if getattr(user, 'role', None) not in ('admin', 'sales') and not user.is_superuser:
         return Response({'error': 'Not authorized'}, status=403)
 
+    from django.db.models import Sum, Avg, Min, Max, Count
+
     total_products = Product.objects.count()
     active_products = Product.objects.filter(is_active=True).count()
+    featured_products = Product.objects.filter(is_featured=True).count()
+    recent_products = Product.objects.order_by('-created_at').count()
     total_categories = Category.objects.count()
     total_customers = CustomUser.objects.filter(role='customer').count()
     total_orders = Order.objects.count()
     pending_orders = Order.objects.filter(status='pending').count()
     completed_orders = Order.objects.filter(status='delivered').count()
 
-    from django.db.models import Sum
-    total_revenue = Order.objects.filter(status='delivered').aggregate(total=Sum('total_amount'))['total'] or 0
+    total_revenue = Order.objects.filter(status='delivered').aggregate(
+        total=Sum('total_amount')
+    )['total'] or 0
 
     recent_orders = list(Order.objects.order_by('-created_at')[:5].values(
         'order_number', 'user__email', 'status', 'created_at', 'total_amount'
     ))
 
-    low_stock_products = list(Product.objects.filter(stock__lte=5).order_by('stock').values(
-        'brand', 'name', 'stock', 'price'
-    )[:10])
+    # Produits par catégorie
+    products_by_category = list(
+        Category.objects.annotate(product_count=Count('products'))
+        .values('name', 'product_count')
+        .order_by('-product_count')
+    )
+
+    # Stock élevé (top 5)
+    top_stock_products = list(Product.objects.order_by('-stock').values(
+        'id', 'name', 'brand', 'stock', 'price'
+    )[:5])
+
+    # Stock faible - count et détails
+    low_stock_qs = Product.objects.filter(stock__lte=5).order_by('stock')
+    low_stock_count = low_stock_qs.count()
+    low_stock_details = list(low_stock_qs.values('id', 'name', 'brand', 'stock', 'price')[:10])
+
+    # Statistiques des prix
+    price_agg = Product.objects.aggregate(
+        avg_price=Avg('price'),
+        min_price=Min('price'),
+        max_price=Max('price'),
+    )
+    price_stats = {
+        'avg_price': float(price_agg['avg_price'] or 0),
+        'min_price': float(price_agg['min_price'] or 0),
+        'max_price': float(price_agg['max_price'] or 0),
+    }
 
     return Response({
         'total_products': total_products,
         'active_products': active_products,
+        'featured_products': featured_products,
+        'recent_products': recent_products,
         'total_categories': total_categories,
         'total_customers': total_customers,
         'total_orders': total_orders,
@@ -116,7 +148,11 @@ def admin_dashboard_stats(request):
         'completed_orders': completed_orders,
         'total_revenue': float(total_revenue),
         'recent_orders': recent_orders,
-        'low_stock_products': low_stock_products,
+        'products_by_category': products_by_category,
+        'top_stock_products': top_stock_products,
+        'low_stock_products': low_stock_count,
+        'low_stock_details': low_stock_details,
+        'price_stats': price_stats,
     })
 
 
@@ -141,14 +177,100 @@ def reports_data(request):
     """Get comprehensive reports data for the reports page"""
     from orders.models import Order, OrderItem
     from accounts.models import CustomUser
-    from django.db.models import Sum, Count
+    from django.db.models import Sum, Count, Avg
+    from django.utils import timezone
+    from datetime import timedelta
 
-    total_revenue = Order.objects.filter(status='delivered').aggregate(total=Sum('total_amount'))['total'] or 0
-    total_orders = Order.objects.count()
+    now = timezone.now()
+    today_start    = now.replace(hour=0, minute=0, second=0, microsecond=0)
+    week_start     = today_start - timedelta(days=now.weekday())
+    month_start    = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+
+    # ── Stats globales ──────────────────────────────────────────────────
+    ventes_total    = Order.objects.aggregate(t=Sum('total_amount'))['t'] or 0
+    commandes_total = Order.objects.count()
+    panier_moyen    = Order.objects.aggregate(a=Avg('total_amount'))['a'] or 0
+    clients_actifs  = CustomUser.objects.filter(role='customer', is_active=True).count()
+
+    ventes_jour    = Order.objects.filter(created_at__gte=today_start).aggregate(t=Sum('total_amount'))['t'] or 0
+    ventes_hebdo   = Order.objects.filter(created_at__gte=week_start).aggregate(t=Sum('total_amount'))['t'] or 0
+    ventes_mensuel = Order.objects.filter(created_at__gte=month_start).aggregate(t=Sum('total_amount'))['t'] or 0
+
+    commandes_jour    = Order.objects.filter(created_at__gte=today_start).count()
+    commandes_hebdo   = Order.objects.filter(created_at__gte=week_start).count()
+    commandes_mensuel = Order.objects.filter(created_at__gte=month_start).count()
+    produits_vendus   = OrderItem.objects.aggregate(t=Sum('quantity'))['t'] or 0
+
+    # ── Ventes par mois (6 derniers mois) ──────────────────────────────
+    ventes_par_mois = []
+    for i in range(5, -1, -1):
+        # Calcul du premier jour du mois i mois en arrière
+        target = (now.replace(day=1) - timedelta(days=i * 28)).replace(day=1)
+        if i == 0:
+            mois_start = month_start
+            mois_end   = now
+        else:
+            mois_start = target
+            if target.month == 12:
+                mois_end = target.replace(year=target.year + 1, month=1)
+            else:
+                mois_end = target.replace(month=target.month + 1)
+
+        mois_label = mois_start.strftime('%b %Y')
+        mv = Order.objects.filter(created_at__gte=mois_start, created_at__lt=mois_end).aggregate(
+            ventes=Sum('total_amount'), commandes=Count('id')
+        )
+        ventes_par_mois.append({
+            'mois':      mois_label,
+            'ventes':    float(mv['ventes'] or 0),
+            'commandes': mv['commandes'] or 0,
+        })
+
+    # ── Top produits ────────────────────────────────────────────────────
+    top_produits_qs = (
+        OrderItem.objects
+        .values('product_name')
+        .annotate(ventes=Sum('quantity'), chiffre=Sum('total_price'))
+        .order_by('-chiffre')[:10]
+    )
+    top_produits = [
+        {'nom': r['product_name'], 'ventes': r['ventes'] or 0, 'chiffre': float(r['chiffre'] or 0)}
+        for r in top_produits_qs
+    ]
+
+    # ── Top clients ─────────────────────────────────────────────────────
+    top_clients_qs = (
+        Order.objects
+        .values('user__first_name', 'user__last_name', 'user__email')
+        .annotate(commandes=Count('id'), total=Sum('total_amount'))
+        .order_by('-total')[:10]
+    )
+    top_clients = []
+    for r in top_clients_qs:
+        nom = f"{r['user__first_name']} {r['user__last_name']}".strip() or r['user__email']
+        top_clients.append({
+            'nom':       nom,
+            'commandes': r['commandes'] or 0,
+            'total':     float(r['total'] or 0),
+        })
 
     return Response({
-        'total_revenue': float(total_revenue),
-        'total_orders': total_orders,
+        'stats_ventes': {
+            'ventes_jour':        float(ventes_jour),
+            'ventes_hebdo':       float(ventes_hebdo),
+            'ventes_mensuel':     float(ventes_mensuel),
+            'commandes_jour':     commandes_jour,
+            'commandes_hebdo':    commandes_hebdo,
+            'commandes_mensuel':  commandes_mensuel,
+            'clients_actifs':     clients_actifs,
+            'produits_vendus':    produits_vendus,
+            'ventes_total':       float(ventes_total),
+            'commandes_total':    commandes_total,
+            'panier_moyen':       float(panier_moyen),
+        },
+        'ventes_par_mois': ventes_par_mois,
+        'top_produits':    top_produits,
+        'top_clients':     top_clients,
     })
 
 

@@ -69,7 +69,14 @@ export default function ImportPage() {
   const [jobMessage, setJobMessage] = useState<string | null>(null);
   const [liveSummary, setLiveSummary] = useState<LiveSummary | null>(null);
   const [uploadProgress, setUploadProgress] = useState(0);
-  const [importResult, setImportResult] = useState<ImportResult | null>(null);
+  const [importResult, setImportResult] = useState<ImportResult | null>(() => {
+    // Charger le dernier résultat depuis localStorage au montage
+    if (typeof window === "undefined") return null;
+    try {
+      const saved = localStorage.getItem("lastImportResult");
+      return saved ? JSON.parse(saved) : null;
+    } catch { return null; }
+  });
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<{ type: NoticeType; text: string } | null>(
     null
@@ -122,7 +129,7 @@ export default function ImportPage() {
     const selectedFile = event.target.files?.[0];
     if (selectedFile) {
       setFile(selectedFile);
-      setImportResult(null);
+      // Ne pas effacer importResult ici — il reste visible jusqu'au prochain import
       setError(null);
       setJobStatus(null);
       setJobMessage(null);
@@ -197,7 +204,7 @@ export default function ImportPage() {
       if (statusData.status === "completed") {
         setUploadProgress(100);
         showNotice("success", "Extraction terminée. Les produits ont été créés avec succès.");
-        setImportResult({
+        const result: ImportResult = {
           message: statusData.message || "Import terminé",
           summary: {
             total_rows: statusData.summary.total_rows,
@@ -205,11 +212,18 @@ export default function ImportPage() {
             updated: 0,
             errors: statusData.summary.errors,
           },
-          created_products: [],
+          created_products: (statusData as any).created_names || [],
           updated_products: [],
           errors: statusData.errors || [],
-        });
+        };
+        setImportResult(result);
+        // Persister dans localStorage pour survivre aux navigations
+        try { localStorage.setItem("lastImportResult", JSON.stringify(result)); } catch {}
         setIsPolling(false);
+        setFile(null);
+        // Reset the file input so the same file can be re-imported if needed
+        const fileInput = document.getElementById('file-upload') as HTMLInputElement;
+        if (fileInput) fileInput.value = '';
         return;
       }
 
@@ -232,6 +246,7 @@ export default function ImportPage() {
     setUploadProgress(0);
     setError(null);
     setImportResult(null);
+    try { localStorage.removeItem("lastImportResult"); } catch {}
     setJobStatus(null);
     setJobMessage(null);
     setLiveSummary(null);
@@ -435,6 +450,99 @@ export default function ImportPage() {
         </CardContent>
       </Card>
 
+      {/* ===== RECAP après import ===== */}
+      {importResult && (
+        <Card className="border-2 border-green-200">
+          <CardHeader className="bg-green-50 rounded-t-lg">
+            <div className="flex items-start justify-between">
+              <div>
+                <CardTitle className="flex items-center gap-2 text-green-800">
+                  <CheckCircle className="h-6 w-6 text-green-600" />
+                  Import terminé — Récapitulatif
+                </CardTitle>
+                <p className="text-sm text-green-700 mt-1">{importResult.message}</p>
+              </div>
+              <button
+                onClick={() => {
+                  setImportResult(null);
+                  try { localStorage.removeItem("lastImportResult"); } catch {}
+                }}
+                className="text-gray-400 hover:text-gray-600 text-xl leading-none ml-4"
+                title="Fermer"
+              >✕</button>
+            </div>
+          </CardHeader>
+          <CardContent className="space-y-6 pt-6">
+
+            {/* Compteurs */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <div className="text-center p-4 bg-blue-50 rounded-xl border border-blue-100">
+                <div className="text-3xl font-bold text-blue-700">{importResult.summary.total_rows}</div>
+                <div className="text-sm text-blue-600 mt-1">Lignes lues</div>
+              </div>
+              <div className="text-center p-4 bg-green-50 rounded-xl border border-green-100">
+                <div className="text-3xl font-bold text-green-700">{importResult.summary.created}</div>
+                <div className="text-sm text-green-600 mt-1">Produits créés</div>
+              </div>
+              <div className="text-center p-4 bg-yellow-50 rounded-xl border border-yellow-100">
+                <div className="text-3xl font-bold text-yellow-700">{importResult.summary.updated}</div>
+                <div className="text-sm text-yellow-600 mt-1">Mis à jour</div>
+              </div>
+              <div className="text-center p-4 bg-red-50 rounded-xl border border-red-100">
+                <div className="text-3xl font-bold text-red-700">{importResult.summary.errors}</div>
+                <div className="text-sm text-red-600 mt-1">Erreurs</div>
+              </div>
+            </div>
+
+            {/* Liste des produits créés */}
+            {importResult.created_products?.length > 0 && (
+              <div>
+                <h3 className="font-semibold text-gray-800 mb-3 flex items-center gap-2">
+                  <CheckCircle className="h-4 w-4 text-green-500" />
+                  Produits ajoutés au catalogue ({importResult.created_products.length})
+                </h3>
+                <div className="border rounded-lg overflow-hidden max-h-72 overflow-y-auto">
+                  <table className="w-full text-sm">
+                    <thead className="bg-gray-50 sticky top-0">
+                      <tr>
+                        <th className="text-left px-4 py-2 text-gray-600 font-medium w-10">#</th>
+                        <th className="text-left px-4 py-2 text-gray-600 font-medium">Nom du produit</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {importResult.created_products.map((name, i) => (
+                        <tr key={i} className={i % 2 === 0 ? "bg-white" : "bg-gray-50"}>
+                          <td className="px-4 py-2 text-gray-400">{i + 1}</td>
+                          <td className="px-4 py-2 text-gray-800">{name}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            )}
+
+            {/* Erreurs */}
+            {importResult.errors.length > 0 && (
+              <div>
+                <h3 className="font-semibold text-red-700 mb-3 flex items-center gap-2">
+                  <AlertCircle className="h-4 w-4" />
+                  Lignes ignorées ({importResult.errors.length})
+                </h3>
+                <div className="space-y-1 max-h-48 overflow-y-auto">
+                  {importResult.errors.map((err, i) => (
+                    <div key={i} className="text-sm text-red-700 bg-red-50 border border-red-100 rounded px-3 py-2">
+                      {err}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+          </CardContent>
+        </Card>
+      )}
+
       {/* File Upload */}
       <Card>
         <CardHeader>
@@ -530,96 +638,6 @@ export default function ImportPage() {
         </Alert>
       )}
 
-      {/* Import Results */}
-      {importResult && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center">
-              <CheckCircle className="h-5 w-5 mr-2 text-green-500" />
-              Résultats de l'import
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-              <div className="text-center p-4 bg-blue-50 rounded-lg">
-                <div className="text-2xl font-bold text-blue-600">
-                  {importResult.summary.total_rows}
-                </div>
-                <div className="text-sm text-blue-600">Lignes traitées</div>
-              </div>
-              <div className="text-center p-4 bg-yellow-50 rounded-lg">
-                <div className="text-2xl font-bold text-green-600">
-                  {importResult.summary.created}
-                </div>
-                <div className="text-sm text-green-600">Produits créés</div>
-              </div>
-              <div className="text-center p-4 bg-yellow-50 rounded-lg">
-                <div className="text-2xl font-bold text-yellow-600">
-                  {importResult.summary.updated}
-                </div>
-                <div className="text-sm text-yellow-600">
-                  Produits mis à jour
-                </div>
-              </div>
-              <div className="text-center p-4 bg-red-50 rounded-lg">
-                <div className="text-2xl font-bold text-red-600">
-                  {importResult.summary.errors}
-                </div>
-                <div className="text-sm text-red-600">Erreurs</div>
-              </div>
-            </div>
-
-            {importResult.created_products?.length > 0 && (
-              <div>
-                <h3 className="font-medium mb-2">
-                  Produits créés (premiers 10):
-                </h3>
-                <div className="space-y-1">
-                  {importResult.created_products.map((product, index) => (
-                    <Badge
-                      key={index}
-                      variant="secondary"
-                      className="mr-2 mb-1"
-                    >
-                      {product}
-                    </Badge>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {importResult.updated_products?.length > 0 && (
-              <div>
-                <h3 className="font-medium mb-2">
-                  Produits mis à jour (premiers 10):
-                </h3>
-                <div className="space-y-1">
-                  {importResult.updated_products.map((product, index) => (
-                    <Badge key={index} variant="outline" className="mr-2 mb-1">
-                      {product}
-                    </Badge>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {importResult.errors.length > 0 && (
-              <div>
-                <h3 className="font-medium mb-2">Erreurs (premières 10):</h3>
-                <div className="space-y-1">
-                  {importResult.errors.map((error, index) => (
-                    <Alert key={index} variant="destructive" className="mb-2">
-                      <AlertDescription className="text-sm">
-                        {error}
-                      </AlertDescription>
-                    </Alert>
-                  ))}
-                </div>
-              </div>
-            )}
-          </CardContent>
-        </Card>
-      )}
     </div>
   );
 }

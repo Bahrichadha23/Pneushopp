@@ -261,6 +261,7 @@ export function CheckoutForm() {
     "shipping" | "payment" | "warranty" | "review"
   >("shipping");
   const [isLoading, setIsLoading] = useState(false);
+  const [orderError, setOrderError] = useState("");
 
   // Local shipping form (camelCase)
   const [shippingAddress, setShippingAddress] = useState({
@@ -320,6 +321,7 @@ export function CheckoutForm() {
 
   const handleOrderSubmit = async () => {
     setIsLoading(true);
+    setOrderError("");
     try {
       // ✅ Transform CartItem[] → OrderItem[]
       const orderItems = items.map((item) => ({
@@ -359,8 +361,10 @@ export function CheckoutForm() {
       // Clear cart without restoring stock (stock already deducted by order)
       clearCart(false);
       router.push(`/commande/confirmation/${orderId}`);
-    } catch (error) {
+    } catch (error: any) {
       console.error("Erreur lors de la création de la commande:", error);
+      const msg = error?.message || "Erreur inconnue";
+      setOrderError(msg);
     } finally {
       setIsLoading(false);
     }
@@ -545,6 +549,13 @@ export function CheckoutForm() {
             <span>{total.toFixed(2)} DT</span>
           </div>
         </div>
+
+        {orderError && (
+          <div className="bg-red-50 border border-red-300 text-red-700 rounded-lg px-4 py-3 text-sm">
+            <p className="font-semibold mb-1">⚠️ Erreur lors de la commande :</p>
+            <p className="font-mono text-xs break-all">{orderError}</p>
+          </div>
+        )}
 
         <div className="flex gap-4">
           <Button

@@ -455,7 +455,7 @@ export function PaymentForm({ onSubmit, onBack, totalPrice }: PaymentFormProps) 
                 <div>
                   <Label className="text-sm font-semibold text-red-700">Reste</Label>
                   <div className="mt-1 flex">
-                    <Input readOnly value={formatAmount(Math.max(totalPrice - cashOnDeliveryMontantNum, 0))} className="rounded-r-none border-red-200 bg-red-50" />
+                    <Input readOnly value={formatAmount(globalReste)} className="rounded-r-none border-red-200 bg-red-50" />
                     <span className="inline-flex items-center px-3 border border-l-0 rounded-r-md bg-red-100 text-sm text-red-700 border-red-200">DT</span>
                   </div>
                 </div>
@@ -507,7 +507,7 @@ export function PaymentForm({ onSubmit, onBack, totalPrice }: PaymentFormProps) 
                 <div>
                   <Label className="text-sm font-semibold text-red-700">Reste</Label>
                   <div className="mt-1 flex">
-                    <Input readOnly value={formatAmount(Math.max(totalPrice - bankMontantNum, 0))} className="rounded-r-none border-red-200 bg-red-50" />
+                    <Input readOnly value={formatAmount(globalReste)} className="rounded-r-none border-red-200 bg-red-50" />
                     <span className="inline-flex items-center px-3 border border-l-0 rounded-r-md bg-red-100 text-sm text-red-700 border-red-200">DT</span>
                   </div>
                 </div>
@@ -580,7 +580,7 @@ export function PaymentForm({ onSubmit, onBack, totalPrice }: PaymentFormProps) 
                 <div>
                   <Label className="text-sm font-semibold text-red-700">Reste</Label>
                   <div className="mt-1 flex">
-                    <Input readOnly value={formatAmount(Math.max(totalTicket - criMontantNum, 0))} className="rounded-r-none border-red-200 bg-red-50" />
+                    <Input readOnly value={formatAmount(globalReste)} className="rounded-r-none border-red-200 bg-red-50" />
                     <span className="inline-flex items-center px-3 border border-l-0 rounded-r-md bg-red-100 text-sm text-red-700 border-red-200">DT</span>
                   </div>
                 </div>
@@ -628,7 +628,7 @@ export function PaymentForm({ onSubmit, onBack, totalPrice }: PaymentFormProps) 
                 <div>
                   <Label className="text-sm font-semibold text-red-700">Reste</Label>
                   <div className="mt-1 flex">
-                    <Input readOnly value={formatAmount(Math.max(totalPrice - lettreMontantNum, 0))} className="rounded-r-none border-red-200 bg-red-50" />
+                    <Input readOnly value={formatAmount(globalReste)} className="rounded-r-none border-red-200 bg-red-50" />
                     <span className="inline-flex items-center px-3 border border-l-0 rounded-r-md bg-red-100 text-sm text-red-700 border-red-200">DT</span>
                   </div>
                 </div>
@@ -708,7 +708,7 @@ export function PaymentForm({ onSubmit, onBack, totalPrice }: PaymentFormProps) 
                 <div>
                   <Label className="text-sm font-semibold text-red-700">Reste</Label>
                   <div className="mt-1 flex">
-                    <Input readOnly value={formatAmount(Math.max(totalPrice - chequeMontantNum, 0))} className="rounded-r-none border-red-200 bg-red-50" />
+                    <Input readOnly value={formatAmount(globalReste)} className="rounded-r-none border-red-200 bg-red-50" />
                     <span className="inline-flex items-center px-3 border border-l-0 rounded-r-md bg-red-100 text-sm text-red-700 border-red-200">DT</span>
                   </div>
                 </div>

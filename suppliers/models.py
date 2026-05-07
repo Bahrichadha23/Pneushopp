@@ -15,7 +15,7 @@ class Supplier(models.Model):
     specialties = models.JSONField(default=list, blank=True)
     rating = models.IntegerField(default=0)
     orders_count = models.IntegerField(default=0)
-    delivery_time = models.IntegerField(default=7, help_text='Délai en jours')
+    delivery_time = models.CharField(max_length=50, default='7', blank=True, help_text='Délai de livraison (ex: 3-5 jours)')
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='active')
 
     def __str__(self):

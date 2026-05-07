@@ -48,6 +48,8 @@ export const authService = {
       // Map frontend data to Django backend format
       const djangoData = {
         username: `${userData.firstName.trim()}_${userData.lastName.trim()}`.toLowerCase().replace(/\s+/g, '_'),
+        first_name: userData.firstName.trim(),
+        last_name: userData.lastName.trim(),
         email: userData.email.trim(),
         password: userData.password,
         password_confirm: userData.password,
@@ -65,16 +67,11 @@ export const authService = {
 
       console.log('✅ Django registration response:', response.data)
 
-      if (response.data.success) {
-        return {
-          success: true,
-          data: response.data.user || response.data
-        }
-      } else {
-        return {
-          success: false,
-          error: response.data.message || 'Registration failed'
-        }
+      // Backend returns {message: "...", id: ...} on success (HTTP 201)
+      // Axios throws on non-2xx, so reaching here means success
+      return {
+        success: true,
+        data: response.data.user || response.data
       }
     } catch (error: any) {
       console.error('❌ Registration error full details:', error)
@@ -136,15 +133,27 @@ export const authService = {
       return { success: false, error: 'Non authentifié' };
     }
 
-    const response = await apiClient.patch(API_ENDPOINTS.USER_PROFILE, userData, {
+    // Convertir camelCase → snake_case pour Django
+    const djangoData: any = {};
+    if (userData.firstName !== undefined) djangoData.first_name = userData.firstName;
+    if (userData.lastName !== undefined)  djangoData.last_name  = userData.lastName;
+    if (userData.email !== undefined)     djangoData.email      = userData.email;
+    if (userData.phone !== undefined)     djangoData.phone      = userData.phone;
+
+    const response = await apiClient.patch(API_ENDPOINTS.USER_PROFILE, djangoData, {
       headers: {
         'Authorization': `Bearer ${token}`,
       }
     });
 
-    // Update localStorage with new user data
+    // Mettre à jour localStorage — convertir snake_case → camelCase
     const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
-    const updatedUser = { ...currentUser, ...response.data };
+    const updatedUser = {
+      ...currentUser,
+      ...response.data,
+      firstName: response.data.first_name || currentUser.firstName,
+      lastName:  response.data.last_name  || currentUser.lastName,
+    };
     localStorage.setItem('user', JSON.stringify(updatedUser));
 
     return {

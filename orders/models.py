@@ -100,6 +100,40 @@ class OrderItem(models.Model):
         return f'{self.product_name} x {self.quantity}'
 
 
+class Avoir(models.Model):
+    """Credit note / return document"""
+    avoir_number = models.CharField(max_length=50, unique=True, blank=True)
+    original_order = models.ForeignKey(
+        Order, on_delete=models.SET_NULL, null=True, blank=True, related_name='avoirs'
+    )
+    original_invoice_number = models.CharField(max_length=100, blank=True, null=True)
+    reason = models.TextField(blank=True, null=True)
+    notes = models.TextField(blank=True, null=True)
+    total_amount = models.DecimalField(max_digits=10, decimal_places=3, default=0)
+    created_at = models.DateTimeField(auto_now_add=True)
+    created_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, related_name='avoirs_created'
+    )
+
+    def __str__(self):
+        return f'{self.avoir_number} — {self.original_invoice_number}'
+
+
+class AvoirItem(models.Model):
+    avoir = models.ForeignKey(Avoir, on_delete=models.CASCADE, related_name='items')
+    product = models.ForeignKey(
+        'products.Product', on_delete=models.SET_NULL, null=True, blank=True
+    )
+    product_name = models.CharField(max_length=255)
+    product_reference = models.CharField(max_length=100, blank=True)
+    quantity = models.PositiveIntegerField()
+    unit_price = models.DecimalField(max_digits=10, decimal_places=3)
+    total_price = models.DecimalField(max_digits=10, decimal_places=3)
+
+    def __str__(self):
+        return f'{self.product_name} x {self.quantity}'
+
+
 class PurchaseOrder(models.Model):
     """Legacy PurchaseOrder attached to a client order (not supplier)"""
     STATUT_CHOICES = [
@@ -156,6 +190,8 @@ class Delivery(models.Model):
     date_expedition = models.DateField(null=True, blank=True)
     date_livraison = models.DateField(null=True, blank=True)
     colis = models.IntegerField(default=1)
+    numero_suivi = models.CharField(max_length=100, blank=True, null=True)
+    notes = models.TextField(blank=True, null=True)
 
     def __str__(self):
         if self.purchase_order:

@@ -352,6 +352,7 @@ export default function TresoreriePage() {
   const [clientFilter, setClientFilter] = useState("");
   const [supplierFilter, setSupplierFilter] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
+  const [paymentStatusFilter, setPaymentStatusFilter] = useState("");
   const [commercialFilter, setCommercialFilter] = useState("");
   const tableScrollRef = useRef<HTMLDivElement | null>(null);
   const bottomScrollRef = useRef<HTMLDivElement | null>(null);
@@ -563,12 +564,13 @@ export default function TresoreriePage() {
         return false;
       }
 
-      // Filtre statut : vérifie à la fois chequeStatus ET le label paymentStatus
       if (statusFilter) {
+        if (r.chequeStatus !== statusFilter) return false;
+      }
+
+      if (paymentStatusFilter) {
         const paymentLabel = PAYMENT_STATUS_LABELS[r.paymentStatus] || "";
-        if (r.chequeStatus !== statusFilter && paymentLabel !== statusFilter) {
-          return false;
-        }
+        if (paymentLabel !== paymentStatusFilter) return false;
       }
 
       if (commercialFilter && r.commercial !== commercialFilter) {
@@ -593,6 +595,7 @@ export default function TresoreriePage() {
     clientFilter,
     supplierFilter,
     statusFilter,
+    paymentStatusFilter,
     commercialFilter,
   ]);
 
@@ -621,6 +624,17 @@ export default function TresoreriePage() {
       await apiClient.patch(`/orders/${recordId}/`, { commercial: value });
     } catch (err) {
       console.error("Erreur sauvegarde commercial", err);
+    }
+  };
+
+  const handlePaymentStatusChange = async (recordId: string, newStatus: string) => {
+    setRecords((prev) =>
+      prev.map((r) => (r.id === recordId ? { ...r, paymentStatus: newStatus } : r))
+    );
+    try {
+      await apiClient.patch(`/orders/${recordId}/`, { payment_status: newStatus });
+    } catch (err) {
+      console.error("Erreur sauvegarde statut paiement", err);
     }
   };
 
@@ -696,6 +710,79 @@ export default function TresoreriePage() {
     window.URL.revokeObjectURL(url);
   };
 
+  const handleExportXLSX = async () => {
+    const workbook = new ExcelJS.Workbook();
+    const ws = workbook.addWorksheet("Trésorerie");
+
+    ws.columns = [
+      { header: "Date", key: "date", width: 14 },
+      { header: "Facture", key: "invoice", width: 20 },
+      { header: "Type Paiement", key: "type", width: 20 },
+      { header: "Client", key: "client", width: 28 },
+      { header: "Commercial", key: "commercial", width: 18 },
+      { header: "Statut", key: "statut", width: 16 },
+      { header: "Date Échéance", key: "dueDate", width: 16 },
+      { header: "Montant Facture", key: "montant", width: 18 },
+      { header: "Montant Payé", key: "paye", width: 18 },
+      { header: "Reste", key: "reste", width: 16 },
+    ];
+
+    // Style header
+    const headerRow = ws.getRow(1);
+    headerRow.font = { bold: true, color: { argb: "FFFFFFFF" } };
+    headerRow.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FF334155" } };
+    headerRow.alignment = { vertical: "middle", horizontal: "center" };
+    headerRow.height = 20;
+
+    filteredRecords.forEach((record, i) => {
+      const paid = getPaidAmount(record);
+      const remaining = getRemainingAmount(record);
+      const row = ws.addRow({
+        date: record.dateFormatted,
+        invoice: record.refDoc,
+        type: record.type,
+        client: record.client || record.fournisseur,
+        commercial: record.commercial || "-",
+        statut: PAYMENT_STATUS_LABELS[record.paymentStatus] || record.paymentStatus,
+        dueDate: record.dueDateFormatted,
+        montant: parseFloat(record.totalAmount.toFixed(3)),
+        paye: parseFloat(paid.toFixed(3)),
+        reste: parseFloat(remaining.toFixed(3)),
+      });
+
+      // Color paid/remaining cells
+      row.getCell("paye").font = { color: { argb: "FF059669" }, bold: true };
+      if (remaining > 0) row.getCell("reste").font = { color: { argb: "FFDC2626" }, bold: true };
+
+      // Alternate row background
+      if (i % 2 === 0) {
+        row.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FFFFFFFF" } };
+      } else {
+        row.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FFF8FAFC" } };
+      }
+    });
+
+    // Add totals row
+    const totalRow = ws.addRow({
+      date: "TOTAL",
+      montant: parseFloat(filteredRecords.reduce((s, r) => s + r.totalAmount, 0).toFixed(3)),
+      paye: parseFloat(filteredRecords.reduce((s, r) => s + getPaidAmount(r), 0).toFixed(3)),
+      reste: parseFloat(filteredRecords.reduce((s, r) => s + getRemainingAmount(r), 0).toFixed(3)),
+    });
+    totalRow.font = { bold: true };
+    totalRow.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FFFEF9C3" } };
+
+    const date = new Date().toLocaleDateString("fr-FR").replace(/\//g, "-");
+    const buffer = await workbook.xlsx.writeBuffer();
+    const blob = new Blob([buffer], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `Tresorerie_${date}.xlsx`;
+    link.click();
+    window.URL.revokeObjectURL(url);
+  };
+
   if (loading) {
     return (
       <div className="flex h-64 items-center justify-center">
@@ -706,6 +793,35 @@ export default function TresoreriePage() {
 
   return (
     <div className="w-full max-w-none space-y-4">
+      {/* KPI cards */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+        <div className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
+          <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Total Facturé</p>
+          <p className="mt-1 text-2xl font-bold text-slate-800">{formatCurrency(records.reduce((s, r) => s + r.totalAmount, 0))}</p>
+          <p className="text-xs text-slate-400 mt-0.5">{records.length} commandes</p>
+        </div>
+        <div className="rounded-lg border border-emerald-200 bg-emerald-50 p-4 shadow-sm">
+          <p className="text-xs font-semibold uppercase tracking-wide text-emerald-600">Encaissé</p>
+          <p className="mt-1 text-2xl font-bold text-emerald-700">{formatCurrency(records.reduce((s, r) => s + getPaidAmount(r), 0))}</p>
+          <p className="text-xs text-emerald-500 mt-0.5">{records.filter(r => getRemainingAmount(r) === 0).length} soldées</p>
+        </div>
+        <div className="rounded-lg border border-rose-200 bg-rose-50 p-4 shadow-sm">
+          <p className="text-xs font-semibold uppercase tracking-wide text-rose-600">Reste à recouvrer</p>
+          <p className="mt-1 text-2xl font-bold text-rose-700">{formatCurrency(records.reduce((s, r) => s + getRemainingAmount(r), 0))}</p>
+          <p className="text-xs text-rose-500 mt-0.5">{records.filter(r => getRemainingAmount(r) > 0).length} en cours</p>
+        </div>
+        <div className="rounded-lg border border-orange-200 bg-orange-50 p-4 shadow-sm">
+          <p className="text-xs font-semibold uppercase tracking-wide text-orange-600">Échéances &lt; 7 jours</p>
+          <p className="mt-1 text-2xl font-bold text-orange-700">
+            {records.filter(r => {
+              const diff = (r.dueDate.getTime() - Date.now()) / 86400000;
+              return diff >= 0 && diff <= 7 && getRemainingAmount(r) > 0 && (r.paymentMethod === 'cheque' || r.paymentMethod === 'check' || r.paymentMethod === 'lettre_de_change');
+            }).length}
+          </p>
+          <p className="text-xs text-orange-500 mt-0.5">chèques/lettres</p>
+        </div>
+      </div>
+
       <div className="overflow-hidden rounded-md border border-slate-300 bg-white shadow-sm">
         <div className="border-b border-slate-300 bg-[#f4f6f8] px-4 py-3">
           <h1 className="text-xl font-semibold text-slate-800">Trésorerie Vente</h1>
@@ -856,8 +972,8 @@ export default function TresoreriePage() {
                 Statut Paiement
               </label>
               <select
-                value={statusFilter}
-                onChange={(e) => setStatusFilter(e.target.value)}
+                value={paymentStatusFilter}
+                onChange={(e) => setPaymentStatusFilter(e.target.value)}
                 className="w-full rounded border border-slate-300 px-2 py-2 text-sm"
               >
                 <option value="">Tout</option>
@@ -995,6 +1111,14 @@ export default function TresoreriePage() {
                 <FileDown className="h-4 w-4" />
                 Export CSV
               </Button>
+              <Button
+                variant="outline"
+                className="h-9 gap-2"
+                onClick={handleExportXLSX}
+              >
+                <FileDown className="h-4 w-4" />
+                Export Excel
+              </Button>
             </div>
           </div>
 
@@ -1034,7 +1158,14 @@ export default function TresoreriePage() {
                   filteredRecords.map((record, index) => (
                     <tr
                       key={record.id}
-                      className={index % 2 === 0 ? "bg-white" : "bg-slate-50"}
+                      className={(() => {
+                        const diff = (record.dueDate.getTime() - Date.now()) / 86400000;
+                        const hasRemaining = getRemainingAmount(record) > 0;
+                        const isDueType = record.paymentMethod === 'cheque' || record.paymentMethod === 'check' || record.paymentMethod === 'lettre_de_change';
+                        if (hasRemaining && isDueType && diff < 0) return "bg-red-50 border-l-2 border-l-red-400";
+                        if (hasRemaining && isDueType && diff <= 7) return "bg-orange-50 border-l-2 border-l-orange-400";
+                        return index % 2 === 0 ? "bg-white" : "bg-slate-50";
+                      })()}
                     >
                       <td className="px-2 py-2 align-top whitespace-nowrap">{record.dateFormatted}</td>
                       <td className="px-2 py-2 align-top whitespace-nowrap">
@@ -1152,9 +1283,20 @@ export default function TresoreriePage() {
                         </select>
                       </td>
                       <td className="px-2 py-2 align-top whitespace-nowrap">
-                        {record.chequeStatus
-                          ? record.chequeStatus
-                          : PAYMENT_STATUS_LABELS[record.paymentStatus] || "-"}
+                        <select
+                          value={record.paymentStatus}
+                          onChange={(e) => handlePaymentStatusChange(record.id, e.target.value)}
+                          className={`rounded border px-1.5 py-0.5 text-xs focus:outline-none focus:ring-1 focus:ring-yellow-400 ${
+                            record.paymentStatus === 'paid' ? 'border-emerald-300 bg-emerald-50 text-emerald-700' :
+                            record.paymentStatus === 'failed' ? 'border-red-300 bg-red-50 text-red-700' :
+                            'border-slate-300 bg-white text-slate-700'
+                          }`}
+                        >
+                          <option value="pending">En attente</option>
+                          <option value="paid">Payé</option>
+                          <option value="failed">Annulé</option>
+                          <option value="refunded">Remboursé</option>
+                        </select>
                       </td>
                       <td className="px-2 py-2 align-top whitespace-nowrap">{record.dueDateFormatted}</td>
                       <td className="px-2 py-2 text-right align-top whitespace-nowrap font-semibold">

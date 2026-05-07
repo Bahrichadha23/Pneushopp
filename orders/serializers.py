@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Delivery, Order, OrderItem, PurchaseOrder, PurchaseOrderItem, CRIBalance
+from .models import Delivery, Order, OrderItem, PurchaseOrder, PurchaseOrderItem, CRIBalance, Avoir, AvoirItem
 from accounts.serializers import UserSerializer
 
 
@@ -7,11 +7,14 @@ class OrderItemSerializer(serializers.ModelSerializer):
     class Meta:
         model = OrderItem
         fields = '__all__'
+        extra_kwargs = {
+            'order': {'required': False, 'read_only': True},
+        }
 
 
 class OrderSerializer(serializers.ModelSerializer):
     user = UserSerializer(read_only=True)
-    items = OrderItemSerializer(many=True, read_only=True)
+    items = OrderItemSerializer(many=True, read_only=False, required=False)
     order_number = serializers.CharField(read_only=True)
     warranty = serializers.JSONField(required=False, write_only=True)
     delivery_cost = serializers.DecimalField(max_digits=10, decimal_places=2, required=False)
@@ -68,6 +71,9 @@ class PurchaseOrderItemSerializer(serializers.ModelSerializer):
     class Meta:
         model = PurchaseOrderItem
         fields = '__all__'
+        extra_kwargs = {
+            'purchase_order': {'required': False, 'read_only': True},
+        }
 
 
 class PurchaseOrderSerializer(serializers.ModelSerializer):
@@ -197,16 +203,106 @@ class PurchaseOrderSerializer(serializers.ModelSerializer):
 
 class DeliverySerializer(serializers.ModelSerializer):
     commande = serializers.SerializerMethodField()
-    dateExpedition = serializers.DateField(source='date_expedition', read_only=True)
-    dateLivraison = serializers.DateField(source='date_livraison', read_only=True)
+    order_number = serializers.SerializerMethodField()
+    dateExpedition = serializers.DateField(source='date_expedition', required=False, allow_null=True)
+    dateLivraison = serializers.DateField(source='date_livraison', required=False, allow_null=True)
+    numeroSuivi = serializers.CharField(source='numero_suivi', required=False, allow_null=True, allow_blank=True)
 
     def get_commande(self, obj):
         if obj.purchase_order:
             return f'PO-{obj.purchase_order.id}'
         if obj.order:
-            return str(obj.order.id)
+            return obj.order.order_number or str(obj.order.id)
         return 'N/A'
+
+    def get_order_number(self, obj):
+        if obj.order:
+            return obj.order.order_number
+        return None
 
     class Meta:
         model = Delivery
+        fields = [
+            'id', 'commande', 'order_number', 'client', 'adresse',
+            'transporteur', 'statut', 'colis',
+            'dateExpedition', 'dateLivraison', 'numeroSuivi', 'notes',
+            'purchase_order', 'order',
+        ]
+
+
+class AvoirItemSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = AvoirItem
         fields = '__all__'
+
+
+class AvoirSerializer(serializers.ModelSerializer):
+    items = AvoirItemSerializer(many=True, read_only=True)
+    items_data = serializers.ListField(write_only=True, required=False)
+    created_by_name = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Avoir
+        fields = '__all__'
+        read_only_fields = ('avoir_number', 'created_at', 'created_by')
+
+    def get_created_by_name(self, obj):
+        if obj.created_by:
+            return obj.created_by.get_full_name() or obj.created_by.email
+        return ''
+
+    def create(self, validated_data):
+        from products.models import Product
+        from django.utils import timezone
+        from django.db import transaction
+
+        items_data = validated_data.pop('items_data', [])
+
+        with transaction.atomic():
+            avoir = Avoir.objects.create(**validated_data)
+
+            # Générer le numéro d'avoir: AV{YY}{000001}
+            year = timezone.now().strftime('%y')
+            prefix = f'AV{year}'
+            last = Avoir.objects.filter(avoir_number__startswith=prefix).order_by('-avoir_number').first()
+            if last and last.avoir_number:
+                try:
+                    last_seq = int(last.avoir_number[len(prefix):])
+                except (ValueError, IndexError):
+                    last_seq = 0
+            else:
+                last_seq = 0
+            avoir.avoir_number = f'{prefix}{last_seq + 1:06d}'
+
+            total = 0
+            for item_data in items_data:
+                qty = int(item_data.get('quantity', 1))
+                unit_price = float(item_data.get('unit_price', 0))
+                total_price = qty * unit_price
+                total += total_price
+
+                avoir_item = AvoirItem.objects.create(
+                    avoir=avoir,
+                    product_name=item_data.get('product_name', ''),
+                    product_reference=item_data.get('product_reference', ''),
+                    quantity=qty,
+                    unit_price=unit_price,
+                    total_price=total_price,
+                )
+
+                # Remettre les articles en stock
+                product_id = item_data.get('product_id')
+                if product_id:
+                    try:
+                        product = Product.objects.select_for_update().get(pk=product_id)
+                        product.stock = (product.stock or 0) + qty
+                        product.save()
+                        avoir_item.product = product
+                        avoir_item.save()
+                    except Product.DoesNotExist:
+                        pass
+
+            avoir.total_amount = total
+            avoir.save()
+
+        return avoir

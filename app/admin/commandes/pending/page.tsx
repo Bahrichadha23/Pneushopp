@@ -440,19 +440,22 @@ export default function PendingOrdersPage() {
                     Frais de livraison (DT)
                   </label>
                   <Input
-                    type="number"
-                    step="0.01"
-                    min="0"
-                    value={confirmation.deliveryCost || 0}
-                    onChange={(e) =>
+                    type="text"
+                    inputMode="decimal"
+                    value={confirmation.deliveryCost === 0 ? "" : String(confirmation.deliveryCost)}
+                    onChange={(e) => {
+                      const val = e.target.value.replace(",", ".");
                       setConfirmation((prev) => ({
                         ...prev,
-                        deliveryCost: parseFloat(e.target.value) || 0,
-                      }))
-                    }
-                    placeholder="0.00"
+                        deliveryCost: val === "" ? 0 : parseFloat(val) || 0,
+                      }));
+                    }}
+                    placeholder="Ex: 15.000"
                     className="w-full"
                   />
+                  <p className="text-xs text-gray-400 mt-1">
+                    Sera ajouté au montant total de la commande et inclus dans la facture.
+                  </p>
                 </div>
               )}
 
@@ -468,7 +471,7 @@ export default function PendingOrdersPage() {
                   onClick={handleConfirm}
                   className={
                     confirmation.action === "approve"
-                      ? "bg-green-500 hover:bg-green-600 text-white"
+                      ? "bg-yellow-500 hover:bg-yellow-600 text-black font-semibold"
                       : "bg-red-500 hover:bg-red-600 text-white"
                   }
                 >

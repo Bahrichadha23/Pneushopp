@@ -34,10 +34,18 @@ export const createPurchaseOrder = async (order: any) => {
     await apiClient.post("/orders/purchase-orders/", payload);
     return { success: true, message: "Bon de commande créé avec succès!" };
   } catch (error: any) {
-    const message =
-      error?.response?.data?.detail ||
-      error?.response?.data?.message ||
-      "Erreur lors de la création du bon de commande";
+    console.error("[PO] Error response:", error?.response?.data);
+    // DRF often returns field-level errors as an object
+    const data = error?.response?.data;
+    let message = "Erreur lors de la création du bon de commande";
+    if (data?.detail) {
+      message = data.detail;
+    } else if (data?.message) {
+      message = data.message;
+    } else if (data && typeof data === "object") {
+      // e.g. { articles: [{ purchase_order: ["This field is required."] }] }
+      message = JSON.stringify(data);
+    }
     return { success: false, message };
   }
 };

@@ -13,15 +13,18 @@ import ExcelJS from 'exceljs';
 export default function OrdersPage() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
+  const [fetchError, setFetchError] = useState("");
   const { user } = useAuth();
   const router = useRouter();
 
   const loadOrders = async () => {
+    setFetchError("");
     try {
       const data = await fetchOrders();
       setOrders(data as unknown as Order[]);
-    } catch (error) {
+    } catch (error: any) {
       console.error("Failed to fetch orders:", error);
+      setFetchError(error?.message || "Erreur de connexion au serveur.");
     } finally {
       setLoading(false);
     }
@@ -252,7 +255,7 @@ export default function OrdersPage() {
             Gérez toutes les commandes de votre boutique
           </p>
         </div>
-        <Button 
+        <Button
           onClick={handleExportToExcel}
           className="flex items-center gap-2"
           variant="outline"
@@ -261,6 +264,13 @@ export default function OrdersPage() {
           Exporter l'historique (Excel)
         </Button>
       </div>
+
+      {fetchError && (
+        <div className="bg-red-50 border border-red-200 text-red-700 rounded-lg px-4 py-3 text-sm flex items-center justify-between">
+          <span>⚠️ Impossible de charger les commandes : <strong>{fetchError}</strong></span>
+          <Button variant="outline" size="sm" onClick={loadOrders} className="ml-4">Réessayer</Button>
+        </div>
+      )}
 
       <OrdersTable
         orders={orders}

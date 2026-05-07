@@ -43,6 +43,15 @@ interface DashboardStatsProps {
 }
 
 export default function DashboardStatsComponent({ stats, analytics }: DashboardStatsProps) {
+  if (!stats) return null
+
+  const getBrandName = (brand: any): string => {
+    if (!brand) return ''
+    if (typeof brand === 'string') return brand
+    if (typeof brand === 'object' && brand.name) return brand.name
+    return String(brand)
+  }
+
   const formatCurrency = (amount: number | string) => {
     const numAmount = typeof amount === 'string' ? parseFloat(amount) : amount
     return new Intl.NumberFormat("fr-FR", {
@@ -151,7 +160,7 @@ export default function DashboardStatsComponent({ stats, analytics }: DashboardS
           </CardHeader>
           <CardContent>
             <div className="space-y-3">
-              {stats.products_by_category.map((category) => (
+              {(stats.products_by_category || []).map((category) => (
                 <div key={category.name} className="flex items-center justify-between">
                   <span className="text-sm font-medium">{category.name}</span>
                   <Badge variant="secondary">{category.product_count}</Badge>
@@ -167,11 +176,11 @@ export default function DashboardStatsComponent({ stats, analytics }: DashboardS
           </CardHeader>
           <CardContent>
             <div className="space-y-3">
-              {stats.top_stock_products.map((product) => (
+              {(stats.top_stock_products || []).map((product) => (
                 <div key={product.id} className="flex items-center justify-between">
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-medium truncate">
-                      {product.brand} {product.name}
+                      {getBrandName(product.brand)} {product.name}
                     </p>
                     <p className="text-xs text-gray-500">
                       {formatCurrency(product.price)}
@@ -188,7 +197,7 @@ export default function DashboardStatsComponent({ stats, analytics }: DashboardS
       </div>
 
       {/* Alertes stock faible */}
-      {stats.low_stock_details.length > 0 && (
+      {(stats.low_stock_details || []).length > 0 && (
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center">
@@ -198,10 +207,10 @@ export default function DashboardStatsComponent({ stats, analytics }: DashboardS
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {stats.low_stock_details.map((product) => (
+              {(stats.low_stock_details || []).map((product) => (
                 <div key={product.id} className="p-3 border rounded-lg bg-orange-50">
                   <div className="flex items-center justify-between mb-2">
-                    <h4 className="font-medium text-sm">{product.brand}</h4>
+                    <h4 className="font-medium text-sm">{getBrandName(product.brand)}</h4>
                     <Badge variant="destructive" className="text-xs">
                       {product.stock} restant
                     </Badge>
@@ -225,19 +234,19 @@ export default function DashboardStatsComponent({ stats, analytics }: DashboardS
             <div className="text-center p-4 bg-blue-50 rounded-lg">
               <p className="text-sm text-gray-600">Prix moyen</p>
               <p className="text-xl font-bold text-blue-600">
-                {formatCurrency(stats.price_stats.avg_price || 0)}
+                {formatCurrency(stats.price_stats?.avg_price || 0)}
               </p>
             </div>
             <div className="text-center p-4 bg-yellow-50 rounded-lg">
               <p className="text-sm text-gray-600">Prix minimum</p>
               <p className="text-xl font-bold text-green-600">
-                {formatCurrency(stats.price_stats.min_price || 0)}
+                {formatCurrency(stats.price_stats?.min_price || 0)}
               </p>
             </div>
             <div className="text-center p-4 bg-purple-50 rounded-lg">
               <p className="text-sm text-gray-600">Prix maximum</p>
               <p className="text-xl font-bold text-purple-600">
-                {formatCurrency(stats.price_stats.max_price || 0)}
+                {formatCurrency(stats.price_stats?.max_price || 0)}
               </p>
             </div>
           </div>

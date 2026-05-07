@@ -127,6 +127,7 @@ export default function BoutiquePage() {
   const categoryFromUrl = searchParams.get("category") || "all";
 
   const [products, setProducts] = useState<Product[]>([]);
+  const [allBrands, setAllBrands] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
@@ -139,7 +140,7 @@ export default function BoutiquePage() {
   const [pagination, setPagination] = useState({
     page: 1,
     total: 0,
-    limit: 20, // number of products per page
+    limit: 20,
   });
 
   const handleCategoryChange = (value: string) => {
@@ -195,6 +196,17 @@ export default function BoutiquePage() {
     }
   };
 
+  // Liste fixe des marques partenaires PneuShop
+  useEffect(() => {
+    setAllBrands([
+      "Alliance", "Amine", "Apollo", "Armour", "Barum", "BFGoodrich",
+      "Bridgestone", "Central Tire", "Continental", "Dayton", "Debica",
+      "Dunlop", "Firestone", "Fulda", "Goodyear", "Hankook", "Kleber",
+      "Lassa", "Laufenn", "Maxxis", "Michelin", "Nexen", "Pirelli",
+      "Semperit", "Tigar", "Waterfall", "Westlake",
+    ]);
+  }, []);
+
   useEffect(() => {
     fetchProducts();
   }, []);
@@ -210,7 +222,8 @@ export default function BoutiquePage() {
       const matchesBrand =
         !brandFilter ||
         brandFilter === "all" ||
-        product.brand.toLowerCase() === brandFilter.toLowerCase();
+        product.brand.toLowerCase().includes(brandFilter.toLowerCase()) ||
+        brandFilter.toLowerCase().includes(product.brand.toLowerCase());
 
       const matchesCategory =
         !categoryFilter ||
@@ -316,11 +329,9 @@ export default function BoutiquePage() {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">Toutes marques</SelectItem>
-                <SelectItem value="continental">Continental</SelectItem>
-                <SelectItem value="kleber">Kleber</SelectItem>
-                <SelectItem value="tigar">Tigar</SelectItem>
-                <SelectItem value="michelin">Michelin</SelectItem>
-                <SelectItem value="bridgestone">Bridgestone</SelectItem>
+                {allBrands.map(brand => (
+                  <SelectItem key={brand} value={brand.toLowerCase()}>{brand}</SelectItem>
+                ))}
               </SelectContent>
             </Select>
 

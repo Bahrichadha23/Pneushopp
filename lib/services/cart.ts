@@ -1,5 +1,6 @@
 // Cart API service
 import { apiClient, API_ENDPOINTS } from '@/lib/api-client'
+// NOTE: the cart-context.tsx uses direct fetch calls — this service mirrors those same endpoints
 import type { Product, CartItem } from '@/types/product'
 
 export interface CartResponse {
@@ -35,7 +36,7 @@ export const cartService = {
   // Add item to cart
   async addToCart(productId: string, quantity: number): Promise<ApiResponse<CartItem>> {
     try {
-      const response = await apiClient.post(API_ENDPOINTS.CART, {
+      const response = await apiClient.post(API_ENDPOINTS.CART_ADD, {
         product_id: productId,
         quantity
       })
@@ -54,7 +55,7 @@ export const cartService = {
   // Update cart item quantity
   async updateCartItem(itemId: string, quantity: number): Promise<ApiResponse<CartItem>> {
     try {
-      const response = await apiClient.patch(API_ENDPOINTS.CART_ITEM(itemId), {
+      const response = await apiClient.put(API_ENDPOINTS.CART_UPDATE(itemId), {
         quantity
       })
       return {
@@ -72,7 +73,7 @@ export const cartService = {
   // Remove item from cart
   async removeFromCart(itemId: string): Promise<ApiResponse<void>> {
     try {
-      await apiClient.delete(API_ENDPOINTS.CART_ITEM(itemId))
+      await apiClient.delete(API_ENDPOINTS.CART_REMOVE(itemId))
       return {
         success: true
       }
@@ -87,7 +88,7 @@ export const cartService = {
   // Clear entire cart
   async clearCart(): Promise<ApiResponse<void>> {
     try {
-      await apiClient.delete(API_ENDPOINTS.CART)
+      await apiClient.delete(API_ENDPOINTS.CART_CLEAR)
       return {
         success: true
       }

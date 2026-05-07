@@ -9,7 +9,8 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from django.core.mail import send_mail
 from django.conf import settings
 from django.contrib.auth.tokens import default_token_generator
-from django.utils.encoding import force_bytes, urlsafe_base64_encode, urlsafe_base64_decode
+from django.utils.encoding import force_bytes
+from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 from django.http import HttpResponse
 
 from .models import CustomUser
@@ -92,7 +93,7 @@ def login_view(request):
     refresh = RefreshToken.for_user(user)
     return Response({
         'refresh': str(refresh),
-        'access_token': str(refresh.access_token),
+        'access': str(refresh.access_token),
         'user': UserSerializer(user).data,
     })
 

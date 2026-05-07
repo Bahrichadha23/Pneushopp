@@ -25,6 +25,7 @@ import {
   Receipt,
   Wallet,
   MessageSquare,
+  RotateCcw,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -88,8 +89,9 @@ const MENU_ADMIN: MenuItem[] = [
     title: "Achats",
     icon: ShoppingCart,
     children: [
-      { title: "Achat", href: "/admin/achats", icon: ShoppingCart },
-      { title: "Bons de commande achat", href: "/admin/achats/commandes", icon: ClipboardList },
+      { title: "Bon de livraison", href: "/admin/achats", icon: ShoppingCart },
+      { title: "Bons de commande", href: "/admin/achats/commandes", icon: ClipboardList },
+      { title: "Avoir", href: "/admin/avoir", icon: RotateCcw },
     ],
   },
   {
@@ -137,8 +139,9 @@ const MENU_PURCHASING: MenuItem[] = [
     title: "Achats",
     icon: ShoppingCart,
     children: [
-      { title: "Achat", href: "/admin/achats", icon: ShoppingCart },
-      { title: "Bons de commande achat", href: "/admin/achats/commandes", icon: ClipboardList },
+      { title: "Bon de livraison", href: "/admin/achats", icon: ShoppingCart },
+      { title: "Bons de commande", href: "/admin/achats/commandes", icon: ClipboardList },
+      { title: "Avoir", href: "/admin/avoir", icon: RotateCcw },
     ],
   },
   { title: "Support", href: "/admin/communication", icon: MessageSquare },

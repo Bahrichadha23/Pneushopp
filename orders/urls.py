@@ -11,5 +11,8 @@ urlpatterns = [
     path('cri-balance/', views.get_cri_balance, name='cri-balance'),
     path('<int:pk>/', views.OrderDetailView.as_view(), name='order-detail'),
     path('<int:pk>/upload-payment-image/', views.upload_payment_image, name='upload-payment-image'),
+    path('avoirs/', views.AvoirListCreateView.as_view(), name='avoir-list'),
+    path('avoirs/search/', views.search_order_for_avoir, name='avoir-search'),
+    path('avoirs/<int:pk>/', views.AvoirDetailView.as_view(), name='avoir-detail'),
     path('', include(router.urls)),
 ]

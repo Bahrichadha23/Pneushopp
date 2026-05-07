@@ -45,12 +45,10 @@ export default function ContactPage() {
         "service_6b0lqyh", // Service ID
         "template_hfmwxsl", // Template ID
         {
-          nom: formData.nom,
-          prenom: formData.prenom,
-          email: formData.email,
-          telephone: formData.telephone,
-          sujet: formData.sujet,
-          message: formData.message,
+          name: `${formData.nom} ${formData.prenom}`,  // {{name}} dans le template
+          title: formData.sujet,                        // {{title}} dans le template
+          email: formData.email,                        // {{email}} dans le template
+          message: `Téléphone: ${formData.telephone}\n\n${formData.message}`, // {{message}} dans le template
         },
         "DYXz6yVXm8PzEU-2S" // Public Key
       )
