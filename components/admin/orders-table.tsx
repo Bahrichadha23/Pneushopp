@@ -69,56 +69,56 @@ export async function handleDownloadInvoice(order: any) {
   // === Header ===
   const addHeader = () => {
     pdf.setFont("helvetica", "bold");
-    pdf.setFontSize(14);
+    pdf.setFontSize(11);
     pdf.text(`FACTURE FPS${order.orderNumber?.replace(/^CPS/, '') || ""}`, margin, y);
-    pdf.setFontSize(10);
+    pdf.setFontSize(8);
     pdf.text(
       ` ${new Date(order.createdAt).toLocaleDateString("fr-FR")}`,
       margin,
-      y + 6
+      y + 5
     );
 
     // Client box (rounded)
-    const boxX = pageWidth - 70;
-    const boxY = y - 15; // aligned to 3-inch top margin, slightly above FACTURE title
-    const boxW = 60;
+    const boxX = pageWidth - 68;
+    const boxY = y - 12;
+    const boxW = 58;
     const hasWarranty = !!order.warrantyInfo?.accepted;
-    const boxH = hasWarranty ? 50 : 40; // extra row for warranty badge
+    const boxH = hasWarranty ? 44 : 36;
     pdf.roundedRect(boxX, boxY, boxW, boxH, 3, 3, "S");
 
-    pdf.setFontSize(10);
+    pdf.setFontSize(8);
     pdf.setFont("helvetica", "bold");
-    pdf.text("Client", boxX + 2, boxY + 6);
+    pdf.text("Client", boxX + 2, boxY + 5);
 
     pdf.setFont("helvetica", "normal");
-    pdf.text(order.customerName || "-", boxX + 20, boxY + 6);
-    pdf.text(`Id. Fiscale : ${order.id || "-"}`, boxX + 2, boxY + 12);
-    pdf.text(`Tel : ${order.customerPhone || "-"}`, boxX + 2, boxY + 18);
+    pdf.text(order.customerName || "-", boxX + 18, boxY + 5);
+    pdf.text(`Id. Fiscale : ${order.id || "-"}`, boxX + 2, boxY + 10);
+    pdf.text(`Tel : ${order.customerPhone || "-"}`, boxX + 2, boxY + 15);
     pdf.text(
       `Matricule : ${order.warrantyInfo?.vehicleRegistration || "-"}`,
       boxX + 2,
-      boxY + 24
+      boxY + 20
     );
     pdf.text(
       `Kilométrage: ${order.warrantyInfo?.vehicleMileage || "-"}`,
       boxX + 2,
-      boxY + 30
+      boxY + 25
     );
 
     // Warranty badge at the bottom of the client box
     if (hasWarranty) {
-      // Light grey fill behind the badge
       pdf.setFillColor(220, 220, 220);
-      pdf.roundedRect(boxX + 2, boxY + 34, boxW - 4, 10, 2, 2, "F");
+      pdf.roundedRect(boxX + 2, boxY + 29, boxW - 4, 9, 2, 2, "F");
       pdf.setFont("helvetica", "bold");
-      pdf.setFontSize(9);
+      pdf.setFontSize(7);
       pdf.setTextColor(0, 0, 0);
-      pdf.text("AVEC GARANTIE", boxX + boxW / 2, boxY + 41, { align: "center" });
-      pdf.setFontSize(10);
+      pdf.text("AVEC GARANTIE", boxX + boxW / 2, boxY + 35, { align: "center" });
+      pdf.setFontSize(8);
       pdf.setTextColor(0, 0, 0);
     }
+    pdf.setFontSize(7);
     pdf.text(`Page ${page}`, margin, pageHeight - 10);
-    y += 35;
+    y += 30;
     pdf.setFont("helvetica", "bold");
   };
 
@@ -139,7 +139,7 @@ export async function handleDownloadInvoice(order: any) {
   const drawTableHeader = () => {
     let x = margin;
     pdf.setFont("helvetica", "bold");
-    pdf.setFontSize(9);
+    pdf.setFontSize(7.5);
     headers.forEach((h) => {
       pdf.text(h.text, x + 2, y);
       drawCell(x, y - 5, h.width, 8, {
@@ -155,6 +155,7 @@ export async function handleDownloadInvoice(order: any) {
 
   drawTableHeader();
   pdf.setFont("helvetica", "normal");
+  pdf.setFontSize(7.5);
 
   // === Table Rows ===
   let totalHT = 0,
