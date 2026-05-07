@@ -118,7 +118,9 @@ export async function handleDownloadInvoice(order: any) {
     }
     pdf.setFontSize(7);
     pdf.text(`Page ${page}`, margin, pageHeight - 10);
-    y += 30;
+    // Ensure table starts AFTER the client box (boxY + boxH + margin)
+    const boxBottom = boxY + boxH + 8;
+    y = Math.max(y + 30, boxBottom);
     pdf.setFont("helvetica", "bold");
   };
 
