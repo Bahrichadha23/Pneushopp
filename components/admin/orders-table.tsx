@@ -828,6 +828,7 @@ export default function OrdersTable({
                       <strong>Méthode de paiement:</strong>{" "}
                       {({
                         card: "Carte bancaire",
+                        especes: "Espèces",
                         bank_transfer: "Virement bancaire",
                         cash_on_delivery: "TPE à la livraison",
                         cri: "CRI",

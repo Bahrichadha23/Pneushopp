@@ -9,7 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
 import type { PaymentMethod } from "@/types/order";
-import { CreditCard, Building, Truck, Receipt } from "lucide-react";
+import { CreditCard, Building, Truck, Receipt, Banknote } from "lucide-react";
 import { API_URL } from "@/lib/config";
 
 const BANK_OPTIONS = [
@@ -40,6 +40,7 @@ interface PaymentFormProps {
 
 const ALL_PAYMENT_TYPES = [
   { id: "card", label: "Carte bancaire", Icon: CreditCard, disabled: true },
+  { id: "especes", label: "Espèces", Icon: Banknote },
   { id: "bank_transfer", label: "Virement bancaire", Icon: Building },
   { id: "cash_on_delivery", label: "Paiement à la livraison (TPE)", Icon: Truck },
   { id: "cri", label: "Paiement CRI", Icon: Receipt },
@@ -95,6 +96,8 @@ export function PaymentForm({ onSubmit, onBack, totalPrice }: PaymentFormProps) 
   const [cashOnDeliveryMontantInput, setCashOnDeliveryMontantInput] = useState("");
   const [cashOnDeliveryRemarque, setCashOnDeliveryRemarque] = useState("");
   const [cashOnDeliveryBankName, setCashOnDeliveryBankName] = useState("");
+  const [especesMontantInput, setEspecesMontantInput] = useState("");
+  const [especesRemarque, setEspecesRemarque] = useState("");
   const [criImage, setCriImage] = useState<File | null>(null);
   const [criImagePreview, setCriImagePreview] = useState("");
 
@@ -107,13 +110,16 @@ export function PaymentForm({ onSubmit, onBack, totalPrice }: PaymentFormProps) 
   const chequeMontantNum = Math.min(Math.max(parseAmount(chequeMontantInput), 0), totalPrice);
   const cashOnDeliveryMontantNum = Math.min(Math.max(parseAmount(cashOnDeliveryMontantInput), 0), totalPrice);
 
+  const especesMontantNum = Math.min(Math.max(parseAmount(especesMontantInput), 0), totalPrice);
+
   // Combined total across all selected methods (for balance display)
   const totalEnteredAllMethods =
     (isSelected("bank_transfer") ? bankMontantNum : 0) +
     (isSelected("cri") ? criMontantNum : 0) +
     (isSelected("lettre_de_change") ? lettreMontantNum : 0) +
     (isSelected("cheque") ? chequeMontantNum : 0) +
-    (isSelected("cash_on_delivery") ? cashOnDeliveryMontantNum : 0);
+    (isSelected("cash_on_delivery") ? cashOnDeliveryMontantNum : 0) +
+    (isSelected("especes") ? especesMontantNum : 0);
 
   const globalReste = Math.max(totalPrice - totalEnteredAllMethods, 0);
 
@@ -177,6 +183,12 @@ export function PaymentForm({ onSubmit, onBack, totalPrice }: PaymentFormProps) 
   }, [selectedTypes, totalPrice]);
 
   useEffect(() => {
+    if (isSelected("especes") && especesMontantInput === "") {
+      setEspecesMontantInput(formatAmount(initAmountFor("especes", totalPrice)));
+    }
+  }, [selectedTypes, totalPrice]);
+
+  useEffect(() => {
     if (!criImage) { setCriImagePreview(""); return; }
     const url = URL.createObjectURL(criImage);
     setCriImagePreview(url);
@@ -218,6 +230,7 @@ export function PaymentForm({ onSubmit, onBack, totalPrice }: PaymentFormProps) 
       ...(!isMixed && isSelected("lettre_de_change") ? { montant: lettreMontantNum, reste: Math.max(totalPrice - lettreMontantNum, 0) } : {}),
       ...(!isMixed && isSelected("cheque") ? { montant: chequeMontantNum, reste: Math.max(totalPrice - chequeMontantNum, 0) } : {}),
       ...(!isMixed && isSelected("cash_on_delivery") ? { montant: cashOnDeliveryMontantNum, reste: Math.max(totalPrice - cashOnDeliveryMontantNum, 0) } : {}),
+      ...(!isMixed && isSelected("especes") ? { montant: especesMontantNum, reste: Math.max(totalPrice - especesMontantNum, 0) } : {}),
 
       // Per-method private amounts (for multi-modal & order-context)
       _criMontant: isSelected("cri") ? criMontantNum : 0,
@@ -230,6 +243,8 @@ export function PaymentForm({ onSubmit, onBack, totalPrice }: PaymentFormProps) 
       _chequeReste: isSelected("cheque") ? Math.max(totalPrice - chequeMontantNum, 0) : 0,
       _codMontant: isSelected("cash_on_delivery") ? cashOnDeliveryMontantNum : 0,
       _codReste: isSelected("cash_on_delivery") ? Math.max(totalPrice - cashOnDeliveryMontantNum, 0) : 0,
+      _especesMontant: isSelected("especes") ? especesMontantNum : 0,
+      _especesReste: isSelected("especes") ? Math.max(totalPrice - especesMontantNum, 0) : 0,
 
       // Card
       ...(isSelected("card") ? cardData : {}),
@@ -280,6 +295,9 @@ export function PaymentForm({ onSubmit, onBack, totalPrice }: PaymentFormProps) 
         codRemarque: cashOnDeliveryRemarque || undefined,
         codBankName: cashOnDeliveryBankName || undefined,
       } : {}),
+      ...(isSelected("especes") ? {
+        especesRemarque: especesRemarque || undefined,
+      } : {}),
     };
 
     onSubmit(pm as PaymentMethod, acceptWarranty);
@@ -291,8 +309,12 @@ export function PaymentForm({ onSubmit, onBack, totalPrice }: PaymentFormProps) 
       return;
     }
     // Limite espèces à 4999 DT
-    if (isSelected("cash_on_delivery") && cashOnDeliveryMontantNum > 4999) {
+    if (isSelected("especes") && especesMontantNum > 4999) {
       alert("Le paiement en espèces est limité à 4 999 DT. Veuillez choisir un autre mode de paiement pour le montant excédentaire.");
+      return;
+    }
+    if (isSelected("cash_on_delivery") && cashOnDeliveryMontantNum > 4999) {
+      alert("Le paiement en espèces (TPE) est limité à 4 999 DT. Veuillez choisir un autre mode de paiement pour le montant excédentaire.");
       return;
     }
     // Image obligatoire pour CRI
@@ -436,6 +458,49 @@ export function PaymentForm({ onSubmit, onBack, totalPrice }: PaymentFormProps) 
                   onChange={(e) => setCardData((prev) => ({ ...prev, holderName: e.target.value }))}
                   required
                 />
+              </div>
+            </div>
+          )}
+
+          {/* ── Espèces fields ── */}
+          {isSelected("especes") && (
+            <div className="space-y-4 p-4 bg-green-50 rounded-lg border border-green-200">
+              <h3 className="font-semibold text-green-800">💵 Paiement : ESPÈCES</h3>
+              <div className="grid grid-cols-3 gap-4">
+                <div>
+                  <Label className="text-sm font-semibold">Total</Label>
+                  <div className="mt-1 flex">
+                    <Input readOnly value={formatAmount(totalPrice)} className="rounded-r-none bg-white" />
+                    <span className="inline-flex items-center px-3 border border-l-0 rounded-r-md bg-gray-100 text-sm text-gray-600">DT</span>
+                  </div>
+                </div>
+                <div>
+                  <Label className="text-sm font-semibold text-red-700">Reste</Label>
+                  <div className="mt-1 flex">
+                    <Input readOnly value={formatAmount(globalReste)} className="rounded-r-none border-red-200 bg-red-50" />
+                    <span className="inline-flex items-center px-3 border border-l-0 rounded-r-md bg-red-100 text-sm text-red-700 border-red-200">DT</span>
+                  </div>
+                </div>
+                <div>
+                  <Label className="text-sm font-semibold text-green-700">Montant reçu</Label>
+                  <div className="mt-1 flex">
+                    <Input
+                      type="text" inputMode="decimal" placeholder="0,00"
+                      value={especesMontantInput}
+                      onChange={(e) => {
+                        const v = parseAmount(e.target.value);
+                        if (v > totalPrice) { setEspecesMontantInput(formatAmount(totalPrice)); return; }
+                        setEspecesMontantInput(e.target.value);
+                      }}
+                      className="rounded-r-none border-green-200 bg-green-50"
+                    />
+                    <span className="inline-flex items-center px-3 border border-l-0 rounded-r-md bg-green-100 text-sm text-green-700 border-green-200">DT</span>
+                  </div>
+                </div>
+              </div>
+              <div>
+                <Label className="text-sm font-semibold">Remarque</Label>
+                <Textarea className="mt-1 resize-y" rows={2} placeholder="Ajouter une remarque..." value={especesRemarque} onChange={(e) => setEspecesRemarque(e.target.value)} />
               </div>
             </div>
           )}
