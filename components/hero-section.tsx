@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Volume2, VolumeX } from "lucide-react";
 
 export default function HeroSection() {
@@ -8,11 +8,27 @@ export default function HeroSection() {
   const videoRef1 = useRef<HTMLVideoElement>(null);
   const videoRef2 = useRef<HTMLVideoElement>(null);
 
+  // S'assurer que les vidéos démarrent bien muettes (autoplay exige muted)
+  useEffect(() => {
+    [videoRef1, videoRef2].forEach(ref => {
+      if (ref.current) {
+        ref.current.muted = true;
+        ref.current.volume = 1;
+      }
+    });
+  }, []);
+
   const toggleMute = () => {
     const newMuted = !isMuted;
-    // Appliquer directement sur le DOM — React ne re-applique pas muted après le premier render
-    if (videoRef1.current) videoRef1.current.muted = newMuted;
-    if (videoRef2.current) videoRef2.current.muted = newMuted;
+    [videoRef1, videoRef2].forEach(ref => {
+      if (!ref.current) return;
+      ref.current.muted = newMuted;
+      ref.current.volume = 1;
+      // Relancer la lecture pour débloquer l'audio (politique navigateur)
+      if (!newMuted) {
+        ref.current.play().catch(() => {});
+      }
+    });
     setIsMuted(newMuted);
   };
 
