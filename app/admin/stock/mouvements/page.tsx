@@ -19,8 +19,8 @@ export default function StockMovementsPage() {
     return null;
   }
   const handleAddMovement = async (
-    movementData: Omit<StockMovement, "id" | "createdAt" | "createdBy">
-  ) => {
+    movementData: Omit<StockMovement, "id" | "createdAt">
+  ): Promise<void> => {
     try {
       const response = await fetch(`${API_URL}/admin/stock-movements/`, {
         method: "POST",
