@@ -87,7 +87,9 @@ export default function ProductDetailsPage() {
             diameter: 17,
             loadIndex: 91,
             speedRating: "W",
-            season: data.season,
+            season: data.season_display || ({
+              summer: "Été", winter: "Hiver", all_season: "Toutes saisons",
+            } as Record<string, string>)[data.season] || data.season || "",
             specialty: "tourisme",
           },
           stock: data.stock,

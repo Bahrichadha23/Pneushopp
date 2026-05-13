@@ -129,7 +129,7 @@ export default function PendingOrdersPage() {
     setConfirmation({
       isOpen: true,
       orderId: numericId,
-      orderName,
+      orderName: orderName || `#${numericId}`,
       action: "approve",
     });
   };
@@ -138,7 +138,7 @@ export default function PendingOrdersPage() {
     setConfirmation({
       isOpen: true,
       orderId: numericId,
-      orderName,
+      orderName: orderName || `#${numericId}`,
       action: "reject",
     });
   };

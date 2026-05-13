@@ -98,8 +98,11 @@ export default function ProductCard({
                 product.specifications.speedRating}
             </p>
             <p className="text-xs text-gray-500 capitalize">
-              {product.specifications.season.replace("-", " ")} •{" "}
-              {product.brand}
+              {(({
+                summer: "Été", winter: "Hiver", all_season: "Toutes saisons",
+                "été": "Été", "hiver": "Hiver", "toutes-saisons": "Toutes saisons",
+              } as Record<string, string>)[product.specifications.season] || product.specifications.season || "")}
+              {product.specifications.season ? " • " : ""}{product.brand}
             </p>
           </div>
 

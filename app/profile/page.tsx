@@ -221,7 +221,7 @@ export default function UserProfile() {
                 : "bg-blue-100 text-blue-600"
             }`}
           >
-            {user.role === "admin" ? "Administrateur" : "Client"}
+            {({"admin":"Administrateur","purchasing":"Responsable Achat","sales":"Responsable Vente"} as Record<string,string>)[user.role] ?? "Client"}
           </span>
           <div className="space-y-2">
             <p>
