@@ -25,8 +25,8 @@ import {
   Receipt,
   Wallet,
   MessageSquare,
-  RotateCcw,
   Tag,
+  RotateCcw,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -60,6 +60,7 @@ const MENU_ADMIN: MenuItem[] = [
       { title: "Bons de commande", href: "/admin/bons-commande", icon: FileText },
       { title: "Factures", href: "/admin/factures", icon: Receipt },
       { title: "Livraisons", href: "/admin/livraisons", icon: Truck },
+      { title: "Avoirs / Retours", href: "/admin/avoir", icon: RotateCcw },
     ],
   },
   {
@@ -91,9 +92,8 @@ const MENU_ADMIN: MenuItem[] = [
     title: "Achats",
     icon: ShoppingCart,
     children: [
-      { title: "Bon de livraison", href: "/admin/achats", icon: ShoppingCart },
-      { title: "Bons de commande", href: "/admin/achats/commandes", icon: ClipboardList },
-      { title: "Avoir", href: "/admin/avoir", icon: RotateCcw },
+      { title: "Achat", href: "/admin/achats", icon: ShoppingCart },
+      { title: "Bons de commande achat", href: "/admin/achats/commandes", icon: ClipboardList },
     ],
   },
   {
@@ -120,7 +120,6 @@ const MENU_PURCHASING: MenuItem[] = [
       { title: "Catalogue produits", href: "/admin/produits", icon: Package },
       { title: "Gestion stock", href: "/admin/stock", icon: Store },
       { title: "Mouvements stock", href: "/admin/stock/mouvements", icon: TrendingUp },
-      { title: "Promotions", href: "/admin/promotions", icon: Tag },
     ],
   },
   {
@@ -142,15 +141,15 @@ const MENU_PURCHASING: MenuItem[] = [
     title: "Achats",
     icon: ShoppingCart,
     children: [
-      { title: "Bon de livraison", href: "/admin/achats", icon: ShoppingCart },
-      { title: "Bons de commande", href: "/admin/achats/commandes", icon: ClipboardList },
-      { title: "Avoir", href: "/admin/avoir", icon: RotateCcw },
+      { title: "Achat", href: "/admin/achats", icon: ShoppingCart },
+      { title: "Bons de commande achat", href: "/admin/achats/commandes", icon: ClipboardList },
     ],
   },
   { title: "Support", href: "/admin/communication", icon: MessageSquare },
 ];
 
 /** Responsable Vente : tout ce qui concerne les ventes */
+
 const MENU_SALES: MenuItem[] = [
   { title: "Tableau de bord", href: "/admin", icon: LayoutDashboard },
   {
@@ -164,6 +163,15 @@ const MENU_SALES: MenuItem[] = [
       { title: "Bons de commande", href: "/admin/bons-commande", icon: FileText },
       { title: "Factures", href: "/admin/factures", icon: Receipt },
       { title: "Livraisons", href: "/admin/livraisons", icon: Truck },
+      { title: "Avoirs / Retours", href: "/admin/avoir", icon: RotateCcw },
+    ],
+  },
+  {
+    title: "Produits",
+    icon: Package,
+    children: [
+      { title: "Catalogue produits", href: "/admin/produits", icon: Package },
+      { title: "Promotions", href: "/admin/promotions", icon: Tag },
     ],
   },
   {
@@ -173,7 +181,6 @@ const MENU_SALES: MenuItem[] = [
       { title: "Trésorerie Vente", href: "/admin/tresorerie", icon: Receipt },
     ],
   },
-  { title: "Promotions", href: "/admin/promotions", icon: Tag },
   { title: "Clients", href: "/admin/clients", icon: Users },
   { title: "Support", href: "/admin/communication", icon: MessageSquare },
 ];

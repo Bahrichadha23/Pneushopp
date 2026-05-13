@@ -1,528 +1,456 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Settings, Store, Bell, Shield, Database, Users, Loader2 } from "lucide-react";
+import {
+  Settings, Store, Bell, Shield, Database, Users,
+  Loader2, Check, Phone, Mail, MapPin, Clock,
+  FileDown, RotateCcw, AlertTriangle,
+} from "lucide-react";
 import { API_URL } from "@/lib/config";
 import { useAuth } from "@/contexts/auth-context";
 import { useRouter } from "next/navigation";
 
+type Tab = "boutique" | "notifications" | "securite" | "systeme";
+
+const TABS: { id: Tab; label: string; icon: React.ComponentType<any> }[] = [
+  { id: "boutique",       label: "Boutique",       icon: Store },
+  { id: "notifications",  label: "Notifications",  icon: Bell },
+  { id: "securite",       label: "Sécurité",        icon: Shield },
+  { id: "systeme",        label: "Système",         icon: Database },
+];
+
 export default function ParametresPage() {
   const [parametres, setParametres] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
-  const [activeTab, setActiveTab] = useState("boutique");
+  const [loading, setLoading]       = useState(true);
+  const [saving, setSaving]         = useState(false);
+  const [toast, setToast]           = useState<{ msg: string; ok: boolean } | null>(null);
+  const [activeTab, setActiveTab]   = useState<Tab>("boutique");
   const { user } = useAuth();
-  const router = useRouter();
+  const router   = useRouter();
 
-  // Only allow admin
-  if (user && user.role !== "admin") {
-    router.push("/admin"); // or show "Access Denied"
-    return null;
-  }
-  // Fetch settings from backend
   useEffect(() => {
-    const fetchSettings = async () => {
+    if (user && user.role !== "admin") router.push("/admin");
+  }, [user]);
+
+  const showToast = (msg: string, ok = true) => {
+    setToast({ msg, ok });
+    setTimeout(() => setToast(null), 3500);
+  };
+
+  // Fetch settings
+  useEffect(() => {
+    const load = async () => {
       try {
         const token = localStorage.getItem("access_token");
-        const response = await fetch(`${API_URL}/products/site-settings/`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
+        const res = await fetch(`${API_URL}/products/site-settings/`, {
+          headers: { Authorization: `Bearer ${token}` },
         });
-
-        if (response.ok) {
-          const data = await response.json();
-          // Transform backend data to frontend format
+        if (res.ok) {
+          const d = await res.json();
           setParametres({
             boutique: {
-              nom: data.nom_boutique,
-              description: data.description,
-              adresse: data.adresse,
-              telephone: data.telephone,
-              email: data.email,
-              horaires: data.horaires,
+              nom:         d.nom_boutique   || "",
+              description: d.description    || "",
+              adresse:     d.adresse        || "",
+              telephone:   d.telephone      || "",
+              email:       d.email          || "",
+              horaires:    d.horaires       || "",
             },
             notifications: {
-              emailCommandes: data.email_commandes,
-              emailStock: data.email_stock,
+              emailCommandes: d.email_commandes ?? true,
+              emailStock:     d.email_stock     ?? true,
             },
             securite: {
-              sessionTimeout: data.session_timeout,
-              motDePasseForce: data.mot_de_passe_force,
-              journalisation: data.journalisation,
+              sessionTimeout:  d.session_timeout   || 60,
+              motDePasseForce: d.mot_de_passe_force ?? false,
+              journalisation:  d.journalisation     ?? false,
             },
             systeme: {
-              maintenanceMode: data.maintenance_mode,
-              sauvegaudeAuto: data.sauvegarde_auto,
-              languePrincipale: data.langue_principale,
+              maintenanceMode: d.maintenance_mode  ?? false,
+              sauvegaudeAuto:  d.sauvegarde_auto   ?? false,
+              languePrincipale: d.langue_principale || "fr",
             },
           });
         }
-      } catch (error) {
-        console.error("Error fetching settings:", error);
-      } finally {
-        setLoading(false);
-      }
+      } catch {}
+      finally { setLoading(false); }
     };
-
-    fetchSettings();
+    load();
   }, []);
 
-  // Handle database backup
-  const handleBackup = async () => {
-    try {
-      const token = localStorage.getItem("access_token");
-      const response = await fetch(`${API_URL}/admin/backup/`, {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-      });
-
-      if (response.ok) {
-        // Create download link
-        const blob = await response.blob();
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement("a");
-        a.style.display = "none";
-        a.href = url;
-        a.download = `backup_${new Date()
-          .toISOString()
-          .slice(0, 19)
-          .replace(/:/g, "-")}.json`;
-        document.body.appendChild(a);
-        a.click();
-        window.URL.revokeObjectURL(url);
-        document.body.removeChild(a);
-        console.log("Sauvegarde téléchargée avec succès !");
-      } else {
-        console.error("Erreur lors de la création de la sauvegarde");
-      }
-    } catch (error) {
-      console.error("Backup error:", error);
-      console.error("Erreur lors de la création de la sauvegarde");
-    }
-  };
-
-  // Handle customer data export
-  const handleExportCustomers = async () => {
-    try {
-      const token = localStorage.getItem("access_token");
-      const response = await fetch(`${API_URL}/admin/export-customers/`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-      });
-      console.log("Export response:", response);
-      if (response.ok) {
-        // Create download link
-        const blob = await response.blob();
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement("a");
-        a.style.display = "none";
-        a.href = url;
-        a.download = `customers_export_${new Date()
-          .toISOString()
-          .slice(0, 19)
-          .replace(/:/g, "-")}.csv`;
-        document.body.appendChild(a);
-        a.click();
-        window.URL.revokeObjectURL(url);
-        document.body.removeChild(a);
-        console.log("Données clients exportées avec succès !");
-      } else {
-        console.error("Erreur lors de l'export des données clients");
-      }
-    } catch (error) {
-      console.error("Export error:", error);
-      console.error("Erreur lors de l'export des données clients");
-    }
-  };
   const handleSave = async () => {
     if (!parametres) return;
-
     setSaving(true);
     try {
       const token = localStorage.getItem("access_token");
-      // Transform frontend data to backend format
-      const backendData = {
-        nom_boutique: parametres.boutique.nom,
-        description: parametres.boutique.description,
-        adresse: parametres.boutique.adresse,
-        telephone: parametres.boutique.telephone,
-        email: parametres.boutique.email,
-        horaires: parametres.boutique.horaires,
-        email_commandes: parametres.notifications.emailCommandes,
-        email_stock: parametres.notifications.emailStock,
-        session_timeout: parametres.securite.sessionTimeout,
+      const body = {
+        nom_boutique:       parametres.boutique.nom,
+        description:        parametres.boutique.description,
+        adresse:            parametres.boutique.adresse,
+        telephone:          parametres.boutique.telephone,
+        email:              parametres.boutique.email,
+        horaires:           parametres.boutique.horaires,
+        email_commandes:    parametres.notifications.emailCommandes,
+        email_stock:        parametres.notifications.emailStock,
+        session_timeout:    parametres.securite.sessionTimeout,
         mot_de_passe_force: parametres.securite.motDePasseForce,
-        journalisation: parametres.securite.journalisation,
-        maintenance_mode: parametres.systeme.maintenanceMode,
-        sauvegarde_auto: parametres.systeme.sauvegaudeAuto,
-        langue_principale: parametres.systeme.languePrincipale,
+        journalisation:     parametres.securite.journalisation,
+        maintenance_mode:   parametres.systeme.maintenanceMode,
+        sauvegarde_auto:    parametres.systeme.sauvegaudeAuto,
+        langue_principale:  parametres.systeme.languePrincipale,
       };
-
-      const response = await fetch(`${API_URL}/products/site-settings/`, {
+      const res = await fetch(`${API_URL}/products/site-settings/`, {
         method: "PUT",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(backendData),
+        headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+        body: JSON.stringify(body),
       });
-
-      if (response.ok) {
-        console.log("Paramètres sauvegardés avec succès !");
-      } else {
-        alert("Erreur lors de la sauvegarde");
-      }
-    } catch (error) {
-      console.error("Error saving settings:", error);
-      alert("Erreur lors de la sauvegarde");
-    } finally {
-      setSaving(false);
-    }
+      if (res.ok) showToast("Paramètres enregistrés avec succès.");
+      else showToast("Erreur lors de la sauvegarde.", false);
+    } catch { showToast("Erreur de connexion.", false); }
+    finally { setSaving(false); }
   };
-  // Save settings to backend
 
+  const handleBackup = async () => {
+    try {
+      const token = localStorage.getItem("access_token");
+      const res = await fetch(`${API_URL}/admin/backup/`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (res.ok) {
+        const blob = await res.blob();
+        const url  = URL.createObjectURL(blob);
+        const a    = document.createElement("a");
+        a.href     = url;
+        a.download = `backup_${new Date().toISOString().slice(0,19).replace(/:/g,"-")}.json`;
+        a.click();
+        URL.revokeObjectURL(url);
+        showToast("Sauvegarde téléchargée.");
+      } else showToast("Sauvegarde indisponible.", false);
+    } catch { showToast("Erreur de connexion.", false); }
+  };
+
+  const handleExportCustomers = async () => {
+    try {
+      const token = localStorage.getItem("access_token");
+      const res = await fetch(`${API_URL}/admin/export-customers/`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (res.ok) {
+        const blob = await res.blob();
+        const url  = URL.createObjectURL(blob);
+        const a    = document.createElement("a");
+        a.href     = url;
+        a.download = `clients_${new Date().toISOString().slice(0,10)}.csv`;
+        a.click();
+        URL.revokeObjectURL(url);
+        showToast("Export clients téléchargé.");
+      } else showToast("Export indisponible.", false);
+    } catch { showToast("Erreur de connexion.", false); }
+  };
+
+  // ── Loading / error ──────────────────────────────────────────────────────────
   if (loading) {
     return (
-      <div className="flex justify-center items-center h-64">Chargement...</div>
+      <div className="flex h-64 items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-gray-400" />
+      </div>
     );
   }
-
   if (!parametres) {
     return (
-      <div className="flex justify-center items-center h-64">
-        Erreur de chargement
+      <div className="flex h-64 flex-col items-center justify-center gap-3 text-gray-500">
+        <AlertTriangle className="h-8 w-8 text-red-400" />
+        Impossible de charger les paramètres
       </div>
     );
   }
 
-  // Helper function to render switches
-  const renderSwitch = (
-    label: string,
-    description: string,
-    checked: boolean,
-    onChange: (val: boolean) => void
-  ) => (
-    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-0 p-4 border rounded-md bg-gray-50">
+  // ── Helpers ──────────────────────────────────────────────────────────────────
+  const setB = (key: string, val: any) =>
+    setParametres((p: any) => ({ ...p, boutique:       { ...p.boutique,       [key]: val } }));
+  const setN = (key: string, val: any) =>
+    setParametres((p: any) => ({ ...p, notifications:  { ...p.notifications,  [key]: val } }));
+  const setS = (key: string, val: any) =>
+    setParametres((p: any) => ({ ...p, securite:       { ...p.securite,       [key]: val } }));
+  const setSy = (key: string, val: any) =>
+    setParametres((p: any) => ({ ...p, systeme:        { ...p.systeme,        [key]: val } }));
+
+  const ToggleRow = ({
+    label, desc, checked, onChange,
+  }: { label: string; desc: string; checked: boolean; onChange: (v: boolean) => void }) => (
+    <div className="flex items-center justify-between rounded-xl border border-gray-100 bg-gray-50 px-5 py-4">
       <div>
-        <Label className="text-base font-medium">{label}</Label>
-        <p className="text-sm text-gray-500">{description}</p>
+        <p className="text-sm font-semibold text-gray-800">{label}</p>
+        <p className="text-xs text-gray-500 mt-0.5">{desc}</p>
       </div>
       <Switch checked={checked} onCheckedChange={onChange} />
     </div>
   );
 
+  const Field = ({
+    id, label, icon: Icon, children,
+  }: { id: string; label: string; icon?: React.ComponentType<any>; children: React.ReactNode }) => (
+    <div className="space-y-1.5">
+      <Label htmlFor={id} className="text-sm font-medium text-gray-700 flex items-center gap-1.5">
+        {Icon && <Icon className="h-3.5 w-3.5 text-gray-400" />}
+        {label}
+      </Label>
+      {children}
+    </div>
+  );
+
   return (
-    <div className="space-y-8 p-6 md:p-12">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-        <h1 className="text-3xl font-bold text-gray-900">Paramètres système</h1>
-        <Button onClick={handleSave} disabled={saving} className="flex items-center px-4 py-2">
-          {saving ? (
-            <Loader2 className="h-5 w-5 mr-2 animate-spin" />
-          ) : (
-            <Settings className="h-5 w-5 mr-2" />
-          )}
-          {saving ? "Sauvegarde..." : "Sauvegarder"}
-        </Button>
+    <div className="min-h-screen bg-gray-50">
+      {/* Toast */}
+      {toast && (
+        <div className={`fixed top-4 right-4 z-50 flex items-center gap-2 rounded-lg px-5 py-3 text-sm font-medium shadow-lg text-white transition-all
+          ${toast.ok ? "bg-green-600" : "bg-red-600"}`}>
+          {toast.ok ? <Check className="h-4 w-4" /> : <AlertTriangle className="h-4 w-4" />}
+          {toast.msg}
+        </div>
+      )}
+
+      {/* Page header */}
+      <div className="border-b bg-white px-8 py-6">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900">Paramètres</h1>
+            <p className="text-sm text-gray-500 mt-0.5">Configuration générale de la boutique</p>
+          </div>
+          <Button
+            onClick={handleSave}
+            disabled={saving}
+            className="bg-gray-900 text-white hover:bg-gray-800 gap-2 px-5"
+          >
+            {saving
+              ? <><Loader2 className="h-4 w-4 animate-spin" /> Enregistrement…</>
+              : <><Check className="h-4 w-4" /> Enregistrer</>}
+          </Button>
+        </div>
+
+        {/* Tab navigation */}
+        <div className="mt-6 flex gap-1">
+          {TABS.map(({ id, label, icon: Icon }) => (
+            <button
+              key={id}
+              onClick={() => setActiveTab(id)}
+              className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all
+                ${activeTab === id
+                  ? "bg-gray-900 text-white"
+                  : "text-gray-500 hover:text-gray-800 hover:bg-gray-100"}`}
+            >
+              <Icon className="h-4 w-4" />
+              {label}
+            </button>
+          ))}
+        </div>
       </div>
 
-      {/* Tabs */}
-      <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid w-full grid-cols-2 md:grid-cols-4 gap-3 mb-6">
-          <TabsTrigger
-            value="boutique"
-            className="flex items-center justify-center gap-2"
-          >
-            <Store className="h-5 w-5" /> Boutique
-          </TabsTrigger>
-          <TabsTrigger
-            value="notifications"
-            className="flex items-center justify-center gap-2"
-          >
-            <Bell className="h-5 w-5" /> Notifications
-          </TabsTrigger>
-          <TabsTrigger
-            value="securite"
-            className="flex items-center justify-center gap-2"
-          >
-            <Shield className="h-5 w-5" /> Sécurité
-          </TabsTrigger>
-          <TabsTrigger
-            value="systeme"
-            className="flex items-center justify-center gap-2"
-          >
-            <Database className="h-5 w-5" /> Système
-          </TabsTrigger>
-        </TabsList>
+      <div className="px-8 py-8 max-w-4xl space-y-6">
 
-        {/* Boutique */}
-        <TabsContent value="boutique" className="space-y-6 pt-6">
-          <Card className="p-6 md:p-8">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Store className="h-6 w-6" /> Informations de la boutique
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="space-y-2">
-                  <Label htmlFor="nom">Nom de la boutique</Label>
-                  <Input
-                    id="nom"
-                    value={parametres.boutique.nom}
-                    onChange={(e) =>
-                      setParametres({
-                        ...parametres,
-                        boutique: {
-                          ...parametres.boutique,
-                          nom: e.target.value,
-                        },
-                      })
-                    }
-                  />
+        {/* ── BOUTIQUE ── */}
+        {activeTab === "boutique" && (
+          <>
+            <Card className="border-0 shadow-sm">
+              <CardContent className="p-6 space-y-6">
+                <div className="flex items-center gap-2 text-sm font-semibold text-gray-600 uppercase tracking-wide border-b pb-3">
+                  <Store className="h-4 w-4" /> Informations générales
                 </div>
-                <div className="space-y-2">
-                  <Label htmlFor="telephone">Téléphone</Label>
-                  <Input
-                    id="telephone"
-                    value={parametres.boutique.telephone}
-                    onChange={(e) =>
-                      setParametres({
-                        ...parametres,
-                        boutique: {
-                          ...parametres.boutique,
-                          telephone: e.target.value,
-                        },
-                      })
-                    }
-                  />
-                </div>
-              </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="description">Description</Label>
-                <Textarea
-                  id="description"
-                  value={parametres.boutique.description}
-                  onChange={(e) =>
-                    setParametres({
-                      ...parametres,
-                      boutique: {
-                        ...parametres.boutique,
-                        description: e.target.value,
-                      },
-                    })
-                  }
-                  className="min-h-[100px]"
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="adresse">Adresse complète</Label>
-                <Textarea
-                  id="adresse"
-                  value={parametres.boutique.adresse}
-                  onChange={(e) =>
-                    setParametres({
-                      ...parametres,
-                      boutique: {
-                        ...parametres.boutique,
-                        adresse: e.target.value,
-                      },
-                    })
-                  }
-                  className="min-h-[100px]"
-                />
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="space-y-2">
-                  <Label htmlFor="email">Email de contact</Label>
-                  <Input
-                    id="email"
-                    type="email"
-                    value={parametres.boutique.email}
-                    onChange={(e) =>
-                      setParametres({
-                        ...parametres,
-                        boutique: {
-                          ...parametres.boutique,
-                          email: e.target.value,
-                        },
-                      })
-                    }
-                  />
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                  <Field id="nom" label="Nom de la boutique" icon={Store}>
+                    <Input id="nom" value={parametres.boutique.nom}
+                      onChange={(e) => setB("nom", e.target.value)}
+                      placeholder="PneuShop" />
+                  </Field>
+                  <Field id="telephone" label="Téléphone" icon={Phone}>
+                    <Input id="telephone" value={parametres.boutique.telephone}
+                      onChange={(e) => setB("telephone", e.target.value)}
+                      placeholder="+216 XX XXX XXX" />
+                  </Field>
                 </div>
-                <div className="space-y-2">
-                  <Label htmlFor="horaires">Horaires d'ouverture</Label>
-                  <Input
-                    id="horaires"
-                    value={parametres.boutique.horaires}
-                    onChange={(e) =>
-                      setParametres({
-                        ...parametres,
-                        boutique: {
-                          ...parametres.boutique,
-                          horaires: e.target.value,
-                        },
-                      })
-                    }
-                  />
-                </div>
+
+                <Field id="email" label="Email de contact" icon={Mail}>
+                  <Input id="email" type="email" value={parametres.boutique.email}
+                    onChange={(e) => setB("email", e.target.value)}
+                    placeholder="contact@pneushop.tn" />
+                </Field>
+
+                <Field id="horaires" label="Horaires d'ouverture" icon={Clock}>
+                  <Input id="horaires" value={parametres.boutique.horaires}
+                    onChange={(e) => setB("horaires", e.target.value)}
+                    placeholder="Lun–Sam : 08h–18h" />
+                </Field>
+
+                <Field id="description" label="Description">
+                  <Textarea id="description" value={parametres.boutique.description}
+                    onChange={(e) => setB("description", e.target.value)}
+                    rows={3} placeholder="Description courte de la boutique…" />
+                </Field>
+
+                <Field id="adresse" label="Adresse complète" icon={MapPin}>
+                  <Textarea id="adresse" value={parametres.boutique.adresse}
+                    onChange={(e) => setB("adresse", e.target.value)}
+                    rows={2} placeholder="Rue, Ville, Code postal" />
+                </Field>
+              </CardContent>
+            </Card>
+          </>
+        )}
+
+        {/* ── NOTIFICATIONS ── */}
+        {activeTab === "notifications" && (
+          <Card className="border-0 shadow-sm">
+            <CardContent className="p-6 space-y-4">
+              <div className="flex items-center gap-2 text-sm font-semibold text-gray-600 uppercase tracking-wide border-b pb-3">
+                <Bell className="h-4 w-4" /> Alertes et notifications
               </div>
+              <ToggleRow
+                label="Notifications nouvelles commandes"
+                desc="Recevoir un e-mail à chaque nouvelle commande client"
+                checked={parametres.notifications.emailCommandes}
+                onChange={(v) => setN("emailCommandes", v)}
+              />
+              <ToggleRow
+                label="Alertes stock bas"
+                desc="Notification quand un article passe en dessous du seuil minimum"
+                checked={parametres.notifications.emailStock}
+                onChange={(v) => setN("emailStock", v)}
+              />
             </CardContent>
           </Card>
-        </TabsContent>
+        )}
 
-        {/* Notifications */}
-        <TabsContent value="notifications" className="space-y-6 pt-6">
-          <div className="space-y-4">
-            {Object.entries(parametres.notifications).map(([key, value]) => {
-              const labels: Record<string, string> = {
-                emailCommandes: "Notifications email pour nouvelles commandes",
-                emailStock: "Alertes de stock bas",
-              };
-              const descriptions: Record<string, string> = {
-                emailCommandes: "Recevoir un email à chaque nouvelle commande",
-                emailStock:
-                  "Notification quand le stock descend en dessous du seuil",
-              };
-              return renderSwitch(
-                labels[key],
-                descriptions[key],
-                Boolean(value),
-                (checked) =>
-                  setParametres({
-                    ...parametres,
-                    notifications: {
-                      ...parametres.notifications,
-                      [key]: checked,
-                    },
-                  })
-              );
-            })}
-          </div>
-        </TabsContent>
+        {/* ── SÉCURITÉ ── */}
+        {activeTab === "securite" && (
+          <Card className="border-0 shadow-sm">
+            <CardContent className="p-6 space-y-5">
+              <div className="flex items-center gap-2 text-sm font-semibold text-gray-600 uppercase tracking-wide border-b pb-3">
+                <Shield className="h-4 w-4" /> Sécurité et accès
+              </div>
 
-        {/* Sécurité */}
-        <TabsContent value="securite" className="space-y-6 pt-6">
-          <div className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="timeout">Timeout de session (minutes)</Label>
-              <Input
-                id="timeout"
-                type="number"
-                value={parametres.securite.sessionTimeout}
-                onChange={(e) =>
-                  setParametres({
-                    ...parametres,
-                    securite: {
-                      ...parametres.securite,
-                      sessionTimeout: parseInt(e.target.value),
-                    },
-                  })
-                }
+              <Field id="timeout" label="Durée de session (minutes)">
+                <Input id="timeout" type="number" min={5} max={1440}
+                  value={parametres.securite.sessionTimeout}
+                  onChange={(e) => setS("sessionTimeout", parseInt(e.target.value) || 60)}
+                  className="w-40" />
+              </Field>
+
+              <ToggleRow
+                label="Mot de passe fort obligatoire"
+                desc="Exiger majuscules, chiffres et caractères spéciaux"
+                checked={parametres.securite.motDePasseForce}
+                onChange={(v) => setS("motDePasseForce", v)}
               />
-            </div>
-
-            {[
-              "motDePasseForce",
-              "journalisation",
-            ].map((key) => {
-              const labels: Record<string, string> = {
-                motDePasseForce: "Mot de passe fort obligatoire",
-                journalisation: "Journal des activités",
-              };
-              const descriptions: Record<string, string> = {
-                motDePasseForce: "Exiger des mots de passe complexes",
-                journalisation:
-                  "Enregistrer toutes les actions administratives",
-              };
-              return renderSwitch(
-                labels[key],
-                descriptions[key],
-                parametres.securite[key],
-                (checked) =>
-                  setParametres({
-                    ...parametres,
-                    securite: { ...parametres.securite, [key]: checked },
-                  })
-              );
-            })}
-          </div>
-        </TabsContent>
-
-        {/* Système */}
-        <TabsContent value="systeme" className="space-y-6 pt-6">
-          <div className="space-y-4">
-            {renderSwitch(
-              "Sauvegarde automatique",
-              "Sauvegarde automatique de la base de données",
-              parametres.systeme.sauvegaudeAuto,
-              (checked) =>
-                setParametres({
-                  ...parametres,
-                  systeme: { ...parametres.systeme, sauvegaudeAuto: checked },
-                })
-            )}
-
-            <div className="space-y-2">
-              <Label htmlFor="langue">Langue principale</Label>
-              <Input
-                id="langue"
-                value={parametres.systeme.languePrincipale}
-                onChange={(e) =>
-                  setParametres({
-                    ...parametres,
-                    systeme: {
-                      ...parametres.systeme,
-                      languePrincipale: e.target.value,
-                    },
-                  })
-                }
+              <ToggleRow
+                label="Journal des activités"
+                desc="Enregistrer toutes les actions effectuées par les administrateurs"
+                checked={parametres.securite.journalisation}
+                onChange={(v) => setS("journalisation", v)}
               />
-            </div>
+            </CardContent>
+          </Card>
+        )}
 
-            <div className="flex flex-wrap gap-4 pt-4">
-              <Button
-                variant="outline"
-                className="flex items-center px-4 py-2"
-                onClick={handleBackup}
-              >
-                <Database className="h-5 w-5 mr-2" /> Sauvegarder maintenant
-              </Button>
-              <Button
-                variant="outline"
-                className="flex items-center px-4 py-2"
-                onClick={handleExportCustomers}
-              >
-                <Users className="h-5 w-5 mr-2" /> Exporter données clients
-              </Button>
-              <Button
-                variant="destructive"
-                disabled
-                className="flex items-center px-4 py-2"
-              >
-                <Settings className="h-5 w-5 mr-2" /> Réinitialiser système
-              </Button>
-            </div>
+        {/* ── SYSTÈME ── */}
+        {activeTab === "systeme" && (
+          <div className="space-y-5">
+            <Card className="border-0 shadow-sm">
+              <CardContent className="p-6 space-y-4">
+                <div className="flex items-center gap-2 text-sm font-semibold text-gray-600 uppercase tracking-wide border-b pb-3">
+                  <Settings className="h-4 w-4" /> Configuration système
+                </div>
+
+                <ToggleRow
+                  label="Mode maintenance"
+                  desc="Mettre la boutique hors ligne pour les clients (accès admin uniquement)"
+                  checked={parametres.systeme.maintenanceMode}
+                  onChange={(v) => setSy("maintenanceMode", v)}
+                />
+                <ToggleRow
+                  label="Sauvegarde automatique"
+                  desc="Sauvegarder automatiquement la base de données chaque nuit"
+                  checked={parametres.systeme.sauvegaudeAuto}
+                  onChange={(v) => setSy("sauvegaudeAuto", v)}
+                />
+
+                <Field id="langue" label="Langue principale">
+                  <select
+                    id="langue"
+                    value={parametres.systeme.languePrincipale}
+                    onChange={(e) => setSy("languePrincipale", e.target.value)}
+                    className="w-40 rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-gray-800"
+                  >
+                    <option value="fr">Français</option>
+                    <option value="ar">Arabe</option>
+                    <option value="en">Anglais</option>
+                  </select>
+                </Field>
+              </CardContent>
+            </Card>
+
+            {/* Actions système */}
+            <Card className="border-0 shadow-sm">
+              <CardContent className="p-6 space-y-4">
+                <div className="flex items-center gap-2 text-sm font-semibold text-gray-600 uppercase tracking-wide border-b pb-3">
+                  <Database className="h-4 w-4" /> Actions de maintenance
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <button
+                    onClick={handleBackup}
+                    className="flex items-center gap-3 rounded-xl border border-gray-200 bg-white px-5 py-4 text-left hover:border-gray-400 hover:shadow-sm transition-all"
+                  >
+                    <div className="rounded-lg bg-blue-50 p-2.5">
+                      <Database className="h-5 w-5 text-blue-600" />
+                    </div>
+                    <div>
+                      <p className="text-sm font-semibold text-gray-800">Sauvegarde BD</p>
+                      <p className="text-xs text-gray-500">Télécharger un snapshot JSON</p>
+                    </div>
+                  </button>
+
+                  <button
+                    onClick={handleExportCustomers}
+                    className="flex items-center gap-3 rounded-xl border border-gray-200 bg-white px-5 py-4 text-left hover:border-gray-400 hover:shadow-sm transition-all"
+                  >
+                    <div className="rounded-lg bg-green-50 p-2.5">
+                      <FileDown className="h-5 w-5 text-green-600" />
+                    </div>
+                    <div>
+                      <p className="text-sm font-semibold text-gray-800">Exporter clients</p>
+                      <p className="text-xs text-gray-500">Fichier CSV des comptes clients</p>
+                    </div>
+                  </button>
+                </div>
+
+                {/* Danger zone */}
+                <div className="rounded-xl border border-red-100 bg-red-50 px-5 py-4 flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="rounded-lg bg-red-100 p-2.5">
+                      <RotateCcw className="h-5 w-5 text-red-600" />
+                    </div>
+                    <div>
+                      <p className="text-sm font-semibold text-red-800">Réinitialiser le système</p>
+                      <p className="text-xs text-red-600">Cette action est irréversible</p>
+                    </div>
+                  </div>
+                  <Button variant="destructive" size="sm" disabled className="text-xs">
+                    Désactivé
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
           </div>
-        </TabsContent>
-      </Tabs>
+        )}
+      </div>
     </div>
   );
 }
