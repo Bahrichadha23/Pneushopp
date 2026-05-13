@@ -36,12 +36,13 @@ class Command(BaseCommand):
         if not options["confirm"]:
             self.stdout.write(self.style.WARNING(
                 "\n⚠️  Cette opération va supprimer DÉFINITIVEMENT :"
-                "\n   - Toutes les commandes vente (+ articles, avoirs)"
+                "\n   - Tous les produits / articles"
+                "\n   - Toutes les commandes vente (+ lignes, avoirs)"
                 "\n   - Tous les bons de commande achat"
                 "\n   - Tous les mouvements de stock"
                 "\n   - Tous les comptes clients (role=customer) + paniers + favoris"
                 "\n   - Tous les messages support"
-                "\n\n✅  Seront conservés : Produits, Fournisseurs, Comptes staff\n"
+                "\n\n✅  Seront conservés : Fournisseurs, Comptes staff (admin/sales/purchasing)\n"
             ))
             confirm = input("Tapez OUI pour continuer : ").strip()
             if confirm != "OUI":
@@ -123,10 +124,15 @@ class Command(BaseCommand):
             clients.delete()
             self._ok(f"Comptes clients : {nb} supprimés")
 
+            # ── 8. Produits / Articles ─────────────────────────────────────────
+            from products.models import Product
+            nb_products = Product.objects.all().count()
+            Product.objects.all().delete()
+            self._ok(f"Produits/Articles : {nb_products} supprimés")
+
         # ── Résumé ─────────────────────────────────────────────────────────────
         from django.contrib.auth import get_user_model
         User = get_user_model()
-        from products.models import Product
         try:
             from suppliers.models import Supplier
             nb_suppliers = Supplier.objects.count()
@@ -135,7 +141,6 @@ class Command(BaseCommand):
 
         self.stdout.write(self.style.SUCCESS(
             f"\n✅  Remise à zéro terminée avec succès !"
-            f"\n   📦 Produits conservés : {Product.objects.count()}"
             f"\n   🏭 Fournisseurs conservés : {nb_suppliers}"
             f"\n   👤 Comptes staff conservés : {User.objects.exclude(role='customer').count()}"
         ))
