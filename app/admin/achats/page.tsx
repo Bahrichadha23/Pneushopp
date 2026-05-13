@@ -333,13 +333,27 @@ export default function AchatsPage() {
   };
 
 
+  // Normalise "20555R16" → "205/55R16", "20555r16" → "205/55R16"
+  // Accepte aussi "205" (width seule), "205/55" ou "205 55R16" etc.
+  const normalizeSizeInput = (input: string): string => {
+    const s = input.trim();
+    // Format compact sans séparateur : 3 chiffres + 2 chiffres + R/r + 2 chiffres  ex: 20555R16
+    const compact = s.match(/^(\d{3})(\d{2})[Rr](\d{2})$/);
+    if (compact) return `${compact[1]}/${compact[2]}R${compact[3]}`;
+    // Format avec slash mais sans espace : 205/55R16
+    const withSlash = s.match(/^(\d{3})\/(\d{2})[Rr](\d{2})$/);
+    if (withSlash) return `${withSlash[1]}/${withSlash[2]}R${withSlash[3]}`;
+    return s; // retourner tel quel (ex: "205", référence, nom marque…)
+  };
+
   const handleSearch = async () => {
     setIsSearching(true);
     try {
       const token = localStorage.getItem("access_token");
       const params = new URLSearchParams();
-      
-      if (searchRef) params.append("search", searchRef);
+
+      const normalizedQuery = normalizeSizeInput(searchRef);
+      if (normalizedQuery) params.append("search", normalizedQuery);
       if (searchBrand && searchBrand !== "all") params.append("brand", searchBrand);
       if (searchCategory && searchCategory !== "all") params.append("category", searchCategory);
 
@@ -601,9 +615,10 @@ export default function AchatsPage() {
             <div className="flex items-center gap-3">
                     <Label>Réf.</Label>
                     <Input
-                      placeholder="2055516C7"
+                      placeholder="Ex : 205 · 20555R16 · 205/55R16 · Michelin · REF123"
                       value={searchRef}
                       onChange={(e) => setSearchRef(e.target.value)}
+                      onKeyDown={(e) => e.key === "Enter" && handleSearch()}
                       className="flex-1"
                     />
                 </div>

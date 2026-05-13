@@ -154,7 +154,14 @@ export default function ProductsTable({
       }
     });
 
-  const uniqueBrands = Array.from(new Set(products.map((p) => p.brand))).sort();
+  // Liste fixe des marques partenaires (identique à la boutique front)
+  const uniqueBrands = [
+    "Alliance", "Amine", "Apollo", "Armour", "Barum", "BFGoodrich",
+    "Bridgestone", "Central Tire", "Continental", "Dayton", "Debica",
+    "Dunlop", "Firestone", "Fulda", "Goodyear", "Hankook", "Kleber",
+    "Lassa", "Laufenn", "Maxxis", "Michelin", "Nexen", "Pirelli",
+    "Semperit", "Tigar", "Waterfall", "Westlake",
+  ];
 
   return (
     <div className="space-y-4">

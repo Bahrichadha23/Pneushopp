@@ -133,6 +133,19 @@ class DeliveryViewSet(viewsets.ModelViewSet):
     serializer_class = DeliverySerializer
     permission_classes = [IsAdminOrSales]
 
+    def perform_update(self, serializer):
+        instance = serializer.save()
+        # Synchroniser date_livraison → date_livraison_prevue sur la commande et le bon de commande
+        if instance.date_livraison:
+            if instance.order_id:
+                Order.objects.filter(pk=instance.order_id).update(
+                    date_livraison_prevue=instance.date_livraison
+                )
+            if instance.purchase_order_id:
+                PurchaseOrder.objects.filter(pk=instance.purchase_order_id).update(
+                    date_livraison_prevue=instance.date_livraison
+                )
+
 
 @api_view(['POST'])
 @perm_classes([IsAuthenticated])
