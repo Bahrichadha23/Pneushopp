@@ -58,18 +58,22 @@ export default function ProductCard({
 
           {/* Badges promotions et stock */}
           <div className="absolute top-2 left-2 flex flex-col gap-1">
-            {product.is_on_sale && (
-              <Badge className="bg-red-500 text-white">
+            {product.is_on_sale && (product as any).promotion_label && (
+              <Badge className="bg-red-600 text-white text-[10px] font-bold px-2">
+                {(product as any).promotion_label}
+              </Badge>
+            )}
+            {product.is_on_sale && (product.discount_percentage ?? 0) > 0 && (
+              <Badge className="bg-yellow-400 text-black font-bold">
                 -{product.discount_percentage}%
               </Badge>
             )}
-
             {!product.inStock && (
               <Badge variant="destructive">Rupture de stock</Badge>
             )}
           </div>
 
-          {/* Badge nouveau ou populaire */}
+          {/* Badge populaire */}
           {product.rating && product.rating >= 4.7 && (
             <div className="absolute top-2 right-2">
               <Badge className="bg-yellow-500 text-black">Populaire</Badge>
@@ -122,17 +126,22 @@ export default function ProductCard({
           )}
 
           {/* Prix */}
-          <div className="flex items-center justify-between mb-3">
+          <div className="mb-3">
             <div className="flex items-center gap-2">
               <span className="text-2xl font-bold text-black">
                 {product.price} DT
               </span>
               {product.old_price && (
-                <span className="text-sm text-red-500 line-through">
+                <span className="text-sm text-red-400 line-through">
                   {product.old_price} DT
                 </span>
               )}
             </div>
+            {product.old_price && product.old_price > product.price && (
+              <p className="text-xs text-green-600 font-semibold mt-0.5">
+                Économie : {(product.old_price - product.price).toFixed(3)} DT
+              </p>
+            )}
           </div>
 
           {/* Bouton d'ajout au panier */}
