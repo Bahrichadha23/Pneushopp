@@ -333,17 +333,24 @@ export default function AchatsPage() {
   };
 
 
-  // Normalise "20555R16" → "205/55R16", "20555r16" → "205/55R16"
-  // Accepte aussi "205" (width seule), "205/55" ou "205 55R16" etc.
+  /**
+   * Normalise tous les formats de dimension pneu vers "LLL/HHrDD"
+   * Exemples acceptés (toutes largeurs : 155, 165, 175, 185, 195, 205, 215, 225, 235…) :
+   *   "20555R16"   → "205/55R16"   (compact, sans séparateur)
+   *   "21560r15"   → "215/60R15"   (minuscule r)
+   *   "225 45 R17" → "225/45R17"   (espaces)
+   *   "235-40-R18" → "235/40R18"   (tirets)
+   *   "205/55R16"  → "205/55R16"   (déjà correct)
+   *   "205"        → "205"         (largeur seule)
+   *   "Michelin"   → "Michelin"    (marque)
+   *   "REF123"     → "REF123"      (référence)
+   */
   const normalizeSizeInput = (input: string): string => {
     const s = input.trim();
-    // Format compact sans séparateur : 3 chiffres + 2 chiffres + R/r + 2 chiffres  ex: 20555R16
-    const compact = s.match(/^(\d{3})(\d{2})[Rr](\d{2})$/);
-    if (compact) return `${compact[1]}/${compact[2]}R${compact[3]}`;
-    // Format avec slash mais sans espace : 205/55R16
-    const withSlash = s.match(/^(\d{3})\/(\d{2})[Rr](\d{2})$/);
-    if (withSlash) return `${withSlash[1]}/${withSlash[2]}R${withSlash[3]}`;
-    return s; // retourner tel quel (ex: "205", référence, nom marque…)
+    // Regex générique : 3 chiffres + séparateur optionnel + 2 chiffres + séparateur optionnel + R/r + 2 chiffres
+    const m = s.match(/^(\d{3})[\s\/\-]?(\d{2})[\s\/\-]?[Rr][\s]?(\d{2})$/);
+    if (m) return `${m[1]}/${m[2]}R${m[3]}`;
+    return s;
   };
 
   const handleSearch = async () => {
@@ -615,7 +622,7 @@ export default function AchatsPage() {
             <div className="flex items-center gap-3">
                     <Label>Réf.</Label>
                     <Input
-                      placeholder="Ex : 205 · 20555R16 · 205/55R16 · Michelin · REF123"
+                      placeholder="Ex : 215 · 22545R17 · 215/55R16 · Michelin · REF123"
                       value={searchRef}
                       onChange={(e) => setSearchRef(e.target.value)}
                       onKeyDown={(e) => e.key === "Enter" && handleSearch()}
