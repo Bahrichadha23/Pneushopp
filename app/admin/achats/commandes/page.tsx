@@ -64,11 +64,14 @@ const handleDownloadAchat = (order: any) => {
   pdf.text("Informations de la commande", margin, y);
   y += 8;
 
-  const infoHeaders = ["Fournisseur", "Date", "Semaine/Année", "Statut"];
+  const infoHeaders = ["Fournisseur", "Date", "DOT", "Statut"];
+  // Collect DOTs from all items; display all unique DOTs or "—"
+  const itemDots = (order.items || []).map((it: any) => it.dot).filter(Boolean);
+  const dotDisplay = itemDots.length > 0 ? [...new Set(itemDots)].join(" / ") : "—";
   const infoValues = [
     order.supplier_name || `Fournisseur ${order.supplier}`,
     fmtDate(order.order_date),
-    order.week && order.year ? `${order.week}.${order.year}` : "N/A",
+    dotDisplay,
     STATUS_CONFIG[order.status as keyof typeof STATUS_CONFIG]?.label || order.status || "Brouillon",
   ];
 
@@ -109,8 +112,8 @@ const handleDownloadAchat = (order: any) => {
   y += 8;
 
   if (items.length > 0) {
-    const headers = ["Réf.", "Désignation", "Qté", "Prix U. HT", "Remise", "Total HT"];
-    const colWidths = [20, 72, 15, 25, 18, 25];
+    const headers = ["Réf.", "Désignation", "DOT", "Qté", "Prix U. HT", "Total HT"];
+    const colWidths = [30, 60, 18, 12, 27, 28];
     pdf.setFont("helvetica", "bold");
     pdf.setFontSize(8);
     cx = margin;
@@ -122,17 +125,18 @@ const handleDownloadAchat = (order: any) => {
     y += 8;
     pdf.setFont("helvetica", "normal");
     items.forEach((item: any) => {
-      const ref = String(item.reference || "");
+      const ref = String(item.reference || "—");
       const designation = item.designation || item.nom || item.product_name || "N/A";
+      const dot = item.dot || "—";
       const qty = Number(item.quantity || item.quantite || 0);
       const unitPrice = Number(item.unit_price_ht || item.prix_unitaire || 0);
-      const discount = Number(item.discount || 0);
       const totalHT = Number(item.total_ht || qty * unitPrice);
-      const values = [ref, designation, qty.toString(), `${unitPrice.toFixed(3)} DT`, discount > 0 ? `${discount}%` : "-", `${totalHT.toFixed(3)} DT`];
+      const values = [ref, designation, dot, qty.toString(), `${unitPrice.toFixed(3)} DT`, `${totalHT.toFixed(3)} DT`];
       cx = margin;
       values.forEach((v, i) => {
         pdf.rect(cx, y, colWidths[i], 8);
-        if (i === 1) {
+        if (i === 0 || i === 1) {
+          // Ref and designation: left-aligned, clipped to column width
           const wrapped = pdf.splitTextToSize(v, colWidths[i] - 3);
           pdf.text(wrapped[0], cx + 2, y + 5.5);
         } else {
@@ -234,8 +238,12 @@ function DetailModal({ order, onClose }: { order: any; onClose: () => void }) {
             <p className="font-semibold text-gray-900">{order.invoice_number || "—"}</p>
           </div>
           <div>
-            <p className="text-xs text-gray-500 uppercase">Sem/Année</p>
-            <p className="font-semibold text-gray-900">{order.week && order.year ? `${order.week}.${order.year}` : "—"}</p>
+            <p className="text-xs text-gray-500 uppercase">DOT</p>
+            <p className="font-semibold text-gray-900 font-mono text-sm">
+              {(order.items || []).map((it: any) => it.dot).filter(Boolean).length > 0
+                ? [...new Set((order.items || []).map((it: any) => it.dot).filter(Boolean))].join(" / ")
+                : "—"}
+            </p>
           </div>
           <div>
             <p className="text-xs text-gray-500 uppercase">Statut</p>
@@ -433,7 +441,7 @@ export default function AchatsCommandesPage() {
       { header: "Fournisseur",     key: "supplier",   width: 24 },
       { header: "Date",            key: "date",       width: 14 },
       { header: "N° Facture",      key: "invoice",    width: 18 },
-      { header: "Sem/Année",       key: "week",       width: 12 },
+      { header: "DOT",              key: "week",       width: 16 },
       { header: "Nb Articles",     key: "items",      width: 12 },
       { header: "Total HT (DT)",   key: "total",      width: 16 },
       { header: "Statut",          key: "status",     width: 14 },
@@ -451,7 +459,9 @@ export default function AchatsCommandesPage() {
         supplier: o.supplier_name || "",
         date:     fmtDate(o.order_date),
         invoice:  o.invoice_number || "—",
-        week:     o.week && o.year ? `${o.week}.${o.year}` : "—",
+        week:     (o.items || []).map((it: any) => it.dot).filter(Boolean).length > 0
+                    ? [...new Set((o.items || []).map((it: any) => it.dot).filter(Boolean))].join(" / ")
+                    : "—",
         items:    (o.items || []).length,
         total:    parseFloat(Number(o.total || 0).toFixed(3)),
         status:   STATUS_CONFIG[o.status as keyof typeof STATUS_CONFIG]?.label || o.status || "Brouillon",
@@ -671,7 +681,7 @@ export default function AchatsCommandesPage() {
                     <TableHead className="font-semibold text-gray-600 text-xs uppercase">Fournisseur</TableHead>
                     <TableHead className="font-semibold text-gray-600 text-xs uppercase">Date</TableHead>
                     <TableHead className="font-semibold text-gray-600 text-xs uppercase">N° Facture</TableHead>
-                    <TableHead className="font-semibold text-gray-600 text-xs uppercase text-center">Sem/Année</TableHead>
+                    <TableHead className="font-semibold text-gray-600 text-xs uppercase text-center">DOT</TableHead>
                     <TableHead className="font-semibold text-gray-600 text-xs uppercase text-center">Articles</TableHead>
                     <TableHead className="font-semibold text-gray-600 text-xs uppercase text-right">Total HT</TableHead>
                     <TableHead className="font-semibold text-gray-600 text-xs uppercase text-center">Statut</TableHead>
@@ -697,8 +707,10 @@ export default function AchatsCommandesPage() {
                           : <span className="text-xs text-gray-300">—</span>
                         }
                       </TableCell>
-                      <TableCell className="text-center text-sm text-gray-700">
-                        {order.week && order.year ? `${order.week}.${order.year}` : "—"}
+                      <TableCell className="text-center text-sm text-gray-700 font-mono">
+                        {(order.items || []).map((it: any) => it.dot).filter(Boolean).length > 0
+                          ? [...new Set((order.items || []).map((it: any) => it.dot).filter(Boolean))].join(" / ")
+                          : "—"}
                       </TableCell>
                       <TableCell className="text-center">
                         <span className="inline-flex items-center gap-1 text-sm">

@@ -101,6 +101,7 @@ interface TresorerieRecord {
 const PAYMENT_LABELS: Record<string, string> = {
   card: "Carte de crédit",
   cash_on_delivery: "TPE à la livraison",
+  especes: "Espèces",
   bank_transfer: "Virement",
   cri: "CRI",
   cheque: "Chèque",
@@ -143,6 +144,7 @@ function getPaidAmount(record: TresorerieRecord): number {
   if (record.paymentMethod === "lettre_de_change") return record.lettreAmountPaid;
   if (record.paymentMethod === "cheque" || record.paymentMethod === "check") return record.chequeAmountPaid;
   if (record.paymentMethod === "cash_on_delivery") return record.codAmountPaid;
+  if (record.paymentMethod === "especes") return record.totalAmount;
   if (record.paymentStatus === "paid") return record.totalAmount;
   return 0;
 }
@@ -277,6 +279,7 @@ function printFacture(record: TresorerieRecord) {
     if (record.paymentMethod === "cheque" || record.paymentMethod === "check") return `N° Chèque : ${record.chequeNumberValue || "-"} | Date : ${record.chequeDate || "-"} | Banque : ${record.chequeBankName || "-"}`;
     if (record.paymentMethod === "cash_on_delivery") return `N° Auth : ${record.codAuthorizationNumber || "-"} | Banque : ${record.codBankName || "-"}`;
     if (record.paymentMethod === "cri") return `Remarque : ${record.criRemarque || "-"}`;
+    if (record.paymentMethod === "especes") return "Paiement en espèces";
     return "Carte bancaire";
   };
   const rows = record.items.map((item, i) => `
@@ -913,6 +916,7 @@ export default function TresoreriePage() {
               >
                 <option value="">Tout</option>
                 <option value="cash_on_delivery">TPE à la livraison</option>
+                <option value="especes">Espèces</option>
                 <option value="card">Carte de crédit</option>
                 <option value="bank_transfer">Virement</option>
                 <option value="cheque">Chèque</option>
@@ -1254,6 +1258,7 @@ export default function TresoreriePage() {
                             <div>Remarque: {record.codRemarque || "-"}</div>
                           </>
                         )}
+                        {record.paymentMethod === "especes" && <div>Paiement en espèces</div>}
                         {record.paymentMethod === "card" && <div>Carte bancaire</div>}
                         {record.paymentMethod === "mixed" && (<>
                           {record.criAmountPaid > 0 && <div>CRI: {formatCurrency(record.criAmountPaid)}</div>}
@@ -1471,6 +1476,7 @@ export default function TresoreriePage() {
                     {selectedRecord.paymentMethod === "cri" && (
                       <div><span className="font-semibold">Remarque :</span> {selectedRecord.criRemarque || "-"}</div>
                     )}
+                    {selectedRecord.paymentMethod === "especes" && <div>Paiement en espèces</div>}
                     {selectedRecord.paymentMethod === "card" && <div>Carte bancaire</div>}
                     {/* Multi-modal: show all non-zero payment method details */}
                     {selectedRecord.paymentMethod === "mixed" && (<>
