@@ -54,20 +54,33 @@ export default function AdminLayout({
   const [desktopSidebarOpen, setDesktopSidebarOpen] = useState(true);
   const router = useRouter();
   const pathname = usePathname();
-  const { user, logout } = useAuth();
+  const { user, logout, isLoading } = useAuth();
 
   const handleLogout = () => {
     logout();
     router.push("/");
   };
 
-  // Garde de route : redirige si le rôle n'a pas accès à cette page
+  // Garde de route
   const allowed = isRouteAllowed(pathname, user?.role);
 
-  // Attendre que l'utilisateur soit chargé avant de bloquer
-  const userLoaded = user !== undefined;
+  // Chargement en cours → spinner neutre
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="w-8 h-8 border-4 border-yellow-400 border-t-transparent rounded-full animate-spin" />
+      </div>
+    );
+  }
 
-  if (userLoaded && !allowed) {
+  // Non connecté → redirection vers la page de connexion admin
+  if (!user) {
+    router.replace("/auth/login/admin");
+    return null;
+  }
+
+  // Connecté mais rôle insuffisant → accès refusé
+  if (!allowed) {
     return (
       <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center gap-4 p-8">
         <div className="bg-white rounded-2xl shadow-sm border border-red-100 p-10 flex flex-col items-center gap-4 max-w-sm w-full text-center">
