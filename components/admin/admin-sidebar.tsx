@@ -26,6 +26,7 @@ import {
   Wallet,
   MessageSquare,
   RotateCcw,
+  Tag,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -68,6 +69,7 @@ const MENU_ADMIN: MenuItem[] = [
       { title: "Catalogue produits", href: "/admin/produits", icon: Package },
       { title: "Gestion stock", href: "/admin/stock", icon: Store },
       { title: "Mouvements stock", href: "/admin/stock/mouvements", icon: TrendingUp },
+      { title: "Promotions", href: "/admin/promotions", icon: Tag },
     ],
   },
   {
@@ -118,6 +120,7 @@ const MENU_PURCHASING: MenuItem[] = [
       { title: "Catalogue produits", href: "/admin/produits", icon: Package },
       { title: "Gestion stock", href: "/admin/stock", icon: Store },
       { title: "Mouvements stock", href: "/admin/stock/mouvements", icon: TrendingUp },
+      { title: "Promotions", href: "/admin/promotions", icon: Tag },
     ],
   },
   {
@@ -170,6 +173,7 @@ const MENU_SALES: MenuItem[] = [
       { title: "Trésorerie Vente", href: "/admin/tresorerie", icon: Receipt },
     ],
   },
+  { title: "Promotions", href: "/admin/promotions", icon: Tag },
   { title: "Clients", href: "/admin/clients", icon: Users },
   { title: "Support", href: "/admin/communication", icon: MessageSquare },
 ];

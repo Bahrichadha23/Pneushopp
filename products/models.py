@@ -51,6 +51,8 @@ class Product(models.Model):
     type = models.CharField('Type', max_length=100, blank=True)
     emplacement = models.CharField('Emplacement', max_length=100, blank=True, null=True)
     fabrication_date = models.DateField('Date de fabrication', null=True, blank=True)
+    promotion_label = models.CharField('Label promotion', max_length=50, blank=True, null=True)
+    promotion_end_date = models.DateField('Fin de promotion', null=True, blank=True)
 
     class Meta:
         verbose_name = 'Produit'

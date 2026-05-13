@@ -27,6 +27,7 @@ class ProductSerializer(serializers.ModelSerializer):
             'season', 'season_display', 'stock', 'is_featured',
             'is_on_sale', 'discount_percentage', 'created_at',
             'reference', 'designation', 'type', 'emplacement', 'fabrication_date',
+            'promotion_label', 'promotion_end_date',
         ]
 
     def get_season_display(self, obj):

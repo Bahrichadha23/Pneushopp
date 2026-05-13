@@ -111,6 +111,70 @@ class FeaturedProductsView(generics.ListAPIView):
     permission_classes = [AllowAny]
 
 
+class PromotionProductsView(generics.ListAPIView):
+    """GET /api/products/promotions/ — liste des produits en promotion"""
+    serializer_class = ProductSerializer
+    permission_classes = [AllowAny]
+
+    def get_queryset(self):
+        return Product.objects.filter(
+            is_active=True, old_price__isnull=False
+        ).select_related('category').order_by('-updated_at')
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def set_promotion(request):
+    """
+    POST /api/products/set-promotion/
+    Body: {
+      product_ids: [1, 2, 3],
+      discount_percentage: 20,          # % de remise
+      promotion_label: "SOLDES",        # optional
+      promotion_end_date: "2026-06-30", # optional
+      remove: false                     # true = retirer la promotion
+    }
+    """
+    from decimal import Decimal
+    ids = request.data.get('product_ids', [])
+    discount = Decimal(str(request.data.get('discount_percentage', 0)))
+    label = request.data.get('promotion_label', '')
+    end_date = request.data.get('promotion_end_date', None)
+    remove = request.data.get('remove', False)
+
+    if not ids:
+        return Response({'error': 'product_ids requis'}, status=400)
+
+    products = Product.objects.filter(id__in=ids)
+    updated = []
+
+    for product in products:
+        if remove:
+            # Retirer la promotion : restaurer l'ancien prix
+            if product.old_price:
+                product.price = product.old_price
+            product.old_price = None
+            product.promotion_label = None
+            product.promotion_end_date = None
+        else:
+            if discount <= 0 or discount >= 100:
+                return Response({'error': 'discount_percentage doit être entre 1 et 99'}, status=400)
+            # Appliquer la promotion
+            original_price = product.old_price if product.old_price else product.price
+            product.old_price = original_price
+            product.price = (original_price * (1 - discount / 100)).quantize(Decimal('0.001'))
+            product.promotion_label = label or f'-{int(discount)}%'
+            product.promotion_end_date = end_date or None
+        product.save()
+        updated.append(product.id)
+
+    return Response({
+        'updated': len(updated),
+        'product_ids': updated,
+        'action': 'removed' if remove else 'applied',
+    })
+
+
 @api_view(['GET'])
 @permission_classes([AllowAny])
 def product_search_suggestions(request):
