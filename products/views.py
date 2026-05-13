@@ -17,7 +17,8 @@ class ProductListView(generics.ListAPIView):
     filterset_fields = ['category', 'brand', 'season', 'is_featured']
     # Added 'reference' and 'designation' to search_fields for DOT/FIFO achat search
     search_fields = ['name', 'brand', 'description', 'size', 'reference', 'designation']
-    ordering_fields = ['price', 'created_at', 'name']
+    # fabrication_date en ordering_fields → permet le tri FIFO côté vente
+    ordering_fields = ['price', 'created_at', 'name', 'fabrication_date']
     ordering = ['-created_at']
 
     def finalize_response(self, request, response, *args, **kwargs):

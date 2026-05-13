@@ -116,8 +116,6 @@ export default function AchatsPage() {
   const [brands, setBrands] = useState<string[]>([]);
   const [suppliers, setSuppliers] = useState<Supplier[]>([]);
   const [confirmedOrders, setConfirmedOrders] = useState<any[]>([]);
-  const [selectedWeek, setSelectedWeek] = useState("");
-  const [selectedYear, setSelectedYear] = useState(new Date().getFullYear().toString());
   const [selectedDot, setSelectedDot] = useState("");
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [showProductDetail, setShowProductDetail] = useState(false);
@@ -363,6 +361,8 @@ export default function AchatsPage() {
       if (normalizedQuery) params.append("search", normalizedQuery);
       if (searchBrand && searchBrand !== "all") params.append("brand", searchBrand);
       if (searchCategory && searchCategory !== "all") params.append("category", searchCategory);
+      // FIFO : ordonner par date de fabrication croissante (le plus ancien en premier)
+      params.append("ordering", "fabrication_date");
 
       const response = await fetch(
         `${API_URL}/products/?${params.toString()}`,
@@ -522,8 +522,6 @@ export default function AchatsPage() {
         dot: item.dot || '',
         emplacement: item.emplacement || '',
       })),
-      week: selectedWeek,
-      year: selectedYear,
       invoice_number: invoiceNumber,
       dot: selectedDot,
     };
@@ -831,22 +829,39 @@ export default function AchatsPage() {
                               className="w-16 text-right"
                             />
                           </TableCell>
+                          {/* DOT = Semaine . Année — saisie par article */}
                           <TableCell className="text-center">
-                            {item.availableDots.length > 1 ? (
-                              <select
-                                value={item.dot || ""}
-                                onChange={(e) => updateItem(item.id, "dot", e.target.value)}
-                                className="w-24 text-center text-sm border border-input rounded-md px-1 py-1 bg-background focus:outline-none focus:ring-1 focus:ring-ring"
-                              >
-                                {item.availableDots.map((d) => (
-                                  <option key={d} value={d}>{d}</option>
-                                ))}
-                              </select>
-                            ) : item.dot ? (
-                              <span className="text-sm font-mono">{item.dot}</span>
-                            ) : (
-                              <span className="text-xs text-gray-400">—</span>
-                            )}
+                            {(() => {
+                              const parts = (item.dot || "").split(".");
+                              const dotW = parts[0] || "";
+                              const dotY = parts[1] || "";
+                              const setDotPart = (w: string, y: string) =>
+                                updateItem(item.id, "dot", w && y ? `${w.padStart(2,"0")}.${y}` : w || y || "");
+                              return (
+                                <div className="flex items-center gap-1 justify-center">
+                                  <input
+                                    type="number"
+                                    min={1} max={52}
+                                    value={dotW}
+                                    onChange={(e) => setDotPart(e.target.value, dotY)}
+                                    placeholder="Sem"
+                                    className="w-12 text-center text-xs border border-input rounded px-1 py-1 bg-background focus:outline-none focus:ring-1 focus:ring-ring"
+                                  />
+                                  <span className="text-gray-400 text-xs">.</span>
+                                  <input
+                                    type="number"
+                                    min={2000} max={2099}
+                                    value={dotY ? (dotY.length <= 2 ? `20${dotY}` : dotY) : ""}
+                                    onChange={(e) => {
+                                      const y = String(e.target.value).slice(-2);
+                                      setDotPart(dotW, y);
+                                    }}
+                                    placeholder="An"
+                                    className="w-16 text-center text-xs border border-input rounded px-1 py-1 bg-background focus:outline-none focus:ring-1 focus:ring-ring"
+                                  />
+                                </div>
+                              );
+                            })()}
                           </TableCell>
                           <TableCell>
                             <Input
@@ -888,44 +903,14 @@ export default function AchatsPage() {
             </div>
 
             {/* Invoice Details */}
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <Label>Date Achat</Label>
-                <Input
-                  placeholder="Date Achat"
-                  value={invoiceNumber}
-                  onChange={(e) => setInvoiceNumber(e.target.value)}
-                />
-              </div>
-              <div>
-                <Label>Semaine / Année</Label>
-                <div className="flex gap-2">
-                  <Select value={selectedWeek} onValueChange={setSelectedWeek}>
-                    <SelectTrigger className="flex-1">
-                      <SelectValue placeholder="Semaine (1-52)" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {Array.from({ length: 52 }, (_, i) => i + 1).map((week) => (
-                        <SelectItem key={week} value={week.toString()}>
-                          Semaine {week}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <Select value={selectedYear} onValueChange={setSelectedYear}>
-                    <SelectTrigger className="w-28">
-                      <SelectValue placeholder="Année" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {Array.from({ length: 5 }, (_, i) => new Date().getFullYear() - 2 + i).map((year) => (
-                        <SelectItem key={year} value={year.toString()}>
-                          {year}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
+            <div>
+              <Label>Date Achat</Label>
+              <Input
+                type="date"
+                value={invoiceNumber}
+                onChange={(e) => setInvoiceNumber(e.target.value)}
+                className="mt-1"
+              />
             </div>
 
             {/* Action Buttons */}
