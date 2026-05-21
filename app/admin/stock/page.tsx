@@ -37,7 +37,10 @@ interface DotBatch {
   emplacement: string; notes: string; created_at: string;
 }
 
-/* ─── Composant panneau DOT/FEFO ────────────────────────── */
+/* ─── Types client ───────────────────────────────────────── */
+interface Customer { id: number; name: string; email: string; phone: string; }
+
+/* ─── Composant panneau DOT ──────────────────────────────── */
 function DotPanel({
   product, onClose, onStockChanged,
 }: {
@@ -49,13 +52,17 @@ function DotPanel({
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
-  // Consommation FEFO
-  const [consumeQty, setConsumeQty] = useState(1);
-  const [consumeReason, setConsumeReason] = useState("vente");
-  const [consuming, setConsuming] = useState(false);
-  const [consumeMsg, setConsumeMsg] = useState("");
+  /* sell-form state (one at a time, keyed by batchId) */
+  const [sellBatchId, setSellBatchId] = useState<number | null>(null);
+  const [sellQty, setSellQty] = useState(1);
+  const [clientSearch, setClientSearch] = useState("");
+  const [clientSuggestions, setClientSuggestions] = useState<Customer[]>([]);
+  const [selectedClient, setSelectedClient] = useState<Customer | null>(null);
+  const [showSugg, setShowSugg] = useState(false);
+  const [selling, setSelling] = useState(false);
+  const [sellMsg, setSellMsg] = useState<{ text: string; ok: boolean } | null>(null);
 
-  // Ajout manuel
+  /* add-batch state */
   const [showAdd, setShowAdd] = useState(false);
   const [addDot, setAddDot] = useState("");
   const [addQty, setAddQty] = useState(1);
@@ -64,42 +71,83 @@ function DotPanel({
 
   const token = () => localStorage.getItem("access_token");
 
+  /* ── load batches ── */
   const loadBatches = useCallback(async () => {
     setLoading(true); setError("");
     try {
       const r = await fetch(`${API_URL}/admin/products/${product.id}/dot-batches/`, {
         headers: { Authorization: `Bearer ${token()}` },
       });
-      if (!r.ok) throw new Error("Erreur chargement");
+      if (!r.ok) throw new Error(`HTTP ${r.status}`);
       setBatches(await r.json());
-    } catch { setError("Impossible de charger les lots DOT."); }
-    finally { setLoading(false); }
+    } catch (e: any) {
+      setError(`Impossible de charger les lots DOT (${e.message})`);
+    } finally { setLoading(false); }
   }, [product.id]);
 
   useEffect(() => { loadBatches(); }, [loadBatches]);
 
+  /* ── client search debounce ── */
+  useEffect(() => {
+    if (!clientSearch || clientSearch.length < 2) { setClientSuggestions([]); return; }
+    const t = setTimeout(async () => {
+      try {
+        const r = await fetch(`${API_URL}/admin/customers/?q=${encodeURIComponent(clientSearch)}`, {
+          headers: { Authorization: `Bearer ${token()}` },
+        });
+        if (r.ok) setClientSuggestions(await r.json());
+      } catch {}
+    }, 300);
+    return () => clearTimeout(t);
+  }, [clientSearch]);
+
   const totalStock = batches.reduce((s, b) => s + b.quantity, 0);
 
-  async function handleConsume() {
-    if (consumeQty < 1) return;
-    setConsuming(true); setConsumeMsg("");
+  /* ── open/close sell form ── */
+  function openSell(batch: DotBatch) {
+    setSellBatchId(batch.id);
+    setSellQty(1);
+    setClientSearch("");
+    setSelectedClient(null);
+    setClientSuggestions([]);
+    setSellMsg(null);
+  }
+  function closeSell() {
+    setSellBatchId(null);
+    setClientSearch("");
+    setSelectedClient(null);
+    setClientSuggestions([]);
+    setSellMsg(null);
+  }
+
+  /* ── sell ── */
+  async function handleSell(batch: DotBatch) {
+    if (sellQty < 1 || sellQty > batch.quantity) return;
+    setSelling(true); setSellMsg(null);
     try {
       const r = await fetch(`${API_URL}/admin/products/${product.id}/consume-dot-batch/`, {
         method: "POST",
         headers: { Authorization: `Bearer ${token()}`, "Content-Type": "application/json" },
-        body: JSON.stringify({ quantity: consumeQty, reason: consumeReason }),
+        body: JSON.stringify({
+          batch_id: batch.id,
+          quantity: sellQty,
+          reason: "vente",
+          client_name: selectedClient?.name || clientSearch || "",
+          client_id: selectedClient?.id || null,
+        }),
       });
       const data = await r.json();
       if (!r.ok) throw new Error(data.error || "Erreur");
-      setConsumeMsg(`✓ ${consumeQty} pneu(s) consommé(s) depuis le lot le plus ancien.`);
-      setConsumeQty(1);
-      onStockChanged(product.id, data.new_stock ?? (totalStock - consumeQty));
+      setSellMsg({ text: `${sellQty} pneu(s) vendu(s) — DOT ${batch.dot}.`, ok: true });
+      onStockChanged(product.id, data.new_stock ?? (totalStock - sellQty));
       await loadBatches();
+      setTimeout(() => { closeSell(); setSellMsg(null); }, 2500);
     } catch (e: any) {
-      setConsumeMsg(`✗ ${e.message}`);
-    } finally { setConsuming(false); }
+      setSellMsg({ text: e.message, ok: false });
+    } finally { setSelling(false); }
   }
 
+  /* ── add batch ── */
   async function handleAddBatch() {
     if (!addDot || addQty < 1) return;
     setAdding(true);
@@ -112,18 +160,10 @@ function DotPanel({
       if (!r.ok) throw new Error("Erreur ajout");
       const data = await r.json();
       onStockChanged(product.id, data.new_stock ?? (totalStock + addQty));
-      setAddDot(""); setAddQty(1); setAddEmplacement("");
-      setShowAdd(false);
+      setAddDot(""); setAddQty(1); setAddEmplacement(""); setShowAdd(false);
       await loadBatches();
-    } catch (e: any) {
-      alert(e.message);
-    } finally { setAdding(false); }
-  }
-
-  function formatDot(dot: string, dotDate: string | null) {
-    if (!dotDate) return dot || "—";
-    const d = new Date(dotDate);
-    return `${dot} (sem. ${dot.split(".")[0]} / ${d.getFullYear()})`;
+    } catch (e: any) { alert(e.message); }
+    finally { setAdding(false); }
   }
 
   function dotAge(dotDate: string | null) {
@@ -137,35 +177,39 @@ function DotPanel({
     <motion.div
       initial={{ x: "100%" }} animate={{ x: 0 }} exit={{ x: "100%" }}
       transition={{ type: "spring", damping: 30, stiffness: 300 }}
-      className="fixed top-0 right-0 h-full w-full max-w-md bg-white shadow-2xl z-50 flex flex-col"
+      className="fixed top-0 right-0 h-full w-full max-w-lg bg-white shadow-2xl z-50 flex flex-col"
     >
       {/* Header */}
-      <div className="flex items-center justify-between px-5 py-4 border-b bg-gray-50">
+      <div className="flex items-center justify-between px-5 py-4 border-b bg-yellow-50">
         <div>
-          <h2 className="font-bold text-gray-900">Gestion DOT — FEFO</h2>
-          <p className="text-xs text-gray-500 mt-0.5 line-clamp-1">{product.brand} · {product.name}</p>
+          <h2 className="font-bold text-gray-900 flex items-center gap-2">
+            <Calendar className="h-4 w-4 text-yellow-600" />
+            Gestion DOT — Lots de stock
+          </h2>
+          <p className="text-xs text-gray-500 mt-0.5 line-clamp-1">{product.brand} · {product.name} · {product.size}</p>
         </div>
-        <button onClick={onClose} className="text-gray-400 hover:text-gray-700">
+        <button onClick={onClose} className="text-gray-400 hover:text-gray-700 p-1 rounded hover:bg-gray-100">
           <X className="h-5 w-5" />
         </button>
       </div>
 
-      <div className="flex-1 overflow-y-auto px-5 py-4 space-y-5">
+      <div className="flex-1 overflow-y-auto px-5 py-4 space-y-4">
+
         {/* Résumé */}
         <div className="flex gap-3">
-          <div className="flex-1 bg-blue-50 rounded-lg p-3 text-center">
-            <p className="text-2xl font-bold text-blue-700">{totalStock}</p>
-            <p className="text-xs text-blue-500">unités totales</p>
+          <div className="flex-1 bg-yellow-50 border border-yellow-200 rounded-lg p-3 text-center">
+            <p className="text-2xl font-bold text-yellow-700">{totalStock}</p>
+            <p className="text-xs text-yellow-600">unités en stock</p>
           </div>
-          <div className="flex-1 bg-orange-50 rounded-lg p-3 text-center">
-            <p className="text-2xl font-bold text-orange-600">{batches.length}</p>
-            <p className="text-xs text-orange-400">lots DOT</p>
+          <div className="flex-1 bg-gray-50 border border-gray-200 rounded-lg p-3 text-center">
+            <p className="text-2xl font-bold text-gray-700">{batches.length}</p>
+            <p className="text-xs text-gray-500">lots DOT</p>
           </div>
         </div>
 
         {loading && (
-          <div className="text-center py-8">
-            <Loader2 className="h-6 w-6 animate-spin text-gray-400 mx-auto mb-2" />
+          <div className="text-center py-10">
+            <Loader2 className="h-6 w-6 animate-spin text-yellow-500 mx-auto mb-2" />
             <p className="text-sm text-gray-400">Chargement des lots…</p>
           </div>
         )}
@@ -176,9 +220,9 @@ function DotPanel({
           </div>
         )}
 
-        {/* Liste des lots FEFO */}
-        {!loading && batches.length === 0 && (
-          <div className="text-center py-8 text-gray-400">
+        {/* Lot list */}
+        {!loading && !error && batches.length === 0 && (
+          <div className="text-center py-10 text-gray-400">
             <Package className="h-10 w-10 mx-auto mb-2 opacity-30" />
             <p className="text-sm">Aucun lot DOT enregistré</p>
             <p className="text-xs mt-1">Ajoutez un lot manuellement ci-dessous</p>
@@ -186,100 +230,181 @@ function DotPanel({
         )}
 
         {!loading && batches.length > 0 && (
-          <div className="space-y-2">
+          <div className="space-y-3">
             <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide flex items-center gap-1">
-              <Calendar className="h-3 w-3" /> Lots par ordre FEFO (plus ancien en premier)
+              <Calendar className="h-3 w-3" /> Lots du plus ancien au plus récent — sélectionnez lequel vendre
             </p>
-            {batches.map((batch, idx) => (
-              <div
-                key={batch.id}
-                className={`rounded-lg border-2 p-3 ${
-                  idx === 0
-                    ? "border-orange-400 bg-orange-50"
-                    : "border-gray-200 bg-white"
-                }`}
-              >
-                <div className="flex items-start justify-between gap-2">
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <span className="font-mono font-bold text-sm text-gray-900">
-                        DOT {batch.dot || "—"}
-                      </span>
-                      {idx === 0 && (
-                        <span className="text-[10px] font-bold bg-orange-500 text-white px-2 py-0.5 rounded-full">
-                          À VENDRE EN 1ᵉʳ
+
+            {batches.map((batch, idx) => {
+              const isSelling = sellBatchId === batch.id;
+              const isFirst = idx === 0;
+              return (
+                <div
+                  key={batch.id}
+                  className={`rounded-xl border-2 overflow-hidden transition-all ${
+                    isSelling
+                      ? "border-yellow-400 shadow-md"
+                      : isFirst
+                      ? "border-yellow-300 bg-yellow-50"
+                      : "border-gray-200 bg-white"
+                  }`}
+                >
+                  {/* Batch header row */}
+                  <div className="flex items-center gap-3 px-4 py-3">
+                    {/* DOT info */}
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className="font-mono font-bold text-sm text-gray-900">
+                          DOT {batch.dot || "—"}
                         </span>
-                      )}
+                        {isFirst && (
+                          <span className="text-[10px] font-bold bg-yellow-500 text-white px-2 py-0.5 rounded-full">
+                            PRIORITÉ FEFO
+                          </span>
+                        )}
+                      </div>
+                      <div className="text-xs text-gray-500 mt-0.5 space-y-0.5">
+                        {batch.dot_date && (
+                          <p>
+                            Fabriqué&nbsp;: {new Date(batch.dot_date).toLocaleDateString("fr-FR")}
+                            {" · "}Âge&nbsp;: {dotAge(batch.dot_date)}
+                          </p>
+                        )}
+                        {batch.emplacement && <p>Emplacement&nbsp;: <span className="font-medium">{batch.emplacement}</span></p>}
+                      </div>
                     </div>
-                    <div className="text-xs text-gray-500 mt-0.5 space-y-0.5">
-                      {batch.dot_date && (
-                        <p>Fabriqué : {new Date(batch.dot_date).toLocaleDateString("fr-FR")} · Âge : {dotAge(batch.dot_date)}</p>
-                      )}
-                      {batch.emplacement && <p>Emplacement : {batch.emplacement}</p>}
+
+                    {/* Quantity */}
+                    <div className="text-right flex-shrink-0 mr-2">
+                      <span className={`text-xl font-bold ${isFirst ? "text-yellow-600" : "text-gray-700"}`}>
+                        {batch.quantity}
+                      </span>
+                      <p className="text-[10px] text-gray-400">unité(s)</p>
                     </div>
+
+                    {/* Actions */}
+                    {!isSelling ? (
+                      <button
+                        onClick={() => openSell(batch)}
+                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold bg-yellow-500 hover:bg-yellow-600 text-white transition-colors shadow-sm"
+                      >
+                        <Minus className="h-3 w-3" /> Vendre
+                      </button>
+                    ) : (
+                      <button
+                        onClick={closeSell}
+                        className="text-gray-400 hover:text-gray-600 p-1"
+                        title="Annuler"
+                      >
+                        <X className="h-4 w-4" />
+                      </button>
+                    )}
                   </div>
-                  <div className="text-right flex-shrink-0">
-                    <span className={`text-lg font-bold ${idx === 0 ? "text-orange-600" : "text-gray-700"}`}>
-                      {batch.quantity}
-                    </span>
-                    <p className="text-xs text-gray-400">unité(s)</p>
-                  </div>
+
+                  {/* Inline sell form */}
+                  {isSelling && (
+                    <div className="border-t-2 border-yellow-300 bg-yellow-50 px-4 py-4 space-y-3">
+                      <p className="text-xs font-semibold text-yellow-800">
+                        Vente depuis DOT {batch.dot} — {batch.quantity} unité(s) disponible(s)
+                      </p>
+
+                      {/* Quantity */}
+                      <div className="flex items-center gap-3">
+                        <label className="text-xs font-medium text-gray-700 w-24 flex-shrink-0">Quantité</label>
+                        <div className="flex items-center gap-2">
+                          <button
+                            onClick={() => setSellQty((q) => Math.max(1, q - 1))}
+                            className="w-7 h-7 rounded-full border border-gray-300 bg-white flex items-center justify-center hover:bg-gray-100 text-sm font-bold"
+                          >−</button>
+                          <input
+                            type="number" min={1} max={batch.quantity} value={sellQty}
+                            onChange={(e) => setSellQty(Math.min(batch.quantity, Math.max(1, parseInt(e.target.value) || 1)))}
+                            className="w-14 text-center border border-gray-300 rounded px-1 py-1 text-sm font-bold focus:outline-none focus:ring-2 focus:ring-yellow-400"
+                          />
+                          <button
+                            onClick={() => setSellQty((q) => Math.min(batch.quantity, q + 1))}
+                            className="w-7 h-7 rounded-full border border-gray-300 bg-white flex items-center justify-center hover:bg-gray-100 text-sm font-bold"
+                          >+</button>
+                        </div>
+                      </div>
+
+                      {/* Client */}
+                      <div className="relative">
+                        <label className="text-xs font-medium text-gray-700 block mb-1">
+                          Client <span className="text-gray-400 font-normal">(nom, email ou téléphone)</span>
+                        </label>
+                        <input
+                          type="text"
+                          value={selectedClient ? selectedClient.name : clientSearch}
+                          onChange={(e) => {
+                            setSelectedClient(null);
+                            setClientSearch(e.target.value);
+                            setShowSugg(true);
+                          }}
+                          onFocus={() => setShowSugg(true)}
+                          placeholder="Rechercher un client ou saisir un nom…"
+                          className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-yellow-400"
+                        />
+                        {selectedClient && (
+                          <div className="mt-1 flex items-center gap-2 text-xs bg-yellow-100 border border-yellow-300 rounded-lg px-3 py-1.5">
+                            <span className="font-medium text-yellow-800">{selectedClient.name}</span>
+                            <span className="text-yellow-600">{selectedClient.email}</span>
+                            <button onClick={() => { setSelectedClient(null); setClientSearch(""); }} className="ml-auto text-yellow-600 hover:text-red-500">
+                              <X className="h-3 w-3" />
+                            </button>
+                          </div>
+                        )}
+                        {/* Suggestions dropdown */}
+                        {showSugg && clientSuggestions.length > 0 && !selectedClient && (
+                          <div className="absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg overflow-hidden">
+                            {clientSuggestions.map((c) => (
+                              <button
+                                key={c.id}
+                                className="w-full text-left px-3 py-2 hover:bg-yellow-50 text-sm border-b border-gray-100 last:border-0"
+                                onMouseDown={(e) => {
+                                  e.preventDefault();
+                                  setSelectedClient(c);
+                                  setClientSearch("");
+                                  setShowSugg(false);
+                                }}
+                              >
+                                <span className="font-medium">{c.name}</span>
+                                <span className="text-xs text-gray-500 ml-2">{c.email}</span>
+                                {c.phone && <span className="text-xs text-gray-400 ml-2">{c.phone}</span>}
+                              </button>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Submit */}
+                      {sellMsg && (
+                        <p className={`text-xs font-medium text-center py-1 rounded ${sellMsg.ok ? "text-green-700 bg-green-50" : "text-red-700 bg-red-50"}`}>
+                          {sellMsg.text}
+                        </p>
+                      )}
+                      <Button
+                        onClick={() => handleSell(batch)}
+                        disabled={selling || sellQty > batch.quantity}
+                        className="w-full bg-yellow-500 hover:bg-yellow-600 text-white font-bold shadow-sm"
+                      >
+                        {selling
+                          ? <><Loader2 className="h-4 w-4 animate-spin mr-2" />Traitement…</>
+                          : <><Minus className="h-4 w-4 mr-2" />Vendre {sellQty} pneu{sellQty > 1 ? "s" : ""} — DOT {batch.dot}</>}
+                      </Button>
+                    </div>
+                  )}
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         )}
 
-        {/* Zone FEFO : consommer */}
-        {!loading && batches.length > 0 && (
-          <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 space-y-3 bg-gray-50">
-            <p className="text-sm font-semibold text-gray-700 flex items-center gap-2">
-              <ChevronRight className="h-4 w-4 text-orange-500" />
-              Consommer (FEFO automatique)
-            </p>
-            <p className="text-xs text-gray-500">
-              Le système prend automatiquement du lot avec le DOT le plus ancien.
-            </p>
-            <div className="flex gap-2 items-center">
-              <label className="text-xs text-gray-600 w-16 flex-shrink-0">Quantité</label>
-              <input
-                type="number" min={1} max={totalStock} value={consumeQty}
-                onChange={(e) => setConsumeQty(Math.max(1, parseInt(e.target.value) || 1))}
-                className="w-20 border border-gray-300 rounded px-2 py-1 text-sm text-center focus:outline-none focus:ring-2 focus:ring-orange-400"
-              />
-            </div>
-            <div className="flex gap-2 items-center">
-              <label className="text-xs text-gray-600 w-16 flex-shrink-0">Motif</label>
-              <select
-                value={consumeReason}
-                onChange={(e) => setConsumeReason(e.target.value)}
-                className="flex-1 border border-gray-300 rounded px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-orange-400"
-              >
-                <option value="vente">Vente</option>
-                <option value="retour">Retour / Échange</option>
-                <option value="perte">Perte / Casse</option>
-                <option value="ajustement">Ajustement inventaire</option>
-              </select>
-            </div>
-            <Button
-              onClick={handleConsume}
-              disabled={consuming || consumeQty > totalStock}
-              className="w-full bg-orange-500 hover:bg-orange-600 text-white font-semibold"
-            >
-              {consuming
-                ? <><Loader2 className="h-4 w-4 animate-spin mr-2" />Traitement…</>
-                : <><Minus className="h-4 w-4 mr-2" />Consommer {consumeQty} pneu(s)</>}
-            </Button>
-            {consumeMsg && (
-              <p className={`text-xs text-center font-medium ${consumeMsg.startsWith("✓") ? "text-green-600" : "text-red-600"}`}>
-                {consumeMsg}
-              </p>
-            )}
-          </div>
-        )}
+        {/* Separator */}
+        {!loading && <div className="border-t border-gray-100" />}
 
-        {/* Ajout manuel d'un lot */}
-        <div className="border border-gray-200 rounded-lg overflow-hidden">
+        {/* Ajouter un lot */}
+        <div className="border border-gray-200 rounded-xl overflow-hidden">
           <button
             onClick={() => setShowAdd(!showAdd)}
             className="w-full flex items-center justify-between px-4 py-3 bg-gray-50 hover:bg-gray-100 text-sm font-medium text-gray-700 transition-colors"
@@ -290,7 +415,7 @@ function DotPanel({
             <ChevronRight className={`h-4 w-4 text-gray-400 transition-transform ${showAdd ? "rotate-90" : ""}`} />
           </button>
           {showAdd && (
-            <div className="px-4 py-3 space-y-3 border-t border-gray-200">
+            <div className="px-4 py-4 space-y-3 border-t border-gray-200 bg-white">
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="block text-xs font-medium text-gray-600 mb-1">
@@ -300,7 +425,7 @@ function DotPanel({
                   <input
                     type="text" value={addDot} onChange={(e) => setAddDot(e.target.value)}
                     placeholder="semaine.année"
-                    className="w-full border border-gray-300 rounded px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-400"
+                    className="w-full border border-gray-300 rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-400"
                   />
                 </div>
                 <div>
@@ -308,7 +433,7 @@ function DotPanel({
                   <input
                     type="number" min={1} value={addQty}
                     onChange={(e) => setAddQty(Math.max(1, parseInt(e.target.value) || 1))}
-                    className="w-full border border-gray-300 rounded px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-400"
+                    className="w-full border border-gray-300 rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-400"
                   />
                 </div>
               </div>
@@ -317,7 +442,7 @@ function DotPanel({
                 <input
                   type="text" value={addEmplacement} onChange={(e) => setAddEmplacement(e.target.value)}
                   placeholder="ex: Rayon A3"
-                  className="w-full border border-gray-300 rounded px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-400"
+                  className="w-full border border-gray-300 rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-400"
                 />
               </div>
               <Button
