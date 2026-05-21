@@ -23,6 +23,7 @@ class PurchaseOrder(models.Model):
 
     order_number = models.CharField('Numéro de commande', max_length=50, unique=True)
     invoice_number = models.CharField('Numéro de facture', max_length=100, blank=True, null=True)
+    bl_number = models.CharField('Numéro BL', max_length=100, blank=True, null=True)
     supplier = models.ForeignKey(Supplier, on_delete=models.PROTECT, related_name='purchase_orders', verbose_name='Fournisseur')
     note = models.TextField('Note', blank=True, null=True)
     week = models.CharField('Semaine', max_length=10, blank=True, null=True)

@@ -209,6 +209,161 @@ def get_cri_balance(request):
     return Response({'balance': float(balance_obj.balance), 'updated_at': balance_obj.updated_at})
 
 
+def _serialize_claim(claim, request):
+    """Return a dict representation of a WarrantyClaim."""
+    STATUS_LABELS = {
+        'pending': 'En attente',
+        'processing': 'En traitement',
+        'resolved': 'Résolu',
+        'rejected': 'Rejeté',
+    }
+
+    def build_url(field):
+        try:
+            if field and field.name:
+                return request.build_absolute_uri(field.url)
+        except Exception:
+            pass
+        return None
+
+    tire_image_urls = []
+    for img in claim.tire_images.all():
+        url = build_url(img.image)
+        if url:
+            tire_image_urls.append(url)
+
+    return {
+        'id': claim.id,
+        'order_ref': claim.order_ref,
+        'invoice_number': claim.invoice_number,
+        'order_item_name': claim.order_item_name,
+        'first_name': claim.first_name,
+        'last_name': claim.last_name,
+        'email': claim.email,
+        'description': claim.description,
+        'mileage_at_purchase': claim.mileage_at_purchase,
+        'current_mileage': claim.current_mileage,
+        'status': claim.status,
+        'status_label': STATUS_LABELS.get(claim.status, claim.status),
+        'admin_notes': claim.admin_notes,
+        'invoice_photo_url': build_url(claim.invoice_photo),
+        'tire_video_url': build_url(claim.tire_video),
+        'tire_image_urls': tire_image_urls,
+        'created_at': claim.created_at.isoformat(),
+        'updated_at': claim.updated_at.isoformat(),
+    }
+
+
+@api_view(['POST', 'GET'])
+@perm_classes([IsAuthenticated])
+def warranty_claim_view(request):
+    """
+    POST /api/orders/sav/  — submit a new SAV claim (multipart/form-data)
+    GET  /api/orders/sav/  — admin: list all claims
+    """
+    from .models import WarrantyClaim, WarrantyClaimTireImage
+    from accounts.permanent_permissions import IsAdminOrSales
+
+    if request.method == 'GET':
+        is_admin = (
+            request.user.is_staff or request.user.is_superuser
+            or getattr(request.user, 'role', None) in ('admin', 'sales')
+        )
+        if not is_admin:
+            return Response({'error': 'Non autorisé'}, status=403)
+        claims = (
+            WarrantyClaim.objects
+            .prefetch_related('tire_images')
+            .order_by('-created_at')
+        )
+        return Response([_serialize_claim(c, request) for c in claims])
+
+    # POST — create claim
+    data = request.data
+    files = request.FILES
+
+    order_id = data.get('order')
+    if not order_id:
+        return Response({'error': 'order requis'}, status=400)
+
+    try:
+        order = Order.objects.get(pk=order_id, user=request.user)
+    except Order.DoesNotExist:
+        return Response({'error': 'Commande introuvable'}, status=404)
+
+    claim = WarrantyClaim(
+        order=order,
+        order_item_id=data.get('order_item_id') or None,
+        order_item_name=data.get('order_item_name', ''),
+        first_name=data.get('first_name', ''),
+        last_name=data.get('last_name', ''),
+        email=data.get('email', ''),
+        order_ref=data.get('order_ref', ''),
+        invoice_number=data.get('invoice_number', ''),
+        mileage_at_purchase=data.get('mileage_at_purchase', ''),
+        current_mileage=data.get('current_mileage', ''),
+        description=data.get('description', ''),
+        created_by=request.user,
+    )
+    if 'invoice_photo' in files:
+        claim.invoice_photo = files['invoice_photo']
+    if 'tire_video' in files:
+        claim.tire_video = files['tire_video']
+    claim.save()
+
+    for img_file in files.getlist('tire_images'):
+        WarrantyClaimTireImage.objects.create(claim=claim, image=img_file)
+
+    return Response(_serialize_claim(claim, request), status=201)
+
+
+@api_view(['GET'])
+@perm_classes([IsAuthenticated])
+def mes_reclamations(request):
+    """GET /api/orders/sav/mes-reclamations/ — list claims of the authenticated user."""
+    from .models import WarrantyClaim
+    claims = (
+        WarrantyClaim.objects
+        .filter(created_by=request.user)
+        .prefetch_related('tire_images')
+        .order_by('-created_at')
+    )
+    return Response([_serialize_claim(c, request) for c in claims])
+
+
+@api_view(['GET', 'PATCH'])
+@perm_classes([IsAuthenticated])
+def warranty_claim_detail_view(request, pk):
+    """
+    GET   /api/orders/sav/<pk>/  — get one claim (owner or admin)
+    PATCH /api/orders/sav/<pk>/  — admin: update status / admin_notes
+    """
+    from .models import WarrantyClaim
+    try:
+        claim = WarrantyClaim.objects.prefetch_related('tire_images').get(pk=pk)
+    except WarrantyClaim.DoesNotExist:
+        return Response({'error': 'Réclamation introuvable'}, status=404)
+
+    is_admin = (
+        request.user.is_staff or request.user.is_superuser
+        or getattr(request.user, 'role', None) in ('admin', 'sales')
+    )
+    is_owner = claim.created_by == request.user
+    if not (is_admin or is_owner):
+        return Response({'error': 'Non autorisé'}, status=403)
+
+    if request.method == 'PATCH':
+        if not is_admin:
+            return Response({'error': 'Non autorisé'}, status=403)
+        if 'status' in request.data:
+            claim.status = request.data['status']
+        if 'admin_notes' in request.data:
+            claim.admin_notes = request.data['admin_notes']
+        claim.save()
+
+    return Response(_serialize_claim(claim, request))
+
+
 class AvoirListCreateView(generics.ListCreateAPIView):
     """
     GET  /api/orders/avoirs/        → liste des avoirs

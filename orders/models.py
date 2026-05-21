@@ -261,3 +261,20 @@ class WarrantyClaim(models.Model):
 
     def __str__(self):
         return f'SAV-{self.id:04d} - {self.order_ref} - {self.first_name} {self.last_name}'
+
+
+class WarrantyClaimTireImage(models.Model):
+    """One of potentially many tire photos attached to a SAV claim."""
+    claim = models.ForeignKey(
+        WarrantyClaim, on_delete=models.CASCADE, related_name='tire_images'
+    )
+    image = models.FileField(
+        upload_to='sav/tire_images/', storage=_sav_storage
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['created_at']
+
+    def __str__(self):
+        return f'TireImage {self.id} — SAV-{self.claim_id:04d}'
