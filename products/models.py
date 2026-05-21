@@ -175,6 +175,62 @@ class SiteSettings(models.Model):
     class Meta:
         verbose_name = 'Paramètres du site'
 
+
+def dot_to_date(dot: str):
+    """
+    Convertit un DOT "WW.YY" (ex: "15.24") en date Python (lundi de la semaine WW de l'année 20YY).
+    Retourne None si le format est invalide.
+    """
+    import datetime
+    if not dot or '.' not in dot:
+        return None
+    try:
+        parts = dot.strip().split('.')
+        week = int(parts[0])
+        year_raw = parts[1]
+        year = int('20' + year_raw) if len(year_raw) == 2 else int(year_raw)
+        if not (1 <= week <= 52 and 2000 <= year <= 2100):
+            return None
+        jan1 = datetime.date(year, 1, 1)
+        return jan1 + datetime.timedelta(weeks=week - 1)
+    except (ValueError, IndexError):
+        return None
+
+
+class StockBatch(models.Model):
+    """
+    Lot de pneus en stock identifie par son DOT (semaine + annee de fabrication).
+    Chaque reception d'achat cree un ou plusieurs lots.
+    La sortie de stock suit le principe FEFO : lot avec le DOT le plus ancien en premier.
+    """
+    product = models.ForeignKey(
+        Product, on_delete=models.CASCADE,
+        related_name='stock_batches', verbose_name='Produit'
+    )
+    quantity = models.PositiveIntegerField('Quantite restante', default=0)
+    dot = models.CharField('DOT (sem.annee)', max_length=20, blank=True)
+    dot_date = models.DateField('Date approximative du DOT', null=True, blank=True)
+    emplacement = models.CharField('Emplacement', max_length=100, blank=True)
+    purchase_item = models.ForeignKey(
+        'purchases.PurchaseOrderItem', on_delete=models.SET_NULL,
+        null=True, blank=True, related_name='stock_batches'
+    )
+    created_at = models.DateTimeField('Recu le', auto_now_add=True)
+    notes = models.TextField('Notes', blank=True)
+
+    class Meta:
+        verbose_name = 'Lot de stock (DOT)'
+        verbose_name_plural = 'Lots de stock (DOT)'
+        ordering = ['dot_date', 'created_at']
+
+    def save(self, *args, **kwargs):
+        if self.dot and not self.dot_date:
+            self.dot_date = dot_to_date(self.dot)
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return f'{self.product.name} - DOT {self.dot} ({self.quantity} unites)'
+
     def __str__(self):
         return self.nom_boutique
 

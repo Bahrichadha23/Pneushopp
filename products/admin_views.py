@@ -333,8 +333,185 @@ def export_customer_data(request):
 
 @api_view(['GET'])
 @permission_classes([IsAdminOrPurchasing])
+def product_dot_batches(request, product_id):
+    """Return DOT batches for a product ordered oldest-first (FEFO)."""
+    from .models import StockBatch
+    batches = (
+        StockBatch.objects
+        .filter(product_id=product_id, quantity__gt=0)
+        .order_by('dot_date', 'created_at')
+        .values('id', 'quantity', 'dot', 'dot_date', 'emplacement', 'notes', 'created_at')
+    )
+    return Response(list(batches))
+
+
+@api_view(['POST'])
+@permission_classes([IsAdminOrPurchasing])
+def consume_dot_batch(request, product_id):
+    """Consume from a specific DOT batch; records a StockMovement linked to a client."""
+    from .models import StockBatch, StockMovement
+    from django.db import transaction
+
+    batch_id = request.data.get('batch_id')
+    try:
+        quantity = int(request.data.get('quantity', 1))
+    except (ValueError, TypeError):
+        return Response({'error': 'Quantite invalide'}, status=400)
+    reason = request.data.get('reason', 'vente')
+    client_name = (request.data.get('client_name') or '').strip()
+    client_id = request.data.get('client_id')
+
+    if not batch_id:
+        return Response({'error': 'batch_id requis'}, status=400)
+    if quantity < 1:
+        return Response({'error': 'Quantite invalide'}, status=400)
+
+    try:
+        with transaction.atomic():
+            batch = StockBatch.objects.select_for_update().get(id=batch_id, product_id=product_id)
+            if batch.quantity < quantity:
+                return Response(
+                    {'error': f'Stock insuffisant dans ce lot ({batch.quantity} disponible(s))'},
+                    status=400,
+                )
+            batch.quantity -= quantity
+            batch.save()
+
+            product = batch.product
+            product.stock = max(0, product.stock - quantity)
+            product.save()
+
+            ref_parts = []
+            if batch.dot:
+                ref_parts.append(f'DOT:{batch.dot}')
+            if client_name:
+                ref_parts.append(f'Client:{client_name}')
+            reference = ' | '.join(ref_parts)[:100]
+
+            StockMovement.objects.create(
+                product=product,
+                product_name=product.name,
+                type='out',
+                quantity=-quantity,
+                reason=reason,
+                reference=reference,
+                created_by=request.user,
+            )
+
+            return Response({
+                'success': True,
+                'new_stock': product.stock,
+                'batch_remaining': batch.quantity,
+            })
+    except StockBatch.DoesNotExist:
+        return Response({'error': 'Lot introuvable'}, status=404)
+    except Exception as e:
+        return Response({'error': str(e)}, status=500)
+
+
+@api_view(['POST'])
+@permission_classes([IsAdminOrPurchasing])
+def add_dot_batch(request, product_id):
+    """Manually add a DOT batch and increase the product stock."""
+    from .models import StockBatch, StockMovement, dot_to_date, Product
+    from django.db import transaction
+
+    dot = (request.data.get('dot') or '').strip()
+    try:
+        quantity = int(request.data.get('quantity', 1))
+    except (ValueError, TypeError):
+        return Response({'error': 'Quantite invalide'}, status=400)
+    emplacement = (request.data.get('emplacement') or '').strip()
+
+    if not dot:
+        return Response({'error': 'DOT requis'}, status=400)
+    if quantity < 1:
+        return Response({'error': 'Quantite invalide'}, status=400)
+
+    try:
+        with transaction.atomic():
+            product = Product.objects.get(id=product_id)
+            dot_date = dot_to_date(dot)
+
+            batch = StockBatch.objects.create(
+                product=product,
+                quantity=quantity,
+                dot=dot,
+                dot_date=dot_date,
+                emplacement=emplacement or product.emplacement or '',
+            )
+
+            product.stock = product.stock + quantity
+            product.save()
+
+            StockMovement.objects.create(
+                product=product,
+                product_name=product.name,
+                type='in',
+                quantity=quantity,
+                reason='ajout_manuel',
+                reference=f'DOT:{dot}'[:100],
+                created_by=request.user,
+            )
+
+            return Response({'success': True, 'new_stock': product.stock, 'batch_id': batch.id})
+    except Product.DoesNotExist:
+        return Response({'error': 'Produit introuvable'}, status=404)
+    except Exception as e:
+        return Response({'error': str(e)}, status=500)
+
+
+@api_view(['GET'])
+@permission_classes([IsAdminOrPurchasing])
+def customer_search(request):
+    """Search customers by name or email (for the DOT sell form)."""
+    from accounts.models import CustomUser
+    from django.db.models import Q
+    q = (request.query_params.get('q') or '').strip()
+    if len(q) < 2:
+        return Response([])
+    customers = (
+        CustomUser.objects
+        .filter(Q(email__icontains=q) | Q(first_name__icontains=q) | Q(last_name__icontains=q))
+        .values('id', 'email', 'first_name', 'last_name', 'phone')[:10]
+    )
+    return Response([{
+        'id': c['id'],
+        'email': c['email'],
+        'name': f"{c['first_name']} {c['last_name']}".strip() or c['email'],
+        'phone': c['phone'],
+    } for c in customers])
+
+
+@api_view(['GET'])
+@permission_classes([IsAdminOrPurchasing])
 def stock_movements(request):
-    """List stock movements"""
+    """List stock movements — or DOT batches if ?type=dot_batches"""
+    if request.GET.get('type') == 'dot_batches':
+        from .models import StockBatch
+        batches = (
+            StockBatch.objects
+            .select_related('product')
+            .filter(quantity__gt=0)
+            .order_by('dot_date', 'created_at')
+        )
+        data = [
+            {
+                'id': b.id,
+                'product_id': b.product_id,
+                'product_name': b.product.name if b.product else '',
+                'product_brand': b.product.brand if b.product else '',
+                'product_size': b.product.size if b.product and hasattr(b.product, 'size') else '',
+                'quantity': b.quantity,
+                'dot': b.dot,
+                'dot_date': str(b.dot_date) if b.dot_date else None,
+                'emplacement': b.emplacement,
+                'created_at': b.created_at.isoformat(),
+            }
+            for b in batches
+        ]
+        return Response(data)
+
     movements = StockMovement.objects.select_related('product', 'created_by').order_by('-created_at')[:100]
     serializer = StockMovementSerializer(movements, many=True)
     return Response(serializer.data)
