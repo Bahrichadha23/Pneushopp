@@ -6,7 +6,7 @@ import { useState } from "react";
 import type { Product } from "@/types/product";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Star, ShoppingCart } from "lucide-react";
+import { Star, ShoppingCart, Minus, Plus } from "lucide-react";
 import { useCart } from "@/contexts/cart-context";
 import Link from "next/link";
 
@@ -22,17 +22,18 @@ export default function ProductCard({
   const { addToCart } = useCart();
   const [isAdding, setIsAdding] = useState(false);
   const [imageError, setImageError] = useState(false);
+  const [quantity, setQuantity] = useState(1);
+
+  const handleQuantityChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const val = parseInt(e.target.value, 10);
+    if (!isNaN(val) && val >= 1 && val <= 999) setQuantity(val);
+    else if (e.target.value === "") setQuantity(1);
+  };
 
   const handleAddToCart = async (e: React.MouseEvent) => {
-    e.preventDefault(); // Empêche la navigation vers la page produit
-    
-    // Set animation state FIRST (immediately)
+    e.preventDefault();
     setIsAdding(true);
-    
-    // Then add to cart
-    await addToCart(product);
-    
-    // Keep animation for 1.5 seconds
+    await addToCart(product, quantity);
     setTimeout(() => {
       setIsAdding(false);
     }, 1500);
@@ -143,6 +144,36 @@ export default function ProductCard({
               </p>
             )}
           </div>
+
+          {/* Sélecteur de quantité */}
+          {product.inStock && (
+            <div
+              className="flex items-center justify-center gap-2 mb-3"
+              onClick={(e) => e.preventDefault()}
+            >
+              <button
+                onClick={(e) => { e.preventDefault(); setQuantity((q) => Math.max(1, q - 1)); }}
+                className="w-8 h-8 rounded-full border border-gray-300 flex items-center justify-center hover:border-yellow-500 hover:bg-yellow-50 transition-colors"
+              >
+                <Minus className="w-3 h-3" />
+              </button>
+              <input
+                type="number"
+                min={1}
+                max={999}
+                value={quantity}
+                onChange={handleQuantityChange}
+                onClick={(e) => e.preventDefault()}
+                className="w-14 h-8 text-center border border-gray-300 rounded-md text-sm font-medium focus:outline-none focus:ring-2 focus:ring-yellow-400 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+              />
+              <button
+                onClick={(e) => { e.preventDefault(); setQuantity((q) => Math.min(999, q + 1)); }}
+                className="w-8 h-8 rounded-full border border-gray-300 flex items-center justify-center hover:border-yellow-500 hover:bg-yellow-50 transition-colors"
+              >
+                <Plus className="w-3 h-3" />
+              </button>
+            </div>
+          )}
 
           {/* Bouton d'ajout au panier */}
           <Button

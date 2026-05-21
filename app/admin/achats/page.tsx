@@ -117,6 +117,7 @@ export default function AchatsPage() {
   const [suppliers, setSuppliers] = useState<Supplier[]>([]);
   const [confirmedOrders, setConfirmedOrders] = useState<any[]>([]);
   const [selectedDot, setSelectedDot] = useState("");
+  const [selectedWeek, setSelectedWeek] = useState("");
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [showProductDetail, setShowProductDetail] = useState(false);
   const [showProductEdit, setShowProductEdit] = useState(false);
@@ -938,69 +939,52 @@ export default function AchatsPage() {
 
       {/* Product Detail Modal */}
       <Dialog open={showProductDetail} onOpenChange={setShowProductDetail}>
-        <DialogContent className="max-w-md">
+        <DialogContent className="max-w-md p-0 overflow-hidden">
           <DialogHeader>
-            <DialogTitle className="text-xl font-bold text-center bg-gradient-to-r from-yellow-500 to-orange-500 text-white py-3 -mt-6 -mx-6 px-6 rounded-t-lg">
-              DF: {selectedProduct?.reference || selectedProduct?.id}
+            <DialogTitle className="text-xl font-bold text-center bg-gradient-to-r from-yellow-400 to-yellow-600 text-white py-4 px-6 rounded-t-lg">
+              {selectedProduct?.name || selectedProduct?.reference}
             </DialogTitle>
           </DialogHeader>
-          
+
           {selectedProduct && (
-            <div className="space-y-4 p-4">
-              {/* Price */}
-              <div className="flex items-center justify-between pb-3 border-b">
-                <span className="font-bold text-gray-700">DF</span>
+            <div className="space-y-0 divide-y divide-yellow-100">
+              <div className="flex items-center justify-between px-6 py-3">
+                <span className="font-bold text-gray-600 text-sm uppercase tracking-wide">DF</span>
                 <span className="text-2xl font-bold text-gray-900">
                   {Number(selectedProduct.price).toFixed(3)}
                 </span>
               </div>
-
-              {/* Location */}
-              <div className="flex items-center justify-between pb-3 border-b">
-                <span className="font-bold text-gray-700">Emplacement</span>
-                <span className="text-gray-900 text-right">
-                  {selectedProduct.emplacement || selectedProduct.location || 'N/A'}
+              <div className="flex items-center justify-between px-6 py-3">
+                <span className="font-bold text-gray-600 text-sm uppercase tracking-wide">Emplacement</span>
+                <span className="text-gray-900 font-medium">
+                  {selectedProduct.emplacement || selectedProduct.location || '—'}
                 </span>
               </div>
-
-              {/* Quantity */}
-              <div className="flex items-center justify-between pb-3 border-b">
-                <span className="font-bold text-gray-700">Qte</span>
-                <span className={`text-xl font-bold ${selectedProduct.stock > 0 ? 'text-green-600' : 'text-red-600'}`}>
+              <div className="flex items-center justify-between px-6 py-3">
+                <span className="font-bold text-gray-600 text-sm uppercase tracking-wide">Qte</span>
+                <span className={`text-xl font-bold ${selectedProduct.stock > 0 ? 'text-yellow-600' : 'text-red-600'}`}>
                   {selectedProduct.stock}
                 </span>
               </div>
-
-              {/* Fabrication Date (Week/Year) */}
-              <div className="flex items-center justify-between pb-3 border-b">
-                <span className="font-bold text-gray-700">Fabrication</span>
-                <span className="text-gray-900">
+              <div className="flex items-center justify-between px-6 py-3">
+                <span className="font-bold text-gray-600 text-sm uppercase tracking-wide">Fabrication</span>
+                <span className="text-gray-900 font-mono font-bold">
                   {formatFabricationDate(selectedProduct)}
                 </span>
               </div>
-
-              {/* Additional Info */}
-              <div className="space-y-2 pt-2 border-t">
-                <div className="text-sm">
-                  <span className="font-bold">Marque: </span>
-                  <span className="text-yellow-600">{getBrandName(selectedProduct.brand)}</span>
-                </div>
-                <div className="text-sm">
-                  <span className="font-bold">Catégorie: </span>
-                  <span>{getCategoryName(selectedProduct.category)}</span>
-                </div>
-                <div className="text-sm">
-                  <span className="font-bold">Désignation: </span>
-                  <span>{selectedProduct.designation || selectedProduct.name}</span>
-                </div>
+              <div className="px-6 py-3 bg-yellow-50 space-y-1">
+                <div className="text-sm"><span className="font-bold text-gray-700">Marque : </span><span className="text-yellow-700 font-semibold">{getBrandName(selectedProduct.brand)}</span></div>
+                <div className="text-sm"><span className="font-bold text-gray-700">Catégorie : </span><span>{getCategoryName(selectedProduct.category)}</span></div>
+                <div className="text-sm"><span className="font-bold text-gray-700">Désignation : </span><span className="text-gray-600">{selectedProduct.designation || selectedProduct.name}</span></div>
               </div>
-
-              <Button
-                onClick={() => setShowProductDetail(false)}
-                className="w-full mt-4"
-              >
-                Fermer
-              </Button>
+              <div className="px-6 py-4">
+                <Button
+                  onClick={() => setShowProductDetail(false)}
+                  className="w-full bg-yellow-500 hover:bg-yellow-600 text-white font-bold"
+                >
+                  Fermer
+                </Button>
+              </div>
             </div>
           )}
         </DialogContent>
@@ -1010,8 +994,8 @@ export default function AchatsPage() {
       <Dialog open={showProductEdit} onOpenChange={setShowProductEdit}>
         <DialogContent className="max-w-md">
           <DialogHeader>
-            <DialogTitle className="text-xl font-bold text-center bg-gradient-to-r from-yellow-500 to-orange-500 text-white py-3 -mt-6 -mx-6 px-6 rounded-t-lg">
-              Modifier Produit: {selectedProduct?.reference || selectedProduct?.id}
+            <DialogTitle className="text-xl font-bold text-center bg-gradient-to-r from-yellow-400 to-yellow-600 text-white py-3 -mt-6 -mx-6 px-6 rounded-t-lg">
+              Modifier Produit: {selectedProduct?.name || selectedProduct?.reference}
             </DialogTitle>
           </DialogHeader>
           

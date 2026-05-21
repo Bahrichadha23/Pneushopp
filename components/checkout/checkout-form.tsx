@@ -267,6 +267,7 @@ export function CheckoutForm() {
   const [shippingAddress, setShippingAddress] = useState({
     firstName: user?.firstName || "",
     lastName: user?.lastName || "",
+    email: (user as any)?.email || "",
     company: "",
     address: "",
     city: "",
@@ -340,6 +341,7 @@ export function CheckoutForm() {
       const formattedShipping: ShippingAddress = {
         first_name: shippingAddress.firstName,
         last_name: shippingAddress.lastName,
+        email: shippingAddress.email,
         company: shippingAddress.company,
         address: shippingAddress.address,
         city: shippingAddress.city,
@@ -383,13 +385,9 @@ export function CheckoutForm() {
                 <Label htmlFor="firstName">Prénom *</Label>
                 <Input
                   id="firstName"
+                  placeholder="Votre prénom"
                   value={shippingAddress.firstName}
-                  onChange={(e) =>
-                    setShippingAddress((prev) => ({
-                      ...prev,
-                      firstName: e.target.value,
-                    }))
-                  }
+                  onChange={(e) => setShippingAddress((prev) => ({ ...prev, firstName: e.target.value }))}
                   required
                 />
               </div>
@@ -397,29 +395,34 @@ export function CheckoutForm() {
                 <Label htmlFor="lastName">Nom *</Label>
                 <Input
                   id="lastName"
+                  placeholder="Votre nom"
                   value={shippingAddress.lastName}
-                  onChange={(e) =>
-                    setShippingAddress((prev) => ({
-                      ...prev,
-                      lastName: e.target.value,
-                    }))
-                  }
+                  onChange={(e) => setShippingAddress((prev) => ({ ...prev, lastName: e.target.value }))}
                   required
                 />
               </div>
             </div>
 
             <div>
-              <Label htmlFor="company">Entreprise (optionnel)</Label>
+              <Label htmlFor="email">Adresse e-mail *</Label>
+              <Input
+                id="email"
+                type="email"
+                placeholder="exemple@email.com"
+                value={shippingAddress.email}
+                onChange={(e) => setShippingAddress((prev) => ({ ...prev, email: e.target.value }))}
+                required
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="company">Entreprise *</Label>
               <Input
                 id="company"
+                placeholder="Nom de votre entreprise"
                 value={shippingAddress.company}
-                onChange={(e) =>
-                  setShippingAddress((prev) => ({
-                    ...prev,
-                    company: e.target.value,
-                  }))
-                }
+                onChange={(e) => setShippingAddress((prev) => ({ ...prev, company: e.target.value }))}
+                required
               />
             </div>
 
@@ -427,13 +430,9 @@ export function CheckoutForm() {
               <Label htmlFor="address">Adresse *</Label>
               <Input
                 id="address"
+                placeholder="Rue, numéro..."
                 value={shippingAddress.address}
-                onChange={(e) =>
-                  setShippingAddress((prev) => ({
-                    ...prev,
-                    address: e.target.value,
-                  }))
-                }
+                onChange={(e) => setShippingAddress((prev) => ({ ...prev, address: e.target.value }))}
                 required
               />
             </div>
@@ -443,13 +442,9 @@ export function CheckoutForm() {
                 <Label htmlFor="city">Ville *</Label>
                 <Input
                   id="city"
+                  placeholder="Tunis"
                   value={shippingAddress.city}
-                  onChange={(e) =>
-                    setShippingAddress((prev) => ({
-                      ...prev,
-                      city: e.target.value,
-                    }))
-                  }
+                  onChange={(e) => setShippingAddress((prev) => ({ ...prev, city: e.target.value }))}
                   required
                 />
               </div>
@@ -457,13 +452,9 @@ export function CheckoutForm() {
                 <Label htmlFor="postalCode">Code postal *</Label>
                 <Input
                   id="postalCode"
+                  placeholder="1000"
                   value={shippingAddress.postalCode}
-                  onChange={(e) =>
-                    setShippingAddress((prev) => ({
-                      ...prev,
-                      postalCode: e.target.value,
-                    }))
-                  }
+                  onChange={(e) => setShippingAddress((prev) => ({ ...prev, postalCode: e.target.value }))}
                   required
                 />
               </div>
@@ -474,13 +465,9 @@ export function CheckoutForm() {
               <Input
                 id="phone"
                 type="tel"
+                placeholder="+216 XX XXX XXX"
                 value={shippingAddress.phone}
-                onChange={(e) =>
-                  setShippingAddress((prev) => ({
-                    ...prev,
-                    phone: e.target.value,
-                  }))
-                }
+                onChange={(e) => setShippingAddress((prev) => ({ ...prev, phone: e.target.value }))}
                 required
               />
             </div>
@@ -494,7 +481,7 @@ export function CheckoutForm() {
               >
                 Retour
               </Button>
-              <Button type="submit" className="flex-1">
+              <Button type="submit" className="flex-1 bg-yellow-500 hover:bg-yellow-600 text-white">
                 Continuer vers le paiement
               </Button>
             </div>

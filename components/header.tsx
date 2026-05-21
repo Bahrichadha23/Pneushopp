@@ -200,7 +200,7 @@ export default function Header() {
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0, y: -10 }}
                         transition={{ duration: 0.2 }}
-                        className="absolute right-0 mt-2 w-40 rounded-lg bg-white shadow-lg border border-gray-200 z-20"
+                        className="absolute right-0 mt-2 w-56 rounded-lg bg-white shadow-lg border border-gray-200 z-20"
                       >
                         {user ? (
                           <>
@@ -211,13 +211,20 @@ export default function Header() {
                             >
                               Mon Profil
                             </Link>
+                            <Link
+                              href="/compte/sav"
+                              className="block px-4 py-2 text-gray-900 hover:text-yellow-500 hover:bg-gray-100 border-t border-gray-100"
+                              onClick={() => setIsOpen(false)}
+                            >
+                              Service après vente
+                            </Link>
                             <button
                               onClick={() => {
                                 logout();
                                 setIsOpen(false);
                                 window.location.reload();
                               }}
-                              className="w-full text-left px-4 py-2 text-gray-900 hover:text-yellow-500 hover:bg-gray-100"
+                              className="w-full text-left px-4 py-2 text-gray-900 hover:text-yellow-500 hover:bg-gray-100 border-t border-gray-100"
                             >
                               Déconnexion
                             </button>
@@ -286,7 +293,7 @@ export default function Header() {
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: -10 }}
                     transition={{ duration: 0.2 }}
-                    className="absolute right-0 mt-2 w-40 rounded-lg bg-white shadow-lg border border-gray-200 z-20"
+                    className="absolute right-0 mt-2 w-56 rounded-lg bg-white shadow-lg border border-gray-200 z-20"
                   >
                     {user ? (
                       <>
@@ -297,13 +304,20 @@ export default function Header() {
                         >
                           Mon Profil
                         </Link>
+                        <Link
+                          href="/compte/sav"
+                          className="block px-4 py-2 text-gray-900 hover:text-yellow-500 hover:bg-gray-100 border-t border-gray-100"
+                          onClick={() => setIsOpen(false)}
+                        >
+                          Service après vente
+                        </Link>
                         <button
                           onClick={() => {
                             logout();
                             setIsOpen(false);
                             window.location.reload();
                           }}
-                          className="w-full text-left px-4 py-2 text-gray-900 hover:text-yellow-500 hover:bg-gray-100"
+                          className="w-full text-left px-4 py-2 text-gray-900 hover:text-yellow-500 hover:bg-gray-100 border-t border-gray-100"
                         >
                           Déconnexion
                         </button>

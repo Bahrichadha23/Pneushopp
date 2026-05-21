@@ -308,15 +308,6 @@ export function PaymentForm({ onSubmit, onBack, totalPrice }: PaymentFormProps) 
       alert("Veuillez sélectionner au moins un mode de paiement.");
       return;
     }
-    // Limite espèces à 4999 DT
-    if (isSelected("especes") && especesMontantNum > 4999) {
-      alert("Le paiement en espèces est limité à 4 999 DT. Veuillez choisir un autre mode de paiement pour le montant excédentaire.");
-      return;
-    }
-    if (isSelected("cash_on_delivery") && cashOnDeliveryMontantNum > 4999) {
-      alert("Le paiement en espèces (TPE) est limité à 4 999 DT. Veuillez choisir un autre mode de paiement pour le montant excédentaire.");
-      return;
-    }
     // Image obligatoire pour CRI
     if (isSelected("cri") && !criImage) {
       alert("Veuillez joindre une image pour le paiement CRI (obligatoire).");
