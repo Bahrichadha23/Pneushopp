@@ -1,5 +1,14 @@
+import os
 from django.db import models
 from django.conf import settings
+from django.core.files.storage import FileSystemStorage
+
+
+def _sav_storage():
+    return FileSystemStorage(
+        location=os.path.join(settings.BASE_DIR, 'media'),
+        base_url='/media/'
+    )
 
 
 class Order(models.Model):
@@ -209,3 +218,46 @@ class CRIBalance(models.Model):
 
     def __str__(self):
         return f'CRI Balance: {self.user.email} - {self.balance} DT'
+
+
+class WarrantyClaim(models.Model):
+    """Service Apres Vente - reclamation client sous garantie"""
+    STATUS_CHOICES = [
+        ('pending', 'En attente'),
+        ('processing', 'En traitement'),
+        ('resolved', 'Resolu'),
+        ('rejected', 'Rejete'),
+    ]
+
+    order = models.ForeignKey(Order, on_delete=models.SET_NULL, null=True, blank=True, related_name='warranty_claims')
+    order_item_id = models.IntegerField(null=True, blank=True)
+    order_item_name = models.CharField(max_length=255, blank=True)
+
+    first_name = models.CharField(max_length=100)
+    last_name = models.CharField(max_length=100)
+    email = models.EmailField()
+    order_ref = models.CharField(max_length=100)
+    invoice_number = models.CharField(max_length=100, blank=True)
+
+    mileage_at_purchase = models.CharField(max_length=50, blank=True)
+    current_mileage = models.CharField(max_length=50, blank=True)
+
+    description = models.TextField(blank=True)
+
+    invoice_photo = models.FileField(upload_to='sav/invoices/', blank=True, null=True, storage=_sav_storage)
+    tire_video = models.FileField(upload_to='sav/videos/', blank=True, null=True, storage=_sav_storage)
+
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
+    admin_notes = models.TextField(blank=True)
+
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    created_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, related_name='warranty_claims'
+    )
+
+    class Meta:
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f'SAV-{self.id:04d} - {self.order_ref} - {self.first_name} {self.last_name}'
