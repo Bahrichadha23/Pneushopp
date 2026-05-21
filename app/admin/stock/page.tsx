@@ -467,8 +467,14 @@ function DotPanel({
 export default function StockManagementPage() {
   const [stock, setStock] = useState<AdminProduct[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<string | null>(null);
   const [dotPanel, setDotPanel] = useState<AdminProduct | null>(null);
+
+  // Action modal: vendre ou diminuer stock
+  const [actionModal, setActionModal] = useState<{ isOpen: boolean; product: AdminProduct | null }>({
+    isOpen: false, product: null,
+  });
 
   const [statusPanel, setStatusPanel] = useState<{
     isOpen: boolean; product: AdminProduct | null; minStock: number; maxStock: number;
@@ -487,11 +493,24 @@ export default function StockManagementPage() {
     router.push("/admin"); return null;
   }
 
+  // Debounce search term
+  useEffect(() => {
+    const t = setTimeout(() => setDebouncedSearch(searchTerm), 400);
+    return () => clearTimeout(t);
+  }, [searchTerm]);
+
+  // Reset to page 1 when search changes
+  useEffect(() => {
+    setPagination((p) => ({ ...p, page: 1 }));
+  }, [debouncedSearch]);
+
+  // Fetch products (server-side search + pagination)
   useEffect(() => {
     const fetchStock = async () => {
       try {
+        const searchParam = debouncedSearch ? `&search=${encodeURIComponent(debouncedSearch)}` : "";
         const response = await fetch(
-          `${API_URL}/admin/products/?page=${pagination.page}&limit=${pagination.limit}`,
+          `${API_URL}/admin/products/?page=${pagination.page}&limit=${pagination.limit}${searchParam}`,
           { headers: { Authorization: `Bearer ${localStorage.getItem("access_token")}`, "Content-Type": "application/json" } }
         );
         if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
@@ -509,7 +528,7 @@ export default function StockManagementPage() {
       } catch (err) { console.error("Erreur chargement stock :", err); }
     };
     fetchStock();
-  }, [pagination.page]);
+  }, [pagination.page, debouncedSearch]);
 
   const handleDotStockChanged = (productId: number, newStock: number) => {
     setStock((prev) => prev.map((p) => p.id === productId ? { ...p, stock: newStock } : p));
@@ -563,15 +582,10 @@ export default function StockManagementPage() {
     } catch (err) { console.error("❌ Échec:", err); }
   };
 
-  const filteredStock = stock.filter((item) => {
-    const matchesSearch =
-      item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      item.brand.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      item.size.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesStatus = statusFilter
-      ? getStockStatus(item.stock, item.stockMin, item.stockMax).status === statusFilter : true;
-    return matchesSearch && matchesStatus;
-  });
+  // Search is server-side — only filter by status locally
+  const filteredStock = stock.filter((item) =>
+    statusFilter ? getStockStatus(item.stock, item.stockMin, item.stockMax).status === statusFilter : true
+  );
 
   const lowStockItems = stock.filter((item) => item.stock > 0 && item.stock <= item.stockMin);
   const totalValue = stock.reduce((sum, item) => sum + item.stock * item.prixVente, 0);
@@ -581,7 +595,7 @@ export default function StockManagementPage() {
       {/* Header */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-2">
         <h1 className="text-2xl font-bold text-gray-900">Gestion du stock</h1>
-        <Badge variant="secondary" className="text-sm">{filteredStock.length} produits</Badge>
+        <Badge variant="secondary" className="text-sm">{pagination.total} produits</Badge>
       </div>
 
       {/* Stats */}
@@ -593,7 +607,22 @@ export default function StockManagementPage() {
       </div>
 
       {/* Search */}
-      <Input placeholder="Rechercher un produit..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="max-w-sm" />
+      <div className="relative max-w-sm">
+        <Input
+          placeholder="Rechercher par nom, marque, taille, référence…"
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          className="pr-8"
+        />
+        {searchTerm && (
+          <button
+            onClick={() => setSearchTerm("")}
+            className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+          >
+            <X className="h-4 w-4" />
+          </button>
+        )}
+      </div>
 
       {/* Status Filter */}
       <div className="flex flex-wrap items-center gap-2 p-3 bg-gray-50 border border-gray-200 rounded-lg">
@@ -644,29 +673,34 @@ export default function StockManagementPage() {
                 const stockStatus = getStockStatus(item.stock, item.stockMin, item.stockMax);
                 return (
                   <tr key={item.id} className="border-t hover:bg-gray-50 transition-colors">
-                    <td className="px-2 py-2 font-medium text-sm max-w-[180px] truncate">{item.name}</td>
-                    <td className="px-2 py-2 text-sm">{item.brand}</td>
-                    <td className="px-2 py-2 text-sm">{item.size}</td>
+                    <td className="px-2 py-2 font-medium text-sm min-w-[220px] leading-snug">{item.name}</td>
+                    <td className="px-2 py-2 text-sm whitespace-nowrap">{item.brand}</td>
+                    <td className="px-2 py-2 text-sm whitespace-nowrap">{item.size}</td>
                     <td className="px-2 py-2 text-center font-bold text-sm">{item.stock}</td>
-                    <td className="px-2 py-2">
+                    <td className="px-2 py-2 whitespace-nowrap">
                       <Badge variant={stockStatus.variant} className="cursor-pointer hover:opacity-75"
                         onClick={() => openStatusPanel(item)}>
                         {stockStatus.status}
                       </Badge>
                     </td>
-                    <td className="px-2 py-2 text-sm text-gray-500">{item.stockMin}/{item.stockMax}</td>
-                    <td className="px-2 py-2 text-sm">{formatCurrency(item.prixVente)}</td>
+                    <td className="px-2 py-2 text-sm text-gray-500 whitespace-nowrap">{item.stockMin}/{item.stockMax}</td>
+                    <td className="px-2 py-2 text-sm whitespace-nowrap">{formatCurrency(item.prixVente)}</td>
                     <td className="px-2 py-2 text-center">
                       <button
                         onClick={() => setDotPanel(item)}
-                        className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-xs font-bold bg-orange-100 text-orange-700 border border-orange-300 hover:bg-orange-200 transition-colors"
+                        className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-xs font-bold bg-yellow-100 text-yellow-700 border border-yellow-300 hover:bg-yellow-200 transition-colors"
                       >
                         <Calendar className="h-3 w-3" /> DOT
                       </button>
                     </td>
                     <td className="px-2 py-2">
                       <div className="flex space-x-1">
-                        <Button size="sm" variant="outline" onClick={() => openConfirmation(item.id, -1)} disabled={item.stock <= 0}>
+                        <Button
+                          size="sm" variant="outline"
+                          onClick={() => setActionModal({ isOpen: true, product: item })}
+                          disabled={item.stock <= 0}
+                          title="Vendre ou diminuer le stock"
+                        >
                           <Minus className="h-3 w-3" />
                         </Button>
                         <Button size="sm" variant="outline" onClick={() => openConfirmation(item.id, 1)} disabled={item.stock >= item.stockMax}>
@@ -680,6 +714,57 @@ export default function StockManagementPage() {
             </tbody>
           </table>
         </div>
+
+        {/* ── Action modal : Vendre ou Diminuer ── */}
+        <AnimatePresence>
+          {actionModal.isOpen && actionModal.product && (
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+              className="fixed inset-0 bg-black/50 flex items-center justify-center z-50"
+              onClick={() => setActionModal({ isOpen: false, product: null })}>
+              <motion.div initial={{ scale: 0.92, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}
+                exit={{ scale: 0.92, opacity: 0 }} onClick={(e) => e.stopPropagation()}
+                className="bg-white rounded-2xl shadow-2xl p-6 w-full max-w-sm mx-4">
+                <div className="flex items-center justify-between mb-1">
+                  <h2 className="text-base font-bold text-gray-900">Que souhaitez-vous faire ?</h2>
+                  <button onClick={() => setActionModal({ isOpen: false, product: null })} className="text-gray-400 hover:text-gray-600">
+                    <X className="h-4 w-4" />
+                  </button>
+                </div>
+                <p className="text-xs text-gray-500 mb-5 line-clamp-2">{actionModal.product.brand} · {actionModal.product.name} · {actionModal.product.size}</p>
+
+                <div className="grid grid-cols-2 gap-3">
+                  {/* Vendre */}
+                  <button
+                    onClick={() => {
+                      const p = actionModal.product!;
+                      setActionModal({ isOpen: false, product: null });
+                      setDotPanel(p);
+                    }}
+                    className="flex flex-col items-center gap-2 p-4 rounded-xl border-2 border-yellow-400 bg-yellow-50 hover:bg-yellow-100 transition-colors text-center"
+                  >
+                    <span className="text-2xl">🛒</span>
+                    <span className="font-bold text-yellow-800 text-sm">Vendre</span>
+                    <span className="text-[11px] text-yellow-600">Choisir le lot DOT et le client</span>
+                  </button>
+
+                  {/* Diminuer stock */}
+                  <button
+                    onClick={() => {
+                      const p = actionModal.product!;
+                      setActionModal({ isOpen: false, product: null });
+                      openConfirmation(p.id, -1);
+                    }}
+                    className="flex flex-col items-center gap-2 p-4 rounded-xl border-2 border-gray-300 bg-gray-50 hover:bg-gray-100 transition-colors text-center"
+                  >
+                    <span className="text-2xl">✏️</span>
+                    <span className="font-bold text-gray-700 text-sm">Correction</span>
+                    <span className="text-[11px] text-gray-500">Diminuer le stock manuellement</span>
+                  </button>
+                </div>
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         {/* Panneau DOT/FEFO */}
         <AnimatePresence>
