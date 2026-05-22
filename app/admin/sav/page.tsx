@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import {
   Shield, Loader2, AlertTriangle, FileText, Video,
   ExternalLink, ChevronDown, ChevronRight,
-  Check, X, Clock, RefreshCw,
+  Check, X, Clock, RefreshCw, Image as ImageIcon,
 } from "lucide-react";
 import { API_URL } from "@/lib/config";
 
@@ -16,6 +16,7 @@ import { API_URL } from "@/lib/config";
 interface Claim {
   id: number;
   order_ref: string;
+  invoice_number: string;
   order_item_name: string;
   first_name: string;
   last_name: string;
@@ -29,6 +30,7 @@ interface Claim {
   created_at: string;
   invoice_photo_url: string | null;
   tire_video_url: string | null;
+  tire_image_urls: string[];
 }
 
 const STATUS_COLORS: Record<string, string> = {
@@ -78,8 +80,8 @@ export default function AdminSAVPage() {
     try {
       const token = localStorage.getItem("access_token");
       const url = filterStatus
-        ? `${API_URL}/orders/sav/admin/?status=${filterStatus}`
-        : `${API_URL}/orders/sav/admin/`;
+        ? `${API_URL}/orders/sav/?status=${filterStatus}`
+        : `${API_URL}/orders/sav/`;
       const res = await fetch(url, { headers: { Authorization: `Bearer ${token}` } });
       if (!res.ok) throw new Error(`${res.status}`);
       const data = await res.json();
@@ -203,7 +205,7 @@ export default function AdminSAVPage() {
                     </span>
                     <div>
                       <p className="font-medium text-sm">{claim.first_name} {claim.last_name}</p>
-                      <p className="text-xs text-gray-500">{claim.order_ref} · {claim.order_item_name}</p>
+                      <p className="text-xs text-gray-500">{claim.invoice_number || claim.order_ref || "—"} · {claim.order_item_name}</p>
                     </div>
                   </div>
                   <div className="flex items-center gap-3">
@@ -220,7 +222,10 @@ export default function AdminSAVPage() {
                     {/* Infos client */}
                     <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 text-sm">
                       <div><p className="text-xs text-gray-400">Email</p><p>{claim.email}</p></div>
-                      <div><p className="text-xs text-gray-400">Réf. commande</p><p className="font-mono">{claim.order_ref}</p></div>
+                      <div>
+                        <p className="text-xs text-gray-400">Réf. facture</p>
+                        <p className="font-mono">{claim.invoice_number || claim.order_ref || "—"}</p>
+                      </div>
                       <div><p className="text-xs text-gray-400">Article</p><p>{claim.order_item_name}</p></div>
                     </div>
 
@@ -246,7 +251,7 @@ export default function AdminSAVPage() {
                       </div>
                     )}
 
-                    {/* Pièces jointes */}
+                    {/* Pièces jointes — liens rapides */}
                     <div className="flex gap-3 flex-wrap">
                       {claim.invoice_photo_url && (
                         <a href={claim.invoice_photo_url} target="_blank" rel="noopener noreferrer"
@@ -260,7 +265,32 @@ export default function AdminSAVPage() {
                           <Video className="h-4 w-4" /> Vidéo pneu <ExternalLink className="h-3 w-3" />
                         </a>
                       )}
+                      {claim.tire_image_urls?.length > 0 && (
+                        <span className="flex items-center gap-1 text-sm text-gray-500 bg-gray-100 border border-gray-200 rounded-md px-3 py-1.5">
+                          <ImageIcon className="h-4 w-4" /> {claim.tire_image_urls.length} image{claim.tire_image_urls.length > 1 ? "s" : ""} pneu
+                        </span>
+                      )}
                     </div>
+
+                    {/* Galerie images pneus */}
+                    {claim.tire_image_urls?.length > 0 && (
+                      <div>
+                        <p className="text-xs text-gray-400 font-medium mb-2">Images pneus</p>
+                        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
+                          {claim.tire_image_urls.map((url, idx) => (
+                            <a key={idx} href={url} target="_blank" rel="noopener noreferrer"
+                              className="relative group aspect-square rounded-lg overflow-hidden border border-gray-200 hover:border-yellow-400 transition-colors bg-gray-100">
+                              {/* eslint-disable-next-line @next/next/no-img-element */}
+                              <img src={url} alt={`Pneu ${idx + 1}`}
+                                className="w-full h-full object-cover group-hover:opacity-90 transition-opacity" />
+                              <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-black/20">
+                                <ExternalLink className="h-5 w-5 text-white drop-shadow" />
+                              </div>
+                            </a>
+                          ))}
+                        </div>
+                      </div>
+                    )}
 
                     {/* Notes admin */}
                     {claim.admin_notes && !isEditing && (
