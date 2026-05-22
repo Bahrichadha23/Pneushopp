@@ -105,6 +105,7 @@ export default function AchatsPage() {
   const [supplier, setSupplier] = useState("");
   const [note, setNote] = useState("");
   const [invoiceNumber, setInvoiceNumber] = useState("");
+  const [blNumber, setBlNumber] = useState("");
   const [invoiceDate, setInvoiceDate] = useState("");
   const [globalDiscount, setGlobalDiscount] = useState(0);
   const [items, setItems] = useState<PurchaseItem[]>([]);
@@ -524,6 +525,7 @@ export default function AchatsPage() {
         emplacement: item.emplacement || '',
       })),
       invoice_number: invoiceNumber,
+      bl_number: blNumber,
       dot: selectedDot,
     };
 
@@ -561,6 +563,7 @@ export default function AchatsPage() {
         setSupplier("");
         setNote("");
         setInvoiceNumber("");
+        setBlNumber("");
         setSelectedWeek("");
         setSelectedDot("");
         setGlobalDiscount(0);
@@ -582,6 +585,7 @@ export default function AchatsPage() {
     setSupplier("");
     setNote("");
     setInvoiceNumber("");
+    setBlNumber("");
     setSelectedWeek("");
     setSelectedDot("");
     setGlobalDiscount(0);
@@ -903,15 +907,28 @@ export default function AchatsPage() {
               </div>
             </div>
 
-            {/* Invoice Details */}
-            <div>
-              <Label>Date Achat</Label>
-              <Input
-                type="date"
-                value={invoiceNumber}
-                onChange={(e) => setInvoiceNumber(e.target.value)}
-                className="mt-1"
-              />
+            {/* N° Facture + N° BL */}
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <Label className="text-xs font-semibold text-gray-700">N° Facture</Label>
+                <Input
+                  type="text"
+                  value={invoiceNumber}
+                  onChange={(e) => setInvoiceNumber(e.target.value)}
+                  placeholder="ex : FAC-2024-001"
+                  className="mt-1 font-mono text-sm"
+                />
+              </div>
+              <div>
+                <Label className="text-xs font-semibold text-gray-700">N° BL <span className="text-yellow-600">(Bon de Livraison)</span></Label>
+                <Input
+                  type="text"
+                  value={blNumber}
+                  onChange={(e) => setBlNumber(e.target.value)}
+                  placeholder="ex : BL-2024-042"
+                  className="mt-1 font-mono text-sm"
+                />
+              </div>
             </div>
 
             {/* Action Buttons */}

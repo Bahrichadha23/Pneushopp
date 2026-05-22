@@ -23,6 +23,8 @@ import {
   Clock,
   RefreshCw,
   XCircle,
+  Image,
+  X,
 } from "lucide-react";
 import { API_URL } from "@/lib/config";
 
@@ -149,8 +151,8 @@ function ClaimsList({ refreshKey }: { refreshKey: number }) {
               <div className="border-t border-gray-100 bg-gray-50 px-4 py-4 space-y-3">
                 <div className="grid grid-cols-2 gap-3 text-sm">
                   <div>
-                    <p className="text-xs text-gray-400 mb-0.5">Référence commande</p>
-                    <p className="font-mono font-medium">{claim.order_ref}</p>
+                    <p className="text-xs text-gray-400 mb-0.5">Référence facture</p>
+                    <p className="font-mono font-medium">{(claim as any).invoice_number || claim.order_ref}</p>
                   </div>
                   <div>
                     <p className="text-xs text-gray-400 mb-0.5">Article</p>
@@ -229,10 +231,13 @@ export default function SAVPage() {
   const [selectedItem, setSelectedItem] = useState<OrderItemApi | null>(null);
 
   const [currentMileage, setCurrentMileage] = useState("");
+  const [invoiceRef, setInvoiceRef] = useState("");
   const [description, setDescription] = useState("");
   const [invoiceFile, setInvoiceFile] = useState<File | null>(null);
+  const [tireImages, setTireImages] = useState<File[]>([]);
   const [videoFile, setVideoFile] = useState<File | null>(null);
   const invoiceInputRef = useRef<HTMLInputElement>(null);
+  const tireImagesInputRef = useRef<HTMLInputElement>(null);
   const videoInputRef = useRef<HTMLInputElement>(null);
 
   const [submitting, setSubmitting] = useState(false);
@@ -267,6 +272,10 @@ export default function SAVPage() {
     setSubmitError("");
   }, [selectedOrder]);
 
+  function removeTireImage(index: number) {
+    setTireImages((prev) => prev.filter((_, i) => i !== index));
+  }
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!selectedOrder || !selectedItem) {
@@ -295,6 +304,7 @@ export default function SAVPage() {
       form.append("order_item_id", String(selectedItem.id));
       form.append("order_item_name", selectedItem.product_name);
       form.append("order_ref", selectedOrder.order_number);
+      form.append("invoice_number", invoiceRef.trim());
       form.append("first_name", selectedOrder.shipping_address?.first_name || user?.first_name || "");
       form.append("last_name", selectedOrder.shipping_address?.last_name || user?.last_name || "");
       form.append("email", user?.email || "");
@@ -302,6 +312,7 @@ export default function SAVPage() {
       form.append("current_mileage", currentMileage);
       form.append("description", description);
       form.append("invoice_photo", invoiceFile);
+      tireImages.forEach((f) => form.append("tire_images", f));
       form.append("tire_video", videoFile!);
 
       const controller = new AbortController();
@@ -346,8 +357,10 @@ export default function SAVPage() {
     setSelectedOrder(null);
     setSelectedItem(null);
     setCurrentMileage("");
+    setInvoiceRef("");
     setDescription("");
     setInvoiceFile(null);
+    setTireImages([]);
     setVideoFile(null);
     setTab("claims");
   }
@@ -545,12 +558,17 @@ export default function SAVPage() {
                             className="w-full border border-gray-200 rounded-md px-3 py-2 text-sm bg-gray-50 text-gray-500" />
                         </div>
 
-                        {/* Réf / Article */}
+                        {/* Réf facture + Article */}
                         <div className="grid grid-cols-2 gap-4">
                           <div>
-                            <label className="block text-xs font-medium text-gray-600 mb-1">Réf. commande <span className="text-red-500">*</span></label>
-                            <input readOnly value={selectedOrder.order_number}
-                              className="w-full border border-gray-200 rounded-md px-3 py-2 text-sm bg-gray-50 text-gray-500 font-mono" />
+                            <label className="block text-xs font-medium text-gray-700 mb-1">Réf. facture <span className="text-red-500">*</span></label>
+                            <input
+                              type="text"
+                              value={invoiceRef}
+                              onChange={(e) => setInvoiceRef(e.target.value)}
+                              placeholder="ex : FAC-2024-001"
+                              className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-yellow-400 font-mono"
+                            />
                           </div>
                           <div>
                             <label className="block text-xs font-medium text-gray-600 mb-1">Article concerné <span className="text-red-500">*</span></label>
@@ -584,21 +602,67 @@ export default function SAVPage() {
                             className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-yellow-400 resize-none" />
                         </div>
 
-                        {/* Photo facture */}
+                        {/* Image facture — 1 seule */}
                         <div>
-                          <label className="block text-xs font-medium text-gray-700 mb-1">Photo de la facture <span className="text-red-500">*</span></label>
+                          <label className="block text-xs font-medium text-gray-700 mb-1">
+                            Image facture <span className="text-red-500">*</span>
+                            <span className="text-gray-400 font-normal ml-1">(1 seule image ou PDF)</span>
+                          </label>
                           <input ref={invoiceInputRef} type="file" accept="image/*,.pdf" className="hidden"
                             onChange={(e) => setInvoiceFile(e.target.files?.[0] || null)} />
                           <button type="button" onClick={() => invoiceInputRef.current?.click()}
-                            className={`w-full border-2 border-dashed rounded-lg px-4 py-4 flex flex-col items-center gap-1 transition-colors ${
+                            className={`w-full border-2 border-dashed rounded-lg px-4 py-3 flex items-center gap-3 transition-colors ${
                               invoiceFile ? "border-green-400 bg-green-50" : "border-gray-300 hover:border-yellow-400 hover:bg-yellow-50/30"
                             }`}>
-                            <Upload className={`h-6 w-6 ${invoiceFile ? "text-green-500" : "text-gray-400"}`} />
-                            <span className="text-sm font-medium">{invoiceFile ? invoiceFile.name : "Choisir une photo / PDF"}</span>
-                            {invoiceFile
-                              ? <span className="text-xs text-green-600">✓ Fichier sélectionné</span>
-                              : <span className="text-xs text-gray-400">JPG, PNG, HEIC, PDF — max 10 Mo</span>}
+                            <FileText className={`h-5 w-5 flex-shrink-0 ${invoiceFile ? "text-green-500" : "text-gray-400"}`} />
+                            <div className="text-left">
+                              <p className="text-sm font-medium">{invoiceFile ? invoiceFile.name : "Choisir la photo ou le PDF"}</p>
+                              {invoiceFile
+                                ? <p className="text-xs text-green-600">✓ Fichier sélectionné</p>
+                                : <p className="text-xs text-gray-400">JPG, PNG, PDF — max 10 Mo</p>}
+                            </div>
+                            {invoiceFile && (
+                              <button type="button" className="ml-auto text-gray-400 hover:text-red-500"
+                                onClick={(e) => { e.stopPropagation(); setInvoiceFile(null); }}>
+                                <X className="h-4 w-4" />
+                              </button>
+                            )}
                           </button>
+                        </div>
+
+                        {/* Images pneus — plusieurs */}
+                        <div>
+                          <label className="block text-xs font-medium text-gray-700 mb-1">
+                            Images pneus
+                            <span className="text-gray-400 font-normal ml-1">(plusieurs photos possibles)</span>
+                          </label>
+                          <input ref={tireImagesInputRef} type="file" accept="image/*" multiple className="hidden"
+                            onChange={(e) => {
+                              const newFiles = Array.from(e.target.files || []);
+                              setTireImages((prev) => [...prev, ...newFiles]);
+                              if (tireImagesInputRef.current) tireImagesInputRef.current.value = "";
+                            }} />
+                          <button type="button" onClick={() => tireImagesInputRef.current?.click()}
+                            className="w-full border-2 border-dashed border-gray-300 hover:border-yellow-400 hover:bg-yellow-50/30 rounded-lg px-4 py-3 flex items-center gap-3 transition-colors">
+                            <Image className="h-5 w-5 text-gray-400 flex-shrink-0" />
+                            <div className="text-left">
+                              <p className="text-sm font-medium text-gray-700">Ajouter des photos du pneu</p>
+                              <p className="text-xs text-gray-400">JPG, PNG — cliquez pour en ajouter</p>
+                            </div>
+                          </button>
+                          {tireImages.length > 0 && (
+                            <div className="mt-2 space-y-1">
+                              {tireImages.map((f, i) => (
+                                <div key={i} className="flex items-center gap-2 bg-yellow-50 border border-yellow-200 rounded-md px-3 py-1.5 text-sm">
+                                  <Image className="h-3.5 w-3.5 text-yellow-500 flex-shrink-0" />
+                                  <span className="flex-1 truncate text-xs">{f.name}</span>
+                                  <button type="button" onClick={() => removeTireImage(i)} className="text-gray-400 hover:text-red-500">
+                                    <X className="h-3.5 w-3.5" />
+                                  </button>
+                                </div>
+                              ))}
+                            </div>
+                          )}
                         </div>
 
                         {/* Vidéo pneu */}
@@ -607,14 +671,22 @@ export default function SAVPage() {
                           <input ref={videoInputRef} type="file" accept="video/*" className="hidden"
                             onChange={(e) => setVideoFile(e.target.files?.[0] || null)} />
                           <button type="button" onClick={() => videoInputRef.current?.click()}
-                            className={`w-full border-2 border-dashed rounded-lg px-4 py-4 flex flex-col items-center gap-1 transition-colors ${
+                            className={`w-full border-2 border-dashed rounded-lg px-4 py-3 flex items-center gap-3 transition-colors ${
                               videoFile ? "border-green-400 bg-green-50" : "border-gray-300 hover:border-yellow-400 hover:bg-yellow-50/30"
                             }`}>
-                            <Video className={`h-6 w-6 ${videoFile ? "text-green-500" : "text-gray-400"}`} />
-                            <span className="text-sm font-medium">{videoFile ? videoFile.name : "Ajouter une vidéo"}</span>
-                            {videoFile
-                              ? <span className="text-xs text-green-600">✓ Vidéo sélectionnée</span>
-                              : <span className="text-xs text-gray-400">MP4, MOV, AVI — montrez le défaut clairement</span>}
+                            <Video className={`h-5 w-5 flex-shrink-0 ${videoFile ? "text-green-500" : "text-gray-400"}`} />
+                            <div className="text-left">
+                              <p className="text-sm font-medium">{videoFile ? videoFile.name : "Ajouter une vidéo"}</p>
+                              {videoFile
+                                ? <p className="text-xs text-green-600">✓ Vidéo sélectionnée</p>
+                                : <p className="text-xs text-gray-400">MP4, MOV, AVI — montrez le défaut clairement</p>}
+                            </div>
+                            {videoFile && (
+                              <button type="button" className="ml-auto text-gray-400 hover:text-red-500"
+                                onClick={(e) => { e.stopPropagation(); setVideoFile(null); }}>
+                                <X className="h-4 w-4" />
+                              </button>
+                            )}
                           </button>
                         </div>
 
