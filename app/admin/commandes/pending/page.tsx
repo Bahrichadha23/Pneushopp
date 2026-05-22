@@ -442,7 +442,7 @@ export default function PendingOrdersPage() {
                   <Input
                     type="text"
                     inputMode="decimal"
-                    value={confirmation.deliveryCost === 0 ? "" : String(confirmation.deliveryCost)}
+                    value={!confirmation.deliveryCost ? "" : String(confirmation.deliveryCost)}
                     onChange={(e) => {
                       const val = e.target.value.replace(",", ".");
                       setConfirmation((prev) => ({
