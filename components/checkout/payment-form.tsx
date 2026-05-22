@@ -38,14 +38,14 @@ interface PaymentFormProps {
   totalPrice: number;
 }
 
+// especes & cash_on_delivery sont gérés via le parent "delivery"
 const ALL_PAYMENT_TYPES = [
-  { id: "card", label: "Carte bancaire", Icon: CreditCard, disabled: true },
-  { id: "especes", label: "Espèces", Icon: Banknote },
-  { id: "bank_transfer", label: "Virement bancaire", Icon: Building },
-  { id: "cash_on_delivery", label: "Paiement à la livraison (TPE)", Icon: Truck },
-  { id: "cri", label: "Paiement CRI", Icon: Receipt },
-  { id: "lettre_de_change", label: "Lettre de change", Icon: Receipt },
-  { id: "cheque", label: "Chèque", Icon: Receipt },
+  { id: "card",            label: "Carte bancaire",       Icon: CreditCard, disabled: true },
+  { id: "bank_transfer",   label: "Virement bancaire",    Icon: Building },
+  { id: "delivery",        label: "Paiement à la livraison", Icon: Truck },
+  { id: "cri",             label: "Paiement CRI",         Icon: Receipt },
+  { id: "lettre_de_change",label: "Lettre de change",     Icon: Receipt },
+  { id: "cheque",          label: "Chèque",               Icon: Receipt },
 ];
 
 export function PaymentForm({ onSubmit, onBack, totalPrice }: PaymentFormProps) {
@@ -56,6 +56,28 @@ export function PaymentForm({ onSubmit, onBack, totalPrice }: PaymentFormProps) 
     setSelectedTypes((prev) =>
       prev.includes(type) ? prev.filter((t) => t !== type) : [...prev, type]
     );
+  };
+
+  // "Paiement à la livraison" : sous-type especes ou tpe
+  const [deliverySubType, setDeliverySubType] = useState<"especes" | "cash_on_delivery" | "">("");
+  const isDeliverySelected = isSelected("especes") || isSelected("cash_on_delivery");
+
+  const toggleDeliveryParent = () => {
+    if (isDeliverySelected) {
+      // Décocher : retirer les deux sous-types + reset sous-type
+      setSelectedTypes((prev) => prev.filter((t) => t !== "especes" && t !== "cash_on_delivery"));
+      setDeliverySubType("");
+    }
+    // Cocher : on n'ajoute rien encore, le client doit choisir le sous-type
+  };
+
+  const selectDeliverySub = (sub: "especes" | "cash_on_delivery") => {
+    // Remplace l'ancien sous-type par le nouveau dans la liste
+    setSelectedTypes((prev) => {
+      const filtered = prev.filter((t) => t !== "especes" && t !== "cash_on_delivery");
+      return [...filtered, sub];
+    });
+    setDeliverySubType(sub);
   };
 
   const [cardData, setCardData] = useState({
@@ -308,6 +330,11 @@ export function PaymentForm({ onSubmit, onBack, totalPrice }: PaymentFormProps) 
       alert("Veuillez sélectionner au moins un mode de paiement.");
       return;
     }
+    // Si livraison sélectionnée → vérifier que le sous-type est choisi
+    if (isDeliverySelected && !deliverySubType) {
+      alert("Veuillez choisir le mode de paiement à la livraison : Espèces ou TPE.");
+      return;
+    }
     // Image obligatoire pour CRI
     if (isSelected("cri") && !criImage) {
       alert("Veuillez joindre une image pour le paiement CRI (obligatoire).");
@@ -335,7 +362,8 @@ export function PaymentForm({ onSubmit, onBack, totalPrice }: PaymentFormProps) 
   };
 
   const isMultiModal = selectedTypes.length > 1;
-  const canContinue = selectedTypes.length > 0 && totalEnteredAllMethods >= totalPrice - 0.01;
+  const deliveryOk = !isDeliverySelected || (isDeliverySelected && !!deliverySubType);
+  const canContinue = selectedTypes.length > 0 && totalEnteredAllMethods >= totalPrice - 0.01 && deliveryOk;
 
   return (
     <Card className="max-w-2xl mx-auto">
@@ -357,6 +385,86 @@ export function PaymentForm({ onSubmit, onBack, totalPrice }: PaymentFormProps) 
             {ALL_PAYMENT_TYPES.map(({ id, label, Icon, disabled: itemDisabled }) => {
               const isCriDisabled = id === "cri" && totalPrice <= 1000;
               const isItemDisabled = itemDisabled || isCriDisabled;
+
+              // ── Parent "Paiement à la livraison" ──
+              if (id === "delivery") {
+                return (
+                  <div key="delivery" className="border rounded-lg overflow-hidden">
+                    {/* Ligne parente */}
+                    <label
+                      className={`flex items-center space-x-3 p-3 transition-colors cursor-pointer ${
+                        isDeliverySelected
+                          ? "border-blue-500 bg-blue-50"
+                          : "hover:bg-gray-50"
+                      }`}
+                    >
+                      <input
+                        type="checkbox"
+                        checked={isDeliverySelected}
+                        onChange={toggleDeliveryParent}
+                        className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                      />
+                      <Truck className="h-5 w-5 text-gray-500 shrink-0" />
+                      <span className="flex-1 text-sm font-medium text-slate-700">Paiement à la livraison</span>
+                      {isDeliverySelected && (
+                        <span className="text-xs text-blue-600 font-semibold">
+                          {deliverySubType === "especes" ? "Espèces" : deliverySubType === "cash_on_delivery" ? "TPE" : ""}
+                        </span>
+                      )}
+                    </label>
+
+                    {/* Sous-options — visibles quand la case parent est cochée */}
+                    {isDeliverySelected && (
+                      <div className="bg-blue-50 border-t border-blue-100 px-4 py-3 flex gap-4">
+                        <p className="text-xs text-slate-500 mr-2 self-center">Mode :</p>
+                        {/* Espèces */}
+                        <label className={`flex items-center gap-2 px-4 py-2 rounded-lg border-2 cursor-pointer transition-all ${
+                          deliverySubType === "especes"
+                            ? "border-green-500 bg-green-50 text-green-800"
+                            : "border-gray-200 bg-white hover:border-green-300"
+                        }`}>
+                          <input
+                            type="radio"
+                            name="delivery_sub"
+                            value="especes"
+                            checked={deliverySubType === "especes"}
+                            onChange={() => selectDeliverySub("especes")}
+                            className="text-green-600"
+                          />
+                          <Banknote className="h-4 w-4" />
+                          <span className="text-sm font-semibold">Espèces</span>
+                        </label>
+                        {/* TPE */}
+                        <label className={`flex items-center gap-2 px-4 py-2 rounded-lg border-2 cursor-pointer transition-all ${
+                          deliverySubType === "cash_on_delivery"
+                            ? "border-blue-500 bg-blue-100 text-blue-800"
+                            : "border-gray-200 bg-white hover:border-blue-300"
+                        }`}>
+                          <input
+                            type="radio"
+                            name="delivery_sub"
+                            value="cash_on_delivery"
+                            checked={deliverySubType === "cash_on_delivery"}
+                            onChange={() => selectDeliverySub("cash_on_delivery")}
+                            className="text-blue-600"
+                          />
+                          <Truck className="h-4 w-4" />
+                          <span className="text-sm font-semibold">TPE</span>
+                        </label>
+                      </div>
+                    )}
+
+                    {/* Si coché mais pas de sous-type → alerte inline */}
+                    {isDeliverySelected && !deliverySubType && (
+                      <p className="text-xs text-amber-600 bg-amber-50 px-4 py-2 border-t border-amber-100">
+                        Veuillez choisir Espèces ou TPE ci-dessus.
+                      </p>
+                    )}
+                  </div>
+                );
+              }
+
+              // ── Autres modes ──
               return (
                 <label
                   key={id}
