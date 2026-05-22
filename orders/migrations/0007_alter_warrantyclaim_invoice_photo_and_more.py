@@ -7,7 +7,7 @@ import orders.models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('orders', '0006_warrantyclaim_mileage_fields'),
+        ('orders', '0006_warrantyclaimtireimage'),
     ]
 
     operations = [
