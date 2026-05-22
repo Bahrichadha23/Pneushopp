@@ -32,14 +32,14 @@ export default function ManufacturersSection() {
   ];
 
   return (
-    <section className="bg-white py-14">
+    <section className="bg-gray-50 py-14 border-t border-gray-100">
       <div className="max-w-7xl mx-auto px-4">
         {/* Title */}
-        <div className="text-center mb-12">
-          <h2 className="text-3xl font-bold text-gray-900">
-            PRINCIPAUX FABRICANTS
+        <div className="text-center mb-10">
+          <p className="text-xs font-bold uppercase tracking-[0.25em] text-yellow-500 mb-2">Nos marques</p>
+          <h2 className="text-2xl font-extrabold text-gray-900">
+            Principaux fabricants
           </h2>
-          <p className="text-lg text-gray-600 mt-2">TOP VENTES</p>
         </div>
 
         {/* Marquee */}
@@ -55,7 +55,7 @@ export default function ManufacturersSection() {
                   src={manufacturer.logo}
                   alt={manufacturer.name}
                   style={{ width: manufacturer.w, height: manufacturer.h }}
-                  className="object-contain transition-transform duration-300 hover:scale-105"
+                  className="object-contain grayscale opacity-50 hover:grayscale-0 hover:opacity-100 transition-all duration-300 hover:scale-105"
                 />
               </div>
             ))}

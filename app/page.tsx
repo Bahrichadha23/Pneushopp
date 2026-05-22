@@ -1,55 +1,55 @@
-// Importation de tous les composants nécessaires pour construire la page d'accueil
-import Header from "@/components/header"; // En-tête avec navigation et logo
-import HeroSection from "@/components/hero-section"; // Section principale avec bannière et recherche
-import TireGuideSection from "@/components/tire-guide-section"; // Section "Comment lire un pneu"
-import NewsSection from "@/components/news-section"; // Section "À la une" avec actualités
-import WhyChooseUsSection from "@/components/why-choose-us-section"; // Section "Pourquoi nous choisir"
-import ProductCategoriesSection from "@/components/product-categories-section"; // Catégories de pneus
-import ManufacturersSection from "@/components/manufacturers-section"; // Logos des fabricants
-import Footer from "@/components/footer"; // Pied de page avec informations de contact
+import Header from "@/components/header";
+import HeroSection from "@/components/hero-section";
+import TireGuideSection from "@/components/tire-guide-section";
+import NewsSection from "@/components/news-section";
+import WhyChooseUsSection from "@/components/why-choose-us-section";
+import ProductCategoriesSection from "@/components/product-categories-section";
+import ManufacturersSection from "@/components/manufacturers-section";
+import Footer from "@/components/footer";
+import Link from "next/link";
+import { Truck } from "lucide-react";
 
-/**
- * Composant principal de la page d'accueil du site Pneu Shop
- * Structure la mise en page complète du site e-commerce de pneumatiques
- *
- * @returns JSX.Element - La page d'accueil complète
- */
 export default function HomePage() {
   return (
     <div className="min-h-screen bg-white">
-      {/* En-tête du site avec logo, navigation et icônes utilisateur */}
       <Header />
-
-      {/* Section hero principale avec bannière, titre et formulaire de recherche */}
       <HeroSection />
-
-      {/* Section éducative expliquant comment lire les dimensions d'un pneu */}
       <TireGuideSection />
-
-      {/* Section actualités avec événements, news et promotions */}
       <NewsSection />
-
-      {/* Section argumentaire commercial expliquant les avantages du site */}
       <WhyChooseUsSection />
-
-      {/* Section présentant les différentes catégories de pneus disponibles */}
       <ProductCategoriesSection />
 
-      {/* Section promotionnelle pour la Livraison Rapide */}
-      <div className="bg-gray-50 py-12 text-center">
-        <h2 className="text-3xl font-bold mb-4">
-          Livraison <span className="text-yellow-400">Rapide</span> en{" "}
-          <span className="text-yellow-400">2 à 4 jours</span>
-        </h2>
-        <p className="text-xl text-gray-600">
-          pour toute commande de 2 pneus ou plus
-        </p>
+      {/* Bannière Livraison Rapide */}
+      <div className="bg-gray-900 py-12 text-center relative overflow-hidden">
+        {/* subtle diagonal stripe */}
+        <div className="pointer-events-none absolute inset-0 opacity-[0.04]"
+          style={{
+            backgroundImage: "repeating-linear-gradient(45deg, #fff 0, #fff 1px, transparent 0, transparent 50%)",
+            backgroundSize: "20px 20px",
+          }}
+        />
+        <div className="relative max-w-xl mx-auto px-4">
+          <div className="inline-flex items-center gap-2 bg-yellow-400/10 border border-yellow-400/30 rounded-full px-4 py-1 mb-4">
+            <Truck className="w-4 h-4 text-yellow-400" />
+            <span className="text-yellow-400 text-xs font-bold uppercase tracking-widest">Livraison</span>
+          </div>
+          <h2 className="text-3xl font-extrabold text-white mb-2">
+            Livraison <span className="text-yellow-400">Rapide</span> en{" "}
+            <span className="text-yellow-400">2 à 4 jours</span>
+          </h2>
+          <p className="text-gray-400 mb-6">
+            Pour toute commande de 2 pneus ou plus, partout en Tunisie.
+          </p>
+          <Link
+            href="/boutique"
+            className="inline-flex items-center gap-2 bg-yellow-400 hover:bg-yellow-300 text-black font-bold px-6 py-2.5 rounded-full transition-colors duration-200 text-sm"
+          >
+            Voir la boutique →
+          </Link>
+        </div>
       </div>
 
-      {/* Section affichant les logos des marques partenaires */}
       <ManufacturersSection />
-
-      {/* Pied de page avec informations de contact et liens utiles */}
       <Footer />
     </div>
   );

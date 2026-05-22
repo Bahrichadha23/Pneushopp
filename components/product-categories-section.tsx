@@ -81,7 +81,7 @@ export default function ProductCategoriesSection() {
           {categories.slice(0, 3).map((category, index) => (
             <motion.div
               key={category.id}
-              className="bg-white rounded-lg shadow-lg overflow-hidden hover:shadow-xl transition-shadow duration-300 w-full"
+              className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden hover:shadow-lg hover:-translate-y-0.5 transition-all duration-300 w-full"
               initial={{ opacity: 0, y: 50 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, amount: 0.2 }}
@@ -109,8 +109,8 @@ export default function ProductCategoriesSection() {
                 </p>
                 <Link
                   href={`/boutique?category=${category.slug}`}
-                  className="w-full text-center px-2 py-2 border-2 border-yellow-300 rounded-md font-semibold text-gray-700 bg-transparent 
-             hover:bg-yellow-300 hover:text-white transition duration-300 ease-in-out"
+                  className="w-full text-center px-2 py-2 border-2 border-yellow-400 rounded-md font-semibold text-gray-800 bg-transparent
+             hover:bg-yellow-400 hover:text-black transition duration-300 ease-in-out"
                 >
                   Voir les pneus
                 </Link>
@@ -124,7 +124,7 @@ export default function ProductCategoriesSection() {
           {categories.slice(3).map((category, index) => (
             <motion.div
               key={category.id}
-              className="bg-white rounded-lg shadow-lg overflow-hidden hover:shadow-xl transition-shadow duration-300 w-full"
+              className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden hover:shadow-lg hover:-translate-y-0.5 transition-all duration-300 w-full"
               initial={{ opacity: 0, y: 50 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, amount: 0.2 }}
@@ -152,8 +152,8 @@ export default function ProductCategoriesSection() {
                 </p>
                 <Link
                   href={`/boutique?category=${category.slug}`}
-                  className="w-full text-center px-2 py-2 border-2 border-yellow-300 rounded-md font-semibold text-gray-700 bg-transparent 
-             hover:bg-yellow-300 hover:text-white transition duration-300 ease-in-out"
+                  className="w-full text-center px-2 py-2 border-2 border-yellow-400 rounded-md font-semibold text-gray-800 bg-transparent
+             hover:bg-yellow-400 hover:text-black transition duration-300 ease-in-out"
                 >
                   Voir les pneus
                 </Link>

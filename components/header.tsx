@@ -163,11 +163,11 @@ export default function Header() {
               <Link
                 key={item.href}
                 href={item.href}
-                className={`font-medium text-sm xl:text-base ${
+                className={`font-semibold text-sm tracking-wide ${
                   isActive(item.href)
                     ? "text-yellow-500"
-                    : "text-gray-900 hover:text-yellow-500"
-                } transition-colors`}
+                    : "text-gray-700 hover:text-yellow-500"
+                } transition-colors duration-150`}
               >
                 {item.label}
               </Link>
@@ -369,9 +369,11 @@ export default function Header() {
               `}
             >
               <ShoppingCart className={`h-4 w-4 sm:h-5 sm:w-5 transition-all duration-700 ${showCartAnimation ? 'rotate-[360deg] text-yellow-600' : ''}`} />
-              <span className={`absolute -top-1 -right-1 bg-red-500 text-white text-[10px] rounded-full w-3.5 h-3.5 flex items-center justify-center transition-all duration-500 ${showCartAnimation ? 'scale-150 animate-pulse bg-green-500' : ''}`}>
-                {getTotalItems()}
-              </span>
+              {getTotalItems() > 0 && (
+                <span className={`absolute -top-1 -right-1 bg-red-500 text-white text-[10px] rounded-full w-3.5 h-3.5 flex items-center justify-center transition-all duration-500 ${showCartAnimation ? 'scale-150 animate-pulse bg-green-500' : ''}`}>
+                  {getTotalItems()}
+                </span>
+              )}
             </Button>
           </div>
         </div>
