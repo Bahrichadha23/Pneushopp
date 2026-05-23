@@ -28,7 +28,6 @@ import {
   Tag,
   RotateCcw,
   Shield,
-  Calendar,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -72,7 +71,6 @@ const MENU_ADMIN: MenuItem[] = [
     children: [
       { title: "Catalogue produits",     href: "/admin/produits",            icon: Package },
       { title: "Gestion stock",          href: "/admin/stock",               icon: Store },
-      { title: "État du stock DOT",      href: "/admin/stock/dot",           icon: Calendar },
       { title: "Mouvements stock",       href: "/admin/stock/mouvements",    icon: TrendingUp },
     ],
   },
