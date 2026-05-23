@@ -940,9 +940,7 @@ export default function AchatsPage() {
 
             {/* Date d'achat */}
             <div>
-              <Label className="text-xs font-semibold text-gray-700">
-                Date d'achat <span className="text-yellow-600">(date de la facture / livraison)</span>
-              </Label>
+              <Label className="text-xs font-semibold text-gray-700">Date d'achat</Label>
               <Input
                 type="date"
                 value={invoiceDate}
