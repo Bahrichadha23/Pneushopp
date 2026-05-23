@@ -26,7 +26,7 @@ class ProductSerializer(serializers.ModelSerializer):
             'category', 'image', 'image_2', 'image_3', 'brand', 'size',
             'season', 'season_display', 'stock', 'is_featured',
             'is_on_sale', 'discount_percentage', 'created_at',
-            'reference', 'designation', 'type', 'emplacement', 'fabrication_date',
+            'reference', 'designation', 'type',
             'promotion_label', 'promotion_end_date',
         ]
 
