@@ -11,7 +11,7 @@ import {
 } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
 import { useAuth } from "@/contexts/auth-context";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { API_URL } from "@/lib/config";
 
 /* ─── Types ─────────────────────────────────────────────── */
@@ -488,6 +488,7 @@ export default function StockManagementPage() {
 
   const { user } = useAuth();
   const router = useRouter();
+  const searchParams = useSearchParams();
 
   if (user && user.role !== "admin" && user.role !== "purchasing") {
     router.push("/admin"); return null;
@@ -503,6 +504,18 @@ export default function StockManagementPage() {
   useEffect(() => {
     setPagination((p) => ({ ...p, page: 1 }));
   }, [debouncedSearch]);
+
+  // Auto-open DOT panel when ?dot=productId is in URL (coming from DOT state page)
+  useEffect(() => {
+    const dotProductId = searchParams.get("dot");
+    if (!dotProductId || stock.length === 0) return;
+    const product = stock.find((p) => p.id === parseInt(dotProductId));
+    if (product) {
+      setDotPanel(product);
+      // Remove the query param without navigating
+      router.replace("/admin/stock");
+    }
+  }, [searchParams, stock]);
 
   // Fetch products (server-side search + pagination)
   useEffect(() => {
