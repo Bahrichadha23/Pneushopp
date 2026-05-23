@@ -16,6 +16,7 @@ class OrderDetailView(generics.RetrieveUpdateDestroyAPIView):
     def perform_update(self, serializer):
         from accounts.email_utils import send_order_status_update_email, send_delivery_invoice_email
         from decimal import Decimal
+        from django.utils import timezone
         old_order = self.get_object()
         old_status = old_order.status
         old_delivery_cost = old_order.delivery_cost or Decimal('0')
@@ -25,12 +26,18 @@ class OrderDetailView(generics.RetrieveUpdateDestroyAPIView):
         # Si les frais de livraison ont changé → recalculer le total_amount
         new_delivery_cost = order.delivery_cost or Decimal('0')
         if new_delivery_cost != old_delivery_cost:
-            # total_amount = montant produits + nouveaux frais de livraison
             items_total = sum(
                 item.unit_price * item.quantity for item in order.items.all()
             )
             order.total_amount = items_total + new_delivery_cost
             order.save(update_fields=['total_amount'])
+
+        # ── Auto-création BDC + Livraison à la confirmation ──────────────
+        if order.status == 'processing' and old_status not in ('processing', 'shipped', 'delivered', 'cancelled'):
+            try:
+                self._auto_create_bdc_and_delivery(order)
+            except Exception as e:
+                print(f'[ORDER UPDATE] Failed to auto-create BDC/Delivery: {e}')
 
         try:
             send_order_status_update_email(order)
@@ -41,6 +48,62 @@ class OrderDetailView(generics.RetrieveUpdateDestroyAPIView):
                 send_delivery_invoice_email(order)
             except Exception as e:
                 print(f'[ORDER UPDATE] Failed to send delivery invoice email: {str(e)}')
+
+    @staticmethod
+    def _auto_create_bdc_and_delivery(order):
+        """Create PurchaseOrder + Delivery when an order is first confirmed."""
+        from django.utils import timezone
+        from .models import PurchaseOrder, PurchaseOrderItem, Delivery
+
+        # ── PurchaseOrder ─────────────────────────────────────────────────
+        if not order.purchase_orders.exists():
+            items = list(order.items.all())
+            items_total = sum(item.unit_price * item.quantity for item in items)
+
+            po = PurchaseOrder.objects.create(
+                order=order,
+                date_commande=timezone.now().date(),
+                total_ht=items_total,
+                total_ttc=order.total_amount,
+                statut='confirmé',
+                priorite='normale',
+            )
+            for item in items:
+                PurchaseOrderItem.objects.create(
+                    purchase_order=po,
+                    nom=item.product_name,
+                    quantite=item.quantity,
+                    prix_unitaire=item.unit_price,
+                )
+            print(f'[AUTO-BDC] Created PurchaseOrder {po.id} for Order {order.order_number}')
+
+        # ── Delivery ──────────────────────────────────────────────────────
+        if not order.deliveries.exists():
+            addr = order.shipping_address or {}
+            if isinstance(addr, dict):
+                adresse_str = ', '.join(filter(None, [
+                    addr.get('address', addr.get('street', '')),
+                    addr.get('city', ''),
+                    addr.get('postal_code', ''),
+                ]))
+            else:
+                adresse_str = str(addr)
+
+            first = order.user.first_name or ''
+            last  = order.user.last_name  or ''
+            client_name = f'{first} {last}'.strip() or order.user.email
+            tracking = order.tracking_number or f'TRK-{order.id:06d}'
+
+            delivery = Delivery.objects.create(
+                order=order,
+                client=client_name,
+                adresse=adresse_str or 'Non renseignée',
+                transporteur='',
+                statut='prepare',
+                numero_suivi=tracking,
+                colis=sum(item.quantity for item in order.items.all()),
+            )
+            print(f'[AUTO-DELIVERY] Created Delivery {delivery.id} for Order {order.order_number}, suivi: {tracking}')
 
 
 class OrderListCreateView(generics.ListCreateAPIView):

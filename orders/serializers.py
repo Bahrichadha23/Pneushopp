@@ -81,6 +81,38 @@ class PurchaseOrderSerializer(serializers.ModelSerializer):
     order = serializers.PrimaryKeyRelatedField(queryset=Order.objects.all(), required=False, allow_null=True)
     order_id = serializers.IntegerField(write_only=True, required=False)
 
+    # Champs déduits de la commande liée
+    order_number   = serializers.SerializerMethodField()
+    client_name    = serializers.SerializerMethodField()
+    client_email   = serializers.SerializerMethodField()
+    tracking_number = serializers.SerializerMethodField()
+    delivery_cost  = serializers.SerializerMethodField()
+    total_with_delivery = serializers.SerializerMethodField()
+
+    def get_order_number(self, obj):
+        return obj.order.order_number if obj.order else None
+
+    def get_client_name(self, obj):
+        if not obj.order:
+            return None
+        u = obj.order.user
+        name = f'{u.first_name} {u.last_name}'.strip()
+        return name or u.email
+
+    def get_client_email(self, obj):
+        return obj.order.user.email if obj.order else None
+
+    def get_tracking_number(self, obj):
+        return obj.order.tracking_number if obj.order else None
+
+    def get_delivery_cost(self, obj):
+        return float(obj.order.delivery_cost or 0) if obj.order else 0
+
+    def get_total_with_delivery(self, obj):
+        if not obj.order:
+            return float(obj.total_ttc or 0)
+        return float((obj.order.total_amount or 0))
+
     class Meta:
         model = PurchaseOrder
         fields = '__all__'
@@ -202,11 +234,14 @@ class PurchaseOrderSerializer(serializers.ModelSerializer):
 
 
 class DeliverySerializer(serializers.ModelSerializer):
-    commande = serializers.SerializerMethodField()
-    order_number = serializers.SerializerMethodField()
+    commande      = serializers.SerializerMethodField()
+    order_number  = serializers.SerializerMethodField()
+    total_amount  = serializers.SerializerMethodField()
+    client_phone  = serializers.SerializerMethodField()
+    articles_count = serializers.SerializerMethodField()
     dateExpedition = serializers.DateField(source='date_expedition', required=False, allow_null=True)
-    dateLivraison = serializers.DateField(source='date_livraison', required=False, allow_null=True)
-    numeroSuivi = serializers.CharField(source='numero_suivi', required=False, allow_null=True, allow_blank=True)
+    dateLivraison  = serializers.DateField(source='date_livraison',  required=False, allow_null=True)
+    numeroSuivi    = serializers.CharField(source='numero_suivi', required=False, allow_null=True, allow_blank=True)
 
     def get_commande(self, obj):
         if obj.purchase_order:
@@ -216,17 +251,34 @@ class DeliverySerializer(serializers.ModelSerializer):
         return 'N/A'
 
     def get_order_number(self, obj):
+        return obj.order.order_number if obj.order else None
+
+    def get_total_amount(self, obj):
         if obj.order:
-            return obj.order.order_number
+            return float(obj.order.total_amount or 0)
         return None
+
+    def get_client_phone(self, obj):
+        if obj.order and obj.order.shipping_address:
+            addr = obj.order.shipping_address
+            if isinstance(addr, dict):
+                return addr.get('phone', addr.get('tel', ''))
+        return ''
+
+    def get_articles_count(self, obj):
+        if obj.order:
+            return obj.order.items.count()
+        if obj.purchase_order:
+            return obj.purchase_order.articles.count()
+        return 0
 
     class Meta:
         model = Delivery
         fields = [
-            'id', 'commande', 'order_number', 'client', 'adresse',
-            'transporteur', 'statut', 'colis',
+            'id', 'commande', 'order_number', 'client', 'client_phone',
+            'adresse', 'transporteur', 'statut', 'colis', 'articles_count',
             'dateExpedition', 'dateLivraison', 'numeroSuivi', 'notes',
-            'purchase_order', 'order',
+            'total_amount', 'purchase_order', 'order',
         ]
 
 
