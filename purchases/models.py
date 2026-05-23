@@ -33,6 +33,7 @@ class PurchaseOrder(models.Model):
     total = models.DecimalField('Total HT', max_digits=12, decimal_places=3, default=0)
     status = models.CharField('Statut', max_length=20, choices=STATUS_CHOICES, default='draft')
     created_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name='created_purchases', verbose_name='Créé par')
+    purchase_date = models.DateField("Date d'achat", null=True, blank=True)
     order_date = models.DateTimeField('Date de commande', auto_now_add=True)
     confirmed_date = models.DateTimeField('Date de confirmation', null=True, blank=True)
     received_date = models.DateTimeField('Date de réception', null=True, blank=True)

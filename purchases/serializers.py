@@ -25,7 +25,7 @@ class PurchaseOrderSerializer(serializers.ModelSerializer):
         model = PurchaseOrder
         fields = ('id', 'order_number', 'invoice_number', 'bl_number', 'supplier', 'supplier_name', 'note', 'week', 'year',
                   'subtotal', 'global_discount', 'total', 'status', 'created_by', 'created_by_name',
-                  'order_date', 'confirmed_date', 'received_date', 'updated_at', 'items')
+                  'purchase_date', 'order_date', 'confirmed_date', 'received_date', 'updated_at', 'items')
         read_only_fields = ('id', 'order_number', 'order_date', 'updated_at', 'created_by')
 
     def create(self, validated_data):
@@ -63,6 +63,7 @@ class PurchaseOrderCreateSerializer(serializers.Serializer):
     note = serializers.CharField(required=False, allow_blank=True)
     invoice_number = serializers.CharField(required=False, allow_blank=True)
     bl_number = serializers.CharField(required=False, allow_blank=True)
+    purchase_date = serializers.DateField(required=False, allow_null=True)
     week = serializers.CharField(required=False, allow_blank=True)
     year = serializers.CharField(required=False, allow_blank=True)
     global_discount = serializers.DecimalField(max_digits=5, decimal_places=2, default=0, required=False)
@@ -82,6 +83,7 @@ class PurchaseOrderCreateSerializer(serializers.Serializer):
             status='confirmed',
             invoice_number=validated_data.get('invoice_number', ''),
             bl_number=validated_data.get('bl_number', ''),
+            purchase_date=validated_data.get('purchase_date', None),
             note=validated_data.get('note', ''),
             week=validated_data.get('week', ''),
             year=validated_data.get('year', ''),
