@@ -154,6 +154,22 @@ class PurchaseOrderCreateSerializer(serializers.Serializer):
                 product.save()
                 print(f'✅ Stock updated: {product.name} - Added {quantity} units. New stock: {product.stock}')
 
+                # ── Créer un lot DOT (StockBatch) pour le suivi FEFO ──────────
+                try:
+                    from products.models import StockBatch
+                    StockBatch.objects.create(
+                        product=product,
+                        quantity=quantity,
+                        dot=dot_str or '',
+                        dot_date=fab_date,
+                        emplacement=emplacement_str or product.emplacement or '',
+                        purchase_item=item,
+                        notes=f'Achat #{purchase_order.order_number}',
+                    )
+                    print(f'📦 StockBatch créé: {product.name} DOT={dot_str} qty={quantity} emp={emplacement_str}')
+                except Exception as e:
+                    print(f'⚠️ StockBatch non créé pour {product.name}: {e}')
+
         global_discount = float(validated_data.get('global_discount') or 0)
         purchase_order.subtotal = subtotal
         purchase_order.total = subtotal * (1 - global_discount / 100)

@@ -71,10 +71,29 @@ class PurchaseOrderViewSet(viewsets.ModelViewSet):
         instance.save()
         for item in instance.items.all():
             if item.product:
-                item.product.stock = item.product.stock + item.quantity
-                item.product.save()
-                item.received_quantity = item.quantity
-                item.save()
+                qty = item.quantity - (item.received_quantity or 0)
+                if qty > 0:
+                    item.product.stock = item.product.stock + qty
+                    item.product.save()
+                    item.received_quantity = item.quantity
+                    item.save()
+
+                    # ── Créer un lot DOT (StockBatch) pour le suivi FEFO ─────
+                    try:
+                        from products.models import StockBatch, dot_to_date
+                        dot_str = (item.dot or '').strip()
+                        dot_date = dot_to_date(dot_str) if dot_str else None
+                        StockBatch.objects.create(
+                            product=item.product,
+                            quantity=qty,
+                            dot=dot_str,
+                            dot_date=dot_date,
+                            emplacement=(item.emplacement or item.product.emplacement or '').strip(),
+                            purchase_item=item,
+                            notes=f'Réception #{instance.order_number}',
+                        )
+                    except Exception as e:
+                        print(f'⚠️ StockBatch non créé pour item {item.id}: {e}')
         return Response(self.get_serializer(instance).data)
 
     @action(detail=True, methods=['post'])
