@@ -60,15 +60,19 @@ export function PaymentForm({ onSubmit, onBack, totalPrice }: PaymentFormProps) 
 
   // "Paiement à la livraison" : sous-type especes ou tpe
   const [deliverySubType, setDeliverySubType] = useState<"especes" | "cash_on_delivery" | "">("");
+  const [deliveryExpanded, setDeliveryExpanded] = useState(false);
   const isDeliverySelected = isSelected("especes") || isSelected("cash_on_delivery");
 
   const toggleDeliveryParent = () => {
-    if (isDeliverySelected) {
-      // Décocher : retirer les deux sous-types + reset sous-type
+    if (deliveryExpanded) {
+      // Décocher : réduire + retirer les deux sous-types + reset sous-type
       setSelectedTypes((prev) => prev.filter((t) => t !== "especes" && t !== "cash_on_delivery"));
       setDeliverySubType("");
+      setDeliveryExpanded(false);
+    } else {
+      // Cocher : ouvrir le panneau pour choisir le sous-type
+      setDeliveryExpanded(true);
     }
-    // Cocher : on n'ajoute rien encore, le client doit choisir le sous-type
   };
 
   const selectDeliverySub = (sub: "especes" | "cash_on_delivery") => {
@@ -331,7 +335,7 @@ export function PaymentForm({ onSubmit, onBack, totalPrice }: PaymentFormProps) 
       return;
     }
     // Si livraison sélectionnée → vérifier que le sous-type est choisi
-    if (isDeliverySelected && !deliverySubType) {
+    if (deliveryExpanded && !deliverySubType) {
       alert("Veuillez choisir le mode de paiement à la livraison : Espèces ou TPE.");
       return;
     }
@@ -362,7 +366,7 @@ export function PaymentForm({ onSubmit, onBack, totalPrice }: PaymentFormProps) 
   };
 
   const isMultiModal = selectedTypes.length > 1;
-  const deliveryOk = !isDeliverySelected || (isDeliverySelected && !!deliverySubType);
+  const deliveryOk = !deliveryExpanded || !!deliverySubType;
   const canContinue = selectedTypes.length > 0 && totalEnteredAllMethods >= totalPrice - 0.01 && deliveryOk;
 
   return (
@@ -393,14 +397,14 @@ export function PaymentForm({ onSubmit, onBack, totalPrice }: PaymentFormProps) 
                     {/* Ligne parente */}
                     <label
                       className={`flex items-center space-x-3 p-3 transition-colors cursor-pointer ${
-                        isDeliverySelected
+                        deliveryExpanded
                           ? "border-blue-500 bg-blue-50"
                           : "hover:bg-gray-50"
                       }`}
                     >
                       <input
                         type="checkbox"
-                        checked={isDeliverySelected}
+                        checked={deliveryExpanded}
                         onChange={toggleDeliveryParent}
                         className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
                       />
@@ -414,7 +418,7 @@ export function PaymentForm({ onSubmit, onBack, totalPrice }: PaymentFormProps) 
                     </label>
 
                     {/* Sous-options — visibles quand la case parent est cochée */}
-                    {isDeliverySelected && (
+                    {deliveryExpanded && (
                       <div className="bg-blue-50 border-t border-blue-100 px-4 py-3 flex gap-4">
                         <p className="text-xs text-slate-500 mr-2 self-center">Mode :</p>
                         {/* Espèces */}
@@ -455,7 +459,7 @@ export function PaymentForm({ onSubmit, onBack, totalPrice }: PaymentFormProps) 
                     )}
 
                     {/* Si coché mais pas de sous-type → alerte inline */}
-                    {isDeliverySelected && !deliverySubType && (
+                    {deliveryExpanded && !deliverySubType && (
                       <p className="text-xs text-amber-600 bg-amber-50 px-4 py-2 border-t border-amber-100">
                         Veuillez choisir Espèces ou TPE ci-dessus.
                       </p>

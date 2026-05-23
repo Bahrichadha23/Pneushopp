@@ -55,7 +55,7 @@ export default function ManufacturersSection() {
                   src={manufacturer.logo}
                   alt={manufacturer.name}
                   style={{ width: manufacturer.w, height: manufacturer.h }}
-                  className="object-contain grayscale opacity-50 hover:grayscale-0 hover:opacity-100 transition-all duration-300 hover:scale-105"
+                  className="object-contain opacity-80 hover:opacity-100 transition-all duration-300 hover:scale-105"
                 />
               </div>
             ))}
