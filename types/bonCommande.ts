@@ -8,9 +8,9 @@ export type StatutBon = "en_attente" | "confirmé" | "livré"
 export type PrioriteBon = "normale" | "urgent"
 
 export interface BonCommande {
-  id: number | string              // allow number or string
-  order_id: number          // new field to link to Order, can be null
-  order: number | null         // new field to link to Order, can be null
+  id: number | string
+  order_id: number | null
+  order: number | null
   fournisseur: string
   dateCommande: string
   dateLivraisonPrevue: string
@@ -19,4 +19,11 @@ export interface BonCommande {
   totalTTC: number
   statut: StatutBon
   priorite: PrioriteBon
+  // Enriched from serializer
+  order_number: string | null
+  client_name: string | null
+  client_email: string | null
+  tracking_number: string | null
+  delivery_cost: number
+  total_with_delivery: number
 }
