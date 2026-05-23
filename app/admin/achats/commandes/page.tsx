@@ -64,14 +64,11 @@ const handleDownloadAchat = (order: any) => {
   pdf.text("Informations de la commande", margin, y);
   y += 8;
 
-  const infoHeaders = ["Fournisseur", "Date", "DOT", "Statut"];
-  // Collect DOTs from all items; display all unique DOTs or "—"
-  const itemDots = (order.items || []).map((it: any) => it.dot).filter(Boolean);
-  const dotDisplay = itemDots.length > 0 ? [...new Set(itemDots)].join(" / ") : "—";
+  const infoHeaders = ["Fournisseur", "Date d'achat", "N° Facture", "Statut"];
   const infoValues = [
     order.supplier_name || `Fournisseur ${order.supplier}`,
-    fmtDate(order.order_date),
-    dotDisplay,
+    order.purchase_date ? fmtDate(order.purchase_date) : fmtDate(order.order_date),
+    order.invoice_number || "—",
     STATUS_CONFIG[order.status as keyof typeof STATUS_CONFIG]?.label || order.status || "Brouillon",
   ];
 
@@ -95,13 +92,14 @@ const handleDownloadAchat = (order: any) => {
   });
   y += 8;
 
-  if (order.invoice_number) {
+  // Afficher N° BL si présent
+  if (order.bl_number) {
     y += 5;
     pdf.setFont("helvetica", "bold");
     pdf.setFontSize(9);
-    pdf.text("N° Facture: ", margin, y);
+    pdf.text("N° BL : ", margin, y);
     pdf.setFont("helvetica", "normal");
-    pdf.text(order.invoice_number, margin + 25, y);
+    pdf.text(order.bl_number, margin + 18, y);
   }
   y += 14;
 
@@ -230,8 +228,10 @@ function DetailModal({ order, onClose }: { order: any; onClose: () => void }) {
             <p className="font-semibold text-gray-900">{order.supplier_name || "—"}</p>
           </div>
           <div>
-            <p className="text-xs text-gray-500 uppercase">Date commande</p>
-            <p className="font-semibold text-gray-900">{fmtDate(order.order_date)}</p>
+            <p className="text-xs text-gray-500 uppercase">Date d'achat</p>
+            <p className="font-semibold text-gray-900">
+              {order.purchase_date ? fmtDate(order.purchase_date) : fmtDate(order.order_date)}
+            </p>
           </div>
           <div>
             <p className="text-xs text-gray-500 uppercase">N° Facture</p>
@@ -439,7 +439,7 @@ export default function AchatsCommandesPage() {
     ws.columns = [
       { header: "N° Commande",     key: "num",        width: 18 },
       { header: "Fournisseur",     key: "supplier",   width: 24 },
-      { header: "Date",            key: "date",       width: 14 },
+      { header: "Date d'achat",    key: "date",       width: 14 },
       { header: "N° Facture",      key: "invoice",    width: 18 },
       { header: "DOT",              key: "week",       width: 16 },
       { header: "Nb Articles",     key: "items",      width: 12 },
@@ -457,7 +457,7 @@ export default function AchatsCommandesPage() {
       const row = ws.addRow({
         num:      o.order_number,
         supplier: o.supplier_name || "",
-        date:     fmtDate(o.order_date),
+        date:     o.purchase_date ? fmtDate(o.purchase_date) : fmtDate(o.order_date),
         invoice:  o.invoice_number || "—",
         week:     (o.items || []).map((it: any) => it.dot).filter(Boolean).length > 0
                     ? [...new Set((o.items || []).map((it: any) => it.dot).filter(Boolean))].join(" / ")
@@ -641,8 +641,8 @@ export default function AchatsCommandesPage() {
                 </div>
                 <CardContent className="p-4 space-y-2 text-sm">
                   <div className="flex justify-between">
-                    <span className="text-gray-500">Date</span>
-                    <span>{fmtDate(order.order_date)}</span>
+                    <span className="text-gray-500">Date d'achat</span>
+                    <span>{order.purchase_date ? fmtDate(order.purchase_date) : fmtDate(order.order_date)}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-gray-500">Facture</span>
@@ -679,7 +679,7 @@ export default function AchatsCommandesPage() {
                   <TableRow className="bg-gray-50 hover:bg-gray-50">
                     <TableHead className="font-semibold text-gray-600 text-xs uppercase pl-6">N° Commande</TableHead>
                     <TableHead className="font-semibold text-gray-600 text-xs uppercase">Fournisseur</TableHead>
-                    <TableHead className="font-semibold text-gray-600 text-xs uppercase">Date</TableHead>
+                    <TableHead className="font-semibold text-gray-600 text-xs uppercase">Date d'achat</TableHead>
                     <TableHead className="font-semibold text-gray-600 text-xs uppercase">N° Facture</TableHead>
                     <TableHead className="font-semibold text-gray-600 text-xs uppercase text-center">DOT</TableHead>
                     <TableHead className="font-semibold text-gray-600 text-xs uppercase text-center">Articles</TableHead>
@@ -700,7 +700,9 @@ export default function AchatsCommandesPage() {
                           <span className="text-sm font-medium text-gray-900">{order.supplier_name || `#${order.supplier}`}</span>
                         </div>
                       </TableCell>
-                      <TableCell className="text-sm text-gray-700">{fmtDate(order.order_date)}</TableCell>
+                      <TableCell className="text-sm text-gray-700">
+                        {order.purchase_date ? fmtDate(order.purchase_date) : fmtDate(order.order_date)}
+                      </TableCell>
                       <TableCell>
                         {order.invoice_number
                           ? <span className="font-mono text-xs bg-gray-100 rounded px-2 py-0.5">{order.invoice_number}</span>

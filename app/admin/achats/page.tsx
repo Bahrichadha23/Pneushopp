@@ -106,7 +106,11 @@ export default function AchatsPage() {
   const [note, setNote] = useState("");
   const [invoiceNumber, setInvoiceNumber] = useState("");
   const [blNumber, setBlNumber] = useState("");
-  const [invoiceDate, setInvoiceDate] = useState("");
+  const [invoiceDate, setInvoiceDate] = useState(() => {
+    // Initialiser à la date du jour
+    const today = new Date();
+    return today.toISOString().split("T")[0];
+  });
   const [globalDiscount, setGlobalDiscount] = useState(0);
   const [items, setItems] = useState<PurchaseItem[]>([]);
   const [searchRef, setSearchRef] = useState("");
@@ -526,6 +530,7 @@ export default function AchatsPage() {
       })),
       invoice_number: invoiceNumber,
       bl_number: blNumber,
+      purchase_date: invoiceDate || null,
       dot: selectedDot,
     };
 
@@ -564,6 +569,7 @@ export default function AchatsPage() {
         setNote("");
         setInvoiceNumber("");
         setBlNumber("");
+        setInvoiceDate(new Date().toISOString().split("T")[0]);
         setSelectedWeek("");
         setSelectedDot("");
         setGlobalDiscount(0);
@@ -586,6 +592,7 @@ export default function AchatsPage() {
     setNote("");
     setInvoiceNumber("");
     setBlNumber("");
+    setInvoiceDate(new Date().toISOString().split("T")[0]);
     setSelectedWeek("");
     setSelectedDot("");
     setGlobalDiscount(0);
@@ -929,6 +936,19 @@ export default function AchatsPage() {
                   className="mt-1 font-mono text-sm"
                 />
               </div>
+            </div>
+
+            {/* Date d'achat */}
+            <div>
+              <Label className="text-xs font-semibold text-gray-700">
+                Date d'achat <span className="text-yellow-600">(date de la facture / livraison)</span>
+              </Label>
+              <Input
+                type="date"
+                value={invoiceDate}
+                onChange={(e) => setInvoiceDate(e.target.value)}
+                className="mt-1 font-mono text-sm max-w-[220px]"
+              />
             </div>
 
             {/* Action Buttons */}
