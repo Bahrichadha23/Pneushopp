@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import {
   Package, AlertTriangle, TrendingUp, Plus, Minus, X,
   Calendar, ChevronRight, Loader2, AlertCircle, FileDown, Printer,
-  ClipboardList, Check,
+  ClipboardList, Check, Search,
 } from "lucide-react";
 import ExcelJS from "exceljs";
 import { AnimatePresence, motion } from "framer-motion";
@@ -964,6 +964,7 @@ export default function StockManagementPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<string | null>(null);
+  const [brandFilter, setBrandFilter] = useState<string | null>(null);
   const [dotPanel, setDotPanel] = useState<AdminProduct | null>(null);
 
   // Action modal: vendre ou diminuer stock
@@ -990,13 +991,13 @@ export default function StockManagementPage() {
     router.push("/admin"); return null;
   }
 
-  // Debounce search term
+  // Debounce search term for server-side query
   useEffect(() => {
-    const t = setTimeout(() => setDebouncedSearch(searchTerm), 400);
+    const t = setTimeout(() => setDebouncedSearch(searchTerm), 150);
     return () => clearTimeout(t);
   }, [searchTerm]);
 
-  // Reset to page 1 when search changes
+  // Reset to page 1 and brand filter when search changes
   useEffect(() => {
     setPagination((p) => ({ ...p, page: 1 }));
   }, [debouncedSearch]);
@@ -1142,10 +1143,26 @@ export default function StockManagementPage() {
     } catch (err) { console.error("❌ Échec:", err); }
   };
 
-  // Search is server-side — only filter by status locally
-  const filteredStock = stock.filter((item) =>
-    statusFilter ? getStockStatus(item.stock, item.stockMin, item.stockMax).status === statusFilter : true
-  );
+  // Unique brands extracted from loaded page (for quick-filter chips)
+  const brands = useMemo(() => [...new Set(stock.map(i => i.brand).filter(Boolean))].sort(), [stock]);
+
+  // Instant local filter (brand + status + search term) applied immediately on loaded page
+  // Server search (debouncedSearch) handles cross-page results
+  const filteredStock = useMemo(() => {
+    const term = searchTerm.toLowerCase().trim();
+    return stock.filter((item) => {
+      const matchesStatus = !statusFilter ||
+        getStockStatus(item.stock, item.stockMin, item.stockMax).status === statusFilter;
+      const matchesBrand = !brandFilter ||
+        item.brand.toLowerCase() === brandFilter.toLowerCase();
+      const matchesSearch = !term ||
+        item.name.toLowerCase().includes(term) ||
+        item.brand.toLowerCase().includes(term) ||
+        item.size.toLowerCase().includes(term) ||
+        item.category.toLowerCase().includes(term);
+      return matchesStatus && matchesBrand && matchesSearch;
+    });
+  }, [stock, statusFilter, brandFilter, searchTerm]);
 
   const lowStockItems = stock.filter((item) => item.stock > 0 && item.stock <= item.stockMin);
   const totalValue = stock.reduce((sum, item) => sum + item.stock * item.prixVente, 0);
@@ -1181,47 +1198,99 @@ export default function StockManagementPage() {
         <Card><CardHeader className="flex justify-between items-center"><CardTitle className="text-sm font-medium">Unités totales</CardTitle><Package className="h-4 w-4 text-gray-500" /></CardHeader><CardContent><div className="text-2xl font-bold">{stock.reduce((s, i) => s + i.stock, 0)}</div></CardContent></Card>
       </div>
 
-      {/* Search */}
-      <div className="relative max-w-sm">
+      {/* Search bar — full width, prominent */}
+      <div className="relative">
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 h-5 w-5 pointer-events-none" />
         <Input
-          placeholder="Rechercher par nom, marque, taille, référence…"
+          placeholder="Rechercher par nom, marque, taille, catégorie…"
           value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          className="pr-8"
+          onChange={(e) => { setSearchTerm(e.target.value); setBrandFilter(null); }}
+          className="pl-10 pr-10 h-11 text-sm"
+          autoFocus={false}
         />
         {searchTerm && (
           <button
             onClick={() => setSearchTerm("")}
-            className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-700 transition-colors"
           >
             <X className="h-4 w-4" />
           </button>
         )}
       </div>
 
-      {/* Status Filter */}
-      <div className="flex flex-wrap items-center gap-2 p-3 bg-gray-50 border border-gray-200 rounded-lg">
-        <span className="text-sm font-medium text-gray-700 mr-1">Filtrer :</span>
-        {[
-          { label: "Tous", value: null, cls: "border-gray-300 bg-white text-gray-700 hover:bg-gray-100" },
-          { label: "En stock", value: "En stock", cls: "border-blue-500 bg-white text-blue-700 hover:bg-blue-50" },
-          { label: "Stock faible", value: "Stock faible", cls: "border-yellow-400 bg-white text-yellow-700 hover:bg-yellow-50" },
-          { label: "Rupture", value: "Rupture de stock", cls: "border-red-400 bg-white text-red-700 hover:bg-red-50" },
-        ].map(({ label, value, cls }) => {
-          const isActive = value === null ? statusFilter === null : statusFilter === value;
-          return (
-            <button key={label} onClick={() => setStatusFilter(value)}
-              className={`px-3 py-1 rounded-full text-sm font-medium border transition-all ${isActive
-                ? value === null ? "bg-gray-800 text-white border-gray-800"
-                  : value === "En stock" ? "bg-blue-600 text-white border-blue-600"
-                  : value === "Stock faible" ? "bg-yellow-500 text-white border-yellow-500"
-                  : "bg-red-500 text-white border-red-500"
-                : cls}`}>
-              {label}
-              {value && <span className="ml-1 text-xs opacity-75">({stock.filter((i) => getStockStatus(i.stock, i.stockMin, i.stockMax).status === value).length})</span>}
+      {/* Filters row: status + brand chips */}
+      <div className="space-y-2">
+        {/* Status chips */}
+        <div className="flex flex-wrap items-center gap-1.5">
+          <span className="text-xs font-semibold text-gray-500 mr-1">Statut :</span>
+          {[
+            { label: "Tous", value: null },
+            { label: "En stock", value: "En stock" },
+            { label: "Stock faible", value: "Stock faible" },
+            { label: "Rupture", value: "Rupture de stock" },
+          ].map(({ label, value }) => {
+            const isActive = value === null ? statusFilter === null : statusFilter === value;
+            const count = value ? stock.filter(i => getStockStatus(i.stock, i.stockMin, i.stockMax).status === value).length : null;
+            const activeColor = value === null ? "bg-gray-800 text-white border-gray-800"
+              : value === "En stock" ? "bg-blue-600 text-white border-blue-600"
+              : value === "Stock faible" ? "bg-yellow-500 text-white border-yellow-500"
+              : "bg-red-500 text-white border-red-500";
+            const idleColor = value === null ? "border-gray-300 bg-white text-gray-700 hover:bg-gray-100"
+              : value === "En stock" ? "border-blue-300 bg-white text-blue-700 hover:bg-blue-50"
+              : value === "Stock faible" ? "border-yellow-300 bg-white text-yellow-700 hover:bg-yellow-50"
+              : "border-red-300 bg-white text-red-700 hover:bg-red-50";
+            return (
+              <button key={label} onClick={() => setStatusFilter(value)}
+                className={`px-2.5 py-1 rounded-full text-xs font-medium border transition-all ${isActive ? activeColor : idleColor}`}>
+                {label}{count !== null && <span className="ml-1 opacity-75">({count})</span>}
+              </button>
+            );
+          })}
+        </div>
+
+        {/* Brand chips — only shown when brands are loaded */}
+        {brands.length > 0 && (
+          <div className="flex flex-wrap items-center gap-1.5">
+            <span className="text-xs font-semibold text-gray-500 mr-1">Marque :</span>
+            <button
+              onClick={() => setBrandFilter(null)}
+              className={`px-2.5 py-1 rounded-full text-xs font-medium border transition-all ${
+                !brandFilter ? "bg-gray-800 text-white border-gray-800" : "border-gray-300 bg-white text-gray-700 hover:bg-gray-100"
+              }`}
+            >
+              Toutes
             </button>
-          );
-        })}
+            {brands.map(brand => (
+              <button
+                key={brand}
+                onClick={() => { setBrandFilter(brandFilter === brand ? null : brand); setSearchTerm(""); }}
+                className={`px-2.5 py-1 rounded-full text-xs font-medium border transition-all ${
+                  brandFilter === brand
+                    ? "bg-indigo-600 text-white border-indigo-600"
+                    : "border-indigo-200 bg-white text-indigo-700 hover:bg-indigo-50"
+                }`}
+              >
+                {brand}
+                <span className="ml-1 opacity-75">
+                  ({stock.filter(i => i.brand.toLowerCase() === brand.toLowerCase()).length})
+                </span>
+              </button>
+            ))}
+          </div>
+        )}
+
+        {/* Active filters summary */}
+        {(searchTerm || brandFilter || statusFilter) && (
+          <div className="flex items-center gap-2 text-xs text-gray-500">
+            <span>{filteredStock.length} résultat{filteredStock.length !== 1 ? "s" : ""}</span>
+            <button
+              onClick={() => { setSearchTerm(""); setBrandFilter(null); setStatusFilter(null); }}
+              className="text-red-500 hover:text-red-700 underline"
+            >
+              Effacer les filtres
+            </button>
+          </div>
+        )}
       </div>
 
       {/* Table */}
