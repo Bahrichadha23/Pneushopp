@@ -158,6 +158,21 @@ def admin_dashboard_stats(request):
 
 @api_view(['POST'])
 @permission_classes([IsAdmin])
+def reset_all_products(request):
+    """Delete ALL products and their DOT batches. Admin only. Irreversible."""
+    from .models import StockBatch
+    batches_count, _ = StockBatch.objects.all().delete()
+    products_count, _ = Product.objects.all().delete()
+    return Response({
+        'success': True,
+        'deleted_products': products_count,
+        'deleted_batches': batches_count,
+        'message': f'{products_count} produit(s) et {batches_count} lot(s) DOT supprimés.',
+    })
+
+
+@api_view(['POST'])
+@permission_classes([IsAdmin])
 def bulk_update_products(request):
     """Bulk update products (e.g., prices, stock, status)"""
     product_ids = request.data.get('product_ids')

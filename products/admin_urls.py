@@ -7,6 +7,7 @@ urlpatterns = [
     path('products/', admin_views.AdminProductListCreateView.as_view(), name='product_list_create'),
     path('products/<int:pk>/', admin_views.AdminProductDetailView.as_view(), name='product_detail'),
     path('products/bulk-update/', admin_views.bulk_update_products, name='bulk_update_products'),
+    path('products/reset-all/', admin_views.reset_all_products, name='reset_all_products'),
     path('products/<int:product_id>/dot-batches/', admin_views.product_dot_batches, name='product_dot_batches'),
     path('products/<int:product_id>/consume-dot-batch/', admin_views.consume_dot_batch, name='consume_dot_batch'),
     path('products/<int:product_id>/add-dot-batch/', admin_views.add_dot_batch, name='add_dot_batch'),

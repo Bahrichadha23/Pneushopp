@@ -982,6 +982,7 @@ export default function StockManagementPage() {
 
   const [pagination, setPagination] = useState({ page: 1, limit: 20, total: 0 });
   const [showOrderPrep, setShowOrderPrep] = useState(false);
+  const [resetting, setResetting] = useState(false);
 
   const { user } = useAuth();
   const router = useRouter();
@@ -1039,6 +1040,32 @@ export default function StockManagementPage() {
     };
     fetchStock();
   }, [pagination.page, debouncedSearch]);
+
+  const handleResetAllProducts = async () => {
+    const first = window.confirm("⚠️ Supprimer TOUS les produits et lots DOT ?\nCette action est irréversible.");
+    if (!first) return;
+    const second = window.confirm("Dernière confirmation : supprimer définitivement tous les produits ?");
+    if (!second) return;
+    setResetting(true);
+    try {
+      const res = await fetch(`${API_URL}/admin/products/reset-all/`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("access_token")}`,
+          "Content-Type": "application/json",
+        },
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Erreur");
+      setStock([]);
+      setPagination(p => ({ ...p, total: 0 }));
+      alert(`✓ ${data.message}`);
+    } catch (e: any) {
+      alert(`Erreur : ${e.message}`);
+    } finally {
+      setResetting(false);
+    }
+  };
 
   const handleDotStockChanged = (productId: number, newStock: number) => {
     setStock((prev) => prev.map((p) => p.id === productId ? { ...p, stock: newStock } : p));
@@ -1172,7 +1199,7 @@ export default function StockManagementPage() {
       {/* Header */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-2">
         <h1 className="text-2xl font-bold text-gray-900">Gestion du stock</h1>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
           <Badge variant="secondary" className="text-sm">{pagination.total} produits</Badge>
           <Button
             variant="outline"
@@ -1186,6 +1213,18 @@ export default function StockManagementPage() {
           <Button variant="outline" size="sm" className="gap-2" onClick={handleExportStock}>
             <FileDown className="h-4 w-4" />
             Exporter (Excel)
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            className="gap-2 border-red-300 text-red-600 hover:bg-red-50"
+            onClick={handleResetAllProducts}
+            disabled={resetting}
+          >
+            {resetting
+              ? <Loader2 className="h-4 w-4 animate-spin" />
+              : <AlertTriangle className="h-4 w-4" />}
+            {resetting ? "Suppression…" : "Vider le stock"}
           </Button>
         </div>
       </div>
