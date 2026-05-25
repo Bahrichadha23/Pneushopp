@@ -22,7 +22,9 @@ import {
   Calendar,
   Loader2,
   Euro,
+  FileDown,
 } from "lucide-react";
+import ExcelJS from "exceljs";
 import { API_URL } from "@/lib/config";
 import { useAuth } from "@/contexts/auth-context";
 import { useRouter } from "next/navigation";
@@ -154,12 +156,79 @@ export default function RapportsPage() {
     top_produits.length > 0 ||
     top_clients.length > 0;
 
+  const handleExportRapports = async () => {
+    const workbook = new ExcelJS.Workbook();
+    const date = new Date().toLocaleDateString("fr-FR");
+
+    // Sheet 1 — KPIs
+    const wsKpi = workbook.addWorksheet("KPIs");
+    wsKpi.columns = [
+      { header: "Indicateur", key: "label", width: 30 },
+      { header: "Valeur", key: "value", width: 20 },
+    ];
+    wsKpi.getRow(1).font = { bold: true };
+    [
+      { label: "Ventes totales (DT)", value: stats_ventes.ventes_total ?? 0 },
+      { label: "Commandes totales", value: stats_ventes.commandes_total ?? 0 },
+      { label: "Clients actifs", value: stats_ventes.clients_actifs ?? 0 },
+      { label: "Panier moyen (DT)", value: stats_ventes.panier_moyen ?? 0 },
+      { label: "Ventes du jour (DT)", value: stats_ventes.ventes_jour ?? 0 },
+      { label: "Ventes semaine (DT)", value: stats_ventes.ventes_hebdo ?? 0 },
+      { label: "Ventes mois (DT)", value: stats_ventes.ventes_mensuel ?? 0 },
+      { label: "Commandes du jour", value: stats_ventes.commandes_jour ?? 0 },
+      { label: "Produits vendus", value: stats_ventes.produits_vendus ?? 0 },
+    ].forEach((row) => wsKpi.addRow(row));
+
+    // Sheet 2 — Ventes par mois
+    const wsMois = workbook.addWorksheet("Ventes par mois");
+    wsMois.columns = [
+      { header: "Mois", key: "mois", width: 14 },
+      { header: "Ventes (DT)", key: "ventes", width: 16 },
+      { header: "Commandes", key: "commandes", width: 14 },
+    ];
+    wsMois.getRow(1).font = { bold: true };
+    ventes_par_mois.forEach((row) => wsMois.addRow(row));
+
+    // Sheet 3 — Top produits
+    const wsProd = workbook.addWorksheet("Top Produits");
+    wsProd.columns = [
+      { header: "Produit", key: "nom", width: 35 },
+      { header: "Quantité vendue", key: "ventes", width: 16 },
+      { header: "CA (DT)", key: "chiffre", width: 14 },
+    ];
+    wsProd.getRow(1).font = { bold: true };
+    top_produits.forEach((row) => wsProd.addRow(row));
+
+    // Sheet 4 — Top clients
+    const wsCli = workbook.addWorksheet("Top Clients");
+    wsCli.columns = [
+      { header: "Client", key: "nom", width: 30 },
+      { header: "Commandes", key: "commandes", width: 14 },
+      { header: "Total (DT)", key: "total", width: 14 },
+    ];
+    wsCli.getRow(1).font = { bold: true };
+    top_clients.forEach((row) => wsCli.addRow(row));
+
+    const buffer = await workbook.xlsx.writeBuffer();
+    const blob = new Blob([buffer], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `Rapports_${date.replace(/\//g, "-")}.xlsx`;
+    link.click();
+    URL.revokeObjectURL(url);
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold text-gray-900">
           Rapports & Analyses
         </h1>
+        <Button variant="outline" className="gap-2" onClick={handleExportRapports}>
+          <FileDown className="h-4 w-4" />
+          Exporter Excel
+        </Button>
       </div>
 
       {/* KPIs principaux */}

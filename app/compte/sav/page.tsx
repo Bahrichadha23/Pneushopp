@@ -233,11 +233,10 @@ export default function SAVPage() {
   const [currentMileage, setCurrentMileage] = useState("");
   const [invoiceRef, setInvoiceRef] = useState("");
   const [description, setDescription] = useState("");
-  const [invoiceFile, setInvoiceFile] = useState<File | null>(null);
-  const [tireImages, setTireImages] = useState<File[]>([]);
+  // Single combined image field: first image = invoice, rest = tire images
+  const [allImages, setAllImages] = useState<File[]>([]);
   const [videoFile, setVideoFile] = useState<File | null>(null);
-  const invoiceInputRef = useRef<HTMLInputElement>(null);
-  const tireImagesInputRef = useRef<HTMLInputElement>(null);
+  const allImagesInputRef = useRef<HTMLInputElement>(null);
   const videoInputRef = useRef<HTMLInputElement>(null);
 
   const [submitting, setSubmitting] = useState(false);
@@ -267,13 +266,17 @@ export default function SAVPage() {
     setSelectedItem(null);
     setCurrentMileage("");
     setDescription("");
-    setInvoiceFile(null);
+    setAllImages([]);
     setVideoFile(null);
     setSubmitError("");
+    // Pre-fill invoice ref from selected order number
+    if (selectedOrder) {
+      setInvoiceRef(selectedOrder.order_number);
+    }
   }, [selectedOrder]);
 
-  function removeTireImage(index: number) {
-    setTireImages((prev) => prev.filter((_, i) => i !== index));
+  function removeImage(index: number) {
+    setAllImages((prev) => prev.filter((_, i) => i !== index));
   }
 
   async function handleSubmit(e: React.FormEvent) {
@@ -286,8 +289,8 @@ export default function SAVPage() {
       setSubmitError("Veuillez indiquer le kilométrage actuel de votre véhicule.");
       return;
     }
-    if (!invoiceFile) {
-      setSubmitError("Veuillez joindre une photo de la facture.");
+    if (allImages.length === 0) {
+      setSubmitError("Veuillez joindre au moins une photo (facture ou pneu).");
       return;
     }
     if (!videoFile) {
@@ -311,8 +314,9 @@ export default function SAVPage() {
       form.append("mileage_at_purchase", selectedOrder.warranty_vehicle_mileage || "");
       form.append("current_mileage", currentMileage);
       form.append("description", description);
-      form.append("invoice_photo", invoiceFile);
-      tireImages.forEach((f) => form.append("tire_images", f));
+      // First image is the invoice photo; remaining are tire images
+      if (allImages[0]) form.append("invoice_photo", allImages[0]);
+      allImages.slice(1).forEach((f) => form.append("tire_images", f));
       form.append("tire_video", videoFile!);
 
       const controller = new AbortController();
@@ -359,8 +363,7 @@ export default function SAVPage() {
     setCurrentMileage("");
     setInvoiceRef("");
     setDescription("");
-    setInvoiceFile(null);
-    setTireImages([]);
+    setAllImages([]);
     setVideoFile(null);
     setTab("claims");
   }
@@ -602,61 +605,37 @@ export default function SAVPage() {
                             className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-yellow-400 resize-none" />
                         </div>
 
-                        {/* Image facture — 1 seule */}
+                        {/* Photos — facture + pneus (champ unique) */}
                         <div>
                           <label className="block text-xs font-medium text-gray-700 mb-1">
-                            Image facture <span className="text-red-500">*</span>
-                            <span className="text-gray-400 font-normal ml-1">(1 seule image ou PDF)</span>
+                            Photos <span className="text-red-500">*</span>
+                            <span className="text-gray-400 font-normal ml-1">(facture et photos du pneu)</span>
                           </label>
-                          <input ref={invoiceInputRef} type="file" accept="image/*,.pdf" className="hidden"
-                            onChange={(e) => setInvoiceFile(e.target.files?.[0] || null)} />
-                          <button type="button" onClick={() => invoiceInputRef.current?.click()}
-                            className={`w-full border-2 border-dashed rounded-lg px-4 py-3 flex items-center gap-3 transition-colors ${
-                              invoiceFile ? "border-green-400 bg-green-50" : "border-gray-300 hover:border-yellow-400 hover:bg-yellow-50/30"
-                            }`}>
-                            <FileText className={`h-5 w-5 flex-shrink-0 ${invoiceFile ? "text-green-500" : "text-gray-400"}`} />
-                            <div className="text-left">
-                              <p className="text-sm font-medium">{invoiceFile ? invoiceFile.name : "Choisir la photo ou le PDF"}</p>
-                              {invoiceFile
-                                ? <p className="text-xs text-green-600">✓ Fichier sélectionné</p>
-                                : <p className="text-xs text-gray-400">JPG, PNG, PDF — max 10 Mo</p>}
-                            </div>
-                            {invoiceFile && (
-                              <button type="button" className="ml-auto text-gray-400 hover:text-red-500"
-                                onClick={(e) => { e.stopPropagation(); setInvoiceFile(null); }}>
-                                <X className="h-4 w-4" />
-                              </button>
-                            )}
-                          </button>
-                        </div>
-
-                        {/* Images pneus — plusieurs */}
-                        <div>
-                          <label className="block text-xs font-medium text-gray-700 mb-1">
-                            Images pneus
-                            <span className="text-gray-400 font-normal ml-1">(plusieurs photos possibles)</span>
-                          </label>
-                          <input ref={tireImagesInputRef} type="file" accept="image/*" multiple className="hidden"
+                          <input ref={allImagesInputRef} type="file" accept="image/*,.pdf" multiple className="hidden"
                             onChange={(e) => {
                               const newFiles = Array.from(e.target.files || []);
-                              setTireImages((prev) => [...prev, ...newFiles]);
-                              if (tireImagesInputRef.current) tireImagesInputRef.current.value = "";
+                              setAllImages((prev) => [...prev, ...newFiles]);
+                              if (allImagesInputRef.current) allImagesInputRef.current.value = "";
                             }} />
-                          <button type="button" onClick={() => tireImagesInputRef.current?.click()}
-                            className="w-full border-2 border-dashed border-gray-300 hover:border-yellow-400 hover:bg-yellow-50/30 rounded-lg px-4 py-3 flex items-center gap-3 transition-colors">
-                            <Image className="h-5 w-5 text-gray-400 flex-shrink-0" />
+                          <button type="button" onClick={() => allImagesInputRef.current?.click()}
+                            className={`w-full border-2 border-dashed rounded-lg px-4 py-3 flex items-center gap-3 transition-colors ${
+                              allImages.length > 0 ? "border-green-400 bg-green-50" : "border-gray-300 hover:border-yellow-400 hover:bg-yellow-50/30"
+                            }`}>
+                            <Upload className={`h-5 w-5 flex-shrink-0 ${allImages.length > 0 ? "text-green-500" : "text-gray-400"}`} />
                             <div className="text-left">
-                              <p className="text-sm font-medium text-gray-700">Ajouter des photos du pneu</p>
-                              <p className="text-xs text-gray-400">JPG, PNG — cliquez pour en ajouter</p>
+                              <p className="text-sm font-medium">
+                                {allImages.length > 0 ? `${allImages.length} fichier(s) sélectionné(s)` : "Ajouter des photos"}
+                              </p>
+                              <p className="text-xs text-gray-400">JPG, PNG, PDF — cliquez pour ajouter</p>
                             </div>
                           </button>
-                          {tireImages.length > 0 && (
+                          {allImages.length > 0 && (
                             <div className="mt-2 space-y-1">
-                              {tireImages.map((f, i) => (
+                              {allImages.map((f, i) => (
                                 <div key={i} className="flex items-center gap-2 bg-yellow-50 border border-yellow-200 rounded-md px-3 py-1.5 text-sm">
                                   <Image className="h-3.5 w-3.5 text-yellow-500 flex-shrink-0" />
                                   <span className="flex-1 truncate text-xs">{f.name}</span>
-                                  <button type="button" onClick={() => removeTireImage(i)} className="text-gray-400 hover:text-red-500">
+                                  <button type="button" onClick={() => removeImage(i)} className="text-gray-400 hover:text-red-500">
                                     <X className="h-3.5 w-3.5" />
                                   </button>
                                 </div>

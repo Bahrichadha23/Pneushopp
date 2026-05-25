@@ -45,6 +45,7 @@ interface TresorerieRecord {
   displayName: string;
   paymentMethod: string;
   paymentStatus: string;
+  orderStatus: string;
   utilisateur: string;
   caisse: string;
   valeur: number;
@@ -96,6 +97,8 @@ interface TresorerieRecord {
   codAuthorizationNumber: string;
   codBankName: string;
   codRemarque: string;
+  especesAmountPaid: number;
+  especesRemarque: string;
 }
 
 const PAYMENT_LABELS: Record<string, string> = {
@@ -137,7 +140,8 @@ function getPaidAmount(record: TresorerieRecord): number {
   if (record.paymentMethod === "mixed") {
     // Sum all non-zero payment amounts
     return (record.criAmountPaid || 0) + (record.transferAmountPaid || 0) +
-      (record.lettreAmountPaid || 0) + (record.chequeAmountPaid || 0) + (record.codAmountPaid || 0);
+      (record.lettreAmountPaid || 0) + (record.chequeAmountPaid || 0) + (record.codAmountPaid || 0) +
+      (record.especesAmountPaid || 0);
   }
   if (record.paymentMethod === "cri") return record.criAmountPaid;
   if (record.paymentMethod === "bank_transfer") return record.transferAmountPaid;
@@ -290,7 +294,7 @@ function printFacture(record: TresorerieRecord) {
       <td style="padding:4px 6px;border:1px solid #ddd;text-align:right">${item.unit_price.toFixed(2)} DT</td>
       <td style="padding:4px 6px;border:1px solid #ddd;text-align:right">${item.total_price.toFixed(2)} DT</td>
     </tr>`).join("");
-  const paidAmount = record.criAmountPaid || record.transferAmountPaid || record.lettreAmountPaid || record.chequeAmountPaid || record.codAmountPaid || record.totalAmount;
+  const paidAmount = getPaidAmount(record);
   const remaining = Math.max(record.totalAmount - paidAmount, 0);
   win.document.write(`<!DOCTYPE html><html><head><title>Facture ${record.refDoc || record.id}</title>
     <style>body{font-family:Arial,sans-serif;font-size:12px;padding:20px;color:#222}
@@ -331,7 +335,7 @@ function printFacture(record: TresorerieRecord) {
       <div><div style="font-weight:bold">Cachet et Signature</div><div style="margin-top:30px;border-top:1px solid #ddd;width:150px"></div></div>
       <div style="font-size:10px;color:#64748b;text-align:right">Facture générée par PneuShop<br>${new Date().toLocaleDateString("fr-FR")}</div>
     </div>
-    <script>window.onload=()=>{window.print();window.close();}<\/script></body></html>`);
+    <script>window.onload=()=>{window.print();}<\/script></body></html>`);
   win.document.close();
 }
 
@@ -350,7 +354,6 @@ export default function TresoreriePage() {
   const [refDocFilter, setRefDocFilter] = useState("");
   const [chequeNumberFilter, setChequeNumberFilter] = useState("");
   const [typeFilter, setTypeFilter] = useState("");
-  const [caisseFilter, setCaisseFilter] = useState("");
   const [userFilter, setUserFilter] = useState("");
   const [clientFilter, setClientFilter] = useState("");
   const [supplierFilter, setSupplierFilter] = useState("");
@@ -437,6 +440,7 @@ export default function TresoreriePage() {
             displayName: fullName,
             paymentMethod: o.payment_method || "",
             paymentStatus: o.payment_status || "pending",
+            orderStatus: o.status || "pending",
             utilisateur: o.user?.email || o.user?.username || "",
             caisse: "Tk",
             valeur: parseFloat(o.total_amount || "0"),
@@ -487,6 +491,8 @@ export default function TresoreriePage() {
             codAuthorizationNumber: o.cod_authorization_number || "",
             codBankName: o.cod_bank_name || "",
             codRemarque: o.cod_remarque || "",
+            especesAmountPaid: parseFloat(o.especes_amount_paid || "0"),
+            especesRemarque: o.especes_remarque || "",
           };
         });
 
@@ -518,12 +524,31 @@ export default function TresoreriePage() {
 
   const filteredRecords = useMemo(() => {
     return records.filter((r) => {
+      // Quick date filter (today/week/month…) — if dates are also set, both must match
       if (!matchesDateFilter(r.createdAt, dateFilter, dateFrom, dateTo)) {
         return false;
+      }
+      // Always-visible date range for createdAt
+      if (dateFrom) {
+        const from = new Date(dateFrom); from.setHours(0, 0, 0, 0);
+        if (r.createdAt < from) return false;
+      }
+      if (dateTo) {
+        const to = new Date(dateTo); to.setHours(23, 59, 59, 999);
+        if (r.createdAt > to) return false;
       }
 
       if (!matchesDateFilter(r.dueDate, dueDateFilter, dueDateFrom, dueDateTo)) {
         return false;
+      }
+      // Always-visible date range for dueDate
+      if (dueDateFrom) {
+        const from = new Date(dueDateFrom); from.setHours(0, 0, 0, 0);
+        if (r.dueDate < from) return false;
+      }
+      if (dueDateTo) {
+        const to = new Date(dueDateTo); to.setHours(23, 59, 59, 999);
+        if (r.dueDate > to) return false;
       }
 
       if (
@@ -548,10 +573,6 @@ export default function TresoreriePage() {
       }
 
       if (typeFilter && r.paymentMethod !== typeFilter) {
-        return false;
-      }
-
-      if (caisseFilter && r.caisse !== caisseFilter) {
         return false;
       }
 
@@ -593,7 +614,6 @@ export default function TresoreriePage() {
     refDocFilter,
     chequeNumberFilter,
     typeFilter,
-    caisseFilter,
     userFilter,
     clientFilter,
     supplierFilter,
@@ -872,7 +892,7 @@ export default function TresoreriePage() {
 
             <div>
               <label className="mb-1 block text-xs font-semibold text-slate-600">
-                Référence Document
+                Référence Facture
               </label>
               <Input
                 placeholder="N° référence"
@@ -924,18 +944,6 @@ export default function TresoreriePage() {
                 <option value="cri">CRI</option>
                 <option value="lettre_de_change">Lettre de change</option>
                 <option value="mixed">Multi-modalités</option>
-              </select>
-            </div>
-
-            <div>
-              <label className="mb-1 block text-xs font-semibold text-slate-600">Caisse</label>
-              <select
-                value={caisseFilter}
-                onChange={(e) => setCaisseFilter(e.target.value)}
-                className="w-full rounded border border-slate-300 px-2 py-2 text-sm"
-              >
-                <option value="">Tout</option>
-                <option value="Tk">Tk</option>
               </select>
             </div>
 
@@ -1005,59 +1013,24 @@ export default function TresoreriePage() {
             </div>
           </div>
 
-          {(dateFilter === "specific" || dateFilter === "period") && (
-            <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-4">
-              <div>
-                <label className="mb-1 block text-xs font-semibold text-slate-600">
-                  Date début
-                </label>
-                <Input
-                  type="date"
-                  value={dateFrom}
-                  onChange={(e) => setDateFrom(e.target.value)}
-                />
-              </div>
-              {dateFilter === "period" && (
-                <div>
-                  <label className="mb-1 block text-xs font-semibold text-slate-600">
-                    Date fin
-                  </label>
-                  <Input
-                    type="date"
-                    value={dateTo}
-                    onChange={(e) => setDateTo(e.target.value)}
-                  />
-                </div>
-              )}
+          <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-4">
+            <div>
+              <label className="mb-1 block text-xs font-semibold text-slate-600">Date début</label>
+              <Input type="date" value={dateFrom} onChange={(e) => setDateFrom(e.target.value)} />
             </div>
-          )}
-
-          {(dueDateFilter === "specific" || dueDateFilter === "period") && (
-            <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-4">
-              <div>
-                <label className="mb-1 block text-xs font-semibold text-slate-600">
-                  Échéance début
-                </label>
-                <Input
-                  type="date"
-                  value={dueDateFrom}
-                  onChange={(e) => setDueDateFrom(e.target.value)}
-                />
-              </div>
-              {dueDateFilter === "period" && (
-                <div>
-                  <label className="mb-1 block text-xs font-semibold text-slate-600">
-                    Échéance fin
-                  </label>
-                  <Input
-                    type="date"
-                    value={dueDateTo}
-                    onChange={(e) => setDueDateTo(e.target.value)}
-                  />
-                </div>
-              )}
+            <div>
+              <label className="mb-1 block text-xs font-semibold text-slate-600">Date fin</label>
+              <Input type="date" value={dateTo} onChange={(e) => setDateTo(e.target.value)} />
             </div>
-          )}
+            <div>
+              <label className="mb-1 block text-xs font-semibold text-slate-600">Échéance début</label>
+              <Input type="date" value={dueDateFrom} onChange={(e) => setDueDateFrom(e.target.value)} />
+            </div>
+            <div>
+              <label className="mb-1 block text-xs font-semibold text-slate-600">Échéance fin</label>
+              <Input type="date" value={dueDateTo} onChange={(e) => setDueDateTo(e.target.value)} />
+            </div>
+          </div>
 
           <div className="border-t border-slate-200 pt-3">
             <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
@@ -1261,6 +1234,7 @@ export default function TresoreriePage() {
                         {record.paymentMethod === "especes" && <div>Paiement en espèces</div>}
                         {record.paymentMethod === "card" && <div>Carte bancaire</div>}
                         {record.paymentMethod === "mixed" && (<>
+                          {record.especesAmountPaid > 0 && <div>Espèces: {formatCurrency(record.especesAmountPaid)}</div>}
                           {record.criAmountPaid > 0 && <div>CRI: {formatCurrency(record.criAmountPaid)}</div>}
                           {record.transferAmountPaid > 0 && <div>Virement: {formatCurrency(record.transferAmountPaid)}</div>}
                           {record.chequeAmountPaid > 0 && <div>Chèque: {formatCurrency(record.chequeAmountPaid)}</div>}
@@ -1480,6 +1454,9 @@ export default function TresoreriePage() {
                     {selectedRecord.paymentMethod === "card" && <div>Carte bancaire</div>}
                     {/* Multi-modal: show all non-zero payment method details */}
                     {selectedRecord.paymentMethod === "mixed" && (<>
+                      {selectedRecord.especesAmountPaid > 0 && <div className="font-semibold text-slate-500 mt-1">Espèces</div>}
+                      {selectedRecord.especesAmountPaid > 0 && <div><span className="font-semibold">Montant :</span> {formatCurrency(selectedRecord.especesAmountPaid)}</div>}
+                      {selectedRecord.especesRemarque && selectedRecord.especesAmountPaid > 0 && <div><span className="font-semibold">Remarque :</span> {selectedRecord.especesRemarque}</div>}
                       {selectedRecord.criAmountPaid > 0 && <div className="font-semibold text-slate-500 mt-1">CRI</div>}
                       {selectedRecord.criAmountPaid > 0 && <div><span className="font-semibold">Montant CRI :</span> {formatCurrency(selectedRecord.criAmountPaid)}</div>}
                       {selectedRecord.transferAmountPaid > 0 && <div className="font-semibold text-slate-500 mt-1">Virement</div>}
@@ -1520,7 +1497,15 @@ export default function TresoreriePage() {
               {/* Actions */}
               <div className="flex justify-end gap-2 border-t pt-2">
                 <Button size="sm" variant="outline" onClick={() => setSelectedRecord(null)}>Fermer</Button>
-                <Button size="sm" onClick={() => printFacture(selectedRecord!)}>Imprimer</Button>
+                {selectedRecord.orderStatus !== 'pending' && selectedRecord.orderStatus !== 'cancelled' ? (
+                  <Button size="sm" onClick={() => printFacture(selectedRecord!)}>
+                    <Printer className="h-3.5 w-3.5 mr-1" />Imprimer facture
+                  </Button>
+                ) : (
+                  <Button size="sm" disabled title="Facture disponible après confirmation de la commande" className="opacity-50 cursor-not-allowed">
+                    <Printer className="h-3.5 w-3.5 mr-1" />Imprimer facture
+                  </Button>
+                )}
               </div>
             </div>
           </div>

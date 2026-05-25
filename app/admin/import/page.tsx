@@ -310,26 +310,38 @@ export default function ImportPage() {
   };
 
   const downloadTemplate = () => {
-    // Create sample Excel template data
-    const templateData = [
-      ["Product Name", "PRIX TTC", "DESCRIPTION", "IMAGE"],
+    // Build CSV template with the expected columns
+    const rows = [
+      ["CATÉGORIE", "REFERENCE", "PRIX TTC", "DESCRIPTION", "IMAGE"],
       [
+        "Tourisme",
         "Pneu CONTINENTAL 195/65R15 91H ULTRA CONTACT",
         "299.238",
-        "Points forts: Kilométrage ultra-élevé...",
+        "Pneu été haute performance, kilométrage élevé",
         "",
       ],
       [
-        "Pneu CONTINENTAL 205/55 R16 91V Conti Premium Contact2",
-        "310.474",
-        "Points forts: Freinage réactif...",
+        "SUV",
+        "Pneu MICHELIN 225/45R17 94W PILOT SPORT 4",
+        "430.000",
+        "Pneu sport haute performance pour SUV",
         "",
       ],
     ];
 
-    alert(
-      "Template download would start here. For now, use the Excel file format: Product Name, PRIX TTC, DESCRIPTION, IMAGE"
-    );
+    const csvContent = rows
+      .map((row) => row.map((cell) => `"${cell}"`).join(";"))
+      .join("\n");
+
+    const blob = new Blob(["﻿" + csvContent], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = "modele_import_pneushop.csv";
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
   };
 
   return (
@@ -422,23 +434,34 @@ export default function ImportPage() {
               </ul>
             </div>
             <div>
-              <h3 className="font-medium mb-2">Colonnes reconnues :</h3>
+              <h3 className="font-medium mb-2">Colonnes attendues :</h3>
               <ul className="text-sm text-gray-600 space-y-1">
                 <li>
-                  • <strong>Nom</strong> : NOM, REFERENCE, DESIGNATION, LIBELLE, ARTICLE…
+                  • <strong>CATÉGORIE</strong> : catégorie / category / famille…
                 </li>
                 <li>
-                  • <strong>Prix</strong> : PRIX TTC, PRIX, PRIX VENTE, TARIF…
+                  • <strong>RÉFÉRENCE</strong> : reference / designation / article…
+                </li>
+                <li>
+                  • <strong>PRIX TTC</strong> : prix ttc / prix / tarif…
                 </li>
                 <li>
                   • <strong>DESCRIPTION</strong> (optionnel)
                 </li>
                 <li>
-                  • <strong>STOCK</strong> (optionnel, défaut : 10)
+                  • <strong>IMAGE</strong> : url ou chemin de l'image (optionnel)
                 </li>
               </ul>
             </div>
           </div>
+
+          <Alert className="border-yellow-300 bg-yellow-50">
+            <AlertCircle className="h-4 w-4 text-yellow-600" />
+            <AlertDescription className="text-yellow-800">
+              <strong>Important :</strong> L'import Excel met à jour uniquement le <strong>catalogue</strong> (descriptions, prix, images).
+              Il n'ajoute <strong>aucun stock</strong>. Le stock est géré exclusivement via la section <strong>Achats</strong>.
+            </AlertDescription>
+          </Alert>
 
           <Alert>
             <AlertCircle className="h-4 w-4" />

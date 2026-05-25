@@ -7,8 +7,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
   Package, AlertTriangle, TrendingUp, Plus, Minus, X,
-  Calendar, ChevronRight, Loader2, AlertCircle,
+  Calendar, ChevronRight, Loader2, AlertCircle, FileDown,
 } from "lucide-react";
+import ExcelJS from "exceljs";
 import { AnimatePresence, motion } from "framer-motion";
 import { useAuth } from "@/contexts/auth-context";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -342,7 +343,8 @@ function DotPanel({
                             setShowSugg(true);
                           }}
                           onFocus={() => setShowSugg(true)}
-                          placeholder="Rechercher un client ou saisir un nom…"
+                          onBlur={() => setTimeout(() => setShowSugg(false), 200)}
+                          placeholder="Nom, email ou téléphone…"
                           className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-yellow-400"
                         />
                         {selectedClient && (
@@ -400,62 +402,27 @@ function DotPanel({
           </div>
         )}
 
-        {/* Separator */}
-        {!loading && <div className="border-t border-gray-100" />}
+      </div>
 
-        {/* Ajouter un lot */}
-        <div className="border border-gray-200 rounded-xl overflow-hidden">
-          <button
-            onClick={() => setShowAdd(!showAdd)}
-            className="w-full flex items-center justify-between px-4 py-3 bg-gray-50 hover:bg-gray-100 text-sm font-medium text-gray-700 transition-colors"
-          >
-            <span className="flex items-center gap-2">
-              <Plus className="h-4 w-4 text-green-600" /> Ajouter un lot manuellement
-            </span>
-            <ChevronRight className={`h-4 w-4 text-gray-400 transition-transform ${showAdd ? "rotate-90" : ""}`} />
-          </button>
-          {showAdd && (
-            <div className="px-4 py-4 space-y-3 border-t border-gray-200 bg-white">
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-xs font-medium text-gray-600 mb-1">
-                    DOT <span className="text-red-500">*</span>
-                    <span className="text-gray-400 font-normal"> (ex: 15.24)</span>
-                  </label>
-                  <input
-                    type="text" value={addDot} onChange={(e) => setAddDot(e.target.value)}
-                    placeholder="semaine.année"
-                    className="w-full border border-gray-300 rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-400"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs font-medium text-gray-600 mb-1">Quantité <span className="text-red-500">*</span></label>
-                  <input
-                    type="number" min={1} value={addQty}
-                    onChange={(e) => setAddQty(Math.max(1, parseInt(e.target.value) || 1))}
-                    className="w-full border border-gray-300 rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-400"
-                  />
-                </div>
-              </div>
-              <div>
-                <label className="block text-xs font-medium text-gray-600 mb-1">Emplacement</label>
-                <input
-                  type="text" value={addEmplacement} onChange={(e) => setAddEmplacement(e.target.value)}
-                  placeholder="ex: Rayon A3"
-                  className="w-full border border-gray-300 rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-400"
-                />
-              </div>
-              <Button
-                onClick={handleAddBatch} disabled={!addDot || addQty < 1 || adding}
-                className="w-full bg-green-600 hover:bg-green-700 text-white"
-              >
-                {adding
-                  ? <><Loader2 className="h-4 w-4 animate-spin mr-2" />Ajout…</>
-                  : <><Plus className="h-4 w-4 mr-2" />Ajouter ce lot</>}
-              </Button>
-            </div>
-          )}
-        </div>
+      {/* Fixed validation button at bottom right — always visible */}
+      <div className="flex-shrink-0 border-t border-yellow-200 bg-yellow-50 px-5 py-3 flex items-center justify-between">
+        <span className="text-xs text-yellow-700">
+          {sellBatchId !== null
+            ? `DOT sélectionné — ${sellQty} pneu(s) à vendre`
+            : "Cliquez sur « Vendre » pour sélectionner un lot"}
+        </span>
+        <Button
+          onClick={() => {
+            const batch = batches.find(b => b.id === sellBatchId);
+            if (batch) handleSell(batch);
+          }}
+          disabled={selling || sellBatchId === null || sellQty < 1}
+          className="bg-yellow-500 hover:bg-yellow-600 text-white font-bold shadow-sm px-6 disabled:opacity-40"
+        >
+          {selling
+            ? <><Loader2 className="h-4 w-4 animate-spin mr-2" />Traitement…</>
+            : <><Minus className="h-4 w-4 mr-2" />Valider la vente</>}
+        </Button>
       </div>
     </motion.div>
   );
@@ -552,6 +519,57 @@ export default function StockManagementPage() {
   const formatCurrency = (amount: number) =>
     new Intl.NumberFormat("fr-FR", { style: "decimal", minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(amount) + " DT";
 
+  const handleExportStock = async () => {
+    const workbook = new ExcelJS.Workbook();
+    const ws = workbook.addWorksheet("État Stock");
+
+    ws.columns = [
+      { header: "Produit", key: "name", width: 40 },
+      { header: "Marque", key: "brand", width: 16 },
+      { header: "Taille", key: "size", width: 14 },
+      { header: "Catégorie", key: "category", width: 18 },
+      { header: "Stock actuel", key: "stock", width: 14 },
+      { header: "Stock Min", key: "stockMin", width: 12 },
+      { header: "Stock Max", key: "stockMax", width: 12 },
+      { header: "Statut", key: "status", width: 16 },
+      { header: "Prix Achat (DT)", key: "prixAchat", width: 16 },
+      { header: "Prix Vente (DT)", key: "prixVente", width: 16 },
+      { header: "Valeur Stock (DT)", key: "valeur", width: 18 },
+      { header: "Emplacement", key: "emplacement", width: 18 },
+    ];
+
+    ws.getRow(1).font = { bold: true };
+
+    stock.forEach((item) => {
+      const statusLabel = getStockStatus(item.stock, item.stockMin, item.stockMax).status;
+      ws.addRow({
+        name: item.name,
+        brand: item.brand,
+        size: item.size,
+        category: item.category,
+        stock: item.stock,
+        stockMin: item.stockMin,
+        stockMax: item.stockMax,
+        status: statusLabel,
+        prixAchat: Number(item.prixAchat).toFixed(3),
+        prixVente: Number(item.prixVente).toFixed(3),
+        valeur: Number(item.stock * item.prixVente).toFixed(3),
+        emplacement: item.emplacement || "",
+      });
+    });
+
+    const date = new Date().toLocaleDateString("fr-FR").replace(/\//g, "-");
+    const filename = `Etat_Stock_${date}.xlsx`;
+    const buffer = await workbook.xlsx.writeBuffer();
+    const blob = new Blob([buffer], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = filename;
+    link.click();
+    window.URL.revokeObjectURL(url);
+  };
+
   const openStatusPanel = (item: AdminProduct) =>
     setStatusPanel({ isOpen: true, product: item, minStock: item.stockMin, maxStock: item.stockMax });
 
@@ -608,7 +626,13 @@ export default function StockManagementPage() {
       {/* Header */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-2">
         <h1 className="text-2xl font-bold text-gray-900">Gestion du stock</h1>
-        <Badge variant="secondary" className="text-sm">{pagination.total} produits</Badge>
+        <div className="flex items-center gap-2">
+          <Badge variant="secondary" className="text-sm">{pagination.total} produits</Badge>
+          <Button variant="outline" size="sm" className="gap-2" onClick={handleExportStock}>
+            <FileDown className="h-4 w-4" />
+            Exporter (Excel)
+          </Button>
+        </div>
       </div>
 
       {/* Stats */}

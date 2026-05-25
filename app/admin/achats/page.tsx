@@ -17,7 +17,7 @@
  * This builds company inventory that can later be sold to clients.
  */
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useAuth } from "@/contexts/auth-context";
 import { useRouter } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -45,10 +45,11 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Search, Plus, Trash2, Printer, Save, X, List, Loader2, Eye, Edit } from "lucide-react";
+import { Search, Plus, Trash2, Printer, Save, X, List, Loader2, Eye, Edit, FileDown } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { API_URL } from "@/lib/config";
 import type { Supplier } from "@/types/supplier";
+import ExcelJS from "exceljs";
 
 /** Safe parse: backend sometimes returns HTML (e.g. 500 error) instead of JSON */
 async function safeResponseJson(response: Response): Promise<{ data: any; isJson: boolean; errorText?: string }> {
@@ -101,6 +102,67 @@ export default function AchatsPage() {
     router.push("/admin");
     return null;
   }
+
+  // Left panel mode: "search" or "manual"
+  const [leftMode, setLeftMode] = useState<"search" | "manual">("search");
+  // Manual entry form
+  const [manualDesignation, setManualDesignation] = useState("");
+  const [manualReference, setManualReference] = useState("");
+  const [manualPrice, setManualPrice] = useState<number>(0);
+  const [manualImageFile, setManualImageFile] = useState<File | null>(null);
+  const [manualImagePreview, setManualImagePreview] = useState<string>("");
+  const manualImageInputRef = useRef<HTMLInputElement | null>(null);
+
+  const addManualItem = async () => {
+    if (!manualDesignation.trim() || manualPrice <= 0) return;
+
+    let createdProductId: number | undefined;
+    let imageUrl = "";
+
+    // Try to create the product in DB (with image if provided)
+    try {
+      const token = localStorage.getItem("access_token");
+      const formData = new FormData();
+      formData.append("name", manualDesignation.trim());
+      if (manualReference.trim()) formData.append("reference", manualReference.trim());
+      formData.append("price", String(manualPrice));
+      formData.append("stock", "0");
+      if (manualImageFile) formData.append("image", manualImageFile);
+
+      const res = await fetch(`${API_URL}/products/`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}` },
+        body: formData,
+      });
+      if (res.ok) {
+        const data = await res.json();
+        createdProductId = data.id;
+        imageUrl = data.image || "";
+      }
+    } catch {}
+
+    const newItem: PurchaseItem = {
+      id: Date.now().toString(),
+      productId: createdProductId,
+      reference: manualReference.trim() || "—",
+      designation: manualDesignation.trim(),
+      priceHT: manualPrice,
+      discount: 0,
+      quantity: 1,
+      totalHT: manualPrice,
+      dot: "",
+      availableDots: [],
+      emplacement: "",
+    };
+    setItems((prev) => [...prev, newItem]);
+    // Reset manual form
+    setManualDesignation("");
+    setManualReference("");
+    setManualPrice(0);
+    setManualImageFile(null);
+    setManualImagePreview("");
+    setLeftMode("search");
+  };
 
   const [supplier, setSupplier] = useState("");
   const [note, setNote] = useState("");
@@ -498,6 +560,27 @@ export default function AchatsPage() {
   }, [items]);
 
   const handleSave = async () => {
+    // DOT mandatory validation
+    const itemsWithoutDot = items.filter((item) => {
+      const parts = (item.dot || "").split(".");
+      const week = parseInt(parts[0] || "", 10);
+      const year = parseInt(parts[1] || "", 10);
+      return !item.dot || parts.length !== 2 || isNaN(week) || isNaN(year) || week < 1 || week > 52;
+    });
+    if (itemsWithoutDot.length > 0) {
+      const names = itemsWithoutDot.map((i) => i.designation).join("\n• ");
+      alert(`❌ DOT obligatoire pour chaque article.\n\nArticles sans DOT valide :\n• ${names}\n\nVeuillez renseigner la semaine et l'année pour chaque pneu.`);
+      return;
+    }
+
+    // Emplacement mandatory validation
+    const itemsWithoutEmplacement = items.filter((item) => !item.emplacement || !item.emplacement.trim());
+    if (itemsWithoutEmplacement.length > 0) {
+      const names = itemsWithoutEmplacement.map((i) => i.designation).join("\n• ");
+      alert(`❌ Emplacement obligatoire pour chaque article.\n\nArticles sans emplacement :\n• ${names}\n\nVeuillez indiquer l'emplacement de chaque pneu.`);
+      return;
+    }
+
     const now = new Date();
     const total = calculateTotal();
     
@@ -598,6 +681,87 @@ export default function AchatsPage() {
     setGlobalDiscount(0);
   };
 
+  const handleExportAchats = async () => {
+    const workbook = new ExcelJS.Workbook();
+    const ws = workbook.addWorksheet("Historique Achats");
+
+    ws.columns = [
+      { header: "N° Facture", key: "invoice", width: 18 },
+      { header: "N° BL", key: "bl", width: 18 },
+      { header: "Date Achat", key: "date", width: 16 },
+      { header: "Fournisseur", key: "supplier", width: 22 },
+      { header: "Désignation", key: "designation", width: 35 },
+      { header: "Référence", key: "reference", width: 20 },
+      { header: "Quantité", key: "quantity", width: 10 },
+      { header: "Prix Unitaire (DT)", key: "unitPrice", width: 18 },
+      { header: "Remise (%)", key: "discount", width: 12 },
+      { header: "Total HT (DT)", key: "totalHT", width: 16 },
+      { header: "DOT", key: "dot", width: 12 },
+      { header: "Emplacement", key: "emplacement", width: 18 },
+      { header: "Total Commande (DT)", key: "orderTotal", width: 20 },
+    ];
+
+    ws.getRow(1).font = { bold: true };
+
+    const orders = Array.isArray(confirmedOrders) ? confirmedOrders : [];
+    orders.forEach((order: any) => {
+      // Backend returns "items" (PurchaseOrderSerializer); frontend may also store "articles"
+      const articles = Array.isArray(order.items) && order.items.length > 0
+        ? order.items
+        : Array.isArray(order.articles) ? order.articles : [];
+      const orderTotal = Number(order.total || order.total_ttc || 0).toFixed(3);
+      if (articles.length === 0) {
+        ws.addRow({
+          invoice: order.invoice_number || "",
+          bl: order.bl_number || "",
+          date: order.purchase_date || order.date_commande || "",
+          supplier: order.supplier_name || order.supplier || "",
+          designation: "",
+          reference: "",
+          quantity: 0,
+          unitPrice: "",
+          discount: "",
+          totalHT: "",
+          dot: "",
+          emplacement: "",
+          orderTotal,
+        });
+      } else {
+        articles.forEach((art: any, idx: number) => {
+          ws.addRow({
+            invoice: order.invoice_number || "",
+            bl: order.bl_number || "",
+            date: order.purchase_date || order.date_commande || "",
+            supplier: order.supplier_name || order.supplier || "",
+            // items use "designation"; articles use "nom"
+            designation: art.designation || art.nom || "",
+            reference: art.reference || "",
+            // items use "quantity"; articles use "quantite"
+            quantity: art.quantity || art.quantite || 0,
+            // items use "unit_price_ht"; articles use "prix_unitaire"
+            unitPrice: Number(art.unit_price_ht || art.prix_unitaire || 0).toFixed(3),
+            discount: art.discount || 0,
+            totalHT: Number(art.total_ht || 0).toFixed(3),
+            dot: art.dot || "",
+            emplacement: art.emplacement || "",
+            orderTotal: idx === 0 ? orderTotal : "",
+          });
+        });
+      }
+    });
+
+    const date = new Date().toLocaleDateString("fr-FR").replace(/\//g, "-");
+    const filename = `Historique_Achats_${date}.xlsx`;
+    const buffer = await workbook.xlsx.writeBuffer();
+    const blob = new Blob([buffer], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = filename;
+    link.click();
+    window.URL.revokeObjectURL(url);
+  };
+
   const refreshOrders = async () => {
     try {
       const token = localStorage.getItem("access_token");
@@ -620,15 +784,99 @@ export default function AchatsPage() {
     <div className="p-6 space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="text-3xl font-bold">Achat</h1>
+        <Button variant="outline" className="gap-2" onClick={handleExportAchats}>
+          <FileDown className="h-4 w-4" />
+          Exporter (Excel)
+        </Button>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Left Panel - Product Search */}
+        {/* Left Panel - Product Search / Manual Entry */}
         <Card>
           <CardHeader>
             <CardTitle>Recherche</CardTitle>
           </CardHeader>
           <CardContent>
+            {/* Mode toggle */}
+            <div className="flex gap-1 mb-4 bg-gray-100 rounded-lg p-1">
+              <button
+                onClick={() => setLeftMode("search")}
+                className={`flex-1 py-1.5 rounded-md text-sm font-medium transition-colors ${leftMode === "search" ? "bg-white shadow text-gray-900" : "text-gray-500 hover:text-gray-700"}`}
+              >
+                <Search className="inline h-3.5 w-3.5 mr-1" />Rechercher
+              </button>
+              <button
+                onClick={() => setLeftMode("manual")}
+                className={`flex-1 py-1.5 rounded-md text-sm font-medium transition-colors ${leftMode === "manual" ? "bg-white shadow text-yellow-700" : "text-gray-500 hover:text-gray-700"}`}
+              >
+                <Plus className="inline h-3.5 w-3.5 mr-1" />Article manuel
+              </button>
+            </div>
+
+            {/* Manual entry form */}
+            {leftMode === "manual" && (
+              <div className="space-y-3 border border-yellow-200 bg-yellow-50 rounded-lg p-4 mb-4">
+                <p className="text-xs text-yellow-700 font-semibold">Article non référencé dans la base de données</p>
+                <div>
+                  <Label className="text-xs">Désignation <span className="text-red-500">*</span></Label>
+                  <Input
+                    value={manualDesignation}
+                    onChange={(e) => setManualDesignation(e.target.value)}
+                    placeholder="ex : Pneu NEXEN 205/55R16..."
+                    className="mt-1 text-sm"
+                  />
+                </div>
+                <div>
+                  <Label className="text-xs">Référence</Label>
+                  <Input
+                    value={manualReference}
+                    onChange={(e) => setManualReference(e.target.value)}
+                    placeholder="ex : REF-1234"
+                    className="mt-1 text-sm"
+                  />
+                </div>
+                <div>
+                  <Label className="text-xs">Prix HT (DT) <span className="text-red-500">*</span></Label>
+                  <Input
+                    type="number"
+                    step="0.001"
+                    value={manualPrice || ""}
+                    onChange={(e) => setManualPrice(parseFloat(e.target.value) || 0)}
+                    placeholder="0.000"
+                    className="mt-1 text-sm"
+                  />
+                </div>
+                {/* Image upload */}
+                <div>
+                  <Label className="text-xs">Image <span className="text-gray-400 font-normal">(optionnel)</span></Label>
+                  <input ref={manualImageInputRef} type="file" accept="image/*" className="hidden"
+                    onChange={(e) => {
+                      const f = e.target.files?.[0] || null;
+                      setManualImageFile(f);
+                      setManualImagePreview(f ? URL.createObjectURL(f) : "");
+                    }} />
+                  <button type="button"
+                    onClick={() => manualImageInputRef.current?.click()}
+                    className="mt-1 w-full border-2 border-dashed border-yellow-300 hover:border-yellow-500 rounded-lg px-3 py-2 flex items-center gap-2 text-sm transition-colors"
+                  >
+                    {manualImagePreview
+                      ? <img src={manualImagePreview} className="h-10 w-10 object-cover rounded" alt="preview" />
+                      : <Plus className="h-5 w-5 text-yellow-500" />}
+                    <span className="text-gray-600">{manualImageFile ? manualImageFile.name : "Choisir une image"}</span>
+                  </button>
+                </div>
+                <Button
+                  onClick={addManualItem}
+                  disabled={!manualDesignation.trim() || manualPrice <= 0}
+                  className="w-full bg-yellow-500 hover:bg-yellow-600 text-white font-semibold"
+                >
+                  <Plus className="h-4 w-4 mr-2" />Ajouter au bon
+                </Button>
+              </div>
+            )}
+
+            {/* Search mode */}
+            {leftMode === "search" && (<>
             <div className="flex items-center gap-3">
                     <Label>Réf.</Label>
                     <Input
@@ -741,7 +989,8 @@ export default function AchatsPage() {
                       ))}
                     </div>
                   )}
-                </div>           
+                </div>
+            </>)}
           </CardContent>
         </Card>
 

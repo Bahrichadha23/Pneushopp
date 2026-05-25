@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/auth-context";
 import { useRouter } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -9,9 +9,10 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Search, Trash2, FileText, Loader2, RotateCcw, Printer } from "lucide-react";
+import { Search, Trash2, FileText, Loader2, RotateCcw, Printer, FileDown } from "lucide-react";
 import { API_URL } from "@/lib/config";
 import jsPDF from "jspdf";
+import ExcelJS from "exceljs";
 
 interface OrderItem {
   id: number;
@@ -70,6 +71,89 @@ export default function AvoirPage() {
   const [isSaving, setIsSaving] = useState(false);
   const [savedAvoir, setSavedAvoir] = useState<SavedAvoir | null>(null);
   const [returnQuantities, setReturnQuantities] = useState<Record<number, number>>({});
+
+  // Historique des avoirs
+  const [avoirHistory, setAvoirHistory] = useState<SavedAvoir[]>([]);
+  const [loadingHistory, setLoadingHistory] = useState(true);
+
+  useEffect(() => {
+    const fetchHistory = async () => {
+      try {
+        const token = localStorage.getItem("access_token");
+        const res = await fetch(`${API_URL}/orders/avoirs/`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        if (res.ok) {
+          const data = await res.json();
+          setAvoirHistory(Array.isArray(data) ? data : data.results ?? []);
+        }
+      } catch {}
+      finally { setLoadingHistory(false); }
+    };
+    fetchHistory();
+  }, [savedAvoir]); // refresh when a new avoir is created
+
+  const handleExportAvoirs = async () => {
+    const workbook = new ExcelJS.Workbook();
+    const ws = workbook.addWorksheet("Historique Avoirs");
+
+    ws.columns = [
+      { header: "N° Avoir", key: "avoir_number", width: 18 },
+      { header: "Facture d'origine", key: "original_invoice_number", width: 20 },
+      { header: "Date", key: "date", width: 14 },
+      { header: "Motif", key: "reason", width: 30 },
+      { header: "Article", key: "product", width: 35 },
+      { header: "Quantité", key: "qty", width: 10 },
+      { header: "Prix Unit. (DT)", key: "unit_price", width: 16 },
+      { header: "Total (DT)", key: "total", width: 14 },
+      { header: "Total Avoir (DT)", key: "avoir_total", width: 16 },
+    ];
+
+    const headerRow = ws.getRow(1);
+    headerRow.font = { bold: true, color: { argb: "FFFFFFFF" } };
+    headerRow.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FF1E293B" } };
+
+    avoirHistory.forEach((avoir) => {
+      const items = Array.isArray(avoir.items) ? avoir.items : [];
+      if (items.length === 0) {
+        ws.addRow({
+          avoir_number: avoir.avoir_number,
+          original_invoice_number: avoir.original_invoice_number,
+          date: new Date(avoir.created_at).toLocaleDateString("fr-FR"),
+          reason: avoir.reason || "",
+          product: "",
+          qty: 0,
+          unit_price: "",
+          total: "",
+          avoir_total: Number(avoir.total_amount || 0).toFixed(3),
+        });
+      } else {
+        items.forEach((item: any, idx: number) => {
+          ws.addRow({
+            avoir_number: idx === 0 ? avoir.avoir_number : "",
+            original_invoice_number: idx === 0 ? avoir.original_invoice_number : "",
+            date: idx === 0 ? new Date(avoir.created_at).toLocaleDateString("fr-FR") : "",
+            reason: idx === 0 ? (avoir.reason || "") : "",
+            product: item.product_name || "",
+            qty: item.quantity || 0,
+            unit_price: Number(item.unit_price || 0).toFixed(3),
+            total: Number(item.total_price || 0).toFixed(3),
+            avoir_total: idx === 0 ? Number(avoir.total_amount || 0).toFixed(3) : "",
+          });
+        });
+      }
+    });
+
+    const date = new Date().toLocaleDateString("fr-FR").replace(/\//g, "-");
+    const buffer = await workbook.xlsx.writeBuffer();
+    const blob = new Blob([buffer], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `Historique_Avoirs_${date}.xlsx`;
+    link.click();
+    URL.revokeObjectURL(url);
+  };
 
   const handleSearch = async () => {
     if (!searchInvoice.trim()) return;
@@ -291,10 +375,16 @@ export default function AvoirPage() {
   // ── Main form ──────────────────────────────────────────────────────────────
   return (
     <div className="p-6 space-y-6">
-      <h1 className="text-3xl font-bold flex items-center gap-2">
-        <RotateCcw className="h-7 w-7 text-yellow-600" />
-        Avoir / Retour
-      </h1>
+      <div className="flex items-center justify-between">
+        <h1 className="text-3xl font-bold flex items-center gap-2">
+          <RotateCcw className="h-7 w-7 text-yellow-600" />
+          Avoir / Retour
+        </h1>
+        <Button variant="outline" className="gap-2" onClick={handleExportAvoirs} disabled={avoirHistory.length === 0}>
+          <FileDown className="h-4 w-4" />
+          Exporter historique (Excel)
+        </Button>
+      </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Left — Search */}
@@ -428,6 +518,62 @@ export default function AvoirPage() {
           </CardContent>
         </Card>
       </div>
+
+      {/* ── Historique des avoirs ───────────────────────────────────────────── */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <FileText className="h-5 w-5 text-gray-500" />
+            Historique des avoirs
+            {!loadingHistory && (
+              <span className="ml-2 text-sm font-normal text-gray-500">({avoirHistory.length} avoir{avoirHistory.length !== 1 ? "s" : ""})</span>
+            )}
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          {loadingHistory ? (
+            <div className="flex items-center justify-center py-8">
+              <Loader2 className="h-5 w-5 animate-spin mr-2 text-gray-400" />
+              <span className="text-gray-400 text-sm">Chargement…</span>
+            </div>
+          ) : avoirHistory.length === 0 ? (
+            <p className="text-center text-gray-400 py-6 text-sm">Aucun avoir enregistré</p>
+          ) : (
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>N° Avoir</TableHead>
+                    <TableHead>Facture origine</TableHead>
+                    <TableHead>Date</TableHead>
+                    <TableHead>Motif</TableHead>
+                    <TableHead>Articles</TableHead>
+                    <TableHead className="text-right">Total (DT)</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {avoirHistory.map((avoir) => (
+                    <TableRow key={avoir.id}>
+                      <TableCell className="font-mono text-sm font-semibold">{avoir.avoir_number}</TableCell>
+                      <TableCell className="font-mono text-sm">{avoir.original_invoice_number}</TableCell>
+                      <TableCell className="text-sm">{new Date(avoir.created_at).toLocaleDateString("fr-FR")}</TableCell>
+                      <TableCell className="text-sm text-gray-600">{avoir.reason || "—"}</TableCell>
+                      <TableCell className="text-sm text-gray-600">
+                        {Array.isArray(avoir.items) && avoir.items.length > 0
+                          ? avoir.items.map((it: any) => `${it.product_name} (×${it.quantity})`).join(", ")
+                          : "—"}
+                      </TableCell>
+                      <TableCell className="text-right font-bold text-red-600">
+                        {parseFloat(avoir.total_amount).toFixed(3)} DT
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          )}
+        </CardContent>
+      </Card>
     </div>
   );
 }

@@ -10,7 +10,7 @@ import {
 } from "@/components/ui/dialog";
 import ProductsTable from "@/components/admin/products-table";
 import ProductForm from "@/components/admin/product-form";
-import { Plus, Download, Upload, Loader2, AlertCircle } from "lucide-react";
+import { Plus, Download, Upload, Loader2, AlertCircle, FileSpreadsheet } from "lucide-react";
 import { adminService } from "@/lib/services/admin";
 import type { AdminProduct, ProductCreateData } from "@/lib/services/admin";
 import type { Product } from "@/types/product";
@@ -18,6 +18,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/contexts/auth-context";
 import { useRouter } from "next/navigation";
+import ExcelJS from "exceljs";
 
 // Fonction pour convertir AdminProduct vers Product pour l'affichage
 const adminProductToProduct = (adminProduct: AdminProduct): Product => {
@@ -353,41 +354,55 @@ export default function ProductsPage() {
     }
   };
 
-  const handleExportProducts = () => {
-    const dataStr = JSON.stringify(products, null, 2);
-    const dataUri =
-      "data:application/json;charset=utf-8," + encodeURIComponent(dataStr);
+  const handleExportProducts = async () => {
+    const workbook = new ExcelJS.Workbook();
+    const ws = workbook.addWorksheet("Catalogue Produits");
 
-    const exportFileDefaultName = `produits-${
-      new Date().toISOString().split("T")[0]
-    }.json`;
+    ws.columns = [
+      { header: "Référence", key: "reference", width: 20 },
+      { header: "Désignation", key: "name", width: 35 },
+      { header: "Marque", key: "brand", width: 18 },
+      { header: "Taille", key: "size", width: 15 },
+      { header: "Catégorie", key: "category", width: 18 },
+      { header: "Saison", key: "season", width: 14 },
+      { header: "Prix TTC (DT)", key: "price", width: 14 },
+      { header: "Ancien Prix (DT)", key: "old_price", width: 16 },
+      { header: "Stock", key: "stock", width: 10 },
+      { header: "Actif", key: "is_active", width: 8 },
+      { header: "Description", key: "description", width: 40 },
+    ];
 
-    const linkElement = document.createElement("a");
-    linkElement.setAttribute("href", dataUri);
-    linkElement.setAttribute("download", exportFileDefaultName);
-    linkElement.click();
-  };
+    const headerRow = ws.getRow(1);
+    headerRow.font = { bold: true, color: { argb: "FFFFFFFF" } };
+    headerRow.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FF334155" } };
 
-  const handleImportProducts = () => {
-    const input = document.createElement("input");
-    input.type = "file";
-    input.accept = ".json";
-    input.onchange = (e) => {
-      const file = (e.target as HTMLInputElement).files?.[0];
-      if (file) {
-        const reader = new FileReader();
-        reader.onload = (e) => {
-          try {
-            const importedProducts = JSON.parse(e.target?.result as string);
-            setProducts((prev) => [...prev, ...importedProducts]);
-          } catch (error) {
-            alert("Erreur lors de l'import du fichier");
-          }
-        };
-        reader.readAsText(file);
-      }
-    };
-    input.click();
+    const seasonLabels: Record<string, string> = { summer: "Été", winter: "Hiver", all_season: "4 Saisons" };
+
+    adminProducts.forEach((p) => {
+      ws.addRow({
+        reference: p.reference || "",
+        name: p.name || "",
+        brand: p.brand || "",
+        size: p.size || "",
+        category: p.category_name || p.category || "",
+        season: seasonLabels[p.season] || p.season || "",
+        price: Number(p.price || 0),
+        old_price: p.old_price ? Number(p.old_price) : "",
+        stock: p.stock || 0,
+        is_active: p.is_active ? "Oui" : "Non",
+        description: p.description || "",
+      });
+    });
+
+    const date = new Date().toLocaleDateString("fr-FR").replace(/\//g, "-");
+    const buffer = await workbook.xlsx.writeBuffer();
+    const blob = new Blob([buffer], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `Catalogue_Produits_${date}.xlsx`;
+    link.click();
+    URL.revokeObjectURL(url);
   };
 
   return (
@@ -406,13 +421,20 @@ export default function ProductsPage() {
         <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
           <Button
             variant="outline"
+            onClick={() => router.push("/admin/import")}
+            className="w-full sm:w-auto"
+          >
+            <Upload className="h-4 w-4 mr-2" />
+            Importer Excel
+          </Button>
+          <Button
+            variant="outline"
             onClick={handleExportProducts}
             className="w-full sm:w-auto"
           >
-            <Download className="h-4 w-4 mr-2" />
-            Exporter
+            <FileSpreadsheet className="h-4 w-4 mr-2" />
+            Exporter Excel
           </Button>
-          {/* You can add Import button here too if needed */}
         </div>
       </div>
 
