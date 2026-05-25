@@ -53,6 +53,8 @@ interface SavedAvoir {
   reason: string;
 }
 
+const fps = (n: string) => (n || "").replace(/^CPS/i, "FPS");
+
 export default function AvoirPage() {
   const { user } = useAuth();
   const router = useRouter();
@@ -163,7 +165,9 @@ export default function AvoirPage() {
     setReturnQuantities({});
     try {
       const token = localStorage.getItem("access_token");
-      const res = await fetch(`${API_URL}/orders/avoirs/search/?q=${encodeURIComponent(searchInvoice.trim())}`, {
+      // Convert FPS prefix to CPS for backend search (DB stores CPS)
+      const backendQuery = searchInvoice.trim().replace(/^FPS/i, "CPS");
+      const res = await fetch(`${API_URL}/orders/avoirs/search/?q=${encodeURIComponent(backendQuery)}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       if (!res.ok) {
@@ -212,7 +216,7 @@ export default function AvoirPage() {
           Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
-          original_invoice_number: foundOrder.order_number,
+          original_invoice_number: fps(foundOrder.order_number),
           original_order: foundOrder.id,
           reason,
           notes,
@@ -256,7 +260,7 @@ export default function AvoirPage() {
     doc.setFontSize(10);
     const date = new Date(savedAvoir.created_at).toLocaleDateString("fr-FR");
     doc.text(`Date : ${date}`, 14, 48);
-    doc.text(`Facture d'origine : ${savedAvoir.original_invoice_number}`, 14, 56);
+    doc.text(`Facture d'origine : ${fps(savedAvoir.original_invoice_number)}`, 14, 56);
     if (savedAvoir.reason) doc.text(`Motif : ${savedAvoir.reason}`, 14, 64);
 
     // Table header
@@ -336,7 +340,7 @@ export default function AvoirPage() {
 
             <div className="grid grid-cols-2 gap-4 text-sm">
               <div><span className="font-bold">Date :</span> {new Date(savedAvoir.created_at).toLocaleDateString("fr-FR")}</div>
-              <div><span className="font-bold">Facture d'origine :</span> {savedAvoir.original_invoice_number}</div>
+              <div><span className="font-bold">Facture d'origine :</span> {fps(savedAvoir.original_invoice_number)}</div>
               {savedAvoir.reason && <div className="col-span-2"><span className="font-bold">Motif :</span> {savedAvoir.reason}</div>}
             </div>
 
@@ -408,7 +412,7 @@ export default function AvoirPage() {
             {foundOrder && (
               <div className="space-y-3">
                 <div className="bg-gray-50 p-3 rounded-lg text-sm space-y-1">
-                  <div><span className="font-bold">Facture :</span> {foundOrder.order_number}</div>
+                  <div><span className="font-bold">Facture :</span> {fps(foundOrder.order_number)}</div>
                   <div><span className="font-bold">Client :</span> {foundOrder.client_name}</div>
                   <div><span className="font-bold">Date :</span> {new Date(foundOrder.created_at).toLocaleDateString("fr-FR")}</div>
                   <div><span className="font-bold">Total :</span> {parseFloat(foundOrder.total_amount).toFixed(3)} DT</div>
@@ -555,7 +559,7 @@ export default function AvoirPage() {
                   {avoirHistory.map((avoir) => (
                     <TableRow key={avoir.id}>
                       <TableCell className="font-mono text-sm font-semibold">{avoir.avoir_number}</TableCell>
-                      <TableCell className="font-mono text-sm">{avoir.original_invoice_number}</TableCell>
+                      <TableCell className="font-mono text-sm">{fps(avoir.original_invoice_number)}</TableCell>
                       <TableCell className="text-sm">{new Date(avoir.created_at).toLocaleDateString("fr-FR")}</TableCell>
                       <TableCell className="text-sm text-gray-600">{avoir.reason || "—"}</TableCell>
                       <TableCell className="text-sm text-gray-600">

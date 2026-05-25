@@ -332,6 +332,9 @@ interface DotBatch {
   notes: string;
 }
 
+/** Convert stored CPS prefix → display FPS prefix */
+const fps = (n: string) => (n || "").replace(/^CPS/i, "FPS");
+
 export default function OrdersTable({
   orders,
   onViewOrder,
@@ -546,8 +549,10 @@ export default function OrdersTable({
 
   // Filtrage
   const filteredOrders = orders.filter((order) => {
+    const normalizedSearch = searchTerm.replace(/^fps/i, "CPS");
     const matchesSearch =
-      order.orderNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      fps(order.orderNumber).toLowerCase().includes(searchTerm.toLowerCase()) ||
+      order.orderNumber.toLowerCase().includes(normalizedSearch.toLowerCase()) ||
       order.customerName.toLowerCase().includes(searchTerm.toLowerCase()) ||
       order.customerEmail.toLowerCase().includes(searchTerm.toLowerCase());
 
@@ -605,7 +610,7 @@ export default function OrdersTable({
               <React.Fragment key={order.id}>
                 <TableRow key={order.id}>
                   <TableCell className="font-medium">
-                    #{order.orderNumber}
+                    #{fps(order.orderNumber)}
                   </TableCell>
                   <TableCell>
                     <div>
@@ -724,7 +729,7 @@ export default function OrdersTable({
               className="border rounded-lg p-4 bg-white shadow-sm"
             >
               <div className="flex justify-between items-center mb-2">
-                <span className="font-bold">#{order.orderNumber}</span>
+                <span className="font-bold">#{fps(order.orderNumber)}</span>
                 {getStatusBadge(order.status)}
               </div>
               <div className="text-sm text-gray-700">
@@ -847,7 +852,7 @@ export default function OrdersTable({
                     Assignation DOT — Confirmer la commande
                   </h2>
                   <p className="text-sm text-gray-500 mt-0.5">
-                    #{dotConfirmOrder.orderNumber} · {dotConfirmOrder.customerName}
+                    #{fps(dotConfirmOrder.orderNumber)} · {dotConfirmOrder.customerName}
                   </p>
                 </div>
                 <button
@@ -1044,7 +1049,7 @@ export default function OrdersTable({
               <div className="sticky top-0 bg-white border-b px-6 py-4 flex items-center justify-between z-10">
                 <div>
                   <h2 className="text-xl font-bold text-gray-900">
-                    Détails de la commande #{selectedOrder.orderNumber}
+                    Détails de la commande #{fps(selectedOrder.orderNumber)}
                   </h2>
                   <p className="text-sm text-gray-500 mt-1">
                     {formatDate(selectedOrder.createdAt)}
@@ -1096,7 +1101,7 @@ export default function OrdersTable({
                       Détails commande
                     </h4>
                     <p className="text-sm">
-                      <strong>Numéro:</strong> {selectedOrder.orderNumber}
+                      <strong>Numéro:</strong> {fps(selectedOrder.orderNumber)}
                     </p>
                     <p className="text-sm">
                       <strong>Date:</strong> {formatDate(selectedOrder.createdAt)}

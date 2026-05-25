@@ -13,7 +13,8 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Users, Search, Mail, Phone, MapPin, Star } from "lucide-react";
+import { Users, Search, Mail, Phone, MapPin, Star, FileDown } from "lucide-react";
+import ExcelJS from "exceljs";
 import { useAuth } from "@/contexts/auth-context";
 import { useRouter } from "next/navigation";
 import { API_URL } from "@/lib/config";
@@ -96,6 +97,48 @@ export default function ClientsPage() {
     return matchesSearch && matchesType;
   });
 
+  const handleExportClients = async () => {
+    const wb = new ExcelJS.Workbook();
+    const ws = wb.addWorksheet("Clients");
+    ws.columns = [
+      { header: "Nom", key: "nom", width: 25 },
+      { header: "Email", key: "email", width: 30 },
+      { header: "Téléphone", key: "phone", width: 16 },
+      { header: "Adresse", key: "adresse", width: 40 },
+      { header: "Type", key: "type", width: 16 },
+      { header: "Date d'inscription", key: "inscription", width: 20 },
+      { header: "Commandes", key: "commandes", width: 12 },
+      { header: "CA Total (DT)", key: "ca", width: 16 },
+      { header: "Dernière commande", key: "derniere", width: 20 },
+      { header: "Vérifié", key: "verifie", width: 10 },
+    ];
+    ws.getRow(1).font = { bold: true, color: { argb: "FFFFFFFF" } };
+    ws.getRow(1).fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FF1E293B" } };
+
+    filteredClients.forEach((c) => {
+      ws.addRow({
+        nom: `${c.firstName || ""} ${c.lastName || ""}`.trim(),
+        email: c.email || "",
+        phone: c.telephone || "",
+        adresse: c.adresse || "",
+        type: c.type || c.role || "",
+        inscription: c.dateInscription || "",
+        commandes: c.totalCommandes ?? 0,
+        ca: Number(c.montantTotal ?? 0).toFixed(3),
+        derniere: c.derniereCommande || "",
+        verifie: c.is_verified ? "Oui" : "Non",
+      });
+    });
+
+    const date = new Date().toLocaleDateString("fr-FR").replace(/\//g, "-");
+    const buffer = await wb.xlsx.writeBuffer();
+    const blob = new Blob([buffer], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url; a.download = `Clients_${date}.xlsx`; a.click();
+    URL.revokeObjectURL(url);
+  };
+
   const handleViewClient = (client: any) => {
     setSelectedClient(client);
     setShowClientDetails(true);
@@ -118,9 +161,15 @@ export default function ClientsPage() {
         <h1 className="text-2xl font-bold text-gray-900">
           Gestion des clients
         </h1>
-        <Badge variant="secondary" className="text-sm">
-          {filteredClients.length} clients
-        </Badge>
+        <div className="flex items-center gap-2">
+          <Badge variant="secondary" className="text-sm">
+            {filteredClients.length} clients
+          </Badge>
+          <Button variant="outline" size="sm" onClick={handleExportClients} className="gap-2">
+            <FileDown className="h-4 w-4" />
+            Exporter Excel
+          </Button>
+        </div>
       </div>
 
       {/* Stats */}

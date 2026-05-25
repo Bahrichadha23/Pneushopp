@@ -9,7 +9,8 @@ import type { Order } from "@/types/admin";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Download, Search, FileText } from "lucide-react";
+import { Download, Search, FileText, FileDown } from "lucide-react";
+import ExcelJS from "exceljs";
 import {
   Table,
   TableBody,
@@ -36,6 +37,8 @@ const STATUS_VARIANTS: Record<Order["status"], "default" | "secondary" | "outlin
   delivered: "default",
   cancelled: "destructive",
 };
+
+const fps = (n: string) => (n || "").replace(/^CPS/i, "FPS");
 
 export default function FacturesPage() {
   const { user } = useAuth();
@@ -103,17 +106,91 @@ export default function FacturesPage() {
     }
   };
 
+  const handleExportExcel = async () => {
+    const wb = new ExcelJS.Workbook();
+    const ws = wb.addWorksheet("Factures");
+    ws.columns = [
+      { header: "N° Facture", key: "num", width: 18 },
+      { header: "Date", key: "date", width: 14 },
+      { header: "Client", key: "client", width: 25 },
+      { header: "Email", key: "email", width: 28 },
+      { header: "Téléphone", key: "phone", width: 16 },
+      { header: "Produit", key: "product", width: 40 },
+      { header: "Qté", key: "qty", width: 8 },
+      { header: "Prix Unit. TTC (DT)", key: "unit_price", width: 18 },
+      { header: "Total Produit (DT)", key: "total_product", width: 18 },
+      { header: "Total Commande TTC (DT)", key: "total", width: 22 },
+      { header: "Statut", key: "status", width: 14 },
+      { header: "Paiement", key: "payment", width: 14 },
+    ];
+    ws.getRow(1).font = { bold: true };
+    ws.getRow(1).fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FF1E293B" } };
+    ws.getRow(1).font = { bold: true, color: { argb: "FFFFFFFF" } };
+
+    filtered.forEach((order) => {
+      const items = order.items || [];
+      const orderTotal = (order.totalAmount + (order.deliveryCost || 0)).toFixed(3);
+      if (items.length === 0) {
+        ws.addRow({
+          num: fps(order.orderNumber),
+          date: formatDate(order.createdAt),
+          client: order.customerName,
+          email: order.customerEmail,
+          phone: order.customerPhone || "",
+          product: "",
+          qty: "",
+          unit_price: "",
+          total_product: "",
+          total: orderTotal,
+          status: STATUS_LABELS[order.status] || order.status,
+          payment: order.paymentStatus,
+        });
+      } else {
+        items.forEach((item, idx) => {
+          ws.addRow({
+            num: idx === 0 ? fps(order.orderNumber) : "",
+            date: idx === 0 ? formatDate(order.createdAt) : "",
+            client: idx === 0 ? order.customerName : "",
+            email: idx === 0 ? order.customerEmail : "",
+            phone: idx === 0 ? (order.customerPhone || "") : "",
+            product: item.productName || "",
+            qty: item.quantity,
+            unit_price: Number(item.unitPrice || 0).toFixed(3),
+            total_product: Number(item.totalPrice || 0).toFixed(3),
+            total: idx === 0 ? orderTotal : "",
+            status: idx === 0 ? (STATUS_LABELS[order.status] || order.status) : "",
+            payment: idx === 0 ? order.paymentStatus : "",
+          });
+        });
+      }
+    });
+
+    const date = new Date().toLocaleDateString("fr-FR").replace(/\//g, "-");
+    const buffer = await wb.xlsx.writeBuffer();
+    const blob = new Blob([buffer], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url; a.download = `Factures_${date}.xlsx`; a.click();
+    URL.revokeObjectURL(url);
+  };
+
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center gap-3">
-        <FileText className="w-6 h-6 text-gray-700" />
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">Factures</h1>
-          <p className="text-sm text-gray-500">
-            Consultez et téléchargez toutes les factures clients
-          </p>
+      <div className="flex items-center justify-between gap-3">
+        <div className="flex items-center gap-3">
+          <FileText className="w-6 h-6 text-gray-700" />
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900">Factures</h1>
+            <p className="text-sm text-gray-500">
+              Consultez et téléchargez toutes les factures clients
+            </p>
+          </div>
         </div>
+        <Button variant="outline" onClick={handleExportExcel} className="gap-2">
+          <FileDown className="h-4 w-4" />
+          Exporter Excel
+        </Button>
       </div>
 
       {/* Search filters */}
@@ -176,7 +253,7 @@ export default function FacturesPage() {
                 {filtered.map((order) => (
                   <TableRow key={order.id}>
                     <TableCell className="font-medium">
-                      #{order.orderNumber}
+                      #{fps(order.orderNumber)}
                     </TableCell>
                     <TableCell>
                       <p className="font-medium">{order.customerName}</p>
@@ -218,7 +295,7 @@ export default function FacturesPage() {
             {filtered.map((order) => (
               <div key={order.id} className="border rounded-lg p-4 bg-white shadow-sm space-y-2">
                 <div className="flex justify-between items-center">
-                  <span className="font-bold text-sm">#{order.orderNumber}</span>
+                  <span className="font-bold text-sm">#{fps(order.orderNumber)}</span>
                   <Badge variant={STATUS_VARIANTS[order.status]}>
                     {STATUS_LABELS[order.status]}
                   </Badge>

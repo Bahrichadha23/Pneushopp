@@ -339,6 +339,8 @@ function printFacture(record: TresorerieRecord) {
   win.document.close();
 }
 
+const fps = (n: string) => (n || "").replace(/^CPS/i, "FPS");
+
 export default function TresoreriePage() {
   const [records, setRecords] = useState<TresorerieRecord[]>([]);
   const [loading, setLoading] = useState(true);
@@ -428,13 +430,13 @@ export default function TresoreriePage() {
             }),
             commercial: o.commercial || "",
             document: "Facture Vente",
-            refDoc: o.order_number || "",
+            refDoc: fps(o.order_number || ""),
             type: PAYMENT_LABELS[o.payment_method] || o.payment_method || "N/A",
             client: fullName,
             // Les commandes de vente n'ont pas de fournisseur ; champ conservé pour compatibilité
             fournisseur: "",
             // Numéro de ticket (référence interne = ID commande)
-            chequeNumber: o.order_number || String(o.id).padStart(6, "0"),
+            chequeNumber: fps(o.order_number || String(o.id).padStart(6, "0")),
             remarque,
             chequeStatus: CHEQUE_STATUS_LABELS[o.payment_status] || "",
             displayName: fullName,
