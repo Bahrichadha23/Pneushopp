@@ -381,13 +381,17 @@ def consume_dot_batch(request, product_id):
             product.stock = max(0, product.stock - quantity)
             product.save()
 
-            ref_parts = []
-            if batch.dot:
-                ref_parts.append(f'DOT:{batch.dot}')
-            if client_name:
-                ref_parts.append(f'Client:{client_name}')
-            reference = ' | '.join(ref_parts)[:100]
+        # Build reference string
+        ref_parts = []
+        if batch.dot:
+            ref_parts.append(f'DOT:{batch.dot}')
+        if client_name:
+            ref_parts.append(f'Client:{client_name}')
+        reference = ' | '.join(ref_parts)[:100]
 
+        # Log the movement outside the atomic block so a logging failure
+        # never rolls back the critical stock/batch changes.
+        try:
             StockMovement.objects.create(
                 product=product,
                 product_name=product.name,
@@ -395,14 +399,16 @@ def consume_dot_batch(request, product_id):
                 quantity=-quantity,
                 reason=reason,
                 reference=reference,
-                created_by=request.user,
+                created_by=request.user if request.user.is_authenticated else None,
             )
+        except Exception as log_err:
+            print(f'[CONSUME_BATCH] StockMovement log failed (non-critical): {log_err}')
 
-            return Response({
-                'success': True,
-                'new_stock': product.stock,
-                'batch_remaining': batch.quantity,
-            })
+        return Response({
+            'success': True,
+            'new_stock': product.stock,
+            'batch_remaining': batch.quantity,
+        })
     except StockBatch.DoesNotExist:
         return Response({'error': 'Lot introuvable'}, status=404)
     except Exception as e:
@@ -444,6 +450,9 @@ def add_dot_batch(request, product_id):
             product.stock = product.stock + quantity
             product.save()
 
+        # Log the movement outside the atomic block so a logging failure
+        # never rolls back the critical stock/batch changes.
+        try:
             StockMovement.objects.create(
                 product=product,
                 product_name=product.name,
@@ -451,10 +460,12 @@ def add_dot_batch(request, product_id):
                 quantity=quantity,
                 reason='ajout_manuel',
                 reference=f'DOT:{dot}'[:100],
-                created_by=request.user,
+                created_by=request.user if request.user.is_authenticated else None,
             )
+        except Exception as log_err:
+            print(f'[ADD_BATCH] StockMovement log failed (non-critical): {log_err}')
 
-            return Response({'success': True, 'new_stock': product.stock, 'batch_id': batch.id})
+        return Response({'success': True, 'new_stock': product.stock, 'batch_id': batch.id})
     except Product.DoesNotExist:
         return Response({'error': 'Produit introuvable'}, status=404)
     except Exception as e:

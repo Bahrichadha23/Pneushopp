@@ -231,9 +231,6 @@ class StockBatch(models.Model):
     def __str__(self):
         return f'{self.product.name} - DOT {self.dot} ({self.quantity} unites)'
 
-    def __str__(self):
-        return self.nom_boutique
-
 
 class ImportJob(models.Model):
     STATUS_CHOICES = [

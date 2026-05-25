@@ -32,6 +32,27 @@ class OrderDetailView(generics.RetrieveUpdateDestroyAPIView):
             order.total_amount = items_total + new_delivery_cost
             order.save(update_fields=['total_amount'])
 
+        # ── Décrémenter le stock à la confirmation de la commande ────────
+        CONFIRMED_STATUSES = ('confirmed', 'processing', 'shipped', 'delivered')
+        if order.status in CONFIRMED_STATUSES and old_status not in CONFIRMED_STATUSES:
+            from products.models import Product
+            from django.db import transaction
+            try:
+                with transaction.atomic():
+                    for item_data in order.items.all():
+                        try:
+                            product = Product.objects.select_for_update().get(pk=item_data.product_id)
+                            if product.stock >= item_data.quantity:
+                                product.stock -= item_data.quantity
+                                product.save(update_fields=['stock'])
+                                print(f'[ORDER CONFIRM] Stock decremented: {product.name} -{item_data.quantity} → {product.stock}')
+                            else:
+                                print(f'[ORDER CONFIRM] WARNING: Insufficient stock for {product.name}. Available: {product.stock}, Ordered: {item_data.quantity}')
+                        except Product.DoesNotExist:
+                            print(f'[ORDER CONFIRM] WARNING: Product ID {item_data.product_id} not found')
+            except Exception as e:
+                print(f'[ORDER CONFIRM] Failed to decrement stock: {e}')
+
         # ── Auto-création BDC + Livraison à la confirmation ──────────────
         if order.status == 'processing' and old_status not in ('processing', 'shipped', 'delivered', 'cancelled'):
             try:
@@ -151,25 +172,12 @@ class OrderListCreateView(generics.ListCreateAPIView):
 
     def perform_create(self, serializer):
         from django.utils import timezone
-        from products.models import Product
         from django.db import transaction
         from accounts.email_utils import send_order_confirmation_email, send_new_order_notification_email
 
         with transaction.atomic():
             order = serializer.save(user=self.request.user)
-
-            for item_data in order.items.all():
-                try:
-                    product = Product.objects.select_for_update().get(pk=item_data.product_id)
-                    print(f'[ORDER CREATE] Product: {product.name}, Stock before: {product.stock}, Ordered: {item_data.quantity}')
-                    if product.stock >= item_data.quantity:
-                        product.stock = product.stock - item_data.quantity
-                        product.save()
-                        print(f'[ORDER CREATE] Stock after: {product.stock}')
-                    else:
-                        print(f'[ORDER CREATE] WARNING: Insufficient stock for {product.name}. Available: {product.stock}, Ordered: {item_data.quantity}')
-                except Product.DoesNotExist:
-                    print(f'[ORDER CREATE] WARNING: Product ID {item_data.product_id} not found')
+            # Stock is NOT decremented on creation — only when order is confirmed (perform_update)
 
             if not order.tracking_number:
                 order.tracking_number = f"TRK-{order.id:06d}"
