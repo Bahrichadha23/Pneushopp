@@ -14,6 +14,7 @@ urlpatterns = [
     path('cri-balance/', views.get_cri_balance, name='cri-balance'),
     path('<int:pk>/', views.OrderDetailView.as_view(), name='order-detail'),
     path('<int:pk>/upload-payment-image/', views.upload_payment_image, name='upload-payment-image'),
+    path('<int:pk>/confirm-with-dot/', views.confirm_with_dot, name='confirm-with-dot'),
     path('avoirs/', views.AvoirListCreateView.as_view(), name='avoir-list'),
     path('avoirs/search/', views.search_order_for_avoir, name='avoir-search'),
     path('avoirs/<int:pk>/', views.AvoirDetailView.as_view(), name='avoir-detail'),

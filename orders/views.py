@@ -435,6 +435,68 @@ def warranty_claim_detail_view(request, pk):
     return Response(_serialize_claim(claim, request))
 
 
+@api_view(['POST'])
+@perm_classes([IsAdminOrSales])
+def confirm_with_dot(request, pk):
+    """
+    POST /api/orders/<pk>/confirm-with-dot/
+    Body: {"dot_assignments": [{"product_id": X, "batch_id": Y, "quantity": Z}, ...]}
+    Consumes the specified DOT batches and confirms the order in one atomic operation.
+    """
+    from products.models import StockBatch, Product
+    from django.db import transaction
+
+    try:
+        order = Order.objects.get(pk=pk)
+    except Order.DoesNotExist:
+        return Response({'error': 'Commande introuvable.'}, status=404)
+
+    dot_assignments = request.data.get('dot_assignments', [])
+
+    try:
+        with transaction.atomic():
+            for assignment in dot_assignments:
+                product_id = assignment.get('product_id')
+                batch_id = assignment.get('batch_id')
+                quantity = int(assignment.get('quantity', 0))
+
+                if not product_id or not batch_id or quantity <= 0:
+                    continue
+
+                try:
+                    batch = StockBatch.objects.select_for_update().get(id=batch_id, product_id=product_id)
+                except StockBatch.DoesNotExist:
+                    raise ValueError(f'Lot DOT introuvable (batch_id={batch_id}, product_id={product_id})')
+
+                if batch.quantity < quantity:
+                    raise ValueError(
+                        f'Quantité insuffisante dans le lot DOT {batch.dot}: '
+                        f'disponible {batch.quantity}, demandé {quantity}'
+                    )
+
+                batch.quantity -= quantity
+                batch.save()
+
+                try:
+                    product = Product.objects.select_for_update().get(pk=product_id)
+                    product.stock = max(0, product.stock - quantity)
+                    product.save(update_fields=['stock'])
+                except Product.DoesNotExist:
+                    pass
+
+            # Set order status without triggering the automatic stock decrement
+            # (stock was already decremented via DOT batches above)
+            order.status = 'confirmed'
+            order.save(update_fields=['status'])
+
+    except ValueError as e:
+        return Response({'error': str(e)}, status=400)
+    except Exception as e:
+        return Response({'error': str(e)}, status=500)
+
+    return Response({'success': True, 'message': 'Commande confirmée avec assignation DOT'})
+
+
 class AvoirListCreateView(generics.ListCreateAPIView):
     """
     GET  /api/orders/avoirs/        → liste des avoirs
