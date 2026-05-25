@@ -260,7 +260,7 @@ function DotPanel({
                         </span>
                         {isFirst && (
                           <span className="text-[10px] font-bold bg-yellow-500 text-white px-2 py-0.5 rounded-full">
-                            PRIORITÉ FEFO
+                            PRIORITÉ DOT
                           </span>
                         )}
                       </div>
@@ -319,7 +319,7 @@ function DotPanel({
                           >−</button>
                           <input
                             type="number" min={1} max={batch.quantity} value={sellQty}
-                            onChange={(e) => setSellQty(Math.min(batch.quantity, Math.max(1, parseInt(e.target.value) || 1)))}
+                            onChange={(e) => { const v = parseInt(e.target.value); if (!isNaN(v)) setSellQty(Math.min(batch.quantity, Math.max(1, v))); }}
                             className="w-14 text-center border border-gray-300 rounded px-1 py-1 text-sm font-bold focus:outline-none focus:ring-2 focus:ring-yellow-400"
                           />
                           <button

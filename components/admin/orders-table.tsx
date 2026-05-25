@@ -21,7 +21,8 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Eye, Edit, Truck, Search, Package, Download, X, Check, Ban } from "lucide-react";
+import { Eye, Edit, Truck, Search, Package, Download, X, Check, Ban, Loader2, Calendar } from "lucide-react";
+import { API_URL } from "@/lib/config";
 import { createPurchaseOrder } from "@/lib/services/purchase-order";
 import { motion, AnimatePresence } from "framer-motion";
 interface OrdersTableProps {
@@ -322,6 +323,15 @@ export async function handleDownloadInvoice(order: any) {
   pdf.save(`facture-${order.orderNumber}.pdf`);
 }
 
+interface DotBatch {
+  id: number;
+  quantity: number;
+  dot: string;
+  dot_date: string | null;
+  emplacement: string;
+  notes: string;
+}
+
 export default function OrdersTable({
   orders,
   onViewOrder,
@@ -332,6 +342,14 @@ export default function OrdersTable({
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [yearFilter, setYearFilter] = useState<string>("all");
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
+
+  // DOT confirmation modal state
+  const [dotConfirmOrder, setDotConfirmOrder] = useState<Order | null>(null);
+  const [dotBatches, setDotBatches] = useState<Record<string, DotBatch[]>>({});
+  const [dotSelections, setDotSelections] = useState<Record<number, { batchId: number; qty: number }>>({});
+  const [loadingDotBatches, setLoadingDotBatches] = useState(false);
+  const [confirmingDot, setConfirmingDot] = useState(false);
+  const [dotConfirmError, setDotConfirmError] = useState<string | null>(null);
   const [creatingPurchaseOrder, setCreatingPurchaseOrder] = useState<
     string | null
   >(null);
@@ -380,6 +398,73 @@ export default function OrdersTable({
       alert("Erreur lors de la création du bon de commande");
     } finally {
       setCreatingPurchaseOrder(null);
+    }
+  };
+
+  const handleOpenDotConfirm = async (order: Order) => {
+    setDotConfirmOrder(order);
+    setDotSelections({});
+    setDotConfirmError(null);
+    setLoadingDotBatches(true);
+
+    const batchMap: Record<string, DotBatch[]> = {};
+    const uniqueProductIds = [...new Set(order.items.map((item) => item.productId).filter(Boolean))];
+
+    await Promise.all(
+      uniqueProductIds.map(async (productId) => {
+        try {
+          const token = localStorage.getItem("access_token");
+          const res = await fetch(`${API_URL}/admin/products/${productId}/dot-batches/`, {
+            headers: { Authorization: `Bearer ${token}` },
+          });
+          batchMap[productId] = res.ok ? await res.json() : [];
+        } catch {
+          batchMap[productId] = [];
+        }
+      })
+    );
+
+    setDotBatches(batchMap);
+    setLoadingDotBatches(false);
+  };
+
+  const handleDotConfirm = async () => {
+    if (!dotConfirmOrder) return;
+    setConfirmingDot(true);
+    setDotConfirmError(null);
+
+    try {
+      const token = localStorage.getItem("access_token");
+      const dot_assignments = dotConfirmOrder.items.map((item, idx) => {
+        const sel = dotSelections[idx];
+        return {
+          product_id: parseInt(item.productId) || item.productId,
+          batch_id: sel?.batchId,
+          quantity: sel?.qty ?? item.quantity,
+        };
+      });
+
+      const res = await fetch(`${API_URL}/orders/${dotConfirmOrder.id}/confirm-with-dot/`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ dot_assignments }),
+      });
+
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.error || "Erreur lors de la confirmation");
+      }
+
+      setDotConfirmOrder(null);
+      // Notify parent to refresh orders (status is now confirmed server-side)
+      onUpdateStatus(dotConfirmOrder.id, "confirmed");
+    } catch (err: any) {
+      setDotConfirmError(err.message);
+    } finally {
+      setConfirmingDot(false);
     }
   };
 
@@ -554,8 +639,8 @@ export default function OrdersTable({
                           variant="default"
                           size="sm"
                           className="bg-black text-white hover:bg-gray-800 h-7 px-2 text-xs gap-1"
-                          onClick={() => onUpdateStatus(order.id, "confirmed")}
-                          title="Confirmer la commande"
+                          onClick={() => handleOpenDotConfirm(order)}
+                          title="Confirmer la commande (sélectionner les lots DOT)"
                         >
                           <Check className="h-3 w-3" /> Confirmer
                         </Button>
@@ -738,6 +823,202 @@ export default function OrdersTable({
           Aucune commande trouvée avec les critères sélectionnés.
         </div>
       )}
+
+      {/* DOT Confirmation Modal */}
+      <AnimatePresence>
+        {dotConfirmOrder && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+            <motion.div
+              initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+              className="absolute inset-0 bg-black/50"
+              onClick={() => { if (!confirmingDot) setDotConfirmOrder(null); }}
+            />
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              className="relative bg-white rounded-xl shadow-2xl max-w-2xl w-full max-h-[90vh] flex flex-col"
+            >
+              {/* Modal Header */}
+              <div className="border-b px-6 py-4 flex items-center justify-between flex-shrink-0">
+                <div>
+                  <h2 className="font-bold text-gray-900 text-lg flex items-center gap-2">
+                    <Calendar className="h-5 w-5 text-yellow-600" />
+                    Assignation DOT — Confirmer la commande
+                  </h2>
+                  <p className="text-sm text-gray-500 mt-0.5">
+                    #{dotConfirmOrder.orderNumber} · {dotConfirmOrder.customerName}
+                  </p>
+                </div>
+                <button
+                  onClick={() => { if (!confirmingDot) setDotConfirmOrder(null); }}
+                  className="text-gray-400 hover:text-gray-600"
+                >
+                  <X className="h-5 w-5" />
+                </button>
+              </div>
+
+              {/* Modal Body */}
+              <div className="flex-1 overflow-y-auto px-6 py-4 space-y-4">
+                <div className="text-sm text-yellow-800 bg-yellow-50 border border-yellow-200 rounded-lg px-4 py-3">
+                  Sélectionnez un lot DOT pour chaque article. Le stock sera décrémenté automatiquement à la confirmation.
+                </div>
+
+                {loadingDotBatches ? (
+                  <div className="text-center py-8">
+                    <Loader2 className="h-6 w-6 animate-spin mx-auto text-yellow-500" />
+                    <p className="text-sm text-gray-400 mt-2">Chargement des lots DOT…</p>
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    {dotConfirmOrder.items.map((item, idx) => {
+                      const batches = dotBatches[item.productId] || [];
+                      const selection = dotSelections[idx];
+                      const selectedBatch = batches.find((b) => b.id === selection?.batchId);
+                      const isAssigned = !!selection;
+
+                      return (
+                        <div
+                          key={idx}
+                          className={`rounded-xl border-2 p-4 transition-colors ${
+                            isAssigned ? "border-green-300 bg-green-50" : "border-gray-200 bg-white"
+                          }`}
+                        >
+                          <div className="flex items-start justify-between gap-3 mb-3">
+                            <div className="flex-1 min-w-0">
+                              <p className="font-medium text-sm text-gray-900 truncate">{item.productName}</p>
+                              <p className="text-xs text-gray-500 mt-0.5">
+                                Quantité commandée : <strong>{item.quantity}</strong>
+                              </p>
+                            </div>
+                            {isAssigned ? (
+                              <span className="text-xs font-bold text-green-700 bg-green-100 px-2 py-1 rounded-full whitespace-nowrap">
+                                ✓ DOT assigné
+                              </span>
+                            ) : (
+                              <span className="text-xs font-bold text-orange-600 bg-orange-50 px-2 py-1 rounded-full whitespace-nowrap">
+                                ⚠ Requis
+                              </span>
+                            )}
+                          </div>
+
+                          {batches.length === 0 ? (
+                            <p className="text-xs text-red-600 bg-red-50 border border-red-100 rounded-lg px-3 py-2">
+                              Aucun lot DOT disponible pour ce produit — ajoutez du stock via la gestion DOT.
+                            </p>
+                          ) : (
+                            <div className="space-y-2">
+                              <select
+                                value={selection?.batchId ?? ""}
+                                onChange={(e) => {
+                                  const batchId = parseInt(e.target.value);
+                                  const batch = batches.find((b) => b.id === batchId);
+                                  if (batch) {
+                                    setDotSelections((prev) => ({
+                                      ...prev,
+                                      [idx]: {
+                                        batchId: batch.id,
+                                        qty: Math.min(item.quantity, batch.quantity),
+                                      },
+                                    }));
+                                  } else {
+                                    setDotSelections((prev) => {
+                                      const n = { ...prev };
+                                      delete n[idx];
+                                      return n;
+                                    });
+                                  }
+                                }}
+                                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-yellow-400 bg-white"
+                              >
+                                <option value="">— Choisir un lot DOT —</option>
+                                {batches.map((b) => (
+                                  <option key={b.id} value={b.id} disabled={b.quantity < 1}>
+                                    DOT {b.dot} — {b.quantity} unité(s)
+                                    {b.emplacement ? ` — ${b.emplacement}` : ""}
+                                  </option>
+                                ))}
+                              </select>
+
+                              {selection && selectedBatch && (
+                                <div className="flex items-center gap-3">
+                                  <label className="text-xs text-gray-600 flex-shrink-0">Qté à déduire :</label>
+                                  <input
+                                    type="number"
+                                    min={1}
+                                    max={Math.min(item.quantity, selectedBatch.quantity)}
+                                    value={selection.qty}
+                                    onChange={(e) => {
+                                      const v = parseInt(e.target.value);
+                                      if (!isNaN(v)) {
+                                        setDotSelections((prev) => ({
+                                          ...prev,
+                                          [idx]: {
+                                            ...prev[idx],
+                                            qty: Math.min(
+                                              Math.min(item.quantity, selectedBatch.quantity),
+                                              Math.max(1, v)
+                                            ),
+                                          },
+                                        }));
+                                      }
+                                    }}
+                                    className="w-20 border border-gray-300 rounded px-2 py-1 text-sm text-center focus:outline-none focus:ring-2 focus:ring-yellow-400"
+                                  />
+                                  <span className="text-xs text-gray-400">/ {selectedBatch.quantity} dispo</span>
+                                </div>
+                              )}
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+
+                {dotConfirmError && (
+                  <div className="text-sm text-red-700 bg-red-50 border border-red-200 rounded-lg px-4 py-3">
+                    {dotConfirmError}
+                  </div>
+                )}
+              </div>
+
+              {/* Modal Footer */}
+              <div className="border-t bg-gray-50 px-6 py-4 flex items-center justify-between flex-shrink-0">
+                <span className="text-sm text-gray-500">
+                  {Object.keys(dotSelections).length} / {dotConfirmOrder.items.length} article(s) assigné(s)
+                </span>
+                <div className="flex gap-3">
+                  <Button variant="outline" onClick={() => setDotConfirmOrder(null)} disabled={confirmingDot}>
+                    Annuler
+                  </Button>
+                  <Button
+                    onClick={handleDotConfirm}
+                    disabled={
+                      confirmingDot ||
+                      loadingDotBatches ||
+                      dotConfirmOrder.items.some((_, idx) => !dotSelections[idx])
+                    }
+                    className="bg-black text-white hover:bg-gray-800"
+                  >
+                    {confirmingDot ? (
+                      <>
+                        <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                        Confirmation…
+                      </>
+                    ) : (
+                      <>
+                        <Check className="h-4 w-4 mr-1" />
+                        Confirmer la commande
+                      </>
+                    )}
+                  </Button>
+                </div>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
 
       {/* Order Details Modal */}
       <AnimatePresence>

@@ -13,6 +13,7 @@ import {
   CheckCircle,
   AlertCircle,
   Info,
+  X,
 } from "lucide-react";
 import { useAuth } from "@/contexts/auth-context";
 import { useRouter } from "next/navigation";
@@ -83,6 +84,7 @@ export default function ImportPage() {
   );
   const isMountedRef = useRef(true);
   const processingNotifiedRef = useRef(false);
+  const currentFileKeyRef = useRef<string | null>(null);
   const { user } = useAuth();
   const router = useRouter();
 
@@ -130,10 +132,19 @@ export default function ImportPage() {
     if (selectedFile) {
       setFile(selectedFile);
       // Ne pas effacer importResult ici — il reste visible jusqu'au prochain import
-      setError(null);
       setJobStatus(null);
       setJobMessage(null);
       setLiveSummary(null);
+      // Vérifier si ce fichier a déjà été importé
+      try {
+        const imported: string[] = JSON.parse(localStorage.getItem("importedFilenames") || "[]");
+        const fileKey = `${selectedFile.name}__${selectedFile.size}`;
+        if (imported.includes(fileKey)) {
+          setError("Ce fichier a déjà été importé. Veuillez utiliser un fichier différent.");
+        } else {
+          setError(null);
+        }
+      } catch { setError(null); }
     }
   };
 
@@ -219,6 +230,16 @@ export default function ImportPage() {
         setImportResult(result);
         // Persister dans localStorage pour survivre aux navigations
         try { localStorage.setItem("lastImportResult", JSON.stringify(result)); } catch {}
+        // Mémoriser le fichier comme déjà importé pour éviter les doublons
+        try {
+          if (currentFileKeyRef.current) {
+            const imported: string[] = JSON.parse(localStorage.getItem("importedFilenames") || "[]");
+            if (!imported.includes(currentFileKeyRef.current)) {
+              imported.push(currentFileKeyRef.current);
+              localStorage.setItem("importedFilenames", JSON.stringify(imported));
+            }
+          }
+        } catch {}
         setIsPolling(false);
         setFile(null);
         // Reset the file input so the same file can be re-imported if needed
@@ -242,6 +263,16 @@ export default function ImportPage() {
   const handleImport = async () => {
     if (!file) return;
 
+    // Vérification de doublon
+    try {
+      const imported: string[] = JSON.parse(localStorage.getItem("importedFilenames") || "[]");
+      const fileKey = `${file.name}__${file.size}`;
+      if (imported.includes(fileKey)) {
+        setError("Ce fichier a déjà été importé. Veuillez utiliser un fichier différent.");
+        return;
+      }
+    } catch {}
+
     setIsUploading(true);
     setUploadProgress(0);
     setError(null);
@@ -252,6 +283,7 @@ export default function ImportPage() {
     setLiveSummary(null);
     setNotice(null);
     processingNotifiedRef.current = false;
+    currentFileKeyRef.current = `${file.name}__${file.size}`;
 
     let progressInterval: ReturnType<typeof setInterval> | null = null;
 
@@ -600,23 +632,40 @@ export default function ImportPage() {
           </div>
 
           {file && (
-            <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+            <div className="flex items-center justify-between p-4 bg-green-50 border border-green-200 rounded-lg">
               <div className="flex items-center space-x-3">
-                <FileSpreadsheet className="h-8 w-8 text-green-500" />
+                <FileSpreadsheet className="h-8 w-8 text-green-600 flex-shrink-0" />
                 <div>
-                  <p className="font-medium">{file.name}</p>
-                  <p className="text-sm text-gray-500">
-                    {(file.size / 1024 / 1024).toFixed(2)} MB
+                  <p className="font-semibold text-green-800">{file.name}</p>
+                  <p className="text-sm text-green-600">
+                    {(file.size / 1024 / 1024).toFixed(2)} MB — Prêt à importer
                   </p>
                 </div>
               </div>
-              <Button
-                onClick={handleImport}
-                disabled={isUploading || isPolling}
-                className="ml-4"
-              >
-                {isUploading || isPolling ? "Import en cours..." : "Importer"}
-              </Button>
+              <div className="flex items-center gap-2 ml-4">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  disabled={isUploading || isPolling}
+                  onClick={() => {
+                    setFile(null);
+                    // reset the file input
+                    const input = document.getElementById("file-upload") as HTMLInputElement;
+                    if (input) input.value = "";
+                  }}
+                  title="Supprimer le fichier sélectionné"
+                  className="text-red-500 hover:text-red-700 hover:bg-red-50"
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+                <Button
+                  onClick={handleImport}
+                  disabled={isUploading || isPolling}
+                  className="bg-green-600 hover:bg-green-700 text-white"
+                >
+                  {isUploading || isPolling ? "Import en cours..." : "Importer"}
+                </Button>
+              </div>
             </div>
           )}
 
