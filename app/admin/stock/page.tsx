@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
   Package, AlertTriangle, TrendingUp, Plus, Minus, X,
-  Calendar, ChevronRight, Loader2, AlertCircle, FileDown,
+  Calendar, ChevronRight, Loader2, AlertCircle, FileDown, Printer,
 } from "lucide-react";
 import ExcelJS from "exceljs";
 import { AnimatePresence, motion } from "framer-motion";
@@ -56,12 +56,16 @@ function DotPanel({
   /* sell-form state (one at a time, keyed by batchId) */
   const [sellBatchId, setSellBatchId] = useState<number | null>(null);
   const [sellQty, setSellQty] = useState(1);
+  const [sellDiscount, setSellDiscount] = useState(0);
   const [clientSearch, setClientSearch] = useState("");
   const [clientSuggestions, setClientSuggestions] = useState<Customer[]>([]);
   const [selectedClient, setSelectedClient] = useState<Customer | null>(null);
   const [showSugg, setShowSugg] = useState(false);
   const [selling, setSelling] = useState(false);
   const [sellMsg, setSellMsg] = useState<{ text: string; ok: boolean } | null>(null);
+  const [lastSale, setLastSale] = useState<{
+    batch: DotBatch; qty: number; discount: number; clientName: string;
+  } | null>(null);
 
   /* add-batch state */
   const [showAdd, setShowAdd] = useState(false);
@@ -108,17 +112,21 @@ function DotPanel({
   function openSell(batch: DotBatch) {
     setSellBatchId(batch.id);
     setSellQty(1);
+    setSellDiscount(0);
     setClientSearch("");
     setSelectedClient(null);
     setClientSuggestions([]);
     setSellMsg(null);
+    setLastSale(null);
   }
   function closeSell() {
     setSellBatchId(null);
+    setSellDiscount(0);
     setClientSearch("");
     setSelectedClient(null);
     setClientSuggestions([]);
     setSellMsg(null);
+    setLastSale(null);
   }
 
   /* ── sell ── */
@@ -126,6 +134,7 @@ function DotPanel({
     if (sellQty < 1 || sellQty > batch.quantity) return;
     setSelling(true); setSellMsg(null);
     try {
+      const clientName = selectedClient?.name || clientSearch || "";
       const r = await fetch(`${API_URL}/admin/products/${product.id}/consume-dot-batch/`, {
         method: "POST",
         headers: { Authorization: `Bearer ${token()}`, "Content-Type": "application/json" },
@@ -133,19 +142,108 @@ function DotPanel({
           batch_id: batch.id,
           quantity: sellQty,
           reason: "vente",
-          client_name: selectedClient?.name || clientSearch || "",
+          client_name: clientName,
           client_id: selectedClient?.id || null,
+          discount_pct: sellDiscount,
         }),
       });
       const data = await r.json();
       if (!r.ok) throw new Error(data.error || "Erreur");
-      setSellMsg({ text: `${sellQty} pneu(s) vendu(s) — DOT ${batch.dot}.`, ok: true });
+      setSellMsg({ text: `✓ ${sellQty} pneu(s) vendu(s) — DOT ${batch.dot}.`, ok: true });
+      setLastSale({ batch, qty: sellQty, discount: sellDiscount, clientName });
       onStockChanged(product.id, data.new_stock ?? (totalStock - sellQty));
       await loadBatches();
-      setTimeout(() => { closeSell(); setSellMsg(null); }, 2500);
+      // No auto-close — user clicks "Imprimer facture" or X manually
     } catch (e: any) {
       setSellMsg({ text: e.message, ok: false });
     } finally { setSelling(false); }
+  }
+
+  /* ── generate sale invoice ── */
+  function generateDotSaleInvoice() {
+    if (!lastSale) return;
+    const { batch, qty, discount, clientName } = lastSale;
+    const tvaRate = 19;
+    const unitTTC = product.prixVente;
+    const unitHT = unitTTC / (1 + tvaRate / 100);
+    const remiseRate = discount / 100;
+    const unitHTNet = unitHT * (1 - remiseRate);
+    const montantHT = unitHTNet * qty;
+    const montantTVA = montantHT * (tvaRate / 100);
+    const remiseAmt = unitHT * remiseRate * qty;
+    const netHT = montantHT;
+    const totalTTC = netHT + montantTVA + 1; // 1 = timbre fiscal
+    const today = new Date().toLocaleDateString("fr-FR");
+    const invoiceNum = `FPS${Date.now().toString().slice(-8)}`;
+
+    const remiseRowHTML = discount > 0
+      ? `<tr><td>TOTAL REMISE</td><td style="text-align:right;border:1px solid #000;padding:3px 6px">${remiseAmt.toFixed(3)}</td></tr>`
+      : "";
+
+    const html = `<!DOCTYPE html><html><head><meta charset="utf-8"><title>Facture ${invoiceNum}</title>
+    <style>
+      body{font-family:Arial,sans-serif;font-size:10pt;margin:15mm;color:#000}
+      h2{margin:0;font-size:14pt}
+      table{border-collapse:collapse;width:100%}
+      th,td{border:1px solid #000;padding:4px 6px;font-size:9pt}
+      th{background:#f0f0f0;text-align:center}
+      .right{text-align:right} .center{text-align:center}
+      .totals-table{width:220px;float:right;margin-top:12px}
+      .totals-table td{border:1px solid #000;padding:3px 6px;font-size:9pt}
+      .totals-table .bold{font-weight:bold}
+      .header-info{display:flex;justify-content:space-between;margin-bottom:12px}
+      @media print{body{margin:10mm}}
+    </style></head><body>
+    <div style="text-align:center;margin-bottom:14px;border-bottom:2px solid #000;padding-bottom:8px">
+      <h2>FACTURE</h2>
+      <div style="font-size:12pt;font-weight:bold">${invoiceNum}</div>
+    </div>
+    <div class="header-info">
+      <div>
+        <div><b>Client :</b> ${clientName || "—"}</div>
+        <div><b>Date :</b> ${today}</div>
+      </div>
+      <div style="text-align:right">
+        <div><b>Produit :</b> ${product.brand}</div>
+        <div>${product.name}</div>
+        <div><b>DOT :</b> ${batch.dot}</div>
+      </div>
+    </div>
+    <table style="margin-bottom:16px">
+      <thead><tr>
+        <th>REF.</th><th>DÉSIGNATION</th><th>QTÉ</th>
+        <th>PU HT</th><th>TVA %</th><th>REM %</th>
+        <th>Mnt HT</th><th>Mnt TTC</th>
+      </tr></thead>
+      <tbody><tr>
+        <td class="center">${product.size}</td>
+        <td>${product.brand} ${product.name} — DOT ${batch.dot}</td>
+        <td class="center">${qty}</td>
+        <td class="right">${unitHT.toFixed(3)}</td>
+        <td class="center">${tvaRate}</td>
+        <td class="center">${discount}</td>
+        <td class="right">${montantHT.toFixed(3)}</td>
+        <td class="right">${(unitTTC * qty).toFixed(3)}</td>
+      </tr></tbody>
+    </table>
+    <table class="totals-table">
+      <tr><td>TOTAL HT</td><td class="right">${(unitHT * qty).toFixed(3)}</td></tr>
+      ${remiseRowHTML}
+      <tr><td>TOTAL NET HT</td><td class="right">${netHT.toFixed(3)}</td></tr>
+      <tr><td>TOTAL T.V.A (${tvaRate}%)</td><td class="right">${montantTVA.toFixed(3)}</td></tr>
+      <tr><td>Timbre</td><td class="right">1.000</td></tr>
+      <tr class="bold"><td><b>TOTAL T.T.C</b></td><td class="right"><b>${totalTTC.toFixed(3)}</b></td></tr>
+    </table>
+    <div style="clear:both;margin-top:40px;border-top:1px solid #ccc;padding-top:8px;font-size:8pt;text-align:center;color:#666">
+      Cachet et Signature
+    </div>
+    <script>window.onload=function(){window.print()}</script>
+    </body></html>`;
+
+    const win = window.open("", "_blank", "width=900,height=700");
+    if (!win) return;
+    win.document.write(html);
+    win.document.close();
   }
 
   /* ── add batch ── */
@@ -379,21 +477,50 @@ function DotPanel({
                         )}
                       </div>
 
+                      {/* Remise */}
+                      <div className="flex items-center gap-3">
+                        <label className="text-xs font-medium text-gray-700 w-24 flex-shrink-0">Remise (%)</label>
+                        <div className="flex items-center gap-2">
+                          <input
+                            type="number" min={0} max={100} value={sellDiscount}
+                            onChange={(e) => { const v = parseInt(e.target.value); if (!isNaN(v)) setSellDiscount(Math.min(100, Math.max(0, v))); else setSellDiscount(0); }}
+                            className="w-14 text-center border border-gray-300 rounded px-1 py-1 text-sm font-bold focus:outline-none focus:ring-2 focus:ring-yellow-400"
+                            placeholder="0"
+                          />
+                          <span className="text-xs text-gray-400">%</span>
+                        </div>
+                        {sellDiscount > 0 && (
+                          <span className="text-xs text-green-700 font-semibold ml-1">
+                            − {(product.prixVente * sellDiscount / 100 * sellQty).toFixed(3)} DT
+                          </span>
+                        )}
+                      </div>
+
                       {/* Submit */}
                       {sellMsg && (
                         <p className={`text-xs font-medium text-center py-1 rounded ${sellMsg.ok ? "text-green-700 bg-green-50" : "text-red-700 bg-red-50"}`}>
                           {sellMsg.text}
                         </p>
                       )}
-                      <Button
-                        onClick={() => handleSell(batch)}
-                        disabled={selling || sellQty > batch.quantity}
-                        className="w-full bg-yellow-500 hover:bg-yellow-600 text-white font-bold shadow-sm"
-                      >
-                        {selling
-                          ? <><Loader2 className="h-4 w-4 animate-spin mr-2" />Traitement…</>
-                          : <><Minus className="h-4 w-4 mr-2" />Vendre {sellQty} pneu{sellQty > 1 ? "s" : ""} — DOT {batch.dot}</>}
-                      </Button>
+                      {sellMsg?.ok && lastSale && (
+                        <Button
+                          onClick={generateDotSaleInvoice}
+                          className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold shadow-sm"
+                        >
+                          <Printer className="h-4 w-4 mr-2" /> Imprimer la facture
+                        </Button>
+                      )}
+                      {!sellMsg?.ok && (
+                        <Button
+                          onClick={() => handleSell(batch)}
+                          disabled={selling || sellQty > batch.quantity}
+                          className="w-full bg-yellow-500 hover:bg-yellow-600 text-white font-bold shadow-sm"
+                        >
+                          {selling
+                            ? <><Loader2 className="h-4 w-4 animate-spin mr-2" />Traitement…</>
+                            : <><Minus className="h-4 w-4 mr-2" />Vendre {sellQty} pneu{sellQty > 1 ? "s" : ""} — DOT {batch.dot}</>}
+                        </Button>
+                      )}
                     </div>
                   )}
                 </div>
@@ -407,22 +534,33 @@ function DotPanel({
       {/* Fixed validation button at bottom right — always visible */}
       <div className="flex-shrink-0 border-t border-yellow-200 bg-yellow-50 px-5 py-3 flex items-center justify-between">
         <span className="text-xs text-yellow-700">
-          {sellBatchId !== null
-            ? `DOT sélectionné — ${sellQty} pneu(s) à vendre`
+          {sellMsg?.ok
+            ? "✓ Vente enregistrée — imprimez la facture ou fermez"
+            : sellBatchId !== null
+            ? `DOT sélectionné — ${sellQty} pneu(s) à vendre${sellDiscount > 0 ? ` · remise ${sellDiscount}%` : ""}`
             : "Cliquez sur « Vendre » pour sélectionner un lot"}
         </span>
-        <Button
-          onClick={() => {
-            const batch = batches.find(b => b.id === sellBatchId);
-            if (batch) handleSell(batch);
-          }}
-          disabled={selling || sellBatchId === null || sellQty < 1}
-          className="bg-yellow-500 hover:bg-yellow-600 text-white font-bold shadow-sm px-6 disabled:opacity-40"
-        >
-          {selling
-            ? <><Loader2 className="h-4 w-4 animate-spin mr-2" />Traitement…</>
-            : <><Minus className="h-4 w-4 mr-2" />Valider la vente</>}
-        </Button>
+        {sellMsg?.ok && lastSale ? (
+          <Button
+            onClick={generateDotSaleInvoice}
+            className="bg-blue-600 hover:bg-blue-700 text-white font-bold shadow-sm px-6"
+          >
+            <Printer className="h-4 w-4 mr-2" /> Imprimer
+          </Button>
+        ) : (
+          <Button
+            onClick={() => {
+              const batch = batches.find(b => b.id === sellBatchId);
+              if (batch) handleSell(batch);
+            }}
+            disabled={selling || sellBatchId === null || sellQty < 1}
+            className="bg-yellow-500 hover:bg-yellow-600 text-white font-bold shadow-sm px-6 disabled:opacity-40"
+          >
+            {selling
+              ? <><Loader2 className="h-4 w-4 animate-spin mr-2" />Traitement…</>
+              : <><Minus className="h-4 w-4 mr-2" />Valider la vente</>}
+          </Button>
+        )}
       </div>
     </motion.div>
   );
