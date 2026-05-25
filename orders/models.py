@@ -103,6 +103,7 @@ class OrderItem(models.Model):
     quantity = models.PositiveIntegerField()
     unit_price = models.DecimalField(max_digits=10, decimal_places=3)
     total_price = models.DecimalField(max_digits=10, decimal_places=3)
+    discount = models.DecimalField(max_digits=5, decimal_places=2, default=0, help_text='Discount percentage (0-100)')
     specifications = models.JSONField(default=dict)
 
     def __str__(self):

@@ -22,6 +22,7 @@ export const fetchOrders = async (): Promise<AdminOrder[]> => {
       quantity: item.quantity,
       unitPrice: parseFloat(item.unit_price),
       totalPrice: parseFloat(item.total_price),
+      discount: parseFloat(item.discount || 0),
       specifications: item.specifications || "",
     })),
 

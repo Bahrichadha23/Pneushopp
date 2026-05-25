@@ -31,6 +31,7 @@ export interface OrderItem {
   quantity: number
   unitPrice: number
   totalPrice: number
+  discount?: number
   specifications: string
 }
 

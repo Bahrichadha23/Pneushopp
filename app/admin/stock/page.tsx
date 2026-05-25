@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import {
   Package, AlertTriangle, TrendingUp, Plus, Minus, X,
   Calendar, ChevronRight, Loader2, AlertCircle, FileDown, Printer,
+  ClipboardList, Check,
 } from "lucide-react";
 import ExcelJS from "exceljs";
 import { AnimatePresence, motion } from "framer-motion";
@@ -566,6 +567,395 @@ function DotPanel({
   );
 }
 
+/* ─── Types pour le panneau préparation commande ─────────── */
+interface PrepItem {
+  itemIndex: number;
+  productId: string;
+  productName: string;
+  needed: number;
+  batchId: number | null;
+  batchDot: string | null;
+  qty: number;
+  discount: number;
+  confirmed: boolean;
+}
+
+interface PrepOrder {
+  id: string;
+  orderNumber: string;
+  customerName: string;
+  customerPhone: string;
+  items: { productId: string; productName: string; quantity: number; unitPrice: number }[];
+  totalAmount: number;
+  deliveryCost: number;
+  createdAt: string;
+}
+
+/* ─── Panneau préparation commande ───────────────────────── */
+function OrderPrepPanel({ onClose }: { onClose: () => void }) {
+  const router = useRouter();
+  const [orders, setOrders] = useState<PrepOrder[]>([]);
+  const [loadingOrders, setLoadingOrders] = useState(true);
+  const [selectedOrder, setSelectedOrder] = useState<PrepOrder | null>(null);
+  const [assignments, setAssignments] = useState<PrepItem[]>([]);
+  const [batchesByProduct, setBatchesByProduct] = useState<Record<string, DotBatch[]>>({});
+  const [loadingBatches, setLoadingBatches] = useState(false);
+
+  const token = () => localStorage.getItem("access_token");
+  const fpsNum = (n: string) => (n || "").replace(/^CPS/i, "FPS");
+
+  useEffect(() => {
+    const load = async () => {
+      setLoadingOrders(true);
+      try {
+        const r = await fetch(`${API_URL}/orders/?status=pending&limit=100`, {
+          headers: { Authorization: `Bearer ${token()}` },
+        });
+        if (!r.ok) throw new Error();
+        const data = await r.json();
+        const raw: any[] = data.results ?? data;
+        setOrders(raw.map((o: any) => ({
+          id: String(o.id),
+          orderNumber: o.order_number || "",
+          customerName: o.shipping_address
+            ? `${o.shipping_address.first_name || ""} ${o.shipping_address.last_name || ""}`.trim() || o.user?.email || "—"
+            : o.user?.email || "—",
+          customerPhone: o.shipping_address?.phone || "",
+          items: (o.items || []).map((it: any) => ({
+            productId: String(it.product_id || ""),
+            productName: it.product_name || "",
+            quantity: it.quantity,
+            unitPrice: parseFloat(it.unit_price || 0),
+          })),
+          totalAmount: parseFloat(o.total_amount || 0),
+          deliveryCost: parseFloat(o.delivery_cost || 0),
+          createdAt: o.created_at || "",
+        })));
+      } catch {}
+      finally { setLoadingOrders(false); }
+    };
+    load();
+  }, []);
+
+  const selectOrder = async (order: PrepOrder) => {
+    setSelectedOrder(order);
+    setLoadingBatches(true);
+
+    const init: PrepItem[] = order.items.map((item, idx) => ({
+      itemIndex: idx,
+      productId: item.productId,
+      productName: item.productName,
+      needed: item.quantity,
+      batchId: null,
+      batchDot: null,
+      qty: item.quantity,
+      discount: 0,
+      confirmed: false,
+    }));
+
+    // Restore saved state
+    try {
+      const saved = localStorage.getItem(`order_prep_${order.id}`);
+      if (saved) {
+        const savedArr: PrepItem[] = JSON.parse(saved);
+        savedArr.forEach(sa => {
+          const a = init.find(x => x.itemIndex === sa.itemIndex);
+          if (a) Object.assign(a, { batchId: sa.batchId, batchDot: sa.batchDot, qty: sa.qty, discount: sa.discount, confirmed: sa.confirmed });
+        });
+      }
+    } catch {}
+
+    setAssignments(init);
+
+    // Load DOT batches for all products
+    const productIds = [...new Set(order.items.map(i => i.productId).filter(Boolean))];
+    const batchMap: Record<string, DotBatch[]> = {};
+    await Promise.all(productIds.map(async (pid) => {
+      try {
+        const r = await fetch(`${API_URL}/admin/products/${pid}/dot-batches/`, {
+          headers: { Authorization: `Bearer ${token()}` },
+        });
+        batchMap[pid] = r.ok ? await r.json() : [];
+      } catch { batchMap[pid] = []; }
+    }));
+    setBatchesByProduct(batchMap);
+    setLoadingBatches(false);
+  };
+
+  const save = (orderId: string, next: PrepItem[]) =>
+    localStorage.setItem(`order_prep_${orderId}`, JSON.stringify(next));
+
+  const updateItem = (idx: number, updates: Partial<PrepItem>) => {
+    setAssignments(prev => {
+      const next = prev.map(a => a.itemIndex === idx ? { ...a, ...updates } : a);
+      if (selectedOrder) save(selectedOrder.id, next);
+      return next;
+    });
+  };
+
+  const allDone = assignments.length > 0 && assignments.every(a => a.confirmed);
+  const doneCount = assignments.filter(a => a.confirmed).length;
+
+  const fmtCurrency = (n: number) =>
+    new Intl.NumberFormat("fr-FR", { minimumFractionDigits: 3, maximumFractionDigits: 3 }).format(n) + " DT";
+
+  return (
+    <motion.div
+      initial={{ x: "100%" }} animate={{ x: 0 }} exit={{ x: "100%" }}
+      transition={{ type: "spring", damping: 30, stiffness: 300 }}
+      className="fixed top-0 right-0 h-full w-full max-w-lg bg-white shadow-2xl z-50 flex flex-col"
+    >
+      {/* Header */}
+      <div className="flex items-center justify-between px-5 py-4 border-b bg-blue-50">
+        <div>
+          <h2 className="font-bold text-gray-900 flex items-center gap-2">
+            <ClipboardList className="h-4 w-4 text-blue-600" />
+            Préparer une commande
+          </h2>
+          <p className="text-xs text-gray-500 mt-0.5">Assignez les lots DOT avant confirmation</p>
+        </div>
+        <button onClick={onClose} className="text-gray-400 hover:text-gray-700 p-1 rounded hover:bg-gray-100">
+          <X className="h-5 w-5" />
+        </button>
+      </div>
+
+      <div className="flex-1 overflow-y-auto px-5 py-4 space-y-4">
+        {/* Order selector */}
+        <div>
+          <label className="text-xs font-semibold text-gray-600 uppercase tracking-wide block mb-1.5">
+            Commande en attente
+          </label>
+          {loadingOrders ? (
+            <div className="flex items-center gap-2 text-sm text-gray-400 py-2">
+              <Loader2 className="h-4 w-4 animate-spin" /> Chargement…
+            </div>
+          ) : orders.length === 0 ? (
+            <p className="text-sm text-gray-400 py-2">Aucune commande en attente</p>
+          ) : (
+            <select
+              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400 bg-white"
+              value={selectedOrder?.id ?? ""}
+              onChange={(e) => {
+                const o = orders.find(o => o.id === e.target.value);
+                if (o) selectOrder(o);
+                else { setSelectedOrder(null); setAssignments([]); }
+              }}
+            >
+              <option value="">— Sélectionner une commande —</option>
+              {orders.map(o => (
+                <option key={o.id} value={o.id}>
+                  #{fpsNum(o.orderNumber)} · {o.customerName} · {o.items.length} art.
+                </option>
+              ))}
+            </select>
+          )}
+        </div>
+
+        {selectedOrder && (
+          <>
+            {/* Order summary */}
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 text-sm space-y-1.5">
+              <div className="flex justify-between">
+                <span className="text-gray-500">N° commande</span>
+                <span className="font-mono font-bold text-blue-700">#{fpsNum(selectedOrder.orderNumber)}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-gray-500">Client</span>
+                <span className="font-semibold">{selectedOrder.customerName}</span>
+              </div>
+              {selectedOrder.customerPhone && (
+                <div className="flex justify-between">
+                  <span className="text-gray-500">Téléphone</span>
+                  <span>{selectedOrder.customerPhone}</span>
+                </div>
+              )}
+              <div className="flex justify-between">
+                <span className="text-gray-500">Date</span>
+                <span>{selectedOrder.createdAt ? new Date(selectedOrder.createdAt).toLocaleDateString("fr-FR") : "—"}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-gray-500">Total TTC</span>
+                <span className="font-bold">{fmtCurrency(selectedOrder.totalAmount + (selectedOrder.deliveryCost || 0))}</span>
+              </div>
+            </div>
+
+            {/* Items */}
+            <div>
+              <div className="flex items-center justify-between mb-2">
+                <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Produits à préparer</p>
+                <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${
+                  allDone ? "bg-green-100 text-green-700" : "bg-orange-100 text-orange-700"
+                }`}>
+                  {doneCount}/{assignments.length} prêts
+                </span>
+              </div>
+
+              {loadingBatches ? (
+                <div className="flex items-center gap-2 text-sm text-gray-400 py-6 justify-center">
+                  <Loader2 className="h-4 w-4 animate-spin" /> Chargement des lots DOT…
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {assignments.map((asgn) => {
+                    const batches = batchesByProduct[asgn.productId] || [];
+                    const selBatch = batches.find(b => b.id === asgn.batchId);
+                    return (
+                      <div
+                        key={asgn.itemIndex}
+                        className={`rounded-xl border-2 overflow-hidden transition-all ${
+                          asgn.confirmed ? "border-green-400 bg-green-50" : "border-gray-200 bg-white"
+                        }`}
+                      >
+                        {/* Item header */}
+                        <div className="flex items-start gap-3 px-4 py-3">
+                          <div className={`mt-0.5 w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 ${
+                            asgn.confirmed ? "border-green-500 bg-green-500" : "border-gray-300"
+                          }`}>
+                            {asgn.confirmed && <Check className="h-3 w-3 text-white" />}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="font-semibold text-sm text-gray-900 leading-snug">{asgn.productName}</p>
+                            <p className="text-xs text-gray-500 mt-0.5">
+                              Qté commandée : <span className="font-bold text-gray-700">{asgn.needed}</span>
+                            </p>
+                            {asgn.confirmed && selBatch && (
+                              <p className="text-xs text-green-700 mt-1 font-medium">
+                                ✓ DOT {selBatch.dot} · {asgn.qty} unité(s)
+                                {asgn.discount > 0 ? ` · Remise ${asgn.discount}%` : ""}
+                              </p>
+                            )}
+                          </div>
+                        </div>
+
+                        {/* Assignment form */}
+                        {!asgn.confirmed && (
+                          <div className="border-t border-gray-100 bg-gray-50 px-4 py-3 space-y-2.5">
+                            {/* Batch */}
+                            <div>
+                              <label className="text-xs font-medium text-gray-600 block mb-1">Lot DOT</label>
+                              {batches.length === 0 ? (
+                                <p className="text-xs text-red-500 bg-red-50 border border-red-200 rounded px-2 py-1">
+                                  Aucun lot dispo — ajoutez du stock via Gestion DOT
+                                </p>
+                              ) : (
+                                <select
+                                  className="w-full border border-gray-300 rounded-lg px-2 py-1.5 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-400"
+                                  value={asgn.batchId ?? ""}
+                                  onChange={(e) => {
+                                    const b = batches.find(b => b.id === parseInt(e.target.value));
+                                    updateItem(asgn.itemIndex, { batchId: b?.id ?? null, batchDot: b?.dot ?? null });
+                                  }}
+                                >
+                                  <option value="">— Sélectionner un lot —</option>
+                                  {batches.map(b => (
+                                    <option key={b.id} value={b.id} disabled={b.quantity < 1}>
+                                      DOT {b.dot} · {b.quantity} dispo{b.quantity < asgn.needed ? " ⚠ insuffisant" : ""}
+                                    </option>
+                                  ))}
+                                </select>
+                              )}
+                            </div>
+
+                            {/* Qty */}
+                            <div className="flex items-center gap-3">
+                              <label className="text-xs font-medium text-gray-600 w-20 flex-shrink-0">Quantité</label>
+                              <div className="flex items-center gap-1.5">
+                                <button
+                                  onClick={() => updateItem(asgn.itemIndex, { qty: Math.max(1, asgn.qty - 1) })}
+                                  className="w-6 h-6 rounded border border-gray-300 bg-white flex items-center justify-center text-xs font-bold hover:bg-gray-100"
+                                >−</button>
+                                <input
+                                  type="number" min={1} max={selBatch?.quantity ?? asgn.needed}
+                                  value={asgn.qty}
+                                  onChange={(e) => {
+                                    const v = parseInt(e.target.value);
+                                    if (!isNaN(v)) updateItem(asgn.itemIndex, { qty: Math.max(1, v) });
+                                  }}
+                                  className="w-12 text-center border border-gray-300 rounded px-1 py-0.5 text-sm font-bold focus:outline-none focus:ring-2 focus:ring-blue-400"
+                                />
+                                <button
+                                  onClick={() => {
+                                    const mx = selBatch?.quantity ?? asgn.needed;
+                                    updateItem(asgn.itemIndex, { qty: Math.min(mx, asgn.qty + 1) });
+                                  }}
+                                  className="w-6 h-6 rounded border border-gray-300 bg-white flex items-center justify-center text-xs font-bold hover:bg-gray-100"
+                                >+</button>
+                              </div>
+                            </div>
+
+                            {/* Discount */}
+                            <div className="flex items-center gap-3">
+                              <label className="text-xs font-medium text-gray-600 w-20 flex-shrink-0">Remise (%)</label>
+                              <input
+                                type="number" min={0} max={100} value={asgn.discount}
+                                onChange={(e) => {
+                                  const v = parseInt(e.target.value);
+                                  updateItem(asgn.itemIndex, { discount: isNaN(v) ? 0 : Math.min(100, Math.max(0, v)) });
+                                }}
+                                className="w-14 text-center border border-gray-300 rounded px-1 py-0.5 text-sm font-bold focus:outline-none focus:ring-2 focus:ring-blue-400"
+                                placeholder="0"
+                              />
+                              <span className="text-xs text-gray-400">%</span>
+                            </div>
+
+                            {/* Validate */}
+                            <button
+                              onClick={() => {
+                                if (!asgn.batchId) return;
+                                updateItem(asgn.itemIndex, { confirmed: true });
+                              }}
+                              disabled={!asgn.batchId}
+                              className="w-full py-1.5 rounded-lg text-sm font-bold bg-blue-600 hover:bg-blue-700 text-white disabled:opacity-40 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
+                            >
+                              <Check className="h-3.5 w-3.5" /> Valider ce produit
+                            </button>
+                          </div>
+                        )}
+
+                        {/* Edit confirmed */}
+                        {asgn.confirmed && (
+                          <div className="border-t border-green-200 px-4 py-2 flex justify-end">
+                            <button
+                              onClick={() => updateItem(asgn.itemIndex, { confirmed: false })}
+                              className="text-xs text-gray-400 hover:text-gray-700 underline"
+                            >
+                              Modifier
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          </>
+        )}
+      </div>
+
+      {/* Bottom bar */}
+      <div className="flex-shrink-0 border-t border-blue-200 bg-blue-50 px-5 py-3 flex items-center justify-between gap-3">
+        <span className="text-xs text-blue-700 flex-1">
+          {!selectedOrder
+            ? "Sélectionnez une commande pour commencer"
+            : allDone
+            ? "✓ Tous les produits sont prêts — allez confirmer"
+            : `${doneCount}/${assignments.length} produit(s) assigné(s)`}
+        </span>
+        {selectedOrder && (
+          <Button
+            onClick={() => { router.push("/admin/commandes"); onClose(); }}
+            disabled={!allDone}
+            className="bg-blue-600 hover:bg-blue-700 text-white font-bold shadow-sm disabled:opacity-40 whitespace-nowrap"
+          >
+            Confirmer dans Commandes →
+          </Button>
+        )}
+      </div>
+    </motion.div>
+  );
+}
+
 /* ═══════════════════════════════════════════════════════════
    Page principale
 ═══════════════════════════════════════════════════════════ */
@@ -590,6 +980,7 @@ export default function StockManagementPage() {
   }>({ isOpen: false, productId: null, change: 0, productName: "" });
 
   const [pagination, setPagination] = useState({ page: 1, limit: 20, total: 0 });
+  const [showOrderPrep, setShowOrderPrep] = useState(false);
 
   const { user } = useAuth();
   const router = useRouter();
@@ -766,6 +1157,15 @@ export default function StockManagementPage() {
         <h1 className="text-2xl font-bold text-gray-900">Gestion du stock</h1>
         <div className="flex items-center gap-2">
           <Badge variant="secondary" className="text-sm">{pagination.total} produits</Badge>
+          <Button
+            variant="outline"
+            size="sm"
+            className="gap-2 border-blue-400 text-blue-700 hover:bg-blue-50"
+            onClick={() => setShowOrderPrep(true)}
+          >
+            <ClipboardList className="h-4 w-4" />
+            Préparer commande
+          </Button>
           <Button variant="outline" size="sm" className="gap-2" onClick={handleExportStock}>
             <FileDown className="h-4 w-4" />
             Exporter (Excel)
@@ -938,6 +1338,20 @@ export default function StockManagementPage() {
                 </div>
               </motion.div>
             </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* Panneau Préparer commande */}
+        <AnimatePresence>
+          {showOrderPrep && (
+            <>
+              <motion.div
+                initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+                className="fixed inset-0 bg-black/40 z-40"
+                onClick={() => setShowOrderPrep(false)}
+              />
+              <OrderPrepPanel onClose={() => setShowOrderPrep(false)} />
+            </>
           )}
         </AnimatePresence>
 

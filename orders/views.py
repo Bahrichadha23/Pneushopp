@@ -484,6 +484,15 @@ def confirm_with_dot(request, pk):
                 except Product.DoesNotExist:
                     pass
 
+                # Save discount to order item if provided
+                discount = assignment.get('discount', 0)
+                if discount:
+                    from decimal import Decimal
+                    OrderItem.objects.filter(
+                        order=order,
+                        product_id=str(product_id)
+                    ).update(discount=Decimal(str(discount)))
+
             # Set order status without triggering the automatic stock decrement
             # (stock was already decremented via DOT batches above)
             order.status = 'confirmed'

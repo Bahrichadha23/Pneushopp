@@ -286,9 +286,9 @@ export async function handleDownloadInvoice(order: any) {
 
 
   // === Vertical Totals table (right side, inline with QUATRE box) ===
-  const totals = [
+  const totals: [string, string][] = [
     ["TOTAL HT", totalHT.toFixed(3)],
-    ["TOTAL REMISE", totalRemise.toFixed(3)],
+    ...(totalRemise > 0.001 ? [["TOTAL REMISE", totalRemise.toFixed(3)] as [string, string]] : []),
     ["FRAIS LIVRAISON", deliveryCost.toFixed(3)],
     ["TOTAL NET HT", netHT.toFixed(3)],
     ["TOTAL T.V.A", totalTVA.toFixed(3)],
@@ -349,10 +349,11 @@ export default function OrdersTable({
   // DOT confirmation modal state
   const [dotConfirmOrder, setDotConfirmOrder] = useState<Order | null>(null);
   const [dotBatches, setDotBatches] = useState<Record<string, DotBatch[]>>({});
-  const [dotSelections, setDotSelections] = useState<Record<number, { batchId: number; qty: number }>>({});
+  const [dotSelections, setDotSelections] = useState<Record<number, { batchId: number; qty: number; discount?: number }>>({});
   const [loadingDotBatches, setLoadingDotBatches] = useState(false);
   const [confirmingDot, setConfirmingDot] = useState(false);
   const [dotConfirmError, setDotConfirmError] = useState<string | null>(null);
+  const [preFilledFromPrep, setPreFilledFromPrep] = useState(false);
   const [creatingPurchaseOrder, setCreatingPurchaseOrder] = useState<
     string | null
   >(null);
@@ -406,9 +407,27 @@ export default function OrdersTable({
 
   const handleOpenDotConfirm = async (order: Order) => {
     setDotConfirmOrder(order);
-    setDotSelections({});
     setDotConfirmError(null);
     setLoadingDotBatches(true);
+
+    // Check for pre-assigned DOTs from OrderPrepPanel
+    let preSelections: Record<number, { batchId: number; qty: number; discount?: number }> = {};
+    let hasPrepData = false;
+    try {
+      const saved = localStorage.getItem(`order_prep_${order.id}`);
+      if (saved) {
+        const savedArr: Array<{ itemIndex: number; batchId: number | null; qty: number; discount: number; confirmed: boolean }> = JSON.parse(saved);
+        savedArr.forEach(sa => {
+          if (sa.confirmed && sa.batchId) {
+            preSelections[sa.itemIndex] = { batchId: sa.batchId, qty: sa.qty, discount: sa.discount };
+            hasPrepData = true;
+          }
+        });
+      }
+    } catch {}
+
+    setDotSelections(preSelections);
+    setPreFilledFromPrep(hasPrepData);
 
     const batchMap: Record<string, DotBatch[]> = {};
     const uniqueProductIds = [...new Set(order.items.map((item) => item.productId).filter(Boolean))];
@@ -444,6 +463,7 @@ export default function OrdersTable({
           product_id: parseInt(item.productId) || item.productId,
           batch_id: sel?.batchId,
           quantity: sel?.qty ?? item.quantity,
+          discount: sel?.discount ?? 0,
         };
       });
 
@@ -461,7 +481,11 @@ export default function OrdersTable({
         throw new Error(data.error || "Erreur lors de la confirmation");
       }
 
+      // Clear prep data from localStorage
+      localStorage.removeItem(`order_prep_${dotConfirmOrder.id}`);
+
       setDotConfirmOrder(null);
+      setPreFilledFromPrep(false);
       // Notify parent to refresh orders (status is now confirmed server-side)
       onUpdateStatus(dotConfirmOrder.id, "confirmed");
     } catch (err: any) {
@@ -836,7 +860,7 @@ export default function OrdersTable({
             <motion.div
               initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
               className="absolute inset-0 bg-black/50"
-              onClick={() => { if (!confirmingDot) setDotConfirmOrder(null); }}
+              onClick={() => { if (!confirmingDot) { setDotConfirmOrder(null); setPreFilledFromPrep(false); } }}
             />
             <motion.div
               initial={{ opacity: 0, scale: 0.95, y: 20 }}
@@ -856,7 +880,7 @@ export default function OrdersTable({
                   </p>
                 </div>
                 <button
-                  onClick={() => { if (!confirmingDot) setDotConfirmOrder(null); }}
+                  onClick={() => { if (!confirmingDot) { setDotConfirmOrder(null); setPreFilledFromPrep(false); } }}
                   className="text-gray-400 hover:text-gray-600"
                 >
                   <X className="h-5 w-5" />
@@ -865,6 +889,12 @@ export default function OrdersTable({
 
               {/* Modal Body */}
               <div className="flex-1 overflow-y-auto px-6 py-4 space-y-4">
+                {preFilledFromPrep && (
+                  <div className="text-sm text-blue-800 bg-blue-50 border border-blue-200 rounded-lg px-4 py-3 flex items-center gap-2">
+                    <Check className="h-4 w-4 text-blue-600 flex-shrink-0" />
+                    Lots DOT pré-assignés depuis la préparation stock. Vérifiez et confirmez.
+                  </div>
+                )}
                 <div className="text-sm text-yellow-800 bg-yellow-50 border border-yellow-200 rounded-lg px-4 py-3">
                   Sélectionnez un lot DOT pour chaque article. Le stock sera décrémenté automatiquement à la confirmation.
                 </div>
@@ -924,6 +954,7 @@ export default function OrdersTable({
                                       [idx]: {
                                         batchId: batch.id,
                                         qty: Math.min(item.quantity, batch.quantity),
+                                        discount: prev[idx]?.discount ?? 0,
                                       },
                                     }));
                                   } else {
@@ -946,8 +977,8 @@ export default function OrdersTable({
                               </select>
 
                               {selection && selectedBatch && (
-                                <div className="flex items-center gap-3">
-                                  <label className="text-xs text-gray-600 flex-shrink-0">Qté à déduire :</label>
+                                <div className="flex flex-wrap items-center gap-3">
+                                  <label className="text-xs text-gray-600 flex-shrink-0">Qté :</label>
                                   <input
                                     type="number"
                                     min={1}
@@ -968,9 +999,23 @@ export default function OrdersTable({
                                         }));
                                       }
                                     }}
-                                    className="w-20 border border-gray-300 rounded px-2 py-1 text-sm text-center focus:outline-none focus:ring-2 focus:ring-yellow-400"
+                                    className="w-16 border border-gray-300 rounded px-2 py-1 text-sm text-center focus:outline-none focus:ring-2 focus:ring-yellow-400"
                                   />
                                   <span className="text-xs text-gray-400">/ {selectedBatch.quantity} dispo</span>
+                                  <label className="text-xs text-gray-600 flex-shrink-0 ml-2">Remise&nbsp;:</label>
+                                  <input
+                                    type="number" min={0} max={100}
+                                    value={selection.discount ?? 0}
+                                    onChange={(e) => {
+                                      const v = parseInt(e.target.value);
+                                      setDotSelections((prev) => ({
+                                        ...prev,
+                                        [idx]: { ...prev[idx], discount: isNaN(v) ? 0 : Math.min(100, Math.max(0, v)) },
+                                      }));
+                                    }}
+                                    className="w-14 border border-gray-300 rounded px-2 py-1 text-sm text-center focus:outline-none focus:ring-2 focus:ring-yellow-400"
+                                  />
+                                  <span className="text-xs text-gray-400">%</span>
                                 </div>
                               )}
                             </div>
