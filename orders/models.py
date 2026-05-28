@@ -1,14 +1,12 @@
 import os
 from django.db import models
 from django.conf import settings
-from django.core.files.storage import FileSystemStorage
 
 
 def _sav_storage():
-    return FileSystemStorage(
-        location=os.path.join(settings.BASE_DIR, 'media'),
-        base_url='/media/'
-    )
+    """Use Cloudinary so SAV files are stored on the CDN, not on the server filesystem."""
+    from cloudinary_storage.storage import MediaCloudinaryStorage
+    return MediaCloudinaryStorage()
 
 
 class Order(models.Model):

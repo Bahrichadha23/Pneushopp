@@ -251,7 +251,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
 import { UserForm } from './user-form';
-import { Plus, Pencil, Trash2 } from 'lucide-react';
+import { Plus, Pencil, Trash2, Power } from 'lucide-react';
 import { API_URL } from '@/lib/config';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 
@@ -265,6 +265,7 @@ interface User {
     address: string;
     role: 'admin' | 'purchasing' | 'sales';
     is_verified: boolean;
+    is_active: boolean;
     is_staff: boolean;
     is_superuser: boolean;
     telephone: string;
@@ -434,6 +435,25 @@ export function UsersList() {
         }
     };
 
+    const handleToggleActive = async (user: User) => {
+        try {
+            const token = localStorage.getItem('access_token');
+            const res = await fetch(`${API_URL}/accounts/admin/toggle-user/${user.id}/`, {
+                method: 'POST',
+                headers: { 'Authorization': `Bearer ${token}` },
+            });
+            if (!res.ok) throw new Error('Erreur');
+            const data = await res.json();
+            toast({
+                title: data.is_active ? 'Compte activé' : 'Compte désactivé',
+                description: `${user.email} ${data.is_active ? 'est maintenant actif' : 'a été désactivé'}`,
+            });
+            fetchUsers();
+        } catch {
+            toast({ title: 'Erreur', description: 'Impossible de modifier le statut', variant: 'destructive' });
+        }
+    };
+
     const getRoleBadge = (role: string) => {
         const roleMap: Record<string, { label: string; variant: 'destructive' | 'secondary' | 'default' | 'outline' }> = {
             admin: { label: 'Administrateur', variant: 'destructive' },
@@ -536,6 +556,7 @@ export function UsersList() {
                                         <TableHead>Nom</TableHead>
                                         <TableHead>Email</TableHead>
                                         <TableHead>Rôle</TableHead>
+                                        <TableHead>Statut</TableHead>
                                         <TableHead className="text-right">Actions</TableHead>
                                     </TableRow>
                                 </TableHeader>
@@ -548,8 +569,22 @@ export function UsersList() {
                                                 </TableCell>
                                                 <TableCell>{user.email}</TableCell>
                                                 <TableCell>{getRoleBadge(user.role)}</TableCell>
+                                                <TableCell>
+                                                    <Badge variant={user.is_active !== false ? 'default' : 'outline'}
+                                                        className={user.is_active !== false ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}>
+                                                        {user.is_active !== false ? 'Actif' : 'Désactivé'}
+                                                    </Badge>
+                                                </TableCell>
                                                 <TableCell className="text-right">
                                                     <div className="flex justify-end space-x-2">
+                                                        <Button
+                                                            variant="ghost"
+                                                            size="icon"
+                                                            title={user.is_active !== false ? 'Désactiver' : 'Activer'}
+                                                            onClick={() => handleToggleActive(user)}
+                                                        >
+                                                            <Power className={`h-4 w-4 ${user.is_active !== false ? 'text-green-600' : 'text-gray-400'}`} />
+                                                        </Button>
                                                         <Button
                                                             variant="ghost"
                                                             size="icon"
@@ -570,7 +605,7 @@ export function UsersList() {
                                         ))
                                     ) : (
                                         <TableRow>
-                                            <TableCell colSpan={4} className="text-center py-4">
+                                            <TableCell colSpan={5} className="text-center py-4">
                                                 Aucun utilisateur trouvé
                                             </TableCell>
                                         </TableRow>

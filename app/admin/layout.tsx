@@ -33,6 +33,7 @@ const ROUTE_PERMISSIONS: { pattern: RegExp; roles: string[] }[] = [
   { pattern: /^\/admin\/rapports/, roles: ["admin"] },
   { pattern: /^\/admin\/parametres/, roles: ["admin"] },
   { pattern: /^\/admin\/Utilisateurs/, roles: ["admin"] },
+  { pattern: /^\/admin\/journal/, roles: ["admin"] },
 ];
 
 function isRouteAllowed(pathname: string, role: string | undefined): boolean {

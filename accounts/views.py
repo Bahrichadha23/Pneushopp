@@ -13,9 +13,28 @@ from django.utils.encoding import force_bytes
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 from django.http import HttpResponse
 
-from .models import CustomUser
+from .models import CustomUser, UserActivityLog
 from .serializers import UserRegistrationSerializer, UserLoginSerializer, UserSerializer
 from .email_utils import send_verification_email, send_welcome_email, send_password_reset_email
+
+
+def _log_activity(user, action, description, request=None, target_email=''):
+    """Helper to create a UserActivityLog entry."""
+    ip = None
+    if request:
+        x_forwarded = request.META.get('HTTP_X_FORWARDED_FOR')
+        ip = x_forwarded.split(',')[0].strip() if x_forwarded else request.META.get('REMOTE_ADDR')
+    UserActivityLog.objects.create(
+        user=user,
+        action=action,
+        description=description,
+        target_user_email=target_email,
+        ip_address=ip,
+    )
+
+
+def _is_admin(user):
+    return getattr(user, 'role', None) == 'admin' or user.is_superuser
 
 
 def get_frontend_url(request):
@@ -91,6 +110,9 @@ def login_view(request):
     serializer.is_valid(raise_exception=True)
     user = serializer.validated_data['user']
     refresh = RefreshToken.for_user(user)
+    # Log login only for staff/admin accounts
+    if user.role not in ('customer',):
+        _log_activity(user, 'login', f'Connexion au back-office', request=request)
     return Response({
         'refresh': str(refresh),
         'access': str(refresh.access_token),
@@ -244,22 +266,38 @@ def create_user(request):
         return Response({'error': 'You do not have permission to perform this action'}, status=status.HTTP_403_FORBIDDEN)
 
     role = request.data.get('role')
-    if role not in ('purchasing', 'sales', 'responsable_achats'):
-        return Response({'error': 'You can only create purchasing, sales or responsable_achats accounts'}, status=status.HTTP_400_BAD_REQUEST)
+    if role not in ('purchasing', 'sales', 'responsable_achats', 'admin'):
+        return Response({'error': 'Rôle invalide'}, status=status.HTTP_400_BAD_REQUEST)
 
     data = request.data.copy()
     data['is_verified'] = True
+    # Map camelCase firstName/lastName to Django first_name/last_name
+    if 'firstName' in data and 'first_name' not in data:
+        data['first_name'] = data['firstName']
+    if 'lastName' in data and 'last_name' not in data:
+        data['last_name'] = data['lastName']
+    if 'first_name' not in data:
+        data['first_name'] = ''
+    if 'last_name' not in data:
+        data['last_name'] = ''
+    if 'username' not in data:
+        data['username'] = data.get('email', '')
 
     serializer = UserRegistrationSerializer(data=data)
     if serializer.is_valid():
         new_user = serializer.save()
         new_user.role = role
         new_user.is_verified = True
+        new_user.is_active = True
         new_user.save()
         try:
             send_welcome_email(new_user)
         except Exception as e:
             print(f'Error sending welcome email: {str(e)}')
+
+        _log_activity(user, 'create_user',
+                      f'Création du compte {role} pour {new_user.email}',
+                      request=request, target_email=new_user.email)
 
         response_data = UserSerializer(new_user).data
         return Response({**response_data, 'message': f'{role.capitalize()} account created successfully'}, status=status.HTTP_201_CREATED)
@@ -288,7 +326,15 @@ def update_user(request, user_id):
     data = request.data.copy()
     password = data.pop('password', None)
 
-    update_data = {k: v for k, v in data.items()}
+    # Map camelCase to snake_case field names
+    field_map = {'firstName': 'first_name', 'lastName': 'last_name'}
+    update_data = {}
+    for k, v in data.items():
+        mapped_key = field_map.get(k, k)
+        # Only set fields that exist on the model
+        if hasattr(target_user, mapped_key):
+            update_data[mapped_key] = v
+
     for field, value in update_data.items():
         setattr(target_user, field, value)
 
@@ -296,6 +342,9 @@ def update_user(request, user_id):
         target_user.set_password(password)
 
     target_user.save()
+    _log_activity(user, 'update_user',
+                  f'Modification du compte {target_user.email}',
+                  request=request, target_email=target_user.email)
     return Response({'message': 'User updated successfully', **UserSerializer(target_user).data})
 
 
@@ -317,5 +366,65 @@ def delete_user(request, user_id):
     if target_user.is_superuser:
         return Response({'error': 'Cannot delete superuser account'}, status=status.HTTP_400_BAD_REQUEST)
 
+    email = target_user.email
     target_user.delete()
+    _log_activity(user, 'delete_user',
+                  f'Suppression du compte {email}',
+                  request=request, target_email=email)
     return Response({'message': 'User deleted successfully'}, status=status.HTTP_204_NO_CONTENT)
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def toggle_user_active(request, user_id):
+    """PATCH /api/accounts/admin/toggle-user/<id>/ — Activate or deactivate a user."""
+    if not _is_admin(request.user):
+        return Response({'error': 'Non autorisé'}, status=status.HTTP_403_FORBIDDEN)
+
+    try:
+        target_user = CustomUser.objects.get(pk=user_id)
+    except CustomUser.DoesNotExist:
+        return Response({'error': 'Utilisateur introuvable'}, status=status.HTTP_404_NOT_FOUND)
+
+    if target_user == request.user:
+        return Response({'error': 'Impossible de modifier votre propre compte'}, status=status.HTTP_400_BAD_REQUEST)
+
+    if target_user.is_superuser:
+        return Response({'error': 'Impossible de modifier un superutilisateur'}, status=status.HTTP_400_BAD_REQUEST)
+
+    target_user.is_active = not target_user.is_active
+    target_user.save(update_fields=['is_active'])
+
+    action_label = 'activé' if target_user.is_active else 'désactivé'
+    _log_activity(request.user, 'toggle_user',
+                  f'Compte {target_user.email} {action_label}',
+                  request=request, target_email=target_user.email)
+
+    return Response({'message': f'Compte {action_label}', 'is_active': target_user.is_active})
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def list_activity_logs(request):
+    """GET /api/accounts/admin/journal/ — List staff activity logs (admin only)."""
+    if not _is_admin(request.user):
+        return Response({'error': 'Non autorisé'}, status=status.HTTP_403_FORBIDDEN)
+
+    logs = UserActivityLog.objects.select_related('user').order_by('-created_at')[:500]
+    data = [
+        {
+            'id': log.id,
+            'user_email': log.user.email if log.user else '—',
+            'user_name': (
+                f'{log.user.first_name} {log.user.last_name}'.strip() or log.user.email
+            ) if log.user else '—',
+            'action': log.action,
+            'action_label': log.get_action_display(),
+            'description': log.description,
+            'target_user_email': log.target_user_email,
+            'ip_address': log.ip_address,
+            'created_at': log.created_at.isoformat(),
+        }
+        for log in logs
+    ]
+    return Response(data)

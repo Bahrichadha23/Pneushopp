@@ -28,6 +28,7 @@ import {
   Tag,
   RotateCcw,
   Shield,
+  BookOpen,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -103,6 +104,7 @@ const MENU_ADMIN: MenuItem[] = [
   { title: "Rapports",              href: "/admin/rapports",     icon: BarChart3 },
   { title: "Paramètres",            href: "/admin/parametres",   icon: Settings },
   { title: "Personnel Utilisateurs",href: "/admin/Utilisateurs", icon: Users },
+  { title: "Journal d'activité",    href: "/admin/journal",      icon: BookOpen },
   { title: "Support",               href: "/admin/communication",icon: MessageSquare },
 ];
 

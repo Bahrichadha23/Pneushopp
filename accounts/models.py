@@ -55,3 +55,37 @@ class CustomUser(AbstractUser):
 
     def __str__(self):
         return self.email
+
+
+class UserActivityLog(models.Model):
+    """Journal d'activité des utilisateurs du back-office."""
+    ACTION_CHOICES = [
+        ('login', 'Connexion'),
+        ('logout', 'Déconnexion'),
+        ('create_user', 'Création utilisateur'),
+        ('update_user', 'Modification utilisateur'),
+        ('delete_user', 'Suppression utilisateur'),
+        ('toggle_user', 'Activation/Désactivation utilisateur'),
+        ('view', 'Consultation'),
+        ('other', 'Autre'),
+    ]
+
+    user = models.ForeignKey(
+        'accounts.CustomUser',
+        on_delete=models.SET_NULL,
+        null=True,
+        related_name='activity_logs',
+    )
+    action = models.CharField(max_length=50, choices=ACTION_CHOICES)
+    description = models.TextField()
+    target_user_email = models.CharField(max_length=255, blank=True)
+    ip_address = models.GenericIPAddressField(null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-created_at']
+        verbose_name = "Journal d'activité"
+        verbose_name_plural = "Journaux d'activité"
+
+    def __str__(self):
+        return f'{self.user} — {self.action} — {self.created_at:%d/%m/%Y %H:%M}'

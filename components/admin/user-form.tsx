@@ -182,8 +182,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Loader2 } from 'lucide-react';
-import { useEffect } from 'react';
+import { Loader2, Eye, EyeOff } from 'lucide-react';
+import { useEffect, useState } from 'react';
 
 // Schema validation with improved French validation messages
 const baseUserSchema = {
@@ -250,6 +250,8 @@ interface UserFormProps {
 export function UserForm({ onSubmit, isLoading, initialData }: UserFormProps) {
     const isEdit = !!initialData?.id;
     const schema = isEdit ? updateUserSchema : createUserSchema;
+    const [showPassword, setShowPassword] = useState(false);
+    const [showConfirm, setShowConfirm] = useState(false);
 
     const {
         register,
@@ -391,14 +393,24 @@ export function UserForm({ onSubmit, isLoading, initialData }: UserFormProps) {
                 {/* Password */}
                 <div className="space-y-2">
                     <Label htmlFor="password">Mot de passe {!isEdit && '*'}</Label>
-                    <Input
-                        id="password"
-                        type="password"
-                        {...register('password')}
-                        placeholder="••••••••"
-                        disabled={isLoading}
-                        className={errors.password ? 'border-red-500' : ''}
-                    />
+                    <div className="relative">
+                        <Input
+                            id="password"
+                            type={showPassword ? 'text' : 'password'}
+                            {...register('password')}
+                            placeholder="••••••••"
+                            disabled={isLoading}
+                            className={errors.password ? 'border-red-500 pr-10' : 'pr-10'}
+                        />
+                        <button
+                            type="button"
+                            onClick={() => setShowPassword(v => !v)}
+                            className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                            tabIndex={-1}
+                        >
+                            {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                        </button>
+                    </div>
                     {errors.password && (
                         <p className="text-sm text-red-500">{errors.password.message}</p>
                     )}
@@ -407,14 +419,24 @@ export function UserForm({ onSubmit, isLoading, initialData }: UserFormProps) {
                 {/* Confirm Password */}
                 <div className="space-y-2">
                     <Label htmlFor="password_confirm">Confirmer le mot de passe {!isEdit && '*'}</Label>
-                    <Input
-                        id="password_confirm"
-                        type="password"
-                        {...register('password_confirm')}
-                        placeholder="••••••••"
-                        disabled={isLoading}
-                        className={errors.password_confirm ? 'border-red-500' : ''}
-                    />
+                    <div className="relative">
+                        <Input
+                            id="password_confirm"
+                            type={showConfirm ? 'text' : 'password'}
+                            {...register('password_confirm')}
+                            placeholder="••••••••"
+                            disabled={isLoading}
+                            className={errors.password_confirm ? 'border-red-500 pr-10' : 'pr-10'}
+                        />
+                        <button
+                            type="button"
+                            onClick={() => setShowConfirm(v => !v)}
+                            className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                            tabIndex={-1}
+                        >
+                            {showConfirm ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                        </button>
+                    </div>
                     {errors.password_confirm && (
                         <p className="text-sm text-red-500">
                             {errors.password_confirm.message}
@@ -443,10 +465,10 @@ export function UserForm({ onSubmit, isLoading, initialData }: UserFormProps) {
                     {isLoading ? (
                         <>
                             <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                            Création...
+                            Enregistrement...
                         </>
                     ) : (
-                        "Créer l'utilisateur"
+                        'Enregistrer'
                     )}
                 </Button>
             </div>
