@@ -224,7 +224,7 @@ function DotPanel({
         <td class="center">${tvaRate}</td>
         <td class="center">${discount}</td>
         <td class="right">${montantHT.toFixed(3)}</td>
-        <td class="right">${(unitTTC * qty).toFixed(3)}</td>
+        <td class="right">${(totalTTC - 1).toFixed(3)}</td>
       </tr></tbody>
     </table>
     <table class="totals-table">
@@ -554,7 +554,10 @@ function DotPanel({
               const batch = batches.find(b => b.id === sellBatchId);
               if (batch) handleSell(batch);
             }}
-            disabled={selling || sellBatchId === null || sellQty < 1}
+            disabled={selling || sellBatchId === null || sellQty < 1 || (() => {
+              const b = batches.find(x => x.id === sellBatchId);
+              return b ? sellQty > b.quantity : false;
+            })()}
             className="bg-yellow-500 hover:bg-yellow-600 text-white font-bold shadow-sm px-6 disabled:opacity-40"
           >
             {selling
