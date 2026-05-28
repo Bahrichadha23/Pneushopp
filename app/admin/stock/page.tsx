@@ -611,7 +611,7 @@ function OrderPrepPanel({ onClose }: { onClose: () => void }) {
     const load = async () => {
       setLoadingOrders(true);
       try {
-        const r = await fetch(`${API_URL}/orders/?status=pending&limit=100`, {
+        const r = await fetch(`${API_URL}/orders/?status=pending&no_pagination=true`, {
           headers: { Authorization: `Bearer ${token()}` },
         });
         if (!r.ok) throw new Error();
@@ -902,12 +902,17 @@ function OrderPrepPanel({ onClose }: { onClose: () => void }) {
                             </div>
 
                             {/* Validate */}
+                            {asgn.batchId && selBatch && asgn.qty > selBatch.quantity && (
+                              <p className="text-xs text-red-600 bg-red-50 border border-red-200 rounded px-2 py-1">
+                                ⚠ Quantité demandée ({asgn.qty}) supérieure au stock disponible ({selBatch.quantity})
+                              </p>
+                            )}
                             <button
                               onClick={() => {
                                 if (!asgn.batchId) return;
                                 updateItem(asgn.itemIndex, { confirmed: true });
                               }}
-                              disabled={!asgn.batchId}
+                              disabled={!asgn.batchId || (!!selBatch && asgn.qty > selBatch.quantity)}
                               className="w-full py-1.5 rounded-lg text-sm font-bold bg-blue-600 hover:bg-blue-700 text-white disabled:opacity-40 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
                             >
                               <Check className="h-3.5 w-3.5" /> Valider ce produit
