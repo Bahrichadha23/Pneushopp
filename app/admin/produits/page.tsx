@@ -29,42 +29,46 @@ const adminProductToProduct = (adminProduct: AdminProduct): Product => {
     all_season: "toutes-saisons",
   } as const;
 
+  // Use designation as the full display name (designation = full product name from import)
+  const displayName = adminProduct.designation || adminProduct.name || "";
+
   return {
     id: adminProduct.id.toString(),
-    slug:
-      adminProduct.slug || adminProduct.name.toLowerCase().replace(/\s+/g, "-"),
-    name: adminProduct.name,
+    slug: adminProduct.slug || displayName.toLowerCase().replace(/\s+/g, "-"),
+    name: displayName,
     brand: adminProduct.brand,
-    model: adminProduct.size || "", // Utiliser size comme model temporairement
+    model: adminProduct.size || "",
     price: parseFloat(adminProduct.price.toString()),
     old_price: adminProduct.old_price
       ? parseFloat(adminProduct.old_price.toString())
       : undefined,
     discount_percentage: adminProduct.discount_percentage,
     image: adminProduct.image || "/placeholder.jpg",
-    images: [
-      new File([], adminProduct.image || "/placeholder.jpg", {
-        type: "image/jpeg",
-      }),
-    ],
-    category: adminProduct.category || ("" as any), // Valeur par défaut
+    images: [],
+    category: adminProduct.category || ("" as any),
     specifications: {
-      width: 225, // Valeurs par défaut car non disponibles dans AdminProduct
-      height: 45,
-      diameter: 17,
-      loadIndex: 91,
-      speedRating: "W",
+      width: 0,
+      height: 0,
+      diameter: 0,
+      loadIndex: 0,
+      speedRating: "",
       season: seasonMap[adminProduct.season] as any,
       specialty: "tourisme" as any,
     },
     stock: adminProduct.stock,
-    description: adminProduct.description,
-    features: [], // Non disponible dans AdminProduct
+    description: adminProduct.description || "",
+    features: [],
     inStock: adminProduct.stock > 0,
-    is_on_sale: adminProduct.is_featured,
-    rating: undefined, // Non disponible dans AdminProduct
+    is_on_sale: adminProduct.is_on_sale || adminProduct.is_featured,
+    rating: undefined,
     reviewCount: 0,
-  };
+    // Pass through all extra fields
+    reference: adminProduct.reference,
+    designation: adminProduct.designation,
+    type: adminProduct.type,
+    emplacement: adminProduct.emplacement,
+    fabrication_date: adminProduct.fabrication_date,
+  } as any;
 };
 
 // Fonction pour convertir Product vers ProductCreateData pour l'API
@@ -308,21 +312,33 @@ export default function ProductsPage() {
     setIsLoading(true);
 
     try {
-      // const createData = productToCreateData(productData, !!editingProduct);
-      const createData = productToCreateData(
-        { ...productData, slug: editingProduct?.slug },
-        !!editingProduct
-      );
-
       if (editingProduct) {
-        // Mise à jour
+        // ── UPDATE: send only changed fields via PATCH ──────────────────────
+        const raw = productData as any;
+        const patchData: Record<string, any> = {
+          name: raw.designation || productData.name || "",
+          designation: raw.designation || productData.name || "",
+          price: productData.price,
+          stock: productData.stock ?? 0,
+          is_active: true,
+        };
+        if (productData.brand) patchData.brand = productData.brand;
+        if (productData.description) patchData.description = productData.description;
+        if (productData.model) patchData.size = productData.model;
+        if (raw.reference !== undefined) patchData.reference = raw.reference;
+        if (raw.emplacement !== undefined) patchData.emplacement = raw.emplacement;
+        if (raw.type !== undefined) patchData.type = raw.type;
+        if (productData.old_price && productData.old_price > (productData.price || 0)) {
+          patchData.old_price = productData.old_price;
+        }
+
         const response = await adminService.updateProduct(
           parseInt(editingProduct.id),
-          createData
+          patchData
         );
 
         if (response.success) {
-          await loadProducts(pagination.page); // Recharger la liste
+          await loadProducts(pagination.page);
           setIsFormOpen(false);
           setEditingProduct(undefined);
           return { success: true };
@@ -331,11 +347,16 @@ export default function ProductsPage() {
           return { success: false, error: response.error };
         }
       } else {
-        // Création
+        // ── CREATE ──────────────────────────────────────────────────────────
+        const createData = productToCreateData(
+          { ...productData, slug: undefined },
+          false
+        );
+
         const response = await adminService.createProduct(createData);
 
         if (response.success) {
-          await loadProducts(pagination.page); // Recharger la liste
+          await loadProducts(pagination.page);
           setIsFormOpen(false);
           setEditingProduct(undefined);
           return { success: true };

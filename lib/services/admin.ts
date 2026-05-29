@@ -86,6 +86,12 @@ export interface AdminProduct {
   is_on_sale: boolean
   discount_percentage: number
   created_at: string
+  // Additional fields returned by the backend
+  reference?: string
+  designation?: string
+  type?: string
+  emplacement?: string
+  fabrication_date?: string
 }
 
 export interface AdminCategory {

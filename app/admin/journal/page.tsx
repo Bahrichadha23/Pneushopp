@@ -8,7 +8,8 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   BookOpen, Loader2, RefreshCw, AlertTriangle,
-  LogIn, UserPlus, UserCog, UserX, Power, Eye, Activity,
+  LogIn, UserPlus, UserCog, UserX, Power,
+  ShoppingCart, Truck, FileText, Package, Wallet, Shield, Activity,
 } from "lucide-react";
 import { API_URL } from "@/lib/config";
 
@@ -25,23 +26,41 @@ interface ActivityLog {
 }
 
 const ACTION_ICONS: Record<string, React.ReactNode> = {
-  login:       <LogIn className="h-4 w-4" />,
-  create_user: <UserPlus className="h-4 w-4" />,
-  update_user: <UserCog className="h-4 w-4" />,
-  delete_user: <UserX className="h-4 w-4" />,
-  toggle_user: <Power className="h-4 w-4" />,
-  view:        <Eye className="h-4 w-4" />,
-  other:       <Activity className="h-4 w-4" />,
+  login:           <LogIn className="h-4 w-4" />,
+  create_user:     <UserPlus className="h-4 w-4" />,
+  update_user:     <UserCog className="h-4 w-4" />,
+  delete_user:     <UserX className="h-4 w-4" />,
+  toggle_user:     <Power className="h-4 w-4" />,
+  confirm_order:   <ShoppingCart className="h-4 w-4" />,
+  cancel_order:    <ShoppingCart className="h-4 w-4" />,
+  create_invoice:  <FileText className="h-4 w-4" />,
+  create_delivery: <Truck className="h-4 w-4" />,
+  update_delivery: <Truck className="h-4 w-4" />,
+  create_bon:      <FileText className="h-4 w-4" />,
+  add_stock:       <Package className="h-4 w-4" />,
+  adjust_stock:    <Package className="h-4 w-4" />,
+  create_purchase: <Wallet className="h-4 w-4" />,
+  sav_update:      <Shield className="h-4 w-4" />,
+  other:           <Activity className="h-4 w-4" />,
 };
 
 const ACTION_COLORS: Record<string, string> = {
-  login:       "bg-blue-100 text-blue-800",
-  create_user: "bg-green-100 text-green-800",
-  update_user: "bg-yellow-100 text-yellow-800",
-  delete_user: "bg-red-100 text-red-800",
-  toggle_user: "bg-purple-100 text-purple-800",
-  view:        "bg-gray-100 text-gray-700",
-  other:       "bg-gray-100 text-gray-700",
+  login:           "bg-blue-100 text-blue-800",
+  create_user:     "bg-green-100 text-green-800",
+  update_user:     "bg-yellow-100 text-yellow-800",
+  delete_user:     "bg-red-100 text-red-800",
+  toggle_user:     "bg-purple-100 text-purple-800",
+  confirm_order:   "bg-emerald-100 text-emerald-800",
+  cancel_order:    "bg-red-100 text-red-800",
+  create_invoice:  "bg-indigo-100 text-indigo-800",
+  create_delivery: "bg-cyan-100 text-cyan-800",
+  update_delivery: "bg-cyan-100 text-cyan-800",
+  create_bon:      "bg-indigo-100 text-indigo-800",
+  add_stock:       "bg-orange-100 text-orange-800",
+  adjust_stock:    "bg-orange-100 text-orange-800",
+  create_purchase: "bg-teal-100 text-teal-800",
+  sav_update:      "bg-pink-100 text-pink-800",
+  other:           "bg-gray-100 text-gray-700",
 };
 
 function formatDate(iso: string) {
@@ -51,13 +70,24 @@ function formatDate(iso: string) {
   });
 }
 
+const FILTER_GROUPS = [
+  { value: "", label: "Toutes" },
+  { value: "login", label: "Connexions" },
+  { value: "confirm_order,cancel_order", label: "Commandes" },
+  { value: "create_delivery,update_delivery", label: "Livraisons" },
+  { value: "add_stock,adjust_stock", label: "Stock" },
+  { value: "create_purchase", label: "Achats" },
+  { value: "sav_update", label: "SAV" },
+  { value: "create_user,update_user,delete_user,toggle_user", label: "Utilisateurs" },
+];
+
 export default function JournalPage() {
   const { user, isLoading } = useAuth();
   const router = useRouter();
   const [logs, setLogs] = useState<ActivityLog[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const [filterAction, setFilterAction] = useState("");
+  const [filterGroup, setFilterGroup] = useState("");
 
   useEffect(() => {
     if (!isLoading && (!user || user.role !== "admin")) {
@@ -95,21 +125,13 @@ export default function JournalPage() {
     );
   }
 
-  const ACTIONS = [
-    { value: "", label: "Toutes les actions" },
-    { value: "login", label: "Connexions" },
-    { value: "create_user", label: "Créations" },
-    { value: "update_user", label: "Modifications" },
-    { value: "delete_user", label: "Suppressions" },
-    { value: "toggle_user", label: "Activations" },
-  ];
-
-  const filtered = filterAction
-    ? logs.filter((l) => l.action === filterAction)
+  const activeActions = filterGroup ? filterGroup.split(",") : [];
+  const filtered = activeActions.length
+    ? logs.filter((l) => activeActions.includes(l.action))
     : logs;
 
   return (
-    <div className="p-6 max-w-5xl mx-auto">
+    <div className="p-6 max-w-6xl mx-auto">
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-3">
@@ -117,7 +139,7 @@ export default function JournalPage() {
           <div>
             <h1 className="text-2xl font-bold">Journal des activités</h1>
             <p className="text-gray-500 text-sm">
-              Historique des actions du back-office ({logs.length} entrées)
+              Actions du back-office — {logs.length} entrée{logs.length !== 1 ? "s" : ""}
             </p>
           </div>
         </div>
@@ -129,17 +151,17 @@ export default function JournalPage() {
 
       {/* Filter chips */}
       <div className="flex items-center gap-2 mb-4 flex-wrap">
-        {ACTIONS.map((a) => (
+        {FILTER_GROUPS.map((g) => (
           <button
-            key={a.value}
-            onClick={() => setFilterAction(a.value)}
+            key={g.value}
+            onClick={() => setFilterGroup(g.value)}
             className={`px-3 py-1 rounded-full text-xs font-medium border transition-colors ${
-              filterAction === a.value
+              filterGroup === g.value
                 ? "bg-yellow-400 border-yellow-400 text-black"
                 : "bg-white border-gray-300 text-gray-600 hover:border-yellow-400"
             }`}
           >
-            {a.label}
+            {g.label}
           </button>
         ))}
       </div>
@@ -148,7 +170,9 @@ export default function JournalPage() {
         <div className="bg-red-50 border border-red-200 text-red-700 rounded-lg px-4 py-3 mb-4 flex items-center gap-2">
           <AlertTriangle className="h-4 w-4" />
           <span>Erreur : {error}</span>
-          <Button size="sm" variant="outline" onClick={loadLogs} className="ml-auto">Réessayer</Button>
+          <Button size="sm" variant="outline" onClick={loadLogs} className="ml-auto">
+            Réessayer
+          </Button>
         </div>
       )}
 
@@ -173,11 +197,11 @@ export default function JournalPage() {
           <table className="w-full text-sm">
             <thead className="bg-gray-50 border-b">
               <tr>
-                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Date</th>
-                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Utilisateur</th>
-                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Action</th>
-                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Détails</th>
-                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase">IP</th>
+                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide">Date</th>
+                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide">Employé</th>
+                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide">Action</th>
+                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide">Détails</th>
+                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide">IP</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
@@ -191,8 +215,12 @@ export default function JournalPage() {
                     <p className="text-xs text-gray-400">{log.user_email}</p>
                   </td>
                   <td className="px-4 py-3">
-                    <Badge className={`${ACTION_COLORS[log.action] || "bg-gray-100 text-gray-700"} flex items-center gap-1 w-fit`}>
-                      {ACTION_ICONS[log.action]}
+                    <Badge
+                      className={`${
+                        ACTION_COLORS[log.action] ?? "bg-gray-100 text-gray-700"
+                      } flex items-center gap-1 w-fit`}
+                    >
+                      {ACTION_ICONS[log.action] ?? <Activity className="h-4 w-4" />}
                       {log.action_label}
                     </Badge>
                   </td>

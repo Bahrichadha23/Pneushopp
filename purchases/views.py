@@ -5,6 +5,7 @@ from rest_framework.permissions import IsAuthenticated
 from django.utils import timezone
 
 from accounts.permanent_permissions import IsAdminOrPurchasing
+from accounts.activity import log_activity
 from .models import PurchaseOrder, PurchaseOrderItem
 from .serializers import PurchaseOrderSerializer, PurchaseOrderItemSerializer, PurchaseOrderCreateSerializer
 
@@ -47,6 +48,14 @@ class PurchaseOrderViewSet(viewsets.ModelViewSet):
         serializer = self.get_serializer(data=request.data, context={'request': request})
         serializer.is_valid(raise_exception=True)
         purchase_order = serializer.save()
+        try:
+            sup = getattr(purchase_order, 'supplier', None)
+            sup_name = sup.name if sup else '—'
+            log_activity(request.user, 'create_purchase',
+                         f'Bon de commande achat #{purchase_order.order_number} créé — fournisseur : {sup_name}',
+                         request=request)
+        except Exception:
+            pass
         return Response(PurchaseOrderSerializer(purchase_order).data, status=status.HTTP_201_CREATED)
 
     @action(detail=True, methods=['post'])
@@ -58,6 +67,12 @@ class PurchaseOrderViewSet(viewsets.ModelViewSet):
         instance.status = 'confirmed'
         instance.confirmed_date = timezone.now()
         instance.save()
+        try:
+            log_activity(request.user, 'create_purchase',
+                         f'Bon de commande achat #{instance.order_number} confirmé',
+                         request=request)
+        except Exception:
+            pass
         return Response(self.get_serializer(instance).data)
 
     @action(detail=True, methods=['post'])
@@ -94,6 +109,12 @@ class PurchaseOrderViewSet(viewsets.ModelViewSet):
                         )
                     except Exception as e:
                         print(f'⚠️ StockBatch non créé pour item {item.id}: {e}')
+        try:
+            log_activity(request.user, 'add_stock',
+                         f'Réception achat #{instance.order_number} — stock mis à jour',
+                         request=request)
+        except Exception:
+            pass
         return Response(self.get_serializer(instance).data)
 
     @action(detail=True, methods=['post'])
@@ -104,6 +125,12 @@ class PurchaseOrderViewSet(viewsets.ModelViewSet):
             return Response({'error': 'Cannot cancel a received order'}, status=status.HTTP_400_BAD_REQUEST)
         instance.status = 'cancelled'
         instance.save()
+        try:
+            log_activity(request.user, 'create_purchase',
+                         f'Bon de commande achat #{instance.order_number} annulé',
+                         request=request)
+        except Exception:
+            pass
         return Response(self.get_serializer(instance).data)
 
     @action(detail=False, methods=['get'])

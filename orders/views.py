@@ -6,6 +6,7 @@ from .models import Delivery, Order, PurchaseOrder, CRIBalance, Avoir
 from .serializers import DeliverySerializer, OrderSerializer, PurchaseOrderSerializer, AvoirSerializer
 from rest_framework.permissions import IsAuthenticated
 from accounts.permanent_permissions import IsAdmin, IsAdminOrSales, IsAdminOrSalesOrOwner
+from accounts.activity import log_activity
 
 
 class OrderDetailView(generics.RetrieveUpdateDestroyAPIView):
@@ -69,6 +70,30 @@ class OrderDetailView(generics.RetrieveUpdateDestroyAPIView):
                 send_delivery_invoice_email(order)
             except Exception as e:
                 print(f'[ORDER UPDATE] Failed to send delivery invoice email: {str(e)}')
+
+        # ── Journal d'activité (staff uniquement) ────────────────────────
+        try:
+            actor = self.request.user
+            is_staff = (
+                actor.is_staff or actor.is_superuser
+                or getattr(actor, 'role', None) in ('admin', 'sales', 'purchasing')
+            )
+            if is_staff and order.status != old_status:
+                STATUS_LABELS = {
+                    'confirmed': 'confirmée', 'processing': 'en traitement',
+                    'shipped': 'expédiée', 'delivered': 'livrée', 'cancelled': 'annulée',
+                }
+                if order.status == 'cancelled':
+                    log_activity(actor, 'cancel_order',
+                                 f'Commande #{order.order_number} annulée',
+                                 request=self.request)
+                elif order.status in ('confirmed', 'processing', 'shipped', 'delivered'):
+                    label = STATUS_LABELS.get(order.status, order.status)
+                    log_activity(actor, 'confirm_order',
+                                 f'Commande #{order.order_number} {label}',
+                                 request=self.request)
+        except Exception:
+            pass
 
     @staticmethod
     def _auto_create_bdc_and_delivery(order):
@@ -204,6 +229,16 @@ class DeliveryViewSet(viewsets.ModelViewSet):
     serializer_class = DeliverySerializer
     permission_classes = [IsAdminOrSales]
 
+    def perform_create(self, serializer):
+        instance = serializer.save()
+        try:
+            ref = instance.numero_suivi or f'#{instance.id}'
+            log_activity(self.request.user, 'create_delivery',
+                         f'Livraison créée ({ref}) — client : {instance.client}',
+                         request=self.request)
+        except Exception:
+            pass
+
     def perform_update(self, serializer):
         instance = serializer.save()
         # Synchroniser date_livraison → date_livraison_prevue sur la commande et le bon de commande
@@ -216,6 +251,13 @@ class DeliveryViewSet(viewsets.ModelViewSet):
                 PurchaseOrder.objects.filter(pk=instance.purchase_order_id).update(
                     date_livraison_prevue=instance.date_livraison
                 )
+        try:
+            ref = instance.numero_suivi or f'#{instance.id}'
+            log_activity(self.request.user, 'update_delivery',
+                         f'Livraison mise à jour ({ref}) → statut : {instance.statut}',
+                         request=self.request)
+        except Exception:
+            pass
 
 
 @api_view(['POST'])
@@ -426,11 +468,23 @@ def warranty_claim_detail_view(request, pk):
     if request.method == 'PATCH':
         if not is_admin:
             return Response({'error': 'Non autorisé'}, status=403)
+        old_status = claim.status
         if 'status' in request.data:
             claim.status = request.data['status']
         if 'admin_notes' in request.data:
             claim.admin_notes = request.data['admin_notes']
         claim.save()
+        try:
+            STATUS_LABELS = {
+                'pending': 'En attente', 'processing': 'En traitement',
+                'resolved': 'Résolu', 'rejected': 'Rejeté',
+            }
+            new_label = STATUS_LABELS.get(claim.status, claim.status)
+            log_activity(request.user, 'sav_update',
+                         f'SAV #{claim.id} ({claim.order_ref}) mis à jour → {new_label}',
+                         request=request)
+        except Exception:
+            pass
 
     return Response(_serialize_claim(claim, request))
 
@@ -502,6 +556,13 @@ def confirm_with_dot(request, pk):
         return Response({'error': str(e)}, status=400)
     except Exception as e:
         return Response({'error': str(e)}, status=500)
+
+    try:
+        log_activity(request.user, 'confirm_order',
+                     f'Commande #{order.order_number} confirmée avec assignation DOT',
+                     request=request)
+    except Exception:
+        pass
 
     return Response({'success': True, 'message': 'Commande confirmée avec assignation DOT'})
 

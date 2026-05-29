@@ -60,14 +60,29 @@ class CustomUser(AbstractUser):
 class UserActivityLog(models.Model):
     """Journal d'activité des utilisateurs du back-office."""
     ACTION_CHOICES = [
-        ('login', 'Connexion'),
-        ('logout', 'Déconnexion'),
-        ('create_user', 'Création utilisateur'),
-        ('update_user', 'Modification utilisateur'),
-        ('delete_user', 'Suppression utilisateur'),
-        ('toggle_user', 'Activation/Désactivation utilisateur'),
-        ('view', 'Consultation'),
-        ('other', 'Autre'),
+        # Authentification
+        ('login',           'Connexion'),
+        ('logout',          'Déconnexion'),
+        # Gestion utilisateurs (admin)
+        ('create_user',     'Création utilisateur'),
+        ('update_user',     'Modification utilisateur'),
+        ('delete_user',     'Suppression utilisateur'),
+        ('toggle_user',     'Activation/Désactivation utilisateur'),
+        # Vente / Commandes (sales)
+        ('confirm_order',   'Commande confirmée'),
+        ('cancel_order',    'Commande annulée'),
+        ('create_invoice',  'Facture générée'),
+        ('create_delivery', 'Livraison créée'),
+        ('update_delivery', 'Livraison mise à jour'),
+        ('create_bon',      'Bon de commande créé'),
+        # Stock / Achats (purchasing)
+        ('add_stock',       'Entrée stock (DOT)'),
+        ('adjust_stock',    'Ajustement stock'),
+        ('create_purchase', "Achat fournisseur créé"),
+        # SAV
+        ('sav_update',      'SAV mis à jour'),
+        # Autre
+        ('other',           'Autre'),
     ]
 
     user = models.ForeignKey(

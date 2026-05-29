@@ -106,11 +106,12 @@ DATABASES = {
     )
 }
 
-# Increase connection timeout for Neon PostgreSQL
-DATABASES['default']['OPTIONS'] = {
-    'connect_timeout': 10,
-    'sslmode': 'require',
-}
+# Increase connection timeout for Neon PostgreSQL (postgres only)
+if DATABASES['default']['ENGINE'] != 'django.db.backends.sqlite3':
+    DATABASES['default']['OPTIONS'] = {
+        'connect_timeout': 10,
+        'sslmode': 'require',
+    }
 
 AUTH_PASSWORD_VALIDATORS = [
     {

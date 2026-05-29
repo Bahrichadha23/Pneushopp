@@ -9,6 +9,7 @@ from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.filters import SearchFilter, OrderingFilter
 
 from accounts.permanent_permissions import IsAdmin, IsAdminOrPurchasing, IsAdminOrSales
+from accounts.activity import log_activity
 from .models import Product, Category, StockMovement, SiteSettings
 from .admin_serializers import (
     AdminProductSerializer, AdminProductCreateUpdateSerializer,
@@ -480,6 +481,12 @@ def add_dot_batch(request, product_id):
         except Exception as log_err:
             print(f'[ADD_BATCH] StockMovement log failed (non-critical): {log_err}')
 
+        try:
+            log_activity(request.user, 'add_stock',
+                         f'Entrée stock : {product.name} — DOT {dot} × {quantity} unité(s)',
+                         request=request)
+        except Exception:
+            pass
         return Response({'success': True, 'new_stock': product.stock, 'batch_id': batch.id})
     except Product.DoesNotExist:
         return Response({'error': 'Produit introuvable'}, status=404)

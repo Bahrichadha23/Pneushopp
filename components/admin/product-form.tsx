@@ -73,62 +73,62 @@ export default function ProductForm({
   // Initialiser le formulaire avec les données du produit existant
   useEffect(() => {
     if (product) {
+      // The backend returns all fields via AdminProductSerializer (fields='__all__')
+      // Cast to any to access fields not declared in the Product TS type
+      const raw = product as any;
       setFormData({
-        name: product.name,
-        brand: product.brand,
-        model: product.model,
-        price: product.price,
+        // Use designation as primary name (fuller), fallback to name
+        name: raw.designation || raw.name || product.name || "",
+        brand: product.brand || "",
+        model: product.model || raw.size || "",
+        price: product.price || 0,
         old_price: product.old_price || 0,
         category: product.category,
         specifications: {
-          width: product.specifications.width,
-          height: product.specifications.height,
-          diameter: product.specifications.diameter,
-          loadIndex: product.specifications.loadIndex,
-          speedRating: product.specifications.speedRating,
-          season: product.specifications.season,
-          specialty: product.specifications.specialty ?? undefined,
+          // These come from the size string (e.g. "235/60R16") — parse or use defaults
+          width: product.specifications?.width || 0,
+          height: product.specifications?.height || 0,
+          diameter: product.specifications?.diameter || 0,
+          loadIndex: product.specifications?.loadIndex || 0,
+          speedRating: product.specifications?.speedRating || "",
+          season: product.specifications?.season || "ete",
+          specialty: product.specifications?.specialty ?? "tourisme",
         },
-        stock: product.stock,
-        description: product.description,
-        features: product.features,
-        inStock: product.inStock,
+        stock: product.stock ?? 0,
+        description: product.description || "",
+        features: product.features || [],
+        inStock: product.inStock ?? (product.stock > 0),
         isPromotion: product.is_on_sale || false,
         images: (product.images || []).filter((img: any): img is File => img instanceof File),
-        // New manual fields
-        reference: product.reference || "",
-        designation: product.designation || "",
-        type: product.type || "",
-        emplacement: product.emplacement || "",
-        fabrication_date: product.fabrication_date || "",
+        reference: raw.reference || product.reference || "",
+        designation: raw.designation || product.designation || "",
+        type: raw.type || product.type || "",
+        emplacement: raw.emplacement || product.emplacement || "",
+        fabrication_date: raw.fabrication_date || product.fabrication_date || "",
       });
     }
   }, [product]);
 
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
+    const isEditing = !!product;
 
+    // Always required
     if (!formData.name.trim()) newErrors.name = "Le nom est requis";
-    if (!formData.brand.trim()) newErrors.brand = "La marque est requise";
-    if (!formData.model.trim()) newErrors.model = "Le modèle est requis";
-    if (formData.price <= 0)
-      newErrors.price = "Le prix doit être supérieur à 0";
-    if (formData.stock < 0)
-      newErrors.stock = "Le stock ne peut pas être négatif";
-    if (!formData.description.trim())
-      newErrors.description = "La description est requise";
+    if (formData.price <= 0) newErrors.price = "Le prix doit être supérieur à 0";
+    if (formData.stock < 0) newErrors.stock = "Le stock ne peut pas être négatif";
 
-    // Validation des spécifications
-    if (formData.specifications.width <= 0)
-      newErrors.width = "La largeur est requise";
-    if (formData.specifications.height <= 0)
-      newErrors.height = "La hauteur est requise";
-    if (formData.specifications.diameter <= 0)
-      newErrors.diameter = "Le diamètre est requis";
-    if (formData.specifications.loadIndex <= 0)
-      newErrors.loadIndex = "L'indice de charge est requis";
-    if (!formData.specifications.speedRating.trim())
-      newErrors.speedRating = "L'indice de vitesse est requis";
+    // Only required when creating (not editing — product may have been imported without these)
+    if (!isEditing) {
+      if (!formData.brand.trim()) newErrors.brand = "La marque est requise";
+      if (!formData.model.trim()) newErrors.model = "Le modèle est requis";
+      if (!formData.description.trim()) newErrors.description = "La description est requise";
+      if (formData.specifications.width <= 0) newErrors.width = "La largeur est requise";
+      if (formData.specifications.height <= 0) newErrors.height = "La hauteur est requise";
+      if (formData.specifications.diameter <= 0) newErrors.diameter = "Le diamètre est requis";
+      if (formData.specifications.loadIndex <= 0) newErrors.loadIndex = "L'indice de charge est requis";
+      if (!formData.specifications.speedRating.trim()) newErrors.speedRating = "L'indice de vitesse est requis";
+    }
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -247,26 +247,15 @@ export default function ProductForm({
 
             <div>
               <Label htmlFor="brand" className="mb-2">
-                Marque *
+                Marque {!product && "*"}
               </Label>
-              <Select
+              <Input
+                id="brand"
                 value={formData.brand}
-                onValueChange={(value) => handleInputChange("brand", value)}
-              >
-                <SelectTrigger className={errors.brand ? "border-red-500" : ""}>
-                  <SelectValue placeholder="Sélectionner une marque" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="Continental">Continental</SelectItem>
-                  <SelectItem value="Michelin">Michelin</SelectItem>
-                  <SelectItem value="Bridgestone">Bridgestone</SelectItem>
-                  <SelectItem value="BFGoodrich">BFGoodrich</SelectItem>
-                  <SelectItem value="Kleber">Kleber</SelectItem>
-                  <SelectItem value="Firestone">Firestone</SelectItem>
-                  <SelectItem value="General Tire">General Tire</SelectItem>
-                  <SelectItem value="Tigar">Tigar</SelectItem>
-                </SelectContent>
-              </Select>
+                onChange={(e) => handleInputChange("brand", e.target.value)}
+                placeholder="Ex: Michelin, Nexen, Pirelli..."
+                className={errors.brand ? "border-red-500" : ""}
+              />
               {errors.brand && (
                 <p className="text-red-500 text-xs mt-1">{errors.brand}</p>
               )}

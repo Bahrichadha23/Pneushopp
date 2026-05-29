@@ -19,18 +19,9 @@ from .email_utils import send_verification_email, send_welcome_email, send_passw
 
 
 def _log_activity(user, action, description, request=None, target_email=''):
-    """Helper to create a UserActivityLog entry."""
-    ip = None
-    if request:
-        x_forwarded = request.META.get('HTTP_X_FORWARDED_FOR')
-        ip = x_forwarded.split(',')[0].strip() if x_forwarded else request.META.get('REMOTE_ADDR')
-    UserActivityLog.objects.create(
-        user=user,
-        action=action,
-        description=description,
-        target_user_email=target_email,
-        ip_address=ip,
-    )
+    """Helper to create a UserActivityLog entry. Delegates to accounts.activity."""
+    from .activity import log_activity
+    log_activity(user, action, description, request=request, target_email=target_email)
 
 
 def _is_admin(user):
