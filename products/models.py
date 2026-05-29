@@ -208,6 +208,10 @@ class StockBatch(models.Model):
         related_name='stock_batches', verbose_name='Produit'
     )
     quantity = models.PositiveIntegerField('Quantite restante', default=0)
+    initial_quantity = models.PositiveIntegerField(
+        'Quantite initiale a la reception', default=0,
+        help_text='Jamais modifié après création — sert à l\'audit.'
+    )
     dot = models.CharField('DOT (sem.annee)', max_length=20, blank=True)
     dot_date = models.DateField('Date approximative du DOT', null=True, blank=True)
     emplacement = models.CharField('Emplacement', max_length=100, blank=True)
@@ -226,10 +230,13 @@ class StockBatch(models.Model):
     def save(self, *args, **kwargs):
         if self.dot and not self.dot_date:
             self.dot_date = dot_to_date(self.dot)
+        # Au premier enregistrement, figer la quantite initiale
+        if not self.pk and self.initial_quantity == 0 and self.quantity > 0:
+            self.initial_quantity = self.quantity
         super().save(*args, **kwargs)
 
     def __str__(self):
-        return f'{self.product.name} - DOT {self.dot} ({self.quantity} unites)'
+        return f'{self.product.name} - DOT {self.dot} ({self.quantity}/{self.initial_quantity} unites)'
 
 
 class ImportJob(models.Model):

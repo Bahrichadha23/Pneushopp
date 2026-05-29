@@ -536,7 +536,7 @@ def confirm_with_dot(request, pk):
                     product.stock = max(0, product.stock - quantity)
                     product.save(update_fields=['stock'])
                 except Product.DoesNotExist:
-                    pass
+                    product = None
 
                 # Save discount to order item if provided
                 discount = assignment.get('discount', 0)
@@ -546,6 +546,22 @@ def confirm_with_dot(request, pk):
                         order=order,
                         product_id=str(product_id)
                     ).update(discount=Decimal(str(discount)))
+
+                # Tracer la sortie DOT dans StockMovement
+                try:
+                    from products.models import StockMovement
+                    if product:
+                        StockMovement.objects.create(
+                            product=product,
+                            product_name=product.name,
+                            type='out',
+                            quantity=-quantity,
+                            reason='vente',
+                            reference=f'CMD:{order.order_number} | DOT:{batch.dot}'[:100],
+                            created_by=request.user if request.user.is_authenticated else None,
+                        )
+                except Exception as mv_err:
+                    print(f'[CONFIRM_DOT] StockMovement log failed: {mv_err}')
 
             # Set order status without triggering the automatic stock decrement
             # (stock was already decremented via DOT batches above)

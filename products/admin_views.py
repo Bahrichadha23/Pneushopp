@@ -356,7 +356,7 @@ def product_dot_batches(request, product_id):
         StockBatch.objects
         .filter(product_id=product_id, quantity__gt=0)
         .order_by('dot_date', 'created_at')
-        .values('id', 'quantity', 'dot', 'dot_date', 'emplacement', 'notes', 'created_at')
+        .values('id', 'quantity', 'initial_quantity', 'dot', 'dot_date', 'emplacement', 'notes', 'created_at')
     )
     return Response(list(batches))
 
@@ -539,6 +539,8 @@ def stock_movements(request):
                 'dot': b.dot,
                 'dot_date': str(b.dot_date) if b.dot_date else None,
                 'emplacement': b.emplacement,
+                'quantity': b.quantity,
+                'initial_quantity': b.initial_quantity,
                 'created_at': b.created_at.isoformat(),
             }
             for b in batches
