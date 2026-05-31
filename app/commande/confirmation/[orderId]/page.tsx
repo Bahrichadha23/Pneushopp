@@ -6,7 +6,7 @@ import { useParams } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
-import { CheckCircle, Package, Truck, CreditCard, Loader2 } from "lucide-react";
+import { CheckCircle, Package, Truck, CreditCard, Loader2, Shield, ShieldOff } from "lucide-react";
 import { API_URL } from "@/lib/config";
 
 interface OrderDetail {
@@ -24,6 +24,11 @@ interface OrderDetail {
   };
   total: number;
   trackingNumber?: string;
+  warrantyAccepted?: boolean;
+  warrantyClientName?: string;
+  warrantyVehicleRegistration?: string;
+  warrantyVehicleMileage?: string;
+  paymentMethod?: string;
 }
 
 async function fetchOrderFromBackend(
@@ -57,6 +62,11 @@ async function fetchOrderFromBackend(
       },
       total: parseFloat(o.total_amount),
       trackingNumber: o.tracking_number || undefined,
+      warrantyAccepted: o.warranty_accepted || false,
+      warrantyClientName: o.warranty_client_name || "",
+      warrantyVehicleRegistration: o.warranty_vehicle_registration || "",
+      warrantyVehicleMileage: o.warranty_vehicle_mileage || "",
+      paymentMethod: o.payment_method || "",
     };
   } catch {
     return null;
@@ -251,6 +261,31 @@ export default function OrderConfirmationPage() {
                 </div>
               </div>
             </div>
+          </CardContent>
+        </Card>
+
+        {/* Garantie */}
+        <Card className="mb-8">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              {order.warrantyAccepted ? (
+                <><Shield className="h-5 w-5 text-yellow-500" /> Garantie incluse</>
+              ) : (
+                <><ShieldOff className="h-5 w-5 text-gray-400" /> Sans garantie</>
+              )}
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {order.warrantyAccepted ? (
+              <div className="space-y-1 text-sm text-gray-700">
+                <p className="text-yellow-700 font-medium">✓ Vous avez souscrit à la garantie pour cette commande.</p>
+                {order.warrantyClientName && <p><span className="font-medium">Nom :</span> {order.warrantyClientName}</p>}
+                {order.warrantyVehicleRegistration && <p><span className="font-medium">Immatriculation :</span> {order.warrantyVehicleRegistration}</p>}
+                {order.warrantyVehicleMileage && <p><span className="font-medium">Kilométrage :</span> {order.warrantyVehicleMileage}</p>}
+              </div>
+            ) : (
+              <p className="text-sm text-gray-500">Cette commande ne bénéficie pas de la garantie. Vous pouvez contacter notre SAV si nécessaire.</p>
+            )}
           </CardContent>
         </Card>
 

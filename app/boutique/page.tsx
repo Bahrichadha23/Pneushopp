@@ -296,7 +296,7 @@ export default function BoutiquePage() {
         </div>
 
         {/* Filters */}
-        <div className="bg-gray-50 p-6 rounded-lg mb-8">
+        <div className="bg-white border border-gray-200 p-6 rounded-lg mb-8">
           <h2 className="text-lg font-semibold mb-4">Filtrer les produits</h2>
           <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
             <div className="relative">
@@ -357,7 +357,7 @@ export default function BoutiquePage() {
                 setSortBy("name");
                 router.push("/boutique");
               }}
-              className="flex items-center gap-2"
+              className="flex items-center gap-2 hover:bg-yellow-400 hover:text-black hover:border-yellow-400 transition-colors"
             >
               <Filter className="h-4 w-4" />
               Réinitialiser

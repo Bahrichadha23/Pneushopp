@@ -117,9 +117,9 @@ export default function PromotionsPage() {
       {/* KPIs */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         {[
-          { label: "En promotion", value: activePromos.length, icon: Tag, color: "text-red-600", bg: "bg-red-50" },
-          { label: "Stock en promo", value: totalStock, icon: Package, color: "text-blue-600", bg: "bg-blue-50" },
-          { label: "Remise moyenne", value: `${avgDiscount}%`, icon: Percent, color: "text-green-600", bg: "bg-green-50" },
+          { label: "En promotion", value: activePromos.length, icon: Tag, color: "text-yellow-700", bg: "bg-yellow-50" },
+          { label: "Stock en promo", value: totalStock, icon: Package, color: "text-gray-700", bg: "bg-gray-100" },
+          { label: "Remise moyenne", value: `${avgDiscount}%`, icon: Percent, color: "text-black font-bold", bg: "bg-gray-50" },
           { label: "Produits dispo", value: products.filter(p => !p.is_on_sale && p.stock > 0).length, icon: TrendingDown, color: "text-orange-600", bg: "bg-orange-50" },
         ].map(kpi => (
           <div key={kpi.label} className={`${kpi.bg} rounded-xl p-4 flex items-center gap-3`}>
@@ -145,7 +145,7 @@ export default function PromotionsPage() {
               <div className="flex flex-wrap gap-2 mb-2">
                 {DISCOUNTS.map(d => (
                   <button key={d} onClick={() => setDiscount(d)}
-                    className={`px-3 py-1 rounded-full text-sm font-bold border transition ${discount === d ? "bg-red-600 text-white border-red-600" : "bg-white text-gray-700 border-gray-300 hover:border-red-400"}`}>
+                    className={`px-3 py-1 rounded-full text-sm font-bold border transition ${discount === d ? "bg-yellow-500 text-black border-yellow-500" : "bg-white text-gray-700 border-gray-300 hover:border-yellow-400"}`}>
                     -{d}%
                   </button>
                 ))}
@@ -205,18 +205,18 @@ export default function PromotionsPage() {
 
       {/* Action bar */}
       {selected.size > 0 && (
-        <div className={`flex items-center justify-between p-3 rounded-lg border ${tab === "actives" ? "bg-red-50 border-red-200" : "bg-green-50 border-green-200"}`}>
+        <div className={`flex items-center justify-between p-3 rounded-lg border ${tab === "actives" ? "bg-gray-100 border-gray-300" : "bg-yellow-50 border-yellow-200"}`}>
           <span className="text-sm font-medium">{selected.size} produit(s) sélectionné(s)</span>
           <div className="flex gap-2">
             <button onClick={clearAll} className="text-xs text-gray-500 hover:text-gray-700 px-2 py-1 rounded border bg-white">Désélectionner</button>
             {tab === "actives" ? (
               <button onClick={() => applyPromotion(true)} disabled={applying}
-                className="px-4 py-1.5 bg-red-600 text-white text-xs font-bold rounded-lg hover:bg-red-700 disabled:opacity-50">
+                className="px-4 py-1.5 bg-gray-800 text-white text-xs font-bold rounded-lg hover:bg-gray-900 disabled:opacity-50">
                 {applying ? "..." : "🗑 Retirer la promotion"}
               </button>
             ) : (
               <button onClick={() => applyPromotion(false)} disabled={applying}
-                className="px-4 py-1.5 bg-green-600 text-white text-xs font-bold rounded-lg hover:bg-green-700 disabled:opacity-50">
+                className="px-4 py-1.5 bg-yellow-500 text-black text-xs font-bold rounded-lg hover:bg-yellow-600 disabled:opacity-50">
                 {applying ? "..." : `✅ Appliquer -${discount}% (${label})`}
               </button>
             )}
@@ -229,7 +229,7 @@ export default function PromotionsPage() {
         <div className="flex items-center gap-3 text-sm text-gray-600">
           <button onClick={selected.size === displayed.length ? clearAll : selectAll}
             className="flex items-center gap-1.5 hover:text-gray-900 font-medium">
-            {selected.size === displayed.length ? <CheckSquare className="h-4 w-4 text-green-600" /> : <Square className="h-4 w-4" />}
+            {selected.size === displayed.length ? <CheckSquare className="h-4 w-4 text-yellow-600" /> : <Square className="h-4 w-4" />}
             {selected.size === displayed.length ? "Tout désélectionner" : `Tout sélectionner (${displayed.length})`}
           </button>
         </div>
@@ -249,15 +249,15 @@ export default function PromotionsPage() {
             return (
               <div key={product.id}
                 onClick={() => (tab === "gestion" || tab === "actives") && toggleSelect(product.id)}
-                className={`relative rounded-xl border-2 cursor-pointer transition-all duration-200 overflow-hidden bg-white hover:shadow-md ${isSelected ? "border-green-500 shadow-md ring-2 ring-green-200" : "border-gray-200 hover:border-gray-400"}`}>
+                className={`relative rounded-xl border-2 cursor-pointer transition-all duration-200 overflow-hidden bg-white hover:shadow-md ${isSelected ? "border-yellow-500 shadow-md ring-2 ring-yellow-200" : "border-gray-200 hover:border-gray-400"}`}>
                 {/* Checkbox */}
                 <div className="absolute top-2 left-2 z-10">
-                  {isSelected ? <CheckSquare className="h-5 w-5 text-green-600 bg-white rounded" /> : <Square className="h-5 w-5 text-gray-400 bg-white rounded" />}
+                  {isSelected ? <CheckSquare className="h-5 w-5 text-yellow-600 bg-white rounded" /> : <Square className="h-5 w-5 text-gray-400 bg-white rounded" />}
                 </div>
 
                 {/* Promo badge */}
                 {product.is_on_sale && (
-                  <div className="absolute top-2 right-2 z-10 bg-red-600 text-white text-xs font-bold px-2 py-0.5 rounded-full">
+                  <div className="absolute top-2 right-2 z-10 bg-yellow-500 text-black text-xs font-bold px-2 py-0.5 rounded-full">
                     {product.promotion_label || `-${product.discount_percentage}%`}
                   </div>
                 )}
@@ -283,7 +283,7 @@ export default function PromotionsPage() {
                         <span className="text-xs text-gray-400 line-through ml-1">{originalPrice.toFixed(3)}</span>
                       )}
                     </div>
-                    <span className={`text-xs px-1.5 py-0.5 rounded font-medium ${product.stock > 5 ? "bg-green-100 text-green-700" : product.stock > 0 ? "bg-orange-100 text-orange-700" : "bg-red-100 text-red-600"}`}>
+                    <span className={`text-xs px-1.5 py-0.5 rounded font-medium ${product.stock > 5 ? "bg-yellow-100 text-yellow-700" : product.stock > 0 ? "bg-orange-100 text-orange-700" : "bg-gray-200 text-gray-600"}`}>
                       Stock: {product.stock}
                     </span>
                   </div>

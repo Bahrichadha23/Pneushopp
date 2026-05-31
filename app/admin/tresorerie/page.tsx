@@ -853,7 +853,36 @@ export default function TresoreriePage() {
         </div>
 
         <div className="space-y-4 p-4">
-          <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-4">
+          <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-5">
+            <div>
+              <label className="mb-1 block text-xs font-semibold text-slate-600">Période</label>
+              <select
+                value={dateFilter}
+                onChange={(e) => { setDateFilter(e.target.value); if (e.target.value !== "specific") { setDateFrom(""); setDateTo(""); } }}
+                className="w-full rounded border border-slate-300 px-2 py-2 text-sm"
+              >
+                <option value="all">Toutes les dates</option>
+                <option value="this_week">Cette semaine</option>
+                <option value="this_month">Ce mois</option>
+                <option value="this_year">Cette année</option>
+              </select>
+            </div>
+
+            <div>
+              <label className="mb-1 block text-xs font-semibold text-slate-600">
+                Période d'échéance
+              </label>
+              <select
+                value={dueDateFilter}
+                onChange={(e) => { setDueDateFilter(e.target.value); if (e.target.value !== "specific") { setDueDateFrom(""); setDueDateTo(""); } }}
+                className="w-full rounded border border-slate-300 px-2 py-2 text-sm"
+              >
+                <option value="all">Toutes les échéances</option>
+                <option value="this_week">Cette semaine</option>
+                <option value="this_month">Ce mois</option>
+                <option value="this_year">Cette année</option>
+              </select>
+            </div>
 
             <div>
               <label className="mb-1 block text-xs font-semibold text-slate-600">
@@ -913,6 +942,22 @@ export default function TresoreriePage() {
             </div>
 
             <div>
+              <label className="mb-1 block text-xs font-semibold text-slate-600">Utilisateur</label>
+              <select
+                value={userFilter}
+                onChange={(e) => setUserFilter(e.target.value)}
+                className="w-full rounded border border-slate-300 px-2 py-2 text-sm"
+              >
+                <option value="">Tout</option>
+                {users.map((u) => (
+                  <option key={u} value={u}>
+                    {u}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div>
               <label className="mb-1 block text-xs font-semibold text-slate-600">Client</label>
               <select
                 value={clientFilter}
@@ -964,11 +1009,11 @@ export default function TresoreriePage() {
 
           <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-2">
             <div>
-              <label className="mb-1 block text-xs font-semibold text-slate-600">Date</label>
+              <label className="mb-1 block text-xs font-semibold text-slate-600">Date spécifique</label>
               <Input type="date" value={dateFrom} onChange={(e) => { setDateFrom(e.target.value); setDateTo(e.target.value); setDateFilter(e.target.value ? "specific" : "all"); }} />
             </div>
             <div>
-              <label className="mb-1 block text-xs font-semibold text-slate-600">Date d'échéance</label>
+              <label className="mb-1 block text-xs font-semibold text-slate-600">Date d'échéance spécifique</label>
               <Input type="date" value={dueDateFrom} onChange={(e) => { setDueDateFrom(e.target.value); setDueDateTo(e.target.value); setDueDateFilter(e.target.value ? "specific" : "all"); }} />
             </div>
           </div>

@@ -268,10 +268,10 @@ export default function PendingOrdersPage() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Montant total</CardTitle>
-            <span className="h-4 w-4 text-green-500">DT</span>
+            <span className="h-4 w-4 text-yellow-500">DT</span>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-green-600">
+            <div className="text-2xl font-bold text-yellow-600">
               {formatCurrency(
                 orders.reduce((sum, order) => sum + order.total, 0)
               )}
@@ -380,7 +380,7 @@ export default function PendingOrdersPage() {
                           size="sm"
                           variant="outline"
                           onClick={() => handleApprove(order.numericId, order.id)}
-                          className="text-green-600 hover:text-green-700"
+                          className="text-yellow-600 hover:text-yellow-700"
                         >
                           <CheckCircle className="h-4 w-4 mr-1" />
                           Approuver

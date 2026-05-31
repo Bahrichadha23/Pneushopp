@@ -24,6 +24,7 @@ class AdminProductListCreateView(generics.ListCreateAPIView):
     permission_classes = [IsAdminOrPurchasing]
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
     filterset_fields = ['category', 'brand', 'season', 'is_featured', 'is_active']
+    # Added reference and designation for FIFO/DOT achat searches
     search_fields = ['name', 'brand', 'description', 'size', 'reference', 'designation']
     ordering_fields = ['price', 'created_at', 'name', 'stock']
     ordering = ['-created_at']
@@ -56,10 +57,11 @@ class AdminProductListCreateView(generics.ListCreateAPIView):
         product = serializer.save()
         try:
             log_activity(
-                self.request.user, 'add_product',
-                f'Article ajouté : {product.brand} {product.name} {product.size} — Prix: {product.price} DT',
+                self.request.user,
+                'add_product',
+                f'Ajout article : {product.brand} {product.name} ({product.size}) — Prix TTC : {product.price} DT — Stock : {product.stock}',
                 request=self.request,
-                extra={'product_id': product.id, 'prix': str(product.price)},
+                extra={'product_id': product.id, 'brand': product.brand, 'name': product.name, 'size': product.size, 'price': str(product.price), 'stock': product.stock},
             )
         except Exception:
             pass
@@ -76,27 +78,21 @@ class AdminProductDetailView(generics.RetrieveUpdateDestroyAPIView):
     def perform_update(self, serializer):
         old = self.get_object()
         old_price = old.price
-        old_stock = old.stock
         product = serializer.save()
         try:
             if old_price != product.price:
                 log_activity(
-                    self.request.user, 'update_price',
-                    f'Prix modifié : {product.brand} {product.name} {product.size} — {old_price} → {product.price} DT',
+                    self.request.user,
+                    'update_price',
+                    f'Modification prix : {product.brand} {product.name} ({product.size}) — {old_price} DT → {product.price} DT',
                     request=self.request,
-                    extra={'product_id': product.id, 'ancien_prix': str(old_price), 'nouveau_prix': str(product.price)},
-                )
-            elif old_stock != product.stock:
-                log_activity(
-                    self.request.user, 'adjust_stock',
-                    f'Stock modifié : {product.brand} {product.name} {product.size} — {old_stock} → {product.stock}',
-                    request=self.request,
-                    extra={'product_id': product.id, 'ancien_stock': old_stock, 'nouveau_stock': product.stock},
+                    extra={'product_id': product.id, 'old_price': str(old_price), 'new_price': str(product.price)},
                 )
             else:
                 log_activity(
-                    self.request.user, 'update_product',
-                    f'Article modifié : {product.brand} {product.name} {product.size}',
+                    self.request.user,
+                    'update_product',
+                    f'Modification article : {product.brand} {product.name} ({product.size})',
                     request=self.request,
                     extra={'product_id': product.id},
                 )
@@ -104,13 +100,13 @@ class AdminProductDetailView(generics.RetrieveUpdateDestroyAPIView):
             pass
 
     def perform_destroy(self, instance):
-        name = f'{instance.brand} {instance.name} {instance.size}'.strip()
         try:
             log_activity(
-                self.request.user, 'delete_product',
-                f'Article supprimé : {name}',
+                self.request.user,
+                'delete_product',
+                f'Suppression article : {instance.brand} {instance.name} ({instance.size}) — Prix : {instance.price} DT',
                 request=self.request,
-                extra={'product_id': instance.id, 'prix': str(instance.price)},
+                extra={'product_id': instance.id, 'brand': instance.brand, 'name': instance.name},
             )
         except Exception:
             pass
@@ -208,6 +204,21 @@ def admin_dashboard_stats(request):
         'low_stock_products': low_stock_count,
         'low_stock_details': low_stock_details,
         'price_stats': price_stats,
+    })
+
+
+@api_view(['POST'])
+@permission_classes([IsAdmin])
+def reset_all_products(request):
+    """Delete ALL products and their DOT batches. Admin only. Irreversible."""
+    from .models import StockBatch
+    batches_count, _ = StockBatch.objects.all().delete()
+    products_count, _ = Product.objects.all().delete()
+    return Response({
+        'success': True,
+        'deleted_products': products_count,
+        'deleted_batches': batches_count,
+        'message': f'{products_count} produit(s) et {batches_count} lot(s) DOT supprimés.',
     })
 
 
@@ -395,7 +406,7 @@ def product_dot_batches(request, product_id):
         StockBatch.objects
         .filter(product_id=product_id, quantity__gt=0)
         .order_by('dot_date', 'created_at')
-        .values('id', 'quantity', 'dot', 'dot_date', 'emplacement', 'notes', 'created_at')
+        .values('id', 'quantity', 'initial_quantity', 'dot', 'dot_date', 'emplacement', 'notes', 'created_at')
     )
     return Response(list(batches))
 
@@ -459,12 +470,27 @@ def consume_dot_batch(request, product_id):
         except Exception as log_err:
             print(f'[CONSUME_BATCH] StockMovement log failed (non-critical): {log_err}')
 
+        # Activity log
         try:
+            from accounts.activity import log_activity
+            desc = (
+                f'Vente DOT {batch.dot} : {quantity} pneu(s) — '
+                f'{product.brand} {product.name} ({product.size})'
+                + (f' — Client : {client_name}' if client_name else '')
+            )
             log_activity(
-                request.user, 'dot_sale',
-                f'Vente DOT : {product.name} — {quantity} unité(s) — DOT {batch.dot or "?"} — Client: {client_name or "—"}',
+                request.user,
+                'dot_sale',
+                desc,
                 request=request,
-                extra={'product_id': product_id, 'batch_id': batch_id, 'quantite': quantity, 'dot': batch.dot},
+                extra={
+                    'product_id': product.id,
+                    'batch_id': batch_id,
+                    'dot': batch.dot,
+                    'quantity': quantity,
+                    'client_name': client_name or '',
+                    'discount_pct': request.data.get('discount_pct', 0),
+                },
             )
         except Exception:
             pass
@@ -531,15 +557,11 @@ def add_dot_batch(request, product_id):
             print(f'[ADD_BATCH] StockMovement log failed (non-critical): {log_err}')
 
         try:
-            log_activity(
-                request.user, 'add_stock',
-                f'Lot DOT ajouté : {product.name} — {quantity} unité(s) — DOT {dot} — Emplacement: {emplacement or "—"}',
-                request=request,
-                extra={'product_id': product_id, 'quantite': quantity, 'dot': dot},
-            )
+            log_activity(request.user, 'add_stock',
+                         f'Entrée stock : {product.name} — DOT {dot} × {quantity} unité(s)',
+                         request=request)
         except Exception:
             pass
-
         return Response({'success': True, 'new_stock': product.stock, 'batch_id': batch.id})
     except Product.DoesNotExist:
         return Response({'error': 'Produit introuvable'}, status=404)
@@ -592,6 +614,8 @@ def stock_movements(request):
                 'dot': b.dot,
                 'dot_date': str(b.dot_date) if b.dot_date else None,
                 'emplacement': b.emplacement,
+                'quantity': b.quantity,
+                'initial_quantity': b.initial_quantity,
                 'created_at': b.created_at.isoformat(),
             }
             for b in batches

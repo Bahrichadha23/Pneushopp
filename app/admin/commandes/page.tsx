@@ -266,7 +266,7 @@ export default function OrdersPage() {
       </div>
 
       {fetchError && (
-        <div className="bg-red-50 border border-red-200 text-red-700 rounded-lg px-4 py-3 text-sm flex items-center justify-between">
+        <div className="bg-gray-100 border border-gray-300 text-gray-700 rounded-lg px-4 py-3 text-sm flex items-center justify-between">
           <span>⚠️ Impossible de charger les commandes : <strong>{fetchError}</strong></span>
           <Button variant="outline" size="sm" onClick={loadOrders} className="ml-4">Réessayer</Button>
         </div>

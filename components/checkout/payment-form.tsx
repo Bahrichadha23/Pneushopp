@@ -124,6 +124,9 @@ export function PaymentForm({ onSubmit, onBack, totalPrice }: PaymentFormProps) 
   const [cashOnDeliveryBankName, setCashOnDeliveryBankName] = useState("");
   const [especesMontantInput, setEspecesMontantInput] = useState("");
   const [especesRemarque, setEspecesRemarque] = useState("");
+  // Shared amount for delivery sub-types (especes + TPE share one Montant/Reste)
+  const [deliveryMontantInput, setDeliveryMontantInput] = useState("");
+  const [deliveryRemarque, setDeliveryRemarque] = useState("");
   const [criImage, setCriImage] = useState<File | null>(null);
   const [criImagePreview, setCriImagePreview] = useState("");
 
@@ -137,6 +140,7 @@ export function PaymentForm({ onSubmit, onBack, totalPrice }: PaymentFormProps) 
   const cashOnDeliveryMontantNum = Math.min(Math.max(parseAmount(cashOnDeliveryMontantInput), 0), totalPrice);
 
   const especesMontantNum = Math.min(Math.max(parseAmount(especesMontantInput), 0), totalPrice);
+  const deliveryMontantNum = Math.min(Math.max(parseAmount(deliveryMontantInput), 0), totalPrice);
 
   // Combined total across all selected methods (for balance display)
   const totalEnteredAllMethods =
@@ -144,8 +148,8 @@ export function PaymentForm({ onSubmit, onBack, totalPrice }: PaymentFormProps) 
     (isSelected("cri") ? criMontantNum : 0) +
     (isSelected("lettre_de_change") ? lettreMontantNum : 0) +
     (isSelected("cheque") ? chequeMontantNum : 0) +
-    (isSelected("cash_on_delivery") ? cashOnDeliveryMontantNum : 0) +
-    (isSelected("especes") ? especesMontantNum : 0);
+    // delivery sub-types share one montant
+    (isDeliverySelected ? deliveryMontantNum : 0);
 
   const globalReste = Math.max(totalPrice - totalEnteredAllMethods, 0);
 
@@ -214,6 +218,13 @@ export function PaymentForm({ onSubmit, onBack, totalPrice }: PaymentFormProps) 
     }
   }, [selectedTypes, totalPrice]);
 
+  // Shared delivery amount: initialize when a delivery sub-type is first selected
+  useEffect(() => {
+    if (isDeliverySelected && deliveryMontantInput === "") {
+      setDeliveryMontantInput(formatAmount(totalPrice));
+    }
+  }, [isDeliverySelected, totalPrice]);
+
   useEffect(() => {
     if (!criImage) { setCriImagePreview(""); return; }
     const url = URL.createObjectURL(criImage);
@@ -255,8 +266,8 @@ export function PaymentForm({ onSubmit, onBack, totalPrice }: PaymentFormProps) 
       ...(!isMixed && isSelected("bank_transfer") ? { montant: bankMontantNum, reste: Math.max(totalPrice - bankMontantNum, 0) } : {}),
       ...(!isMixed && isSelected("lettre_de_change") ? { montant: lettreMontantNum, reste: Math.max(totalPrice - lettreMontantNum, 0) } : {}),
       ...(!isMixed && isSelected("cheque") ? { montant: chequeMontantNum, reste: Math.max(totalPrice - chequeMontantNum, 0) } : {}),
-      ...(!isMixed && isSelected("cash_on_delivery") ? { montant: cashOnDeliveryMontantNum, reste: Math.max(totalPrice - cashOnDeliveryMontantNum, 0) } : {}),
-      ...(!isMixed && isSelected("especes") ? { montant: especesMontantNum, reste: Math.max(totalPrice - especesMontantNum, 0) } : {}),
+      ...(!isMixed && isSelected("cash_on_delivery") ? { montant: deliveryMontantNum, reste: Math.max(totalPrice - deliveryMontantNum, 0) } : {}),
+      ...(!isMixed && isSelected("especes") ? { montant: deliveryMontantNum, reste: Math.max(totalPrice - deliveryMontantNum, 0) } : {}),
 
       // Per-method private amounts (for multi-modal & order-context)
       _criMontant: isSelected("cri") ? criMontantNum : 0,
@@ -267,10 +278,10 @@ export function PaymentForm({ onSubmit, onBack, totalPrice }: PaymentFormProps) 
       _lettreReste: isSelected("lettre_de_change") ? Math.max(totalPrice - lettreMontantNum, 0) : 0,
       _chequeMontant: isSelected("cheque") ? chequeMontantNum : 0,
       _chequeReste: isSelected("cheque") ? Math.max(totalPrice - chequeMontantNum, 0) : 0,
-      _codMontant: isSelected("cash_on_delivery") ? cashOnDeliveryMontantNum : 0,
-      _codReste: isSelected("cash_on_delivery") ? Math.max(totalPrice - cashOnDeliveryMontantNum, 0) : 0,
-      _especesMontant: isSelected("especes") ? especesMontantNum : 0,
-      _especesReste: isSelected("especes") ? Math.max(totalPrice - especesMontantNum, 0) : 0,
+      _codMontant: isSelected("cash_on_delivery") ? deliveryMontantNum : 0,
+      _codReste: isSelected("cash_on_delivery") ? Math.max(totalPrice - deliveryMontantNum, 0) : 0,
+      _especesMontant: isSelected("especes") ? deliveryMontantNum : 0,
+      _especesReste: isSelected("especes") ? Math.max(totalPrice - deliveryMontantNum, 0) : 0,
 
       // Card
       ...(isSelected("card") ? cardData : {}),
@@ -316,13 +327,11 @@ export function PaymentForm({ onSubmit, onBack, totalPrice }: PaymentFormProps) 
         _chequeImageFile: chequeImage || undefined,
       } : {}),
 
-      // TPE / Cash on delivery metadata
-      ...(isSelected("cash_on_delivery") ? {
-        codRemarque: cashOnDeliveryRemarque || undefined,
-        codBankName: cashOnDeliveryBankName || undefined,
-      } : {}),
-      ...(isSelected("especes") ? {
-        especesRemarque: especesRemarque || undefined,
+      // Delivery (Espèces / TPE) metadata — shared amount and remarque
+      ...(isDeliverySelected ? {
+        deliveryRemarque: deliveryRemarque || undefined,
+        deliveryMontant: deliveryMontantNum,
+        deliverySubType: deliverySubType,
       } : {}),
     };
 
@@ -343,6 +352,21 @@ export function PaymentForm({ onSubmit, onBack, totalPrice }: PaymentFormProps) 
     if (isSelected("cri") && !criImage) {
       alert("Veuillez joindre une image pour le paiement CRI (obligatoire).");
       return;
+    }
+    // Champs obligatoires pour virement
+    if (isSelected("bank_transfer")) {
+      if (!transferNumber.trim()) {
+        alert("Veuillez saisir le N° de virement (obligatoire).");
+        return;
+      }
+      if (!transferHolderName.trim()) {
+        alert("Veuillez saisir le nom du titulaire (obligatoire).");
+        return;
+      }
+      if (!bankName.trim()) {
+        alert("Veuillez sélectionner une banque (obligatoire).");
+        return;
+      }
     }
     // Image obligatoire pour virement, chèque, lettre de change
     if (isSelected("bank_transfer") && !transferImage) {
@@ -374,7 +398,7 @@ export function PaymentForm({ onSubmit, onBack, totalPrice }: PaymentFormProps) 
       <CardHeader>
         <CardTitle>Méthode de paiement</CardTitle>
         {isMultiModal && (
-          <p className="text-sm text-blue-600 font-medium mt-1">
+          <p className="text-sm text-yellow-700 font-medium mt-1">
             Paiement multi-modalités activé ({selectedTypes.length} méthodes sélectionnées)
           </p>
         )}
@@ -398,7 +422,7 @@ export function PaymentForm({ onSubmit, onBack, totalPrice }: PaymentFormProps) 
                     <label
                       className={`flex items-center space-x-3 p-3 transition-colors cursor-pointer ${
                         deliveryExpanded
-                          ? "border-blue-500 bg-blue-50"
+                          ? "border-yellow-400 bg-yellow-50"
                           : "hover:bg-gray-50"
                       }`}
                     >
@@ -406,7 +430,7 @@ export function PaymentForm({ onSubmit, onBack, totalPrice }: PaymentFormProps) 
                         type="checkbox"
                         checked={deliveryExpanded}
                         onChange={toggleDeliveryParent}
-                        className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                        className="h-4 w-4 rounded border-gray-300 text-yellow-500 focus:ring-yellow-400"
                       />
                       <Truck className="h-5 w-5 text-gray-500 shrink-0" />
                       <span className="flex-1 text-sm font-medium text-slate-700">Paiement à la livraison</span>
@@ -419,13 +443,15 @@ export function PaymentForm({ onSubmit, onBack, totalPrice }: PaymentFormProps) 
 
                     {/* Sous-options — visibles quand la case parent est cochée */}
                     {deliveryExpanded && (
-                      <div className="bg-blue-50 border-t border-blue-100 px-4 py-3 flex gap-4">
+                      <div className="bg-yellow-50 border-t border-yellow-100 px-4 py-3 flex gap-4">
                         <p className="text-xs text-slate-500 mr-2 self-center">Mode :</p>
                         {/* Espèces */}
                         <label className={`flex items-center gap-2 px-4 py-2 rounded-lg border-2 cursor-pointer transition-all ${
                           deliverySubType === "especes"
-                            ? "border-green-500 bg-green-50 text-green-800"
-                            : "border-gray-200 bg-white hover:border-green-300"
+                            ? "border-yellow-500 bg-yellow-50 text-black font-semibold"
+                            : deliverySubType === "cash_on_delivery"
+                            ? "border-gray-200 bg-gray-100 text-gray-400 opacity-50 cursor-not-allowed"
+                            : "border-gray-200 bg-white hover:border-yellow-400 text-gray-600"
                         }`}>
                           <input
                             type="radio"
@@ -433,7 +459,7 @@ export function PaymentForm({ onSubmit, onBack, totalPrice }: PaymentFormProps) 
                             value="especes"
                             checked={deliverySubType === "especes"}
                             onChange={() => selectDeliverySub("especes")}
-                            className="text-green-600"
+                            className="text-yellow-500"
                           />
                           <Banknote className="h-4 w-4" />
                           <span className="text-sm font-semibold">Espèces</span>
@@ -441,8 +467,10 @@ export function PaymentForm({ onSubmit, onBack, totalPrice }: PaymentFormProps) 
                         {/* TPE */}
                         <label className={`flex items-center gap-2 px-4 py-2 rounded-lg border-2 cursor-pointer transition-all ${
                           deliverySubType === "cash_on_delivery"
-                            ? "border-blue-500 bg-blue-100 text-blue-800"
-                            : "border-gray-200 bg-white hover:border-blue-300"
+                            ? "border-yellow-500 bg-yellow-50 text-black font-semibold"
+                            : deliverySubType === "especes"
+                            ? "border-gray-200 bg-gray-100 text-gray-400 opacity-50 cursor-not-allowed"
+                            : "border-gray-200 bg-white hover:border-yellow-400 text-gray-600"
                         }`}>
                           <input
                             type="radio"
@@ -450,9 +478,9 @@ export function PaymentForm({ onSubmit, onBack, totalPrice }: PaymentFormProps) 
                             value="cash_on_delivery"
                             checked={deliverySubType === "cash_on_delivery"}
                             onChange={() => selectDeliverySub("cash_on_delivery")}
-                            className="text-blue-600"
+                            className="text-yellow-500"
                           />
-                          <Truck className="h-4 w-4" />
+                          <CreditCard className="h-4 w-4" />
                           <span className="text-sm font-semibold">TPE</span>
                         </label>
                       </div>
@@ -476,7 +504,7 @@ export function PaymentForm({ onSubmit, onBack, totalPrice }: PaymentFormProps) 
                     isItemDisabled
                       ? "opacity-40 cursor-not-allowed pointer-events-none border-gray-200 bg-gray-50"
                       : isSelected(id)
-                      ? "border-blue-500 bg-blue-50 cursor-pointer"
+                      ? "border-yellow-400 bg-yellow-50 cursor-pointer"
                       : "border-gray-200 hover:bg-gray-50 cursor-pointer"
                   }`}
                 >
@@ -485,7 +513,7 @@ export function PaymentForm({ onSubmit, onBack, totalPrice }: PaymentFormProps) 
                     checked={isSelected(id)}
                     onChange={() => !isItemDisabled && toggleType(id)}
                     disabled={isItemDisabled}
-                    className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                    className="h-4 w-4 rounded border-gray-300 text-yellow-500 focus:ring-yellow-400"
                   />
                   <Icon className="h-5 w-5 text-gray-500 shrink-0" />
                   <span className="flex-1 text-sm font-medium text-slate-700">{label}</span>
@@ -505,11 +533,11 @@ export function PaymentForm({ onSubmit, onBack, totalPrice }: PaymentFormProps) 
                 <span>Total commande</span>
                 <span className="font-semibold">{formatAmount(totalPrice)} DT</span>
               </div>
-              <div className="flex justify-between text-sm text-emerald-700">
+              <div className="flex justify-between text-sm text-yellow-700">
                 <span>Total saisi</span>
                 <span className="font-semibold">{formatAmount(totalEnteredAllMethods)} DT</span>
               </div>
-              <div className="flex justify-between text-sm text-rose-700 border-t pt-1 mt-1">
+              <div className="flex justify-between text-sm text-slate-700 border-t pt-1 mt-1">
                 <span className="font-semibold">Reste à répartir</span>
                 <span className="font-bold">{formatAmount(globalReste)} DT</span>
               </div>
@@ -565,10 +593,12 @@ export function PaymentForm({ onSubmit, onBack, totalPrice }: PaymentFormProps) 
             </div>
           )}
 
-          {/* ── Espèces fields ── */}
-          {isSelected("especes") && (
-            <div className="space-y-4 p-4 bg-green-50 rounded-lg border border-green-200">
-              <h3 className="font-semibold text-green-800">💵 Paiement : ESPÈCES</h3>
+          {/* ── Delivery (Espèces / TPE) — unified amount section ── */}
+          {isDeliverySelected && (
+            <div className="space-y-4 p-4 bg-yellow-50 rounded-lg border border-yellow-200">
+              <h3 className="font-semibold text-black">
+                {deliverySubType === "especes" ? "💵 Paiement à la livraison — ESPÈCES" : "💳 Paiement à la livraison — TPE"}
+              </h3>
               <div className="grid grid-cols-3 gap-4">
                 <div>
                   <Label className="text-sm font-semibold">Total</Label>
@@ -578,84 +608,32 @@ export function PaymentForm({ onSubmit, onBack, totalPrice }: PaymentFormProps) 
                   </div>
                 </div>
                 <div>
-                  <Label className="text-sm font-semibold text-red-700">Reste</Label>
+                  <Label className="text-sm font-semibold text-slate-600">Reste</Label>
                   <div className="mt-1 flex">
-                    <Input readOnly value={formatAmount(globalReste)} className="rounded-r-none border-red-200 bg-red-50" />
-                    <span className="inline-flex items-center px-3 border border-l-0 rounded-r-md bg-red-100 text-sm text-red-700 border-red-200">DT</span>
+                    <Input readOnly value={formatAmount(Math.max(totalPrice - deliveryMontantNum, 0))} className="rounded-r-none border-slate-200 bg-slate-50" />
+                    <span className="inline-flex items-center px-3 border border-l-0 rounded-r-md bg-slate-100 text-sm text-slate-600 border-slate-200">DT</span>
                   </div>
                 </div>
                 <div>
-                  <Label className="text-sm font-semibold text-green-700">Montant reçu</Label>
+                  <Label className="text-sm font-semibold text-yellow-700">Montant reçu</Label>
                   <div className="mt-1 flex">
                     <Input
                       type="text" inputMode="decimal" placeholder="0,00"
-                      value={especesMontantInput}
+                      value={deliveryMontantInput}
                       onChange={(e) => {
                         const v = parseAmount(e.target.value);
-                        if (v > totalPrice) { setEspecesMontantInput(formatAmount(totalPrice)); return; }
-                        setEspecesMontantInput(e.target.value);
+                        if (v > totalPrice) { setDeliveryMontantInput(formatAmount(totalPrice)); return; }
+                        setDeliveryMontantInput(e.target.value);
                       }}
-                      className="rounded-r-none border-green-200 bg-green-50"
+                      className="rounded-r-none border-yellow-200 bg-yellow-50"
                     />
-                    <span className="inline-flex items-center px-3 border border-l-0 rounded-r-md bg-green-100 text-sm text-green-700 border-green-200">DT</span>
+                    <span className="inline-flex items-center px-3 border border-l-0 rounded-r-md bg-yellow-100 text-sm text-yellow-700 border-yellow-200">DT</span>
                   </div>
                 </div>
               </div>
               <div>
                 <Label className="text-sm font-semibold">Remarque</Label>
-                <Textarea className="mt-1 resize-y" rows={2} placeholder="Ajouter une remarque..." value={especesRemarque} onChange={(e) => setEspecesRemarque(e.target.value)} />
-              </div>
-            </div>
-          )}
-
-          {/* ── Cash on delivery fields ── */}
-          {isSelected("cash_on_delivery") && (
-            <div className="space-y-4 p-4 bg-gray-50 rounded-lg">
-              <h3 className="font-semibold">Paiement : TPE À LA LIVRAISON</h3>
-              <div className="grid grid-cols-3 gap-4">
-                <div>
-                  <Label className="text-sm font-semibold">Total Ticket</Label>
-                  <div className="mt-1 flex">
-                    <Input readOnly value={formatAmount(totalPrice)} className="rounded-r-none bg-white" />
-                    <span className="inline-flex items-center px-3 border border-l-0 rounded-r-md bg-gray-100 text-sm text-gray-600">DT</span>
-                  </div>
-                </div>
-                <div>
-                  <Label className="text-sm font-semibold text-red-700">Reste</Label>
-                  <div className="mt-1 flex">
-                    <Input readOnly value={formatAmount(globalReste)} className="rounded-r-none border-red-200 bg-red-50" />
-                    <span className="inline-flex items-center px-3 border border-l-0 rounded-r-md bg-red-100 text-sm text-red-700 border-red-200">DT</span>
-                  </div>
-                </div>
-                <div>
-                  <Label className="text-sm font-semibold text-green-700">Montant</Label>
-                  <div className="mt-1 flex">
-                    <Input
-                      type="text" inputMode="decimal" placeholder="0,00"
-                      value={cashOnDeliveryMontantInput}
-                      onChange={(e) => {
-                        const v = parseAmount(e.target.value);
-                        if (v > totalPrice) { setCashOnDeliveryMontantInput(formatAmount(totalPrice)); return; }
-                        setCashOnDeliveryMontantInput(e.target.value);
-                      }}
-                      className="rounded-r-none border-green-200 bg-green-50"
-                    />
-                    <span className="inline-flex items-center px-3 border border-l-0 rounded-r-md bg-green-100 text-sm text-green-700 border-green-200">DT</span>
-                  </div>
-                </div>
-              </div>
-              <div>
-                <Label className="text-sm font-semibold">Remarque</Label>
-                <Textarea className="mt-1 resize-y" rows={3} placeholder="Ajouter une remarque..." value={cashOnDeliveryRemarque} onChange={(e) => setCashOnDeliveryRemarque(e.target.value)} />
-              </div>
-              <div className="grid grid-cols-1 gap-4">
-                <div>
-                  <Label className="text-sm font-semibold">Banque</Label>
-                  <select value={cashOnDeliveryBankName} onChange={(e) => setCashOnDeliveryBankName(e.target.value)} className="w-full mt-1 px-3 py-2 border border-gray-300 rounded-md text-sm bg-white">
-                    <option value="">Sélectionner une banque...</option>
-                    {["Banque de Tunisie","BNA","BIAT","UIB","Amen Bank","Attijari Bank","UBCI","Autres"].map(b => <option key={b} value={b}>{b}</option>)}
-                  </select>
-                </div>
+                <Textarea className="mt-1 resize-y" rows={2} placeholder="Ajouter une remarque..." value={deliveryRemarque} onChange={(e) => setDeliveryRemarque(e.target.value)} />
               </div>
             </div>
           )}
@@ -673,14 +651,14 @@ export function PaymentForm({ onSubmit, onBack, totalPrice }: PaymentFormProps) 
                   </div>
                 </div>
                 <div>
-                  <Label className="text-sm font-semibold text-red-700">Reste</Label>
+                  <Label className="text-sm font-semibold text-slate-600">Reste</Label>
                   <div className="mt-1 flex">
-                    <Input readOnly value={formatAmount(globalReste)} className="rounded-r-none border-red-200 bg-red-50" />
-                    <span className="inline-flex items-center px-3 border border-l-0 rounded-r-md bg-red-100 text-sm text-red-700 border-red-200">DT</span>
+                    <Input readOnly value={formatAmount(globalReste)} className="rounded-r-none border-slate-200 bg-slate-50" />
+                    <span className="inline-flex items-center px-3 border border-l-0 rounded-r-md bg-slate-100 text-sm text-slate-600 border-slate-200">DT</span>
                   </div>
                 </div>
                 <div>
-                  <Label className="text-sm font-semibold text-green-700">Montant</Label>
+                  <Label className="text-sm font-semibold text-yellow-700">Montant</Label>
                   <div className="mt-1 flex">
                     <Input
                       type="text" inputMode="decimal" placeholder="0,00"
@@ -690,9 +668,9 @@ export function PaymentForm({ onSubmit, onBack, totalPrice }: PaymentFormProps) 
                         if (v > totalPrice) { setBankMontantInput(formatAmount(totalPrice)); return; }
                         setBankMontantInput(e.target.value);
                       }}
-                      className="rounded-r-none border-green-200 bg-green-50"
+                      className="rounded-r-none border-yellow-200 bg-yellow-50"
                     />
-                    <span className="inline-flex items-center px-3 border border-l-0 rounded-r-md bg-green-100 text-sm text-green-700 border-green-200">DT</span>
+                    <span className="inline-flex items-center px-3 border border-l-0 rounded-r-md bg-yellow-100 text-sm text-yellow-700 border-yellow-200">DT</span>
                   </div>
                 </div>
               </div>
@@ -702,18 +680,18 @@ export function PaymentForm({ onSubmit, onBack, totalPrice }: PaymentFormProps) 
               </div>
               <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                 <div>
-                  <Label className="text-sm font-semibold">N° de Virement</Label>
-                  <Input placeholder="N° de Virement" value={transferNumber} onChange={(e) => setTransferNumber(e.target.value)} />
+                  <Label className="text-sm font-semibold">N° de Virement <span className="text-red-600">*</span></Label>
+                  <Input placeholder="N° de Virement" value={transferNumber} onChange={(e) => setTransferNumber(e.target.value)} required />
                 </div>
                 <div>
-                  <Label className="text-sm font-semibold">Nom</Label>
-                  <Input placeholder="Nom du titulaire" value={transferHolderName} onChange={(e) => setTransferHolderName(e.target.value)} />
+                  <Label className="text-sm font-semibold">Nom <span className="text-red-600">*</span></Label>
+                  <Input placeholder="Nom du titulaire" value={transferHolderName} onChange={(e) => setTransferHolderName(e.target.value)} required />
                 </div>
               </div>
               <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                 <div>
-                  <Label className="text-sm font-semibold">Banque</Label>
-                  <select value={bankName} onChange={(e) => setBankName(e.target.value)} className="mt-1 w-full rounded-md border border-input bg-background px-3 py-2 text-sm">
+                  <Label className="text-sm font-semibold">Banque <span className="text-red-600">*</span></Label>
+                  <select value={bankName} onChange={(e) => setBankName(e.target.value)} className="mt-1 w-full rounded-md border border-input bg-background px-3 py-2 text-sm" required>
                     <option value="">Selectionner une banque</option>
                     {BANK_OPTIONS.map((bank) => <option key={bank} value={bank}>{bank}</option>)}
                   </select>
@@ -736,7 +714,7 @@ export function PaymentForm({ onSubmit, onBack, totalPrice }: PaymentFormProps) 
           {isSelected("cri") && (
             <div className="space-y-4 p-4 bg-gray-50 rounded-lg">
               <h3 className="font-semibold">Paiement : CRI</h3>
-              <p className="text-xs text-blue-600">Montant CRI calculé automatiquement (1% du total commande)</p>
+              <p className="text-xs text-yellow-700">Montant CRI calculé automatiquement (1% du total commande)</p>
               <div className="grid grid-cols-3 gap-4">
                 <div>
                   <Label className="text-sm font-semibold">Total Ticket</Label>
@@ -746,21 +724,21 @@ export function PaymentForm({ onSubmit, onBack, totalPrice }: PaymentFormProps) 
                   </div>
                 </div>
                 <div>
-                  <Label className="text-sm font-semibold text-red-700">Reste</Label>
+                  <Label className="text-sm font-semibold text-slate-600">Reste</Label>
                   <div className="mt-1 flex">
-                    <Input readOnly value={formatAmount(globalReste)} className="rounded-r-none border-red-200 bg-red-50" />
-                    <span className="inline-flex items-center px-3 border border-l-0 rounded-r-md bg-red-100 text-sm text-red-700 border-red-200">DT</span>
+                    <Input readOnly value={formatAmount(globalReste)} className="rounded-r-none border-slate-200 bg-slate-50" />
+                    <span className="inline-flex items-center px-3 border border-l-0 rounded-r-md bg-slate-100 text-sm text-slate-600 border-slate-200">DT</span>
                   </div>
                 </div>
                 <div>
-                  <Label className="text-sm font-semibold text-green-700">Montant CRI (1%)</Label>
+                  <Label className="text-sm font-semibold text-yellow-700">Montant CRI (1%)</Label>
                   <div className="mt-1 flex">
                     <Input
                       type="text" readOnly
                       value={criMontantInput}
-                      className="rounded-r-none border-green-200 bg-green-50 cursor-not-allowed"
+                      className="rounded-r-none border-yellow-200 bg-yellow-50 cursor-not-allowed"
                     />
-                    <span className="inline-flex items-center px-3 border border-l-0 rounded-r-md text-sm bg-green-100 text-green-700 border-green-200">DT</span>
+                    <span className="inline-flex items-center px-3 border border-l-0 rounded-r-md text-sm bg-yellow-100 text-yellow-700 border-yellow-200">DT</span>
                   </div>
                 </div>
               </div>
@@ -794,14 +772,14 @@ export function PaymentForm({ onSubmit, onBack, totalPrice }: PaymentFormProps) 
                   </div>
                 </div>
                 <div>
-                  <Label className="text-sm font-semibold text-red-700">Reste</Label>
+                  <Label className="text-sm font-semibold text-slate-600">Reste</Label>
                   <div className="mt-1 flex">
-                    <Input readOnly value={formatAmount(globalReste)} className="rounded-r-none border-red-200 bg-red-50" />
-                    <span className="inline-flex items-center px-3 border border-l-0 rounded-r-md bg-red-100 text-sm text-red-700 border-red-200">DT</span>
+                    <Input readOnly value={formatAmount(globalReste)} className="rounded-r-none border-slate-200 bg-slate-50" />
+                    <span className="inline-flex items-center px-3 border border-l-0 rounded-r-md bg-slate-100 text-sm text-slate-600 border-slate-200">DT</span>
                   </div>
                 </div>
                 <div>
-                  <Label className="text-sm font-semibold text-green-700">Montant</Label>
+                  <Label className="text-sm font-semibold text-yellow-700">Montant</Label>
                   <div className="mt-1 flex">
                     <Input
                       type="text" inputMode="decimal" placeholder="0,00"
@@ -811,9 +789,9 @@ export function PaymentForm({ onSubmit, onBack, totalPrice }: PaymentFormProps) 
                         if (v > totalPrice) { setLettreMontantInput(formatAmount(totalPrice)); return; }
                         setLettreMontantInput(e.target.value);
                       }}
-                      className="rounded-r-none border-green-200 bg-green-50"
+                      className="rounded-r-none border-yellow-200 bg-yellow-50"
                     />
-                    <span className="inline-flex items-center px-3 border border-l-0 rounded-r-md text-sm bg-green-100 text-green-700 border-green-200">DT</span>
+                    <span className="inline-flex items-center px-3 border border-l-0 rounded-r-md text-sm bg-yellow-100 text-yellow-700 border-yellow-200">DT</span>
                   </div>
                 </div>
               </div>
@@ -874,14 +852,14 @@ export function PaymentForm({ onSubmit, onBack, totalPrice }: PaymentFormProps) 
                   </div>
                 </div>
                 <div>
-                  <Label className="text-sm font-semibold text-red-700">Reste</Label>
+                  <Label className="text-sm font-semibold text-slate-600">Reste</Label>
                   <div className="mt-1 flex">
-                    <Input readOnly value={formatAmount(globalReste)} className="rounded-r-none border-red-200 bg-red-50" />
-                    <span className="inline-flex items-center px-3 border border-l-0 rounded-r-md bg-red-100 text-sm text-red-700 border-red-200">DT</span>
+                    <Input readOnly value={formatAmount(globalReste)} className="rounded-r-none border-slate-200 bg-slate-50" />
+                    <span className="inline-flex items-center px-3 border border-l-0 rounded-r-md bg-slate-100 text-sm text-slate-600 border-slate-200">DT</span>
                   </div>
                 </div>
                 <div>
-                  <Label className="text-sm font-semibold text-green-700">Montant</Label>
+                  <Label className="text-sm font-semibold text-yellow-700">Montant</Label>
                   <div className="mt-1 flex">
                     <Input
                       type="text" inputMode="decimal" placeholder="0,00"
@@ -891,9 +869,9 @@ export function PaymentForm({ onSubmit, onBack, totalPrice }: PaymentFormProps) 
                         if (v > totalPrice) { setChequeMontantInput(formatAmount(totalPrice)); return; }
                         setChequeMontantInput(e.target.value);
                       }}
-                      className="rounded-r-none border-green-200 bg-green-50"
+                      className="rounded-r-none border-yellow-200 bg-yellow-50"
                     />
-                    <span className="inline-flex items-center px-3 border border-l-0 rounded-r-md text-sm bg-green-100 text-green-700 border-green-200">DT</span>
+                    <span className="inline-flex items-center px-3 border border-l-0 rounded-r-md text-sm bg-yellow-100 text-yellow-700 border-yellow-200">DT</span>
                   </div>
                 </div>
               </div>
@@ -932,6 +910,10 @@ export function PaymentForm({ onSubmit, onBack, totalPrice }: PaymentFormProps) 
               </div>
             </div>
           )}
+
+          <p className="text-xs text-gray-500 italic text-center">
+            Possibilité de paiement avec plusieurs méthodes
+          </p>
 
           <div className="flex gap-4">
             <Button type="button" variant="outline" onClick={onBack} className="flex-1 bg-transparent">

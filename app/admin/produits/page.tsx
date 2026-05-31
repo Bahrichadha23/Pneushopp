@@ -590,7 +590,7 @@ export default function ProductsPage() {
                         <span className="font-medium text-gray-600">
                           Réduction:
                         </span>
-                        <p className="text-green-600 font-semibold">
+                        <p className="text-yellow-600 font-semibold">
                           -{viewingProduct.discount_percentage}%
                         </p>
                       </div>
@@ -710,8 +710,8 @@ export default function ProductsPage() {
                     <p
                       className={`font-semibold ${
                         viewingProduct.stock > 0
-                          ? "text-green-600"
-                          : "text-red-600"
+                          ? "text-yellow-600"
+                          : "text-gray-500"
                       }`}
                     >
                       {viewingProduct.stock > 0

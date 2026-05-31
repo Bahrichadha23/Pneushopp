@@ -65,8 +65,11 @@ function DotPanel({
   const [selling, setSelling] = useState(false);
   const [sellMsg, setSellMsg] = useState<{ text: string; ok: boolean } | null>(null);
   const [lastSale, setLastSale] = useState<{
-    batch: DotBatch; qty: number; discount: number; clientName: string;
+    batch: DotBatch; qty: number; discount: number; clientName: string; deliveryCost: number;
   } | null>(null);
+
+  /* delivery cost state */
+  const [sellDeliveryCost, setSellDeliveryCost] = useState(0);
 
   /* add-batch state */
   const [showAdd, setShowAdd] = useState(false);
@@ -114,6 +117,7 @@ function DotPanel({
     setSellBatchId(batch.id);
     setSellQty(1);
     setSellDiscount(0);
+    setSellDeliveryCost(0);
     setClientSearch("");
     setSelectedClient(null);
     setClientSuggestions([]);
@@ -123,6 +127,7 @@ function DotPanel({
   function closeSell() {
     setSellBatchId(null);
     setSellDiscount(0);
+    setSellDeliveryCost(0);
     setClientSearch("");
     setSelectedClient(null);
     setClientSuggestions([]);
@@ -151,7 +156,7 @@ function DotPanel({
       const data = await r.json();
       if (!r.ok) throw new Error(data.error || "Erreur");
       setSellMsg({ text: `✓ ${sellQty} pneu(s) vendu(s) — DOT ${batch.dot}.`, ok: true });
-      setLastSale({ batch, qty: sellQty, discount: sellDiscount, clientName });
+      setLastSale({ batch, qty: sellQty, discount: sellDiscount, clientName, deliveryCost: sellDeliveryCost });
       onStockChanged(product.id, data.new_stock ?? (totalStock - sellQty));
       await loadBatches();
       // No auto-close — user clicks "Imprimer facture" or X manually
@@ -163,7 +168,7 @@ function DotPanel({
   /* ── generate sale invoice ── */
   function generateDotSaleInvoice() {
     if (!lastSale) return;
-    const { batch, qty, discount, clientName } = lastSale;
+    const { batch, qty, discount, clientName, deliveryCost } = lastSale;
     const tvaRate = 19;
     const unitTTC = product.prixVente;
     const unitHT = unitTTC / (1 + tvaRate / 100);
@@ -173,12 +178,16 @@ function DotPanel({
     const montantTVA = montantHT * (tvaRate / 100);
     const remiseAmt = unitHT * remiseRate * qty;
     const netHT = montantHT;
-    const totalTTC = netHT + montantTVA + 1; // 1 = timbre fiscal
+    const totalTTC = netHT + montantTVA + 1 + (deliveryCost || 0); // 1 = timbre fiscal
     const today = new Date().toLocaleDateString("fr-FR");
     const invoiceNum = `FPS${Date.now().toString().slice(-8)}`;
 
     const remiseRowHTML = discount > 0
       ? `<tr><td>TOTAL REMISE</td><td style="text-align:right;border:1px solid #000;padding:3px 6px">${remiseAmt.toFixed(3)}</td></tr>`
+      : "";
+
+    const deliveryRowHTML = deliveryCost > 0
+      ? `<tr><td>FRAIS DE LIVRAISON</td><td style="text-align:right;border:1px solid #000;padding:3px 6px">${deliveryCost.toFixed(3)}</td></tr>`
       : "";
 
     const html = `<!DOCTYPE html><html><head><meta charset="utf-8"><title>Facture ${invoiceNum}</title>
@@ -204,11 +213,6 @@ function DotPanel({
         <div><b>Client :</b> ${clientName || "—"}</div>
         <div><b>Date :</b> ${today}</div>
       </div>
-      <div style="text-align:right">
-        <div><b>Produit :</b> ${product.brand}</div>
-        <div>${product.name}</div>
-        <div><b>DOT :</b> ${batch.dot}</div>
-      </div>
     </div>
     <table style="margin-bottom:16px">
       <thead><tr>
@@ -218,13 +222,13 @@ function DotPanel({
       </tr></thead>
       <tbody><tr>
         <td class="center">${product.size}</td>
-        <td>${product.brand} ${product.name} — DOT ${batch.dot}</td>
+        <td>${product.brand} ${product.name}</td>
         <td class="center">${qty}</td>
         <td class="right">${unitHT.toFixed(3)}</td>
         <td class="center">${tvaRate}</td>
         <td class="center">${discount}</td>
         <td class="right">${montantHT.toFixed(3)}</td>
-        <td class="right">${(totalTTC - 1).toFixed(3)}</td>
+        <td class="right">${(totalTTC - 1 - (deliveryCost || 0)).toFixed(3)}</td>
       </tr></tbody>
     </table>
     <table class="totals-table">
@@ -232,6 +236,7 @@ function DotPanel({
       ${remiseRowHTML}
       <tr><td>TOTAL NET HT</td><td class="right">${netHT.toFixed(3)}</td></tr>
       <tr><td>TOTAL T.V.A (${tvaRate}%)</td><td class="right">${montantTVA.toFixed(3)}</td></tr>
+      ${deliveryRowHTML}
       <tr><td>Timbre</td><td class="right">1.000</td></tr>
       <tr class="bold"><td><b>TOTAL T.T.C</b></td><td class="right"><b>${totalTTC.toFixed(3)}</b></td></tr>
     </table>
@@ -491,24 +496,43 @@ function DotPanel({
                           <span className="text-xs text-gray-400">%</span>
                         </div>
                         {sellDiscount > 0 && (
-                          <span className="text-xs text-green-700 font-semibold ml-1">
+                          <span className="text-xs text-yellow-700 font-semibold ml-1">
                             − {(product.prixVente * sellDiscount / 100 * sellQty).toFixed(3)} DT
+                          </span>
+                        )}
+                      </div>
+
+                      {/* Frais de livraison */}
+                      <div className="flex items-center gap-3">
+                        <label className="text-xs font-medium text-gray-700 w-24 flex-shrink-0">Livraison (DT)</label>
+                        <div className="flex items-center gap-2">
+                          <input
+                            type="number" min={0} step={0.001} value={sellDeliveryCost}
+                            onChange={(e) => { const v = parseFloat(e.target.value); setSellDeliveryCost(isNaN(v) ? 0 : Math.max(0, v)); }}
+                            className="w-20 text-center border border-gray-300 rounded px-1 py-1 text-sm font-bold focus:outline-none focus:ring-2 focus:ring-yellow-400"
+                            placeholder="0.000"
+                          />
+                          <span className="text-xs text-gray-400">DT</span>
+                        </div>
+                        {sellDeliveryCost > 0 && (
+                          <span className="text-xs text-yellow-700 font-semibold ml-1">
+                            + {sellDeliveryCost.toFixed(3)} DT livraison
                           </span>
                         )}
                       </div>
 
                       {/* Submit */}
                       {sellMsg && (
-                        <p className={`text-xs font-medium text-center py-1 rounded ${sellMsg.ok ? "text-green-700 bg-green-50" : "text-red-700 bg-red-50"}`}>
+                        <p className={`text-xs font-medium text-center py-1 rounded ${sellMsg.ok ? "text-yellow-700 bg-yellow-50" : "text-gray-700 bg-gray-100"}`}>
                           {sellMsg.text}
                         </p>
                       )}
                       {sellMsg?.ok && lastSale && (
                         <Button
                           onClick={generateDotSaleInvoice}
-                          className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold shadow-sm"
+                          className="w-full bg-yellow-500 hover:bg-yellow-600 text-black font-bold shadow-sm"
                         >
-                          <Printer className="h-4 w-4 mr-2" /> Imprimer la facture
+                          <Printer className="h-4 w-4 mr-2" /> Imprimer et Valider
                         </Button>
                       )}
                       {!sellMsg?.ok && (
@@ -544,9 +568,9 @@ function DotPanel({
         {sellMsg?.ok && lastSale ? (
           <Button
             onClick={generateDotSaleInvoice}
-            className="bg-blue-600 hover:bg-blue-700 text-white font-bold shadow-sm px-6"
+            className="bg-yellow-500 hover:bg-yellow-600 text-black font-bold shadow-sm px-6"
           >
-            <Printer className="h-4 w-4 mr-2" /> Imprimer
+            <Printer className="h-4 w-4 mr-2" /> Imprimer et Valider
           </Button>
         ) : (
           <Button
@@ -709,10 +733,10 @@ function OrderPrepPanel({ onClose }: { onClose: () => void }) {
       className="fixed top-0 right-0 h-full w-full max-w-lg bg-white shadow-2xl z-50 flex flex-col"
     >
       {/* Header */}
-      <div className="flex items-center justify-between px-5 py-4 border-b bg-blue-50">
+      <div className="flex items-center justify-between px-5 py-4 border-b bg-yellow-50">
         <div>
           <h2 className="font-bold text-gray-900 flex items-center gap-2">
-            <ClipboardList className="h-4 w-4 text-blue-600" />
+            <ClipboardList className="h-4 w-4 text-yellow-600" />
             Préparer une commande
           </h2>
           <p className="text-xs text-gray-500 mt-0.5">Assignez les lots DOT avant confirmation</p>
@@ -757,10 +781,10 @@ function OrderPrepPanel({ onClose }: { onClose: () => void }) {
         {selectedOrder && (
           <>
             {/* Order summary */}
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 text-sm space-y-1.5">
+            <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 text-sm space-y-1.5">
               <div className="flex justify-between">
                 <span className="text-gray-500">N° commande</span>
-                <span className="font-mono font-bold text-blue-700">#{fpsNum(selectedOrder.orderNumber)}</span>
+                <span className="font-mono font-bold text-yellow-700">#{fpsNum(selectedOrder.orderNumber)}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-gray-500">Client</span>
@@ -787,7 +811,7 @@ function OrderPrepPanel({ onClose }: { onClose: () => void }) {
               <div className="flex items-center justify-between mb-2">
                 <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Produits à préparer</p>
                 <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${
-                  allDone ? "bg-green-100 text-green-700" : "bg-orange-100 text-orange-700"
+                  allDone ? "bg-yellow-100 text-yellow-700" : "bg-orange-100 text-orange-700"
                 }`}>
                   {doneCount}/{assignments.length} prêts
                 </span>
@@ -806,13 +830,13 @@ function OrderPrepPanel({ onClose }: { onClose: () => void }) {
                       <div
                         key={asgn.itemIndex}
                         className={`rounded-xl border-2 overflow-hidden transition-all ${
-                          asgn.confirmed ? "border-green-400 bg-green-50" : "border-gray-200 bg-white"
+                          asgn.confirmed ? "border-yellow-400 bg-yellow-50" : "border-gray-200 bg-white"
                         }`}
                       >
                         {/* Item header */}
                         <div className="flex items-start gap-3 px-4 py-3">
                           <div className={`mt-0.5 w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 ${
-                            asgn.confirmed ? "border-green-500 bg-green-500" : "border-gray-300"
+                            asgn.confirmed ? "border-yellow-500 bg-yellow-500" : "border-gray-300"
                           }`}>
                             {asgn.confirmed && <Check className="h-3 w-3 text-white" />}
                           </div>
@@ -822,7 +846,7 @@ function OrderPrepPanel({ onClose }: { onClose: () => void }) {
                               Qté commandée : <span className="font-bold text-gray-700">{asgn.needed}</span>
                             </p>
                             {asgn.confirmed && selBatch && (
-                              <p className="text-xs text-green-700 mt-1 font-medium">
+                              <p className="text-xs text-yellow-700 mt-1 font-medium">
                                 ✓ DOT {selBatch.dot} · {asgn.qty} unité(s)
                                 {asgn.discount > 0 ? ` · Remise ${asgn.discount}%` : ""}
                               </p>
@@ -913,7 +937,7 @@ function OrderPrepPanel({ onClose }: { onClose: () => void }) {
                                 updateItem(asgn.itemIndex, { confirmed: true });
                               }}
                               disabled={!asgn.batchId || (!!selBatch && asgn.qty > selBatch.quantity)}
-                              className="w-full py-1.5 rounded-lg text-sm font-bold bg-blue-600 hover:bg-blue-700 text-white disabled:opacity-40 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
+                              className="w-full py-1.5 rounded-lg text-sm font-bold bg-yellow-500 hover:bg-yellow-600 text-black disabled:opacity-40 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
                             >
                               <Check className="h-3.5 w-3.5" /> Valider ce produit
                             </button>
@@ -922,7 +946,7 @@ function OrderPrepPanel({ onClose }: { onClose: () => void }) {
 
                         {/* Edit confirmed */}
                         {asgn.confirmed && (
-                          <div className="border-t border-green-200 px-4 py-2 flex justify-end">
+                          <div className="border-t border-yellow-200 px-4 py-2 flex justify-end">
                             <button
                               onClick={() => updateItem(asgn.itemIndex, { confirmed: false })}
                               className="text-xs text-gray-400 hover:text-gray-700 underline"
@@ -942,8 +966,8 @@ function OrderPrepPanel({ onClose }: { onClose: () => void }) {
       </div>
 
       {/* Bottom bar */}
-      <div className="flex-shrink-0 border-t border-blue-200 bg-blue-50 px-5 py-3 flex items-center justify-between gap-3">
-        <span className="text-xs text-blue-700 flex-1">
+      <div className="flex-shrink-0 border-t border-yellow-200 bg-yellow-50 px-5 py-3 flex items-center justify-between gap-3">
+        <span className="text-xs text-yellow-700 flex-1">
           {!selectedOrder
             ? "Sélectionnez une commande pour commencer"
             : allDone
@@ -954,7 +978,7 @@ function OrderPrepPanel({ onClose }: { onClose: () => void }) {
           <Button
             onClick={() => { router.push("/admin/commandes"); onClose(); }}
             disabled={!allDone}
-            className="bg-blue-600 hover:bg-blue-700 text-white font-bold shadow-sm disabled:opacity-40 whitespace-nowrap"
+            className="bg-yellow-500 hover:bg-yellow-600 text-black font-bold shadow-sm disabled:opacity-40 whitespace-nowrap"
           >
             Confirmer dans Commandes →
           </Button>
@@ -1185,7 +1209,7 @@ export default function StockManagementPage() {
           <Button
             variant="outline"
             size="sm"
-            className="gap-2 border-blue-400 text-blue-700 hover:bg-blue-50"
+            className="gap-2 border-yellow-400 text-yellow-700 hover:bg-yellow-50"
             onClick={() => setShowOrderPrep(true)}
           >
             <ClipboardList className="h-4 w-4" />
@@ -1200,9 +1224,9 @@ export default function StockManagementPage() {
 
       {/* Stats */}
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
-        <Card><CardHeader className="flex justify-between items-center"><CardTitle className="text-sm font-medium">Produits en stock</CardTitle><Package className="h-4 w-4 text-blue-500" /></CardHeader><CardContent><div className="text-2xl font-bold">{stock.length}</div></CardContent></Card>
-        <Card><CardHeader className="flex justify-between items-center"><CardTitle className="text-sm font-medium">Stock faible</CardTitle><AlertTriangle className="h-4 w-4 text-red-500" /></CardHeader><CardContent><div className="text-2xl font-bold text-red-600">{lowStockItems.length}</div></CardContent></Card>
-        <Card><CardHeader className="flex justify-between items-center"><CardTitle className="text-sm font-medium">Valeur stock</CardTitle><TrendingUp className="h-4 w-4 text-green-500" /></CardHeader><CardContent><div className="text-2xl font-bold text-green-600">{formatCurrency(totalValue)}</div></CardContent></Card>
+        <Card><CardHeader className="flex justify-between items-center"><CardTitle className="text-sm font-medium">Produits en stock</CardTitle><Package className="h-4 w-4 text-gray-500" /></CardHeader><CardContent><div className="text-2xl font-bold">{stock.length}</div></CardContent></Card>
+        <Card><CardHeader className="flex justify-between items-center"><CardTitle className="text-sm font-medium">Stock faible</CardTitle><AlertTriangle className="h-4 w-4 text-gray-500" /></CardHeader><CardContent><div className="text-2xl font-bold text-gray-700">{lowStockItems.length}</div></CardContent></Card>
+        <Card><CardHeader className="flex justify-between items-center"><CardTitle className="text-sm font-medium">Valeur stock</CardTitle><TrendingUp className="h-4 w-4 text-yellow-500" /></CardHeader><CardContent><div className="text-2xl font-bold text-yellow-600">{formatCurrency(totalValue)}</div></CardContent></Card>
         <Card><CardHeader className="flex justify-between items-center"><CardTitle className="text-sm font-medium">Unités totales</CardTitle><Package className="h-4 w-4 text-gray-500" /></CardHeader><CardContent><div className="text-2xl font-bold">{stock.reduce((s, i) => s + i.stock, 0)}</div></CardContent></Card>
       </div>
 
@@ -1240,11 +1264,11 @@ export default function StockManagementPage() {
             const isActive = value === null ? statusFilter === null : statusFilter === value;
             const count = value ? stock.filter(i => getStockStatus(i.stock, i.stockMin, i.stockMax).status === value).length : null;
             const activeColor = value === null ? "bg-gray-800 text-white border-gray-800"
-              : value === "En stock" ? "bg-blue-600 text-white border-blue-600"
+              : value === "En stock" ? "bg-yellow-500 text-black border-yellow-500"
               : value === "Stock faible" ? "bg-yellow-500 text-white border-yellow-500"
               : "bg-red-500 text-white border-red-500";
             const idleColor = value === null ? "border-gray-300 bg-white text-gray-700 hover:bg-gray-100"
-              : value === "En stock" ? "border-blue-300 bg-white text-blue-700 hover:bg-blue-50"
+              : value === "En stock" ? "border-yellow-300 bg-white text-yellow-700 hover:bg-yellow-50"
               : value === "Stock faible" ? "border-yellow-300 bg-white text-yellow-700 hover:bg-yellow-50"
               : "border-red-300 bg-white text-red-700 hover:bg-red-50";
             return (
@@ -1466,7 +1490,7 @@ export default function StockManagementPage() {
                 </div>
                 <div className="bg-gray-50 rounded-lg p-3 mb-4 space-y-1 text-sm">
                   <div className="flex justify-between"><span className="text-gray-500">Produit</span><span className="font-semibold text-right max-w-[60%]">{statusPanel.product.name}</span></div>
-                  <div className="flex justify-between"><span className="text-gray-500">Stock actuel</span><span className="font-bold text-blue-700">{statusPanel.product.stock} unité(s)</span></div>
+                  <div className="flex justify-between"><span className="text-gray-500">Stock actuel</span><span className="font-bold text-yellow-700">{statusPanel.product.stock} unité(s)</span></div>
                 </div>
                 <div className="grid grid-cols-2 gap-4 mb-5">
                   <div>
@@ -1510,7 +1534,7 @@ export default function StockManagementPage() {
                 <div className="flex gap-3 justify-end">
                   <Button variant="outline" onClick={() => setConfirmation({ isOpen: false, productId: null, change: 0, productName: "" })}>Non</Button>
                   <Button onClick={async () => { await updateStock(confirmation.productId!, confirmation.change); setConfirmation({ isOpen: false, productId: null, change: 0, productName: "" }); }}
-                    className="bg-green-500 hover:bg-green-600 text-white">Oui</Button>
+                    className="bg-yellow-500 hover:bg-yellow-600 text-black">Oui</Button>
                 </div>
               </motion.div>
             </motion.div>

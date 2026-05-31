@@ -105,7 +105,7 @@ export default function CancelledOrdersPage() {
         <h1 className="text-2xl font-bold text-gray-900">
           Commandes annulées
         </h1>
-        <Badge variant="secondary" className="bg-red-100 text-red-800 text-sm">
+        <Badge variant="secondary" className="bg-gray-100 text-gray-700 text-sm">
           {filteredOrders.length} commandes
         </Badge>
       </div>
@@ -128,7 +128,7 @@ export default function CancelledOrdersPage() {
             <CardTitle className="text-sm font-medium">
               Total commandes annulées
             </CardTitle>
-            <XCircle className="h-4 w-4 text-red-500" />
+            <XCircle className="h-4 w-4 text-gray-500" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{filteredOrders.length}</div>
@@ -196,7 +196,7 @@ export default function CancelledOrdersPage() {
                   </TableCell>
                   <TableCell>{order.date}</TableCell>
                   <TableCell>
-                    <Badge className="bg-red-500 text-white">
+                    <Badge className="bg-gray-700 text-white">
                       Annulée
                     </Badge>
                   </TableCell>

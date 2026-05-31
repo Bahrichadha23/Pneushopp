@@ -336,21 +336,7 @@ export default function ProductDetailsPage() {
                       disabled={quantity <= 1}
                       className="px-3 py-2 text-lg font-bold bg-gray-50 hover:bg-yellow-50 hover:text-yellow-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
                     >−</button>
-                    <input
-                      type="number"
-                      min={1}
-                      max={product.stock}
-                      value={quantity}
-                      onChange={e => {
-                        const v = parseInt(e.target.value, 10);
-                        if (!isNaN(v)) setQuantity(Math.min(product.stock, Math.max(1, v)));
-                      }}
-                      onBlur={e => {
-                        const v = parseInt(e.target.value, 10);
-                        if (isNaN(v) || v < 1) setQuantity(1);
-                      }}
-                      className="w-14 py-2 text-base font-semibold text-center border-x border-gray-200 bg-white focus:outline-none focus:bg-yellow-50 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-                    />
+                    <span className="px-4 py-2 text-base font-semibold min-w-[3rem] text-center">{quantity}</span>
                     <button
                       onClick={() => setQuantity(q => Math.min(product.stock, q + 1))}
                       disabled={quantity >= product.stock}

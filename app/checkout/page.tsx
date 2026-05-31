@@ -28,25 +28,6 @@ export default function CheckoutPage() {
     );
   }
 
-  if (!user) {
-    return (
-      <div className="container mx-auto px-4 py-12 text-center">
-        <h1 className="text-2xl font-bold mb-4">Connexion requise</h1>
-        <p className="text-gray-600 mb-8">
-          Vous devez être connecté pour passer une commande.
-        </p>
-        <div className="space-x-4">
-          <Button asChild>
-            <Link href="/auth/login">Se connecter</Link>
-          </Button>
-          <Button variant="outline" asChild>
-            <Link href="/auth/register">Créer un compte</Link>
-          </Button>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className="container mx-auto px-4 py-8">
       <button
@@ -59,6 +40,12 @@ export default function CheckoutPage() {
       <h1 className="text-3xl font-bold text-center mb-8">
         Finaliser votre commande
       </h1>
+      {!user && (
+        <div className="max-w-2xl mx-auto mb-6 bg-yellow-50 border border-yellow-200 rounded-lg p-4 text-sm text-yellow-800">
+          <p className="font-semibold mb-1">Commande en tant qu'invité</p>
+          <p>Vous pouvez commander sans compte. Remplissez vos coordonnées ci-dessous. <span className="font-medium"><Link href="/auth/login" className="underline">Se connecter</Link> ou <Link href="/auth/register" className="underline">créer un compte</Link></span> pour suivre vos commandes.</p>
+        </div>
+      )}
       <CheckoutForm />
     </div>
   );

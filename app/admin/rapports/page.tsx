@@ -238,26 +238,26 @@ export default function RapportsPage() {
             <CardTitle className="text-sm font-medium">
               Ventes totales
             </CardTitle>
-            <p className="h-4 w-4 text-green-500" >DT</p>
+            <p className="h-4 w-4 text-yellow-500 font-bold">DT</p>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-green-600">
+            <div className="text-2xl font-bold text-yellow-600">
               {(stats_ventes.ventes_total ?? 0).toLocaleString()} DT
             </div>
-            <p className="text-xs text-green-600 mt-1">Toutes périodes confondues</p>
+            <p className="text-xs text-gray-500 mt-1">Toutes périodes confondues</p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Commandes</CardTitle>
-            <Package className="h-4 w-4 text-blue-500" />
+            <Package className="h-4 w-4 text-gray-500" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-blue-600">
+            <div className="text-2xl font-bold text-gray-800">
               {stats_ventes.commandes_total ?? 0}
             </div>
-            <p className="text-xs text-blue-600 mt-1">Toutes périodes confondues</p>
+            <p className="text-xs text-gray-500 mt-1">Toutes périodes confondues</p>
           </CardContent>
         </Card>
 
@@ -266,13 +266,13 @@ export default function RapportsPage() {
             <CardTitle className="text-sm font-medium">
               Clients actifs
             </CardTitle>
-            <Users className="h-4 w-4 text-purple-500" />
+            <Users className="h-4 w-4 text-gray-500" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-purple-600">
+            <div className="text-2xl font-bold text-gray-800">
               {stats_ventes.clients_actifs ?? 0}
             </div>
-            <p className="text-xs text-purple-600 mt-1">
+            <p className="text-xs text-gray-500 mt-1">
               Données en temps réel
             </p>
           </CardContent>
@@ -311,7 +311,7 @@ export default function RapportsPage() {
                   <div className="flex items-center space-x-4">
                     <div className="w-32 bg-gray-200 rounded-full h-2">
                       <div
-                        className="bg-blue-600 h-2 rounded-full"
+                        className="bg-yellow-500 h-2 rounded-full"
                         style={{
                           width: `${
                             (data.ventes /
@@ -348,7 +348,7 @@ export default function RapportsPage() {
                   <div className="flex items-center space-x-4">
                     <div className="w-32 bg-gray-200 rounded-full h-2">
                       <div
-                        className="bg-green-600 h-2 rounded-full"
+                        className="bg-gray-600 h-2 rounded-full"
                         style={{
                           width: `${
                             (data.commandes /
@@ -393,7 +393,7 @@ export default function RapportsPage() {
                     <TableCell>
                       <Badge variant="secondary">{produit.ventes}</Badge>
                     </TableCell>
-                    <TableCell className="font-bold text-green-600">
+                    <TableCell className="font-bold text-yellow-600">
                       {produit.chiffre.toLocaleString()} DT
                     </TableCell>
                   </TableRow>
@@ -423,7 +423,7 @@ export default function RapportsPage() {
                     <TableCell>
                       <Badge variant="outline">{client.commandes}</Badge>
                     </TableCell>
-                    <TableCell className="font-bold text-blue-600">
+                    <TableCell className="font-bold text-gray-800">
                       {client.total.toLocaleString()} DT
                     </TableCell>
                   </TableRow>

@@ -383,10 +383,10 @@ export default function ImportPage() {
           <Alert
             className={
               notice.type === "success"
-                ? "border-green-300 bg-green-50 shadow-lg"
+                ? "border-yellow-300 bg-yellow-50 shadow-lg"
                 : notice.type === "error"
-                ? "border-red-300 bg-red-50 shadow-lg"
-                : "border-blue-300 bg-blue-50 shadow-lg"
+                ? "border-gray-300 bg-gray-50 shadow-lg"
+                : "border-yellow-200 bg-yellow-50 shadow-lg"
             }
           >
             {notice.type === "error" ? (
@@ -403,10 +403,10 @@ export default function ImportPage() {
         <Alert
           className={
             notice.type === "success"
-              ? "border-green-200 bg-green-50"
+              ? "border-yellow-200 bg-yellow-50"
               : notice.type === "error"
-              ? "border-red-200 bg-red-50"
-              : "border-blue-200 bg-blue-50"
+              ? "border-gray-300 bg-gray-50"
+              : "border-yellow-200 bg-yellow-50"
           }
         >
           {notice.type === "error" ? (
@@ -432,10 +432,10 @@ export default function ImportPage() {
         <Alert
           className={
             statusBanner.type === "success"
-              ? "border-green-200 bg-green-50"
+              ? "border-yellow-200 bg-yellow-50"
               : statusBanner.type === "error"
-              ? "border-red-200 bg-red-50"
-              : "border-blue-200 bg-blue-50"
+              ? "border-gray-300 bg-gray-50"
+              : "border-yellow-200 bg-yellow-50"
           }
         >
           {statusBanner.type === "error" ? (
@@ -507,15 +507,15 @@ export default function ImportPage() {
 
       {/* ===== RECAP après import ===== */}
       {importResult && (
-        <Card className="border-2 border-green-200">
-          <CardHeader className="bg-green-50 rounded-t-lg">
+        <Card className="border-2 border-yellow-300">
+          <CardHeader className="bg-yellow-50 rounded-t-lg">
             <div className="flex items-start justify-between">
               <div>
-                <CardTitle className="flex items-center gap-2 text-green-800">
-                  <CheckCircle className="h-6 w-6 text-green-600" />
+                <CardTitle className="flex items-center gap-2 text-yellow-800">
+                  <CheckCircle className="h-6 w-6 text-yellow-600" />
                   Import terminé — Récapitulatif
                 </CardTitle>
-                <p className="text-sm text-green-700 mt-1">{importResult.message}</p>
+                <p className="text-sm text-yellow-700 mt-1">{importResult.message}</p>
               </div>
               <button
                 onClick={() => {
@@ -531,13 +531,13 @@ export default function ImportPage() {
 
             {/* Compteurs */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              <div className="text-center p-4 bg-blue-50 rounded-xl border border-blue-100">
-                <div className="text-3xl font-bold text-blue-700">{importResult.summary.total_rows}</div>
-                <div className="text-sm text-blue-600 mt-1">Lignes lues</div>
+              <div className="text-center p-4 bg-gray-100 rounded-xl border border-gray-200">
+                <div className="text-3xl font-bold text-gray-700">{importResult.summary.total_rows}</div>
+                <div className="text-sm text-gray-600 mt-1">Lignes lues</div>
               </div>
-              <div className="text-center p-4 bg-green-50 rounded-xl border border-green-100">
-                <div className="text-3xl font-bold text-green-700">{importResult.summary.created}</div>
-                <div className="text-sm text-green-600 mt-1">Produits créés</div>
+              <div className="text-center p-4 bg-yellow-50 rounded-xl border border-yellow-100">
+                <div className="text-3xl font-bold text-yellow-700">{importResult.summary.created}</div>
+                <div className="text-sm text-yellow-600 mt-1">Produits créés</div>
               </div>
               <div className="text-center p-4 bg-yellow-50 rounded-xl border border-yellow-100">
                 <div className="text-3xl font-bold text-yellow-700">{importResult.summary.updated}</div>
@@ -553,7 +553,7 @@ export default function ImportPage() {
             {importResult.created_products?.length > 0 && (
               <div>
                 <h3 className="font-semibold text-gray-800 mb-3 flex items-center gap-2">
-                  <CheckCircle className="h-4 w-4 text-green-500" />
+                  <CheckCircle className="h-4 w-4 text-yellow-500" />
                   Produits ajoutés au catalogue ({importResult.created_products.length})
                 </h3>
                 <div className="border rounded-lg overflow-hidden max-h-72 overflow-y-auto">
@@ -632,12 +632,12 @@ export default function ImportPage() {
           </div>
 
           {file && (
-            <div className="flex items-center justify-between p-4 bg-green-50 border border-green-200 rounded-lg">
+            <div className="flex items-center justify-between p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
               <div className="flex items-center space-x-3">
-                <FileSpreadsheet className="h-8 w-8 text-green-600 flex-shrink-0" />
+                <FileSpreadsheet className="h-8 w-8 text-yellow-600 flex-shrink-0" />
                 <div>
-                  <p className="font-semibold text-green-800">{file.name}</p>
-                  <p className="text-sm text-green-600">
+                  <p className="font-semibold text-yellow-800">{file.name}</p>
+                  <p className="text-sm text-yellow-600">
                     {(file.size / 1024 / 1024).toFixed(2)} MB — Prêt à importer
                   </p>
                 </div>
@@ -661,7 +661,7 @@ export default function ImportPage() {
                 <Button
                   onClick={handleImport}
                   disabled={isUploading || isPolling}
-                  className="bg-green-600 hover:bg-green-700 text-white"
+                  className="bg-yellow-500 hover:bg-yellow-600 text-black"
                 >
                   {isUploading || isPolling ? "Import en cours..." : "Importer"}
                 </Button>

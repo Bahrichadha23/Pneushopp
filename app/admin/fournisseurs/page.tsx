@@ -195,7 +195,7 @@ export default function FournisseursPage() {
             <CardTitle className="text-sm font-medium">
               Fournisseurs actifs
             </CardTitle>
-            <Building className="h-4 w-4 text-blue-500" />
+            <Building className="h-4 w-4 text-yellow-500" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{fournisseurs.length}</div>
@@ -518,7 +518,7 @@ export default function FournisseursPage() {
       <Dialog open={!!deleteError} onOpenChange={() => setDeleteError(null)}>
         <DialogContent className="max-w-md">
           <DialogHeader>
-            <DialogTitle className="text-red-600 flex items-center gap-2">
+            <DialogTitle className="text-gray-800 flex items-center gap-2">
               <span>⚠️</span> Suppression impossible
             </DialogTitle>
           </DialogHeader>

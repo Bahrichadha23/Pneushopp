@@ -88,9 +88,9 @@ export default function DotStatePage() {
 
       {/* Stats */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-        <div className="bg-blue-50 rounded-xl p-4 text-center border border-blue-100">
-          <p className="text-2xl font-bold text-blue-700">{filtered.length}</p>
-          <p className="text-xs text-blue-500 mt-0.5">Lots DOT</p>
+        <div className="bg-yellow-50 rounded-xl p-4 text-center border border-yellow-100">
+          <p className="text-2xl font-bold text-yellow-700">{filtered.length}</p>
+          <p className="text-xs text-yellow-600 mt-0.5">Lots DOT</p>
         </div>
         <div className="bg-gray-50 rounded-xl p-4 text-center border border-gray-200">
           <p className="text-2xl font-bold text-gray-700">{total}</p>
@@ -100,14 +100,14 @@ export default function DotStatePage() {
           <p className="text-2xl font-bold text-yellow-700">{warn}</p>
           <p className="text-xs text-yellow-600 mt-0.5">À surveiller (+3 ans)</p>
         </div>
-        <div className="bg-red-50 rounded-xl p-4 text-center border border-red-200">
-          <p className="text-2xl font-bold text-red-700">{danger}</p>
-          <p className="text-xs text-red-500 mt-0.5">Priorité absolue (+4 ans)</p>
+        <div className="bg-gray-100 rounded-xl p-4 text-center border border-gray-300">
+          <p className="text-2xl font-bold text-gray-800">{danger}</p>
+          <p className="text-xs text-gray-600 mt-0.5">Priorité absolue (+4 ans)</p>
         </div>
       </div>
 
       {/* Info banner */}
-      <div className="flex items-start gap-2 bg-blue-50 border border-blue-200 rounded-lg px-4 py-3 text-sm text-blue-800">
+      <div className="flex items-start gap-2 bg-yellow-50 border border-yellow-200 rounded-lg px-4 py-3 text-sm text-yellow-800">
         <Info className="h-4 w-4 mt-0.5 flex-shrink-0" />
         <p>
           Les lots apparaissent ici automatiquement à chaque achat fournisseur.
@@ -247,7 +247,7 @@ export default function DotStatePage() {
                     <td className="px-4 py-3 text-center">
                       <button
                         onClick={() => router.push(`/admin/stock?dot=${batch.product_id}`)}
-                        className="inline-flex items-center gap-1 text-xs text-blue-600 hover:text-blue-800 font-medium"
+                        className="inline-flex items-center gap-1 text-xs text-yellow-700 hover:text-yellow-900 font-medium"
                         title="Voir dans Gestion du stock"
                       >
                         Vendre

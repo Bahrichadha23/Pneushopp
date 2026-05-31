@@ -211,7 +211,7 @@ export default function ParametresPage() {
       {/* Toast */}
       {toast && (
         <div className={`fixed top-4 right-4 z-50 flex items-center gap-2 rounded-lg px-5 py-3 text-sm font-medium shadow-lg text-white transition-all
-          ${toast.ok ? "bg-green-600" : "bg-red-600"}`}>
+          ${toast.ok ? "bg-yellow-500 text-black" : "bg-gray-800 text-white"}`}>
           {toast.ok ? <Check className="h-4 w-4" /> : <AlertTriangle className="h-4 w-4" />}
           {toast.msg}
         </div>
@@ -408,8 +408,8 @@ export default function ParametresPage() {
                     onClick={handleBackup}
                     className="flex items-center gap-3 rounded-xl border border-gray-200 bg-white px-5 py-4 text-left hover:border-gray-400 hover:shadow-sm transition-all"
                   >
-                    <div className="rounded-lg bg-blue-50 p-2.5">
-                      <Database className="h-5 w-5 text-blue-600" />
+                    <div className="rounded-lg bg-yellow-50 p-2.5">
+                      <Database className="h-5 w-5 text-yellow-600" />
                     </div>
                     <div>
                       <p className="text-sm font-semibold text-gray-800">Sauvegarde BD</p>
@@ -421,8 +421,8 @@ export default function ParametresPage() {
                     onClick={handleExportCustomers}
                     className="flex items-center gap-3 rounded-xl border border-gray-200 bg-white px-5 py-4 text-left hover:border-gray-400 hover:shadow-sm transition-all"
                   >
-                    <div className="rounded-lg bg-green-50 p-2.5">
-                      <FileDown className="h-5 w-5 text-green-600" />
+                    <div className="rounded-lg bg-gray-100 p-2.5">
+                      <FileDown className="h-5 w-5 text-gray-600" />
                     </div>
                     <div>
                       <p className="text-sm font-semibold text-gray-800">Exporter clients</p>

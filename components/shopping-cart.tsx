@@ -169,7 +169,7 @@ export default function ShoppingCart({
           </Button>
           <Link href="/checkout" className="flex-1">
             <Button className="w-full bg-yellow-500 hover:bg-yellow-600 text-black font-semibold">
-              Passer commande
+              Passer La Commande
             </Button>
           </Link>
         </div>

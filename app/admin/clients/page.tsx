@@ -83,7 +83,7 @@ export default function ClientsPage() {
 
   const getClientTypeBadge = (role: string) =>
     role === "admin" ? (
-      <Badge className="bg-blue-500">Admin</Badge>
+      <Badge className="bg-gray-800 text-white">Admin</Badge>
     ) : (
       <Badge variant="secondary">Customer</Badge>
     );
@@ -177,7 +177,7 @@ export default function ClientsPage() {
         <Card>
           <CardHeader className="flex justify-between items-center">
             <CardTitle className="text-sm font-medium">Total clients</CardTitle>
-            <Users className="h-4 w-4 text-blue-500" />
+            <Users className="h-4 w-4 text-gray-500" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{clients.length}</div>
@@ -192,7 +192,7 @@ export default function ClientsPage() {
             <Star className="h-4 w-4 text-yellow-500" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-blue-600">
+            <div className="text-2xl font-bold text-gray-800">
               {professionnels}
             </div>
           </CardContent>
@@ -201,10 +201,10 @@ export default function ClientsPage() {
         <Card>
           <CardHeader className="flex justify-between items-center">
             <CardTitle className="text-sm font-medium">Particuliers</CardTitle>
-            <Users className="h-4 w-4 text-green-500" />
+            <Users className="h-4 w-4 text-gray-500" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-green-600">
+            <div className="text-2xl font-bold text-gray-800">
               {particuliers}
             </div>
           </CardContent>
@@ -213,10 +213,10 @@ export default function ClientsPage() {
         <Card>
           <CardHeader className="flex justify-between items-center">
             <CardTitle className="text-sm font-medium">CA Total</CardTitle>
-            <span className="h-4 w-4 text-green-500">DT</span>
+            <span className="h-4 w-4 text-yellow-600 font-bold">DT</span>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-green-600">
+            <div className="text-2xl font-bold text-yellow-600">
               {formatCurrency(totalCA)}
             </div>
           </CardContent>
@@ -336,7 +336,7 @@ export default function ClientsPage() {
                     <TableCell className="text-center">
                       <Badge variant="outline">{client.totalCommandes}</Badge>
                     </TableCell>
-                    <TableCell className="font-medium text-green-600">
+                    <TableCell className="font-medium text-yellow-600">
                       {formatCurrency(client.montantTotal)}
                     </TableCell>
                     <TableCell>{client.derniereCommande}</TableCell>
@@ -450,7 +450,7 @@ export default function ClientsPage() {
                     </label>
                     <p>
                       {selectedClient.is_verified ? (
-                        <Badge className="bg-green-500">Vérifié</Badge>
+                        <Badge className="bg-yellow-500 text-black">Vérifié</Badge>
                       ) : (
                         <Badge variant="secondary">Non vérifié</Badge>
                       )}
@@ -471,7 +471,7 @@ export default function ClientsPage() {
                     <label className="text-sm font-medium text-gray-500">
                       Nombre de commandes
                     </label>
-                    <p className="text-2xl font-bold text-blue-600">
+                    <p className="text-2xl font-bold text-gray-800">
                       {selectedClient.totalCommandes}
                     </p>
                   </div>
@@ -479,7 +479,7 @@ export default function ClientsPage() {
                     <label className="text-sm font-medium text-gray-500">
                       Chiffre d'affaires total
                     </label>
-                    <p className="text-2xl font-bold text-green-600">
+                    <p className="text-2xl font-bold text-yellow-600">
                       {formatCurrency(selectedClient.montantTotal)}
                     </p>
                   </div>

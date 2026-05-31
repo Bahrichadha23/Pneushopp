@@ -64,8 +64,8 @@ const STATUS_LABEL: Record<string, string> = {
 
 const STATUS_COLOR: Record<string, string> = {
   pending: "bg-yellow-100 text-yellow-800 border-yellow-300",
-  in_progress: "bg-blue-100 text-blue-800 border-blue-300",
-  done: "bg-green-100 text-green-800 border-green-300",
+  in_progress: "bg-yellow-100 text-yellow-800 border-yellow-300",
+  done: "bg-black text-white border-black",
 };
 
 const PRIORITY_LABEL: Record<string, string> = {
@@ -77,7 +77,7 @@ const PRIORITY_LABEL: Record<string, string> = {
 
 const PRIORITY_COLOR: Record<string, string> = {
   low: "bg-gray-100 text-gray-600",
-  medium: "bg-blue-100 text-blue-700",
+  medium: "bg-yellow-100 text-yellow-700",
   high: "bg-orange-100 text-orange-700",
   urgent: "bg-red-100 text-red-700",
 };
@@ -405,7 +405,7 @@ function MessageCard({
     <div
       className={`bg-white border rounded-xl shadow-sm transition-all ${
         msg.status === "done"
-          ? "border-green-200 opacity-80"
+          ? "border-gray-300 opacity-80"
           : msg.priority === "urgent"
           ? "border-red-300"
           : "border-gray-200"
@@ -419,9 +419,9 @@ function MessageCard({
         {/* Status icon */}
         <div className="mt-0.5 shrink-0">
           {msg.status === "done" ? (
-            <CheckCircle className="w-5 h-5 text-green-500" />
+            <CheckCircle className="w-5 h-5 text-gray-700" />
           ) : msg.status === "in_progress" ? (
-            <Clock className="w-5 h-5 text-blue-500" />
+            <Clock className="w-5 h-5 text-yellow-500" />
           ) : (
             <AlertTriangle className="w-5 h-5 text-yellow-500" />
           )}
@@ -467,7 +467,7 @@ function MessageCard({
             )}
           </div>
           {msg.is_done && msg.done_by_name && (
-            <p className="text-xs text-green-600 mt-1">
+            <p className="text-xs text-gray-600 mt-1">
               ✓ Résolu par {msg.done_by_name}
               {msg.done_at ? ` le ${fmtDate(msg.done_at)}` : ""}
             </p>
@@ -499,7 +499,7 @@ function MessageCard({
                 <Button
                   size="sm"
                   onClick={() => onMarkDone(msg.id)}
-                  className="bg-green-600 hover:bg-green-700 text-white gap-1 text-xs"
+                  className="bg-yellow-500 hover:bg-yellow-600 text-black gap-1 text-xs"
                 >
                   <CheckCircle className="w-3.5 h-3.5" />
                   Marquer terminé
@@ -510,7 +510,7 @@ function MessageCard({
                   size="sm"
                   variant="outline"
                   onClick={() => onMarkInProgress(msg.id)}
-                  className="gap-1 text-xs border-blue-300 text-blue-700 hover:bg-blue-50"
+                  className="gap-1 text-xs border-yellow-300 text-yellow-700 hover:bg-yellow-50"
                 >
                   <Clock className="w-3.5 h-3.5" />
                   En cours

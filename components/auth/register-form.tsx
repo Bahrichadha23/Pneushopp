@@ -28,6 +28,7 @@ export default function RegisterForm({
     lastName: "",
     email: "",
     phone: "",
+    address: "",
     password: "",
     confirmPassword: "",
     acceptTerms: false,
@@ -145,6 +146,7 @@ export default function RegisterForm({
         lastName: formData.lastName.trim(),
         email: formData.email.trim(),
         phone: formData.phone.trim() || undefined,
+        address: formData.address.trim() || undefined,
         password: formData.password,
         acceptTerms: formData.acceptTerms,
         newsletter: formData.newsletter,
@@ -289,6 +291,18 @@ export default function RegisterForm({
           {errors.phone && (
             <p className="text-red-500 text-xs mt-1">{errors.phone}</p>
           )}
+        </div>
+        <div>
+          <Label htmlFor="address">Adresse</Label>
+          <Input
+            id="address"
+            name="address"
+            type="text"
+            value={formData.address}
+            onChange={handleInputChange}
+            placeholder="Rue, quartier, ville..."
+            disabled={isLoading}
+          />
         </div>
         <div>
           <Label htmlFor="password">Mot de passe *</Label>

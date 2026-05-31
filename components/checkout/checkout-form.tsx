@@ -416,13 +416,12 @@ export function CheckoutForm() {
             </div>
 
             <div>
-              <Label htmlFor="company">Entreprise *</Label>
+              <Label htmlFor="company">Entreprise <span className="text-gray-400 font-normal text-xs">(optionnel)</span></Label>
               <Input
                 id="company"
                 placeholder="Nom de votre entreprise"
                 value={shippingAddress.company}
                 onChange={(e) => setShippingAddress((prev) => ({ ...prev, company: e.target.value }))}
-                required
               />
             </div>
 

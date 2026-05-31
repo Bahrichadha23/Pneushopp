@@ -65,14 +65,13 @@ export function OrderProvider({ children }: { children: React.ReactNode }) {
           ? localStorage.getItem("access_token")
           : null;
 
-      if (token) {
-        // Call backend API to create order
+      // Call backend API to create order (with or without token — supports guest checkout)
+      {
+        const headers: Record<string, string> = { "Content-Type": "application/json" };
+        if (token) headers["Authorization"] = `Bearer ${token}`;
         const response = await fetch(`${API_URL}/orders/`, {
           method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
+          headers,
           body: JSON.stringify({
             // Remove order_number - let backend generate it with PS{YY}{NNNNNN} format
             items: orderData.items.map((item) => ({

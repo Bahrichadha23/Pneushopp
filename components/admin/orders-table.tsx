@@ -320,7 +320,8 @@ export async function handleDownloadInvoice(order: any) {
   pdf.setFont("helvetica", "italic");
   pdf.text("Cachet et Signature", margin + 5, pageHeight - 20);
 
-  pdf.save(`facture-${order.orderNumber}.pdf`);
+  const invoiceFileName = `fps${(order.orderNumber || "").replace(/^CPS/i, "")}.pdf`;
+  pdf.save(invoiceFileName);
 }
 
 interface DotBatch {
@@ -515,12 +516,12 @@ export default function OrdersTable({
 
   const getStatusBadge = (status: Order["status"]) => {
     const styles: Record<string, string> = {
-      pending:    "bg-orange-100 text-orange-800 border border-orange-200",
-      confirmed:  "bg-blue-100 text-blue-800 border border-blue-200",
-      processing: "bg-yellow-400 text-black font-semibold",
-      shipped:    "bg-purple-100 text-purple-800 border border-purple-200",
-      delivered:  "bg-green-100 text-green-800 border border-green-200",
-      cancelled:  "bg-red-100 text-red-800 border border-red-200",
+      pending:    "bg-yellow-100 text-yellow-800 border border-yellow-200",
+      confirmed:  "bg-yellow-400 text-black border border-yellow-400",
+      processing: "bg-yellow-500 text-black font-semibold",
+      shipped:    "bg-gray-700 text-white border border-gray-700",
+      delivered:  "bg-black text-white border border-black",
+      cancelled:  "bg-gray-100 text-gray-600 border border-gray-300 line-through",
     };
 
     const labels: Record<string, string> = {
@@ -719,7 +720,7 @@ export default function OrdersTable({
                             <Package
                               className={`h-4 w-4 ${
                                 purchaseOrderCreated.has(order.id)
-                                  ? "text-green-500"
+                                  ? "text-yellow-600"
                                   : ""
                               }`}
                             />
@@ -890,8 +891,8 @@ export default function OrdersTable({
               {/* Modal Body */}
               <div className="flex-1 overflow-y-auto px-6 py-4 space-y-4">
                 {preFilledFromPrep && (
-                  <div className="text-sm text-blue-800 bg-blue-50 border border-blue-200 rounded-lg px-4 py-3 flex items-center gap-2">
-                    <Check className="h-4 w-4 text-blue-600 flex-shrink-0" />
+                  <div className="text-sm text-yellow-800 bg-yellow-50 border border-yellow-200 rounded-lg px-4 py-3 flex items-center gap-2">
+                    <Check className="h-4 w-4 text-yellow-600 flex-shrink-0" />
                     Lots DOT pré-assignés depuis la préparation stock. Vérifiez et confirmez.
                   </div>
                 )}
@@ -916,7 +917,7 @@ export default function OrdersTable({
                         <div
                           key={idx}
                           className={`rounded-xl border-2 p-4 transition-colors ${
-                            isAssigned ? "border-green-300 bg-green-50" : "border-gray-200 bg-white"
+                            isAssigned ? "border-yellow-300 bg-yellow-50" : "border-gray-200 bg-white"
                           }`}
                         >
                           <div className="flex items-start justify-between gap-3 mb-3">
@@ -927,7 +928,7 @@ export default function OrdersTable({
                               </p>
                             </div>
                             {isAssigned ? (
-                              <span className="text-xs font-bold text-green-700 bg-green-100 px-2 py-1 rounded-full whitespace-nowrap">
+                              <span className="text-xs font-bold text-yellow-800 bg-yellow-100 px-2 py-1 rounded-full whitespace-nowrap">
                                 ✓ DOT assigné
                               </span>
                             ) : (
