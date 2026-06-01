@@ -37,7 +37,7 @@ const fmtDate = (d: string | null | undefined) => {
 };
 
 const fmtCurrency = (v: number) =>
-  v.toLocaleString("fr-FR", { minimumFractionDigits: 3, maximumFractionDigits: 3 }) + " DT";
+  parseFloat(String(v ?? 0)).toFixed(3) + " DT";
 
 // ── PDF Generator ────────────────────────────────────────────────────────────
 const handleDownloadAchat = (order: any) => {
@@ -188,7 +188,7 @@ const handleDownloadAchat = (order: any) => {
 const STATUS_CONFIG = {
   draft:     { label: "Brouillon",  cls: "bg-gray-100 text-gray-600 border border-gray-200" },
   confirmed: { label: "Confirmée",  cls: "bg-yellow-400 text-black font-semibold" },
-  received:  { label: "Reçue",      cls: "bg-green-100 text-green-700 border border-green-200" },
+  received:  { label: "Reçue",      cls: "bg-black text-white border border-black" },
   cancelled: { label: "Annulée",    cls: "bg-red-100 text-red-700 border border-red-200" },
 };
 
@@ -269,12 +269,13 @@ function DetailModal({ order, onClose }: { order: any; onClose: () => void }) {
                 <th className="px-3 py-2 text-center">Empl.</th>
                 <th className="px-3 py-2 text-right">Qté</th>
                 <th className="px-3 py-2 text-right">P.U. HT</th>
+                <th className="px-3 py-2 text-right">Fr. Livr.</th>
                 <th className="px-3 py-2 text-right">Total HT</th>
               </tr>
             </thead>
             <tbody>
               {items.length === 0 ? (
-                <tr><td colSpan={5} className="text-center py-6 text-gray-400">Aucun article</td></tr>
+                <tr><td colSpan={8} className="text-center py-6 text-gray-400">Aucun article</td></tr>
               ) : items.map((item: any, i: number) => (
                 <tr key={i} className={i % 2 === 0 ? "bg-white" : "bg-gray-50"}>
                   <td className="px-3 py-2 font-mono text-xs text-gray-500">{item.reference || "—"}</td>
@@ -287,6 +288,7 @@ function DetailModal({ order, onClose }: { order: any; onClose: () => void }) {
                   <td className="px-3 py-2 text-center text-xs text-gray-600">{item.emplacement || "—"}</td>
                   <td className="px-3 py-2 text-right">{item.quantity || item.quantite || 0}</td>
                   <td className="px-3 py-2 text-right">{Number(item.unit_price_ht || item.prix_unitaire || 0).toFixed(3)}</td>
+                  <td className="px-3 py-2 text-right text-blue-600">{Number(item.frais_livraison || 0).toFixed(3)}</td>
                   <td className="px-3 py-2 text-right font-semibold">{Number(item.total_ht || 0).toFixed(3)}</td>
                 </tr>
               ))}
@@ -487,7 +489,7 @@ export default function AchatsCommandesPage() {
     <div className="space-y-6">
       {/* Toast */}
       {toast && (
-        <div className="fixed top-4 right-4 z-50 bg-green-600 text-white px-5 py-3 rounded-lg shadow-lg text-sm font-medium animate-in fade-in slide-in-from-top-2">
+        <div className="fixed top-4 right-4 z-50 bg-yellow-500 text-black px-5 py-3 rounded-lg shadow-lg text-sm font-medium animate-in fade-in slide-in-from-top-2">
           {toast}
         </div>
       )}
@@ -535,10 +537,10 @@ export default function AchatsCommandesPage() {
             </div>
           </CardContent>
         </Card>
-        <Card className="border-l-4 border-l-blue-400">
+        <Card className="border-l-4 border-l-gray-400">
           <CardContent className="p-4 flex items-center gap-4">
-            <div className="rounded-xl bg-blue-50 p-3">
-              <Building2 className="h-6 w-6 text-blue-600" />
+            <div className="rounded-xl bg-gray-100 p-3">
+              <Building2 className="h-6 w-6 text-gray-600" />
             </div>
             <div>
               <p className="text-2xl font-bold text-gray-900">{nbFournisseurs}</p>
@@ -729,8 +731,8 @@ export default function AchatsCommandesPage() {
                           onChange={(e) => handleStatusChange(order.id, e.target.value)}
                           className={`rounded-full px-3 py-0.5 text-xs font-medium border-0 cursor-pointer focus:outline-none focus:ring-2 focus:ring-yellow-400 ${
                             order.status === "confirmed" ? "bg-yellow-400 text-black" :
-                            order.status === "received"  ? "bg-green-100 text-green-700" :
-                            order.status === "cancelled" ? "bg-red-100 text-red-700" :
+                            order.status === "received"  ? "bg-black text-white" :
+                            order.status === "cancelled" ? "bg-gray-200 text-gray-600" :
                             "bg-gray-100 text-gray-600"
                           }`}
                         >

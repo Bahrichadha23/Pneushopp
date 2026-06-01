@@ -825,15 +825,15 @@ export default function TresoreriePage() {
           <p className="mt-1 text-2xl font-bold text-slate-800">{formatCurrency(records.reduce((s, r) => s + r.totalAmount, 0))}</p>
           <p className="text-xs text-slate-400 mt-0.5">{records.length} commandes</p>
         </div>
-        <div className="rounded-lg border border-emerald-200 bg-emerald-50 p-4 shadow-sm">
-          <p className="text-xs font-semibold uppercase tracking-wide text-emerald-600">Encaissé</p>
-          <p className="mt-1 text-2xl font-bold text-emerald-700">{formatCurrency(records.reduce((s, r) => s + getPaidAmount(r), 0))}</p>
-          <p className="text-xs text-emerald-500 mt-0.5">{records.filter(r => getRemainingAmount(r) === 0).length} soldées</p>
+        <div className="rounded-lg border border-yellow-200 bg-yellow-50 p-4 shadow-sm">
+          <p className="text-xs font-semibold uppercase tracking-wide text-yellow-700">Encaissé</p>
+          <p className="mt-1 text-2xl font-bold text-yellow-700">{formatCurrency(records.reduce((s, r) => s + getPaidAmount(r), 0))}</p>
+          <p className="text-xs text-yellow-600 mt-0.5">{records.filter(r => getRemainingAmount(r) === 0).length} soldées</p>
         </div>
-        <div className="rounded-lg border border-rose-200 bg-rose-50 p-4 shadow-sm">
-          <p className="text-xs font-semibold uppercase tracking-wide text-rose-600">Reste à recouvrer</p>
-          <p className="mt-1 text-2xl font-bold text-rose-700">{formatCurrency(records.reduce((s, r) => s + getRemainingAmount(r), 0))}</p>
-          <p className="text-xs text-rose-500 mt-0.5">{records.filter(r => getRemainingAmount(r) > 0).length} en cours</p>
+        <div className="rounded-lg border border-slate-200 bg-slate-50 p-4 shadow-sm">
+          <p className="text-xs font-semibold uppercase tracking-wide text-slate-600">Reste à recouvrer</p>
+          <p className="mt-1 text-2xl font-bold text-slate-700">{formatCurrency(records.reduce((s, r) => s + getRemainingAmount(r), 0))}</p>
+          <p className="text-xs text-slate-500 mt-0.5">{records.filter(r => getRemainingAmount(r) > 0).length} en cours</p>
         </div>
         <div className="rounded-lg border border-orange-200 bg-orange-50 p-4 shadow-sm">
           <p className="text-xs font-semibold uppercase tracking-wide text-orange-600">Échéances &lt; 7 jours</p>
@@ -853,44 +853,7 @@ export default function TresoreriePage() {
         </div>
 
         <div className="space-y-4 p-4">
-          <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-5">
-            <div>
-              <label className="mb-1 block text-xs font-semibold text-slate-600">Date</label>
-              <select
-                value={dateFilter}
-                onChange={(e) => setDateFilter(e.target.value)}
-                className="w-full rounded border border-slate-300 px-2 py-2 text-sm"
-              >
-                <option value="all">Tout</option>
-                <option value="today">Aujourd'hui</option>
-                <option value="yesterday">Hier</option>
-                <option value="specific">Date Spécifique</option>
-                <option value="this_week">Cette Semaine</option>
-                <option value="this_month">Ce Mois</option>
-                <option value="this_year">Cette Année</option>
-                <option value="period">Période Spécifique</option>
-              </select>
-            </div>
-
-            <div>
-              <label className="mb-1 block text-xs font-semibold text-slate-600">
-                Date d'échéance
-              </label>
-              <select
-                value={dueDateFilter}
-                onChange={(e) => setDueDateFilter(e.target.value)}
-                className="w-full rounded border border-slate-300 px-2 py-2 text-sm"
-              >
-                <option value="all">Tout</option>
-                <option value="today">Aujourd'hui</option>
-                <option value="yesterday">Hier</option>
-                <option value="specific">Date Spécifique</option>
-                <option value="this_week">Cette Semaine</option>
-                <option value="this_month">Ce Mois</option>
-                <option value="this_year">Cette Année</option>
-                <option value="period">Période Spécifique</option>
-              </select>
-            </div>
+          <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-4">
 
             <div>
               <label className="mb-1 block text-xs font-semibold text-slate-600">
@@ -950,22 +913,6 @@ export default function TresoreriePage() {
             </div>
 
             <div>
-              <label className="mb-1 block text-xs font-semibold text-slate-600">Utilisateur</label>
-              <select
-                value={userFilter}
-                onChange={(e) => setUserFilter(e.target.value)}
-                className="w-full rounded border border-slate-300 px-2 py-2 text-sm"
-              >
-                <option value="">Tout</option>
-                {users.map((u) => (
-                  <option key={u} value={u}>
-                    {u}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div>
               <label className="mb-1 block text-xs font-semibold text-slate-600">Client</label>
               <select
                 value={clientFilter}
@@ -1015,22 +962,14 @@ export default function TresoreriePage() {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-4">
+          <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-2">
             <div>
-              <label className="mb-1 block text-xs font-semibold text-slate-600">Date début</label>
-              <Input type="date" value={dateFrom} onChange={(e) => setDateFrom(e.target.value)} />
+              <label className="mb-1 block text-xs font-semibold text-slate-600">Date</label>
+              <Input type="date" value={dateFrom} onChange={(e) => { setDateFrom(e.target.value); setDateTo(e.target.value); setDateFilter(e.target.value ? "specific" : "all"); }} />
             </div>
             <div>
-              <label className="mb-1 block text-xs font-semibold text-slate-600">Date fin</label>
-              <Input type="date" value={dateTo} onChange={(e) => setDateTo(e.target.value)} />
-            </div>
-            <div>
-              <label className="mb-1 block text-xs font-semibold text-slate-600">Échéance début</label>
-              <Input type="date" value={dueDateFrom} onChange={(e) => setDueDateFrom(e.target.value)} />
-            </div>
-            <div>
-              <label className="mb-1 block text-xs font-semibold text-slate-600">Échéance fin</label>
-              <Input type="date" value={dueDateTo} onChange={(e) => setDueDateTo(e.target.value)} />
+              <label className="mb-1 block text-xs font-semibold text-slate-600">Date d'échéance</label>
+              <Input type="date" value={dueDateFrom} onChange={(e) => { setDueDateFrom(e.target.value); setDueDateTo(e.target.value); setDueDateFilter(e.target.value ? "specific" : "all"); }} />
             </div>
           </div>
 
@@ -1054,20 +993,20 @@ export default function TresoreriePage() {
                 </div>
               </div>
 
-              <div className="rounded border border-emerald-200 bg-emerald-50 px-3 py-2">
-                <div className="text-[11px] font-semibold uppercase tracking-wide text-emerald-700">
+              <div className="rounded border border-yellow-200 bg-yellow-50 px-3 py-2">
+                <div className="text-[11px] font-semibold uppercase tracking-wide text-yellow-700">
                   Paye
                 </div>
-                <div className="text-base font-semibold text-emerald-700">
+                <div className="text-base font-semibold text-yellow-700">
                   {formatCurrency(totalPaid)}
                 </div>
               </div>
 
-              <div className="rounded border border-rose-200 bg-rose-50 px-3 py-2">
-                <div className="text-[11px] font-semibold uppercase tracking-wide text-rose-700">
+              <div className="rounded border border-slate-200 bg-slate-50 px-3 py-2">
+                <div className="text-[11px] font-semibold uppercase tracking-wide text-slate-700">
                   Reste
                 </div>
-                <div className="text-base font-semibold text-rose-700">
+                <div className="text-base font-semibold text-slate-700">
                   {formatCurrency(totalRemaining)}
                 </div>
               </div>
@@ -1268,7 +1207,7 @@ export default function TresoreriePage() {
                           value={record.paymentStatus}
                           onChange={(e) => handlePaymentStatusChange(record.id, e.target.value)}
                           className={`rounded border px-1.5 py-0.5 text-xs focus:outline-none focus:ring-1 focus:ring-yellow-400 ${
-                            record.paymentStatus === 'paid' ? 'border-emerald-300 bg-emerald-50 text-emerald-700' :
+                            record.paymentStatus === 'paid' ? 'border-emerald-300 bg-emerald-50 text-yellow-700' :
                             record.paymentStatus === 'failed' ? 'border-red-300 bg-red-50 text-red-700' :
                             'border-slate-300 bg-white text-slate-700'
                           }`}
@@ -1283,10 +1222,10 @@ export default function TresoreriePage() {
                       <td className="px-2 py-2 text-right align-top whitespace-nowrap font-semibold">
                         {formatCurrency(record.totalAmount)}
                       </td>
-                      <td className="px-2 py-2 text-right align-top whitespace-nowrap font-semibold text-emerald-700">
+                      <td className="px-2 py-2 text-right align-top whitespace-nowrap font-semibold text-yellow-700">
                         {formatCurrency(getPaidAmount(record))}
                       </td>
-                      <td className="px-2 py-2 text-right align-top whitespace-nowrap font-semibold text-rose-700">
+                      <td className="px-2 py-2 text-right align-top whitespace-nowrap font-semibold text-slate-700">
                         {formatCurrency(getRemainingAmount(record))}
                       </td>
                       <td className="px-2 py-2 align-top whitespace-nowrap">
@@ -1484,11 +1423,11 @@ export default function TresoreriePage() {
                       <span>Montant Facture</span>
                       <span className="font-semibold">{formatCurrency(selectedRecord.totalAmount)}</span>
                     </div>
-                    <div className="flex justify-between text-emerald-700">
+                    <div className="flex justify-between text-yellow-700">
                       <span>Montant Payé</span>
                       <span className="font-semibold">{formatCurrency(getPaidAmount(selectedRecord))}</span>
                     </div>
-                    <div className="flex justify-between border-t pt-1 text-rose-700">
+                    <div className="flex justify-between border-t pt-1 text-slate-700">
                       <span className="font-semibold">Reste à payer</span>
                       <span className="font-bold">{formatCurrency(getRemainingAmount(selectedRecord))}</span>
                     </div>

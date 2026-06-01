@@ -297,3 +297,38 @@ def send_support_message_notification_email(message):
     except Exception as e:
         logger.error(f'Failed to send support notification for message {message.id}: {str(e)}')
         # Don't raise - support notifications should not block message creation
+
+
+def send_sav_notification_email(claim):
+    """Send email to developer/admin when a new SAV (warranty) claim is submitted."""
+    try:
+        developer_email = getattr(settings, 'DEVELOPER_EMAIL', 'chathabahri55@gmail.com')
+        admin_email = getattr(settings, 'ADMIN_EMAIL', 'admin@pneushop.tn')
+        recipients = list({developer_email, admin_email})
+
+        client_name = f'{claim.first_name} {claim.last_name}'.strip() or claim.email or 'Inconnu'
+        subject = f'[SAV] Nouvelle réclamation — {client_name}'
+        body = (
+            f'Une nouvelle réclamation SAV vient d\'être soumise sur PneuShop.\n\n'
+            f'Client        : {client_name}\n'
+            f'Email         : {claim.email or "—"}\n'
+            f'N° Commande   : {claim.order_ref or "—"}\n'
+            f'N° Facture    : {claim.invoice_number or "—"}\n'
+            f'Produit       : {claim.order_item_name or "—"}\n'
+            f'Km à l\'achat  : {claim.mileage_at_purchase or "—"}\n'
+            f'Km actuels    : {claim.current_mileage or "—"}\n\n'
+            f'Description :\n{claim.description or "—"}\n\n'
+            f'---\n'
+            f'Connectez-vous au back-office pour traiter cette réclamation.'
+        )
+        send_mail(
+            subject=subject,
+            message=body,
+            from_email=settings.DEFAULT_FROM_EMAIL,
+            recipient_list=recipients,
+            fail_silently=False,
+        )
+        logger.info(f'✅ SAV notification sent to {recipients} for claim {claim.id}')
+    except Exception as e:
+        logger.error(f'Failed to send SAV notification for claim {getattr(claim, "id", "?")} : {str(e)}')
+        # Don't raise — email failure must not block claim creation

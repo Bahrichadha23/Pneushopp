@@ -10,7 +10,7 @@ class PurchaseOrderItemSerializer(serializers.ModelSerializer):
     class Meta:
         model = PurchaseOrderItem
         fields = ('id', 'product', 'reference', 'designation', 'unit_price_ht',
-                  'quantity', 'discount', 'total_ht', 'dot', 'emplacement',
+                  'quantity', 'discount', 'frais_livraison', 'total_ht', 'dot', 'emplacement',
                   'received_quantity', 'created_at')
         read_only_fields = ('id', 'total_ht', 'created_at')
 
@@ -130,6 +130,8 @@ class PurchaseOrderCreateSerializer(serializers.Serializer):
 
             emplacement_str = str(article.get('emplacement') or '').strip()
 
+            frais_livraison = float(article.get('frais_livraison') or article.get('fraisLivraison') or 0)
+
             item = PurchaseOrderItem.objects.create(
                 purchase_order=purchase_order,
                 product=product,
@@ -138,7 +140,8 @@ class PurchaseOrderCreateSerializer(serializers.Serializer):
                 unit_price_ht=unit_price,
                 quantity=quantity,
                 discount=discount,
-                total_ht=total_item_ht,
+                frais_livraison=frais_livraison,
+                total_ht=total_item_ht + frais_livraison,
                 received_quantity=quantity,
                 dot=dot_str or None,
                 emplacement=emplacement_str or None,
@@ -181,5 +184,18 @@ class PurchaseOrderCreateSerializer(serializers.Serializer):
         # Update supplier order count
         supplier.orders_count = (supplier.orders_count or 0) + 1
         supplier.save()
+
+        try:
+            from accounts.activity import log_activity
+            request_obj = self.context.get('request')
+            if request_obj and request_obj.user:
+                log_activity(
+                    request_obj.user, 'create_purchase',
+                    f'Achat créé : {purchase_order.order_number} — Fournisseur: {supplier.name} — Total: {purchase_order.total} DT',
+                    request=request_obj,
+                    extra={'purchase_id': purchase_order.id, 'order_number': purchase_order.order_number, 'fournisseur': supplier.name},
+                )
+        except Exception:
+            pass
 
         return purchase_order

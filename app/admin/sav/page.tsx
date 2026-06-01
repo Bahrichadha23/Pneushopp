@@ -34,10 +34,10 @@ interface Claim {
 }
 
 const STATUS_COLORS: Record<string, string> = {
-  pending:    "bg-yellow-100 text-yellow-800",
-  processing: "bg-blue-100 text-blue-800",
-  resolved:   "bg-green-100 text-green-800",
-  rejected:   "bg-red-100 text-red-800",
+  pending:    "bg-yellow-100 text-yellow-800 border border-yellow-300",
+  processing: "bg-gray-100 text-gray-700 border border-gray-300",
+  resolved:   "bg-black text-white border border-black",
+  rejected:   "bg-yellow-50 text-yellow-900 border border-yellow-400 line-through",
 };
 const STATUS_ICONS: Record<string, React.ReactNode> = {
   pending:    <Clock className="h-3 w-3 mr-1" />,
@@ -49,8 +49,8 @@ const STATUS_OPTIONS = [
   { value: "",           label: "Tous les statuts" },
   { value: "pending",    label: "En attente" },
   { value: "processing", label: "En traitement" },
-  { value: "resolved",   label: "Résolu" },
-  { value: "rejected",   label: "Rejeté" },
+  { value: "resolved",   label: "Résolues" },
+  { value: "rejected",   label: "Réclamations rejetées" },
 ];
 
 function formatDate(iso: string) {
@@ -79,10 +79,7 @@ export default function AdminSAVPage() {
     setLoading(true); setFetchError("");
     try {
       const token = localStorage.getItem("access_token");
-      const url = filterStatus
-        ? `${API_URL}/orders/sav/?status=${filterStatus}`
-        : `${API_URL}/orders/sav/`;
-      const res = await fetch(url, { headers: { Authorization: `Bearer ${token}` } });
+      const res = await fetch(`${API_URL}/orders/sav/`, { headers: { Authorization: `Bearer ${token}` } });
       if (!res.ok) throw new Error(`${res.status}`);
       const data = await res.json();
       setClaims(Array.isArray(data) ? data : data.results || []);
@@ -91,7 +88,7 @@ export default function AdminSAVPage() {
     } finally { setLoading(false); }
   }
 
-  useEffect(() => { loadClaims(); }, [filterStatus]);
+  useEffect(() => { loadClaims(); }, []);
 
   async function handleSaveStatus(id: number) {
     setSaving(true); setSaveError("");
@@ -116,7 +113,12 @@ export default function AdminSAVPage() {
     pending:    claims.filter((c) => c.status === "pending").length,
     processing: claims.filter((c) => c.status === "processing").length,
     resolved:   claims.filter((c) => c.status === "resolved").length,
+    rejected:   claims.filter((c) => c.status === "rejected").length,
   };
+
+  const filteredClaims = filterStatus
+    ? claims.filter((c) => c.status === filterStatus)
+    : claims;
 
   return (
     <div className="p-6 max-w-5xl mx-auto">
@@ -136,12 +138,13 @@ export default function AdminSAVPage() {
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
+      <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 mb-6">
         {[
-          { label: "Total",         value: stats.total,      color: "bg-gray-100 text-gray-700" },
-          { label: "En attente",    value: stats.pending,    color: "bg-yellow-100 text-yellow-700" },
-          { label: "En traitement", value: stats.processing, color: "bg-blue-100 text-blue-700" },
-          { label: "Résolus",       value: stats.resolved,   color: "bg-green-100 text-green-700" },
+          { label: "Total",           value: stats.total,      color: "bg-gray-100 text-gray-700" },
+          { label: "En attente",      value: stats.pending,    color: "bg-yellow-100 text-yellow-800 border border-yellow-200" },
+          { label: "En traitement",   value: stats.processing, color: "bg-gray-100 text-gray-700 border border-gray-200" },
+          { label: "Résolus",         value: stats.resolved,   color: "bg-black text-white" },
+          { label: "Rejetés",         value: stats.rejected,   color: "bg-yellow-50 text-yellow-900 border border-yellow-300" },
         ].map((s) => (
           <div key={s.label} className={`rounded-lg px-4 py-3 ${s.color}`}>
             <p className="text-2xl font-bold">{s.value}</p>
@@ -166,7 +169,7 @@ export default function AdminSAVPage() {
       </div>
 
       {fetchError && (
-        <div className="bg-red-50 border border-red-200 text-red-700 rounded-lg px-4 py-3 mb-4 flex items-center gap-2">
+        <div className="bg-gray-100 border border-gray-300 text-gray-700 rounded-lg px-4 py-3 mb-4 flex items-center gap-2">
           <AlertTriangle className="h-4 w-4 flex-shrink-0" />
           <span>Erreur : {fetchError}</span>
           <Button size="sm" variant="outline" onClick={loadClaims} className="ml-auto">Réessayer</Button>
@@ -180,7 +183,7 @@ export default function AdminSAVPage() {
         </div>
       )}
 
-      {!loading && !fetchError && claims.length === 0 && (
+      {!loading && !fetchError && filteredClaims.length === 0 && (
         <Card><CardContent className="py-12 text-center text-gray-400">
           <Shield className="h-12 w-12 mx-auto mb-3 opacity-30" />
           <p className="font-medium">Aucune réclamation{filterStatus ? " pour ce statut" : ""}</p>
@@ -188,9 +191,9 @@ export default function AdminSAVPage() {
       )}
 
       {/* Liste */}
-      {!loading && claims.length > 0 && (
+      {!loading && filteredClaims.length > 0 && (
         <div className="space-y-3">
-          {claims.map((claim) => {
+          {filteredClaims.map((claim) => {
             const isExpanded = expanded === claim.id;
             const isEditing  = editingId === claim.id;
             return (
@@ -255,7 +258,7 @@ export default function AdminSAVPage() {
                     <div className="flex gap-3 flex-wrap">
                       {claim.invoice_photo_url && (
                         <a href={claim.invoice_photo_url} target="_blank" rel="noopener noreferrer"
-                          className="flex items-center gap-1 text-sm text-blue-600 bg-blue-50 border border-blue-200 rounded-md px-3 py-1.5 hover:bg-blue-100">
+                          className="flex items-center gap-1 text-sm text-yellow-700 bg-yellow-50 border border-yellow-200 rounded-md px-3 py-1.5 hover:bg-yellow-100">
                           <FileText className="h-4 w-4" /> Photo facture <ExternalLink className="h-3 w-3" />
                         </a>
                       )}

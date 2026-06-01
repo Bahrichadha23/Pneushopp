@@ -208,7 +208,7 @@ const handleDownloadPurchaseOrder = async (bon: BonCommande) => {
   pdf.text("Sous-total TTC :", boxX + 3, boxY + 10);
   pdf.setFont("helvetica", "normal");
   pdf.text(
-    `${(bon.totalTTC ?? 0).toLocaleString("fr-FR", { minimumFractionDigits: 3 })} DT`,
+    `${parseFloat(String(bon.totalTTC ?? 0)).toFixed(3)} DT`,
     boxX + 62,
     boxY + 10,
     { align: "right" }
@@ -218,7 +218,7 @@ const handleDownloadPurchaseOrder = async (bon: BonCommande) => {
   pdf.text("Frais livraison :", boxX + 3, boxY + 22);
   pdf.setFont("helvetica", "normal");
   pdf.text(
-    `${deliveryCost.toLocaleString("fr-FR", { minimumFractionDigits: 3 })} DT`,
+    `${parseFloat(String(deliveryCost ?? 0)).toFixed(3)} DT`,
     boxX + 62,
     boxY + 22,
     { align: "right" }
@@ -227,9 +227,7 @@ const handleDownloadPurchaseOrder = async (bon: BonCommande) => {
   pdf.setFont("helvetica", "bold");
   pdf.text("Total :", boxX + 3, boxY + 36);
   pdf.text(
-    `${(bon.total_with_delivery ?? bon.totalTTC ?? 0).toLocaleString("fr-FR", {
-      minimumFractionDigits: 3,
-    })} DT`,
+    `${parseFloat(String(bon.total_with_delivery ?? bon.totalTTC ?? 0)).toFixed(3)} DT`,
     boxX + 62,
     boxY + 36,
     { align: "right" }
@@ -360,9 +358,9 @@ export default function BonsCommandePage() {
       case "en_attente":
         return <Badge className="bg-yellow-100 text-yellow-800 border-yellow-200">En attente</Badge>;
       case "confirmé":
-        return <Badge className="bg-blue-100 text-blue-800 border-blue-200">Confirmé</Badge>;
+        return <Badge className="bg-yellow-100 text-yellow-800 border-yellow-200">Confirmé</Badge>;
       case "livré":
-        return <Badge className="bg-green-100 text-green-800 border-green-200">Livré</Badge>;
+        return <Badge className="bg-black text-white border-black">Livré</Badge>;
       default:
         return <Badge variant="outline">{statut}</Badge>;
     }
@@ -404,7 +402,7 @@ export default function BonsCommandePage() {
         <Card>
           <CardHeader className="flex flex-row justify-between items-center pb-2">
             <CardTitle className="text-sm font-medium">Total</CardTitle>
-            <Package className="h-4 w-4 text-blue-500" />
+            <Package className="h-4 w-4 text-yellow-500" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{totalCommandes}</div>
@@ -422,19 +420,19 @@ export default function BonsCommandePage() {
         <Card>
           <CardHeader className="flex flex-row justify-between items-center pb-2">
             <CardTitle className="text-sm font-medium">Confirmées</CardTitle>
-            <Check className="h-4 w-4 text-blue-500" />
+            <Check className="h-4 w-4 text-yellow-500" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-blue-600">{commandesConfirmees}</div>
+            <div className="text-2xl font-bold text-yellow-600">{commandesConfirmees}</div>
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="flex flex-row justify-between items-center pb-2">
             <CardTitle className="text-sm font-medium">Livrées</CardTitle>
-            <Truck className="h-4 w-4 text-green-500" />
+            <Truck className="h-4 w-4 text-yellow-500" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-green-600">{commandesLivrees}</div>
+            <div className="text-2xl font-bold text-black font-bold">{commandesLivrees}</div>
           </CardContent>
         </Card>
       </div>
@@ -457,7 +455,7 @@ export default function BonsCommandePage() {
               <div>
                 <div className="font-semibold text-gray-900">BDC #{bon.id}</div>
                 {bon.order_number && (
-                  <div className="text-xs text-blue-600 font-medium">{bon.order_number}</div>
+                  <div className="text-xs text-yellow-600 font-medium">{bon.order_number}</div>
                 )}
               </div>
               {getStatutBadge(bon.statut)}
@@ -540,7 +538,7 @@ export default function BonsCommandePage() {
                       <TableCell>
                         <div className="font-semibold text-gray-900">BDC #{bon.id}</div>
                         {bon.order_number && (
-                          <div className="text-xs text-blue-600 font-medium flex items-center gap-1">
+                          <div className="text-xs text-yellow-600 font-medium flex items-center gap-1">
                             <Hash className="h-3 w-3" />
                             {bon.order_number}
                           </div>

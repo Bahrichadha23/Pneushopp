@@ -13,19 +13,10 @@ from django.utils.encoding import force_bytes
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 from django.http import HttpResponse
 
-from .models import CustomUser, UserActivityLog
+from .models import CustomUser
 from .serializers import UserRegistrationSerializer, UserLoginSerializer, UserSerializer
+from .activity import log_activity
 from .email_utils import send_verification_email, send_welcome_email, send_password_reset_email
-
-
-def _log_activity(user, action, description, request=None, target_email=''):
-    """Helper to create a UserActivityLog entry. Delegates to accounts.activity."""
-    from .activity import log_activity
-    log_activity(user, action, description, request=request, target_email=target_email)
-
-
-def _is_admin(user):
-    return getattr(user, 'role', None) == 'admin' or user.is_superuser
 
 
 def get_frontend_url(request):
@@ -101,9 +92,10 @@ def login_view(request):
     serializer.is_valid(raise_exception=True)
     user = serializer.validated_data['user']
     refresh = RefreshToken.for_user(user)
-    # Log login only for staff/admin accounts
-    if user.role not in ('customer',):
-        _log_activity(user, 'login', f'Connexion au back-office', request=request)
+    try:
+        log_activity(user, 'login', f'Connexion de {user.email}', request=request)
+    except Exception:
+        pass
     return Response({
         'refresh': str(refresh),
         'access': str(refresh.access_token),
@@ -257,39 +249,29 @@ def create_user(request):
         return Response({'error': 'You do not have permission to perform this action'}, status=status.HTTP_403_FORBIDDEN)
 
     role = request.data.get('role')
-    if role not in ('purchasing', 'sales', 'responsable_achats', 'admin'):
-        return Response({'error': 'Rôle invalide'}, status=status.HTTP_400_BAD_REQUEST)
+    if role not in ('purchasing', 'sales', 'responsable_achats'):
+        return Response({'error': 'You can only create purchasing, sales or responsable_achats accounts'}, status=status.HTTP_400_BAD_REQUEST)
 
     data = request.data.copy()
     data['is_verified'] = True
-    # Map camelCase firstName/lastName to Django first_name/last_name
-    if 'firstName' in data and 'first_name' not in data:
-        data['first_name'] = data['firstName']
-    if 'lastName' in data and 'last_name' not in data:
-        data['last_name'] = data['lastName']
-    if 'first_name' not in data:
-        data['first_name'] = ''
-    if 'last_name' not in data:
-        data['last_name'] = ''
-    if 'username' not in data:
-        data['username'] = data.get('email', '')
 
     serializer = UserRegistrationSerializer(data=data)
     if serializer.is_valid():
         new_user = serializer.save()
         new_user.role = role
         new_user.is_verified = True
-        new_user.is_active = True
         new_user.save()
         try:
             send_welcome_email(new_user)
         except Exception as e:
             print(f'Error sending welcome email: {str(e)}')
 
-        _log_activity(user, 'create_user',
-                      f'Création du compte {role} pour {new_user.email}',
-                      request=request, target_email=new_user.email)
-
+        try:
+            log_activity(request.user, 'create_user',
+                         f'Utilisateur créé : {new_user.email} — Rôle: {role}',
+                         request=request, target_email=new_user.email)
+        except Exception:
+            pass
         response_data = UserSerializer(new_user).data
         return Response({**response_data, 'message': f'{role.capitalize()} account created successfully'}, status=status.HTTP_201_CREATED)
 
@@ -317,15 +299,7 @@ def update_user(request, user_id):
     data = request.data.copy()
     password = data.pop('password', None)
 
-    # Map camelCase to snake_case field names
-    field_map = {'firstName': 'first_name', 'lastName': 'last_name'}
-    update_data = {}
-    for k, v in data.items():
-        mapped_key = field_map.get(k, k)
-        # Only set fields that exist on the model
-        if hasattr(target_user, mapped_key):
-            update_data[mapped_key] = v
-
+    update_data = {k: v for k, v in data.items()}
     for field, value in update_data.items():
         setattr(target_user, field, value)
 
@@ -333,9 +307,12 @@ def update_user(request, user_id):
         target_user.set_password(password)
 
     target_user.save()
-    _log_activity(user, 'update_user',
-                  f'Modification du compte {target_user.email}',
-                  request=request, target_email=target_user.email)
+    try:
+        log_activity(request.user, 'update_user',
+                     f'Utilisateur modifié : {target_user.email}',
+                     request=request, target_email=target_user.email)
+    except Exception:
+        pass
     return Response({'message': 'User updated successfully', **UserSerializer(target_user).data})
 
 
@@ -359,16 +336,26 @@ def delete_user(request, user_id):
 
     email = target_user.email
     target_user.delete()
-    _log_activity(user, 'delete_user',
-                  f'Suppression du compte {email}',
-                  request=request, target_email=email)
+    try:
+        log_activity(request.user, 'delete_user',
+                     f'Utilisateur supprimé : {email}',
+                     request=request, target_email=email)
+    except Exception:
+        pass
     return Response({'message': 'User deleted successfully'}, status=status.HTTP_204_NO_CONTENT)
+
+
+def _is_admin(user):
+    return (
+        user.is_authenticated
+        and (user.is_staff or user.is_superuser or getattr(user, 'role', None) == 'admin')
+    )
 
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def toggle_user_active(request, user_id):
-    """PATCH /api/accounts/admin/toggle-user/<id>/ — Activate or deactivate a user."""
+    """POST /api/accounts/admin/toggle-user/<id>/ — Activate or deactivate a user."""
     if not _is_admin(request.user):
         return Response({'error': 'Non autorisé'}, status=status.HTTP_403_FORBIDDEN)
 
@@ -387,9 +374,12 @@ def toggle_user_active(request, user_id):
     target_user.save(update_fields=['is_active'])
 
     action_label = 'activé' if target_user.is_active else 'désactivé'
-    _log_activity(request.user, 'toggle_user',
-                  f'Compte {target_user.email} {action_label}',
-                  request=request, target_email=target_user.email)
+    try:
+        log_activity(request.user, 'toggle_user',
+                     f'Compte {target_user.email} {action_label}',
+                     request=request, target_email=target_user.email)
+    except Exception:
+        pass
 
     return Response({'message': f'Compte {action_label}', 'is_active': target_user.is_active})
 
@@ -397,25 +387,59 @@ def toggle_user_active(request, user_id):
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def list_activity_logs(request):
-    """GET /api/accounts/admin/journal/ — List staff activity logs (admin only)."""
+    """GET /api/accounts/admin/journal/ — Read from flat-file activity log."""
     if not _is_admin(request.user):
         return Response({'error': 'Non autorisé'}, status=status.HTTP_403_FORBIDDEN)
 
-    logs = UserActivityLog.objects.select_related('user').order_by('-created_at')[:500]
-    data = [
-        {
-            'id': log.id,
-            'user_email': log.user.email if log.user else '—',
-            'user_name': (
-                f'{log.user.first_name} {log.user.last_name}'.strip() or log.user.email
-            ) if log.user else '—',
-            'action': log.action,
-            'action_label': log.get_action_display(),
-            'description': log.description,
-            'target_user_email': log.target_user_email,
-            'ip_address': log.ip_address,
-            'created_at': log.created_at.isoformat(),
-        }
-        for log in logs
-    ]
-    return Response(data)
+    import json as _json
+    import os as _os
+    from .activity import ACTIVITY_LOG_PATH
+
+    ACTION_LABELS = {
+        'login': 'Connexion', 'create_user': 'Création utilisateur',
+        'update_user': 'Modification utilisateur', 'delete_user': 'Suppression utilisateur',
+        'toggle_user': 'Activation/désactivation utilisateur', 'confirm_order': 'Validation commande',
+        'cancel_order': 'Annulation commande', 'create_invoice': 'Création facture',
+        'create_delivery': 'Création livraison', 'update_delivery': 'Mise à jour livraison',
+        'create_bon': 'Création bon de commande', 'add_stock': 'Ajout stock',
+        'adjust_stock': 'Ajustement stock', 'create_purchase': 'Commande achat',
+        'sav_update': 'Mise à jour SAV', 'add_product': 'Ajout article',
+        'update_product': 'Modification article', 'delete_product': 'Suppression article',
+        'update_price': 'Modification prix', 'dot_sale': 'Vente DOT', 'other': 'Autre',
+    }
+
+    if not _os.path.exists(ACTIVITY_LOG_PATH):
+        return Response([])
+
+    try:
+        with open(ACTIVITY_LOG_PATH, 'r', encoding='utf-8') as f:
+            lines = f.readlines()
+        data = []
+        for i, line in enumerate(reversed(lines[-1000:])):
+            line = line.strip()
+            if not line:
+                continue
+            try:
+                entry = _json.loads(line)
+                action = entry.get('action', 'other')
+                extra = entry.get('extra') or {}
+                desc = entry.get('description', '')
+                if extra:
+                    extra_str = ' | '.join(f'{k}: {v}' for k, v in extra.items())
+                    desc = f'{desc} — {extra_str}' if extra_str else desc
+                data.append({
+                    'id': i,
+                    'user_email': entry.get('user_email', '—'),
+                    'user_name': entry.get('user_name', '—'),
+                    'action': action,
+                    'action_label': ACTION_LABELS.get(action, action),
+                    'description': desc,
+                    'target_user_email': entry.get('target_email', ''),
+                    'ip_address': entry.get('ip', None) or None,
+                    'created_at': entry.get('ts', ''),
+                })
+            except Exception:
+                continue
+        return Response(data)
+    except Exception as e:
+        return Response({'error': str(e)}, status=500)

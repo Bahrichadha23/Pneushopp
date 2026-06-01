@@ -42,9 +42,9 @@ const STATUS_IDX: Record<Livraison["statut"], number> = { prepare: 0, en_route: 
 
 const statusBadge = (statut: Livraison["statut"]) => {
   const cfg = {
-    prepare:  { cls: "bg-orange-100 text-orange-700 border border-orange-200", label: "En préparation" },
-    en_route: { cls: "bg-blue-100 text-blue-700 border border-blue-200",       label: "En route" },
-    livre:    { cls: "bg-green-100 text-green-700 border border-green-200",    label: "Livré" },
+    prepare:  { cls: "bg-yellow-100 text-yellow-800 border border-yellow-300", label: "En préparation" },
+    en_route: { cls: "bg-gray-100 text-gray-700 border border-gray-300",        label: "En route" },
+    livre:    { cls: "bg-black text-white border border-black",                 label: "Livré" },
   } as const;
   const c = cfg[statut] ?? { cls: "bg-gray-100 text-gray-600", label: statut };
   return (
@@ -87,10 +87,12 @@ function EditModal({ delivery, onClose, onSaved }: {
       };
       const updated = await updateDelivery(delivery.id, payload);
       onSaved(updated);
-      onClose();
     } catch (e: any) {
-      setError(e?.response?.data ? JSON.stringify(e.response.data) : "Erreur lors de la sauvegarde");
-    } finally { setSaving(false); }
+      console.error("Erreur livraison:", e);
+    } finally {
+      setSaving(false);
+      onClose();
+    }
   };
 
   const curIdx = STATUS_IDX[form.statut as Livraison["statut"]] ?? 0;
@@ -150,17 +152,17 @@ function EditModal({ delivery, onClose, onSaved }: {
                     onClick={() => set("statut", step.key)}
                     className={`flex flex-col items-center gap-1 px-2 py-1.5 rounded-lg transition-all text-center ${
                       current ? "bg-yellow-400 text-black font-semibold shadow"
-                      : done   ? "text-green-600 hover:bg-green-50"
+                      : done   ? "text-black hover:bg-yellow-50"
                                : "text-gray-400 hover:bg-gray-100"
                     }`}
                   >
-                    <span className={`rounded-full p-1.5 ${current ? "bg-black/10" : done ? "bg-green-100" : "bg-gray-100"}`}>
+                    <span className={`rounded-full p-1.5 ${current ? "bg-black/10" : done ? "bg-yellow-100" : "bg-gray-100"}`}>
                       {step.icon}
                     </span>
                     <span className="text-xs whitespace-nowrap">{step.label}</span>
                   </button>
                   {i < STATUS_STEPS.length - 1 && (
-                    <ChevronRight className={`h-4 w-4 mx-1 flex-shrink-0 ${done ? "text-green-500" : "text-gray-300"}`} />
+                    <ChevronRight className={`h-4 w-4 mx-1 flex-shrink-0 ${done ? "text-yellow-500" : "text-gray-300"}`} />
                   )}
                 </div>
               );
@@ -284,6 +286,8 @@ export default function DeliveriesPage() {
   const handleSaved = (updated: Livraison) => {
     setDeliveries((prev) => prev.map((d) => (d.id === updated.id ? updated : d)));
     showToast("✅ Livraison mise à jour avec succès");
+    // Force full reload to ensure fresh data
+    load();
   };
 
   const total    = deliveries.length;
@@ -313,7 +317,7 @@ export default function DeliveriesPage() {
     <div className="space-y-6">
       {/* Toast */}
       {toast && (
-        <div className="fixed top-4 right-4 z-50 bg-green-600 text-white px-5 py-3 rounded-lg shadow-lg text-sm font-medium">
+        <div className="fixed top-4 right-4 z-50 bg-yellow-500 text-black px-5 py-3 rounded-lg shadow-lg text-sm font-medium">
           {toast}
         </div>
       )}
@@ -336,9 +340,9 @@ export default function DeliveriesPage() {
       {/* KPI Cards */}
       <div className="grid grid-cols-3 gap-4">
         {[
-          { n: nPrepare, label: "En préparation", icon: <Clock className="h-6 w-6 text-orange-500" />, bg: "bg-orange-50", border: "border-l-orange-400" },
-          { n: nEnRoute, label: "En route",        icon: <Truck className="h-6 w-6 text-blue-500" />,   bg: "bg-blue-50",   border: "border-l-blue-400"   },
-          { n: nLivre,   label: "Livrées",         icon: <CheckCircle2 className="h-6 w-6 text-green-500" />, bg: "bg-green-50", border: "border-l-green-400" },
+          { n: nPrepare, label: "En préparation", icon: <Clock className="h-6 w-6 text-yellow-600" />, bg: "bg-yellow-50", border: "border-l-yellow-400" },
+          { n: nEnRoute, label: "En route",        icon: <Truck className="h-6 w-6 text-gray-600" />,   bg: "bg-gray-50",   border: "border-l-gray-400"   },
+          { n: nLivre,   label: "Livrées",         icon: <CheckCircle2 className="h-6 w-6 text-black" />, bg: "bg-black/5", border: "border-l-black" },
         ].map((s) => (
           <Card key={s.label} className={`border-l-4 ${s.border}`}>
             <CardContent className="p-4 flex items-center gap-4">

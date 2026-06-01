@@ -43,6 +43,7 @@ export default function ProductDetailsPage() {
   const [error, setError] = useState<string | null>(null);
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
   const [isAdding, setIsAdding] = useState(false);
+  const [quantity, setQuantity] = useState(1);
   const { addToCart } = useCart();
 
   useEffect(() => {
@@ -119,17 +120,12 @@ export default function ProductDetailsPage() {
   const handleAddToCart = async () => {
     if (product) {
       try {
-        // Set animation state FIRST (immediately)
         setIsAdding(true);
-        
-        // Then add to cart
-        await addToCart(product);
-        console.log("Product added to cart successfully!");
-        
-        // Keep animation for 1.5 seconds
-        setTimeout(() => {
-          setIsAdding(false);
-        }, 1500);
+        for (let i = 0; i < quantity; i++) {
+          await addToCart(product);
+        }
+        console.log(`${quantity}x ${product.name} added to cart`);
+        setTimeout(() => setIsAdding(false), 1500);
       } catch (error) {
         console.error("Error adding to cart:", error);
         setIsAdding(false);
@@ -206,7 +202,7 @@ export default function ProductDetailsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-white">
       <Header />
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -307,7 +303,7 @@ export default function ProductDetailsPage() {
                 </Badge>
               </div>
 
-              <div className="bg-gray-50 p-4 rounded-lg">
+              <div className="bg-yellow-50 border border-yellow-100 p-4 rounded-lg">
                 <div className="flex items-baseline gap-3 mb-2">
                   <span className="text-3xl font-bold text-black">
                     {product.price.toFixed(2)} DT
@@ -330,8 +326,39 @@ export default function ProductDetailsPage() {
                 )}
               </div>
 
-              {/* Add to Cart Button */}
-              <div className="mt-6">
+              {/* Quantity selector + Add to Cart */}
+              <div className="mt-6 space-y-3">
+                <div className="flex items-center gap-3">
+                  <span className="text-sm font-medium text-gray-700">Quantité :</span>
+                  <div className="flex items-center border border-gray-200 rounded-lg overflow-hidden">
+                    <button
+                      onClick={() => setQuantity(q => Math.max(1, q - 1))}
+                      disabled={quantity <= 1}
+                      className="px-3 py-2 text-lg font-bold bg-gray-50 hover:bg-yellow-50 hover:text-yellow-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                    >−</button>
+                    <input
+                      type="number"
+                      min={1}
+                      max={product.stock}
+                      value={quantity}
+                      onChange={e => {
+                        const v = parseInt(e.target.value, 10);
+                        if (!isNaN(v)) setQuantity(Math.min(product.stock, Math.max(1, v)));
+                      }}
+                      onBlur={e => {
+                        const v = parseInt(e.target.value, 10);
+                        if (isNaN(v) || v < 1) setQuantity(1);
+                      }}
+                      className="w-14 py-2 text-base font-semibold text-center border-x border-gray-200 bg-white focus:outline-none focus:bg-yellow-50 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                    />
+                    <button
+                      onClick={() => setQuantity(q => Math.min(product.stock, q + 1))}
+                      disabled={quantity >= product.stock}
+                      className="px-3 py-2 text-lg font-bold bg-gray-50 hover:bg-yellow-50 hover:text-yellow-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                    >+</button>
+                  </div>
+                  {product.stock > 0 && <span className="text-xs text-gray-400">{product.stock} disponibles</span>}
+                </div>
                 <Button
                   onClick={handleAddToCart}
                   disabled={!product.inStock || isAdding}
@@ -346,10 +373,10 @@ export default function ProductDetailsPage() {
                 >
                   <ShoppingCart className={`w-5 h-5 mr-2 inline-block transition-all duration-700 ease-out ${isAdding ? 'rotate-[720deg] scale-150' : ''}`} />
                   <span className="inline-block transition-all duration-300">
-                    {isAdding 
-                      ? "✓ Ajouté au panier!" 
-                      : product.inStock 
-                      ? "Ajouter au panier" 
+                    {isAdding
+                      ? `✓ ${quantity > 1 ? `${quantity}x ` : ""}Ajouté au panier!`
+                      : product.inStock
+                      ? `Ajouter ${quantity > 1 ? `${quantity}x ` : ""}au panier`
                       : "Rupture de stock"
                     }
                   </span>

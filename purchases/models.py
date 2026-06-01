@@ -73,6 +73,7 @@ class PurchaseOrderItem(models.Model):
     total_ht = models.DecimalField('Total HT', max_digits=12, decimal_places=3, default=0)
     dot = models.CharField('DOT (sem.année)', max_length=20, blank=True, null=True)
     emplacement = models.CharField('Emplacement', max_length=100, blank=True, null=True)
+    frais_livraison = models.DecimalField('Frais de livraison', max_digits=10, decimal_places=3, default=0)
     received_quantity = models.PositiveIntegerField('Quantité reçue', default=0)
     created_at = models.DateTimeField('Créé le', auto_now_add=True)
 
@@ -85,5 +86,5 @@ class PurchaseOrderItem(models.Model):
 
     def save(self, *args, **kwargs):
         base = self.unit_price_ht * self.quantity
-        self.total_ht = base * (1 - self.discount / 100)
+        self.total_ht = base * (1 - self.discount / 100) + (self.frais_livraison or 0)
         super().save(*args, **kwargs)

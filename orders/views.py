@@ -154,10 +154,18 @@ class OrderDetailView(generics.RetrieveUpdateDestroyAPIView):
 
 class OrderListCreateView(generics.ListCreateAPIView):
     serializer_class = OrderSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+
+    def get_permissions(self):
+        # Allow anonymous users to create orders (POST), but require auth for listing (GET)
+        if self.request.method == 'POST':
+            return [permissions.AllowAny()]
+        return [permissions.IsAuthenticated()]
 
     def get_queryset(self):
         user = self.request.user
+        if not user or not user.is_authenticated:
+            return Order.objects.none()
         params = self.request.query_params
         if user.is_staff or user.is_superuser or getattr(user, 'role', None) in ('admin', 'sales'):
             queryset = Order.objects.all().prefetch_related('items').select_related('user').order_by('-created_at')
@@ -199,9 +207,31 @@ class OrderListCreateView(generics.ListCreateAPIView):
         from django.utils import timezone
         from django.db import transaction
         from accounts.email_utils import send_order_confirmation_email, send_new_order_notification_email
+        from django.contrib.auth import get_user_model
+        User = get_user_model()
+
+        # Support guest checkout: find or create user by email from shipping_address
+        if self.request.user and self.request.user.is_authenticated:
+            order_user = self.request.user
+        else:
+            # Extract email from request body
+            shipping = self.request.data.get('shipping_address', {})
+            guest_email = shipping.get('email', '') or self.request.data.get('email', '')
+            if guest_email:
+                order_user, created = User.objects.get_or_create(
+                    email=guest_email,
+                    defaults={
+                        'username': guest_email,
+                        'first_name': shipping.get('first_name', ''),
+                        'last_name': shipping.get('last_name', ''),
+                    }
+                )
+            else:
+                # Last resort: use first admin user
+                order_user = User.objects.filter(is_staff=True).first() or User.objects.first()
 
         with transaction.atomic():
-            order = serializer.save(user=self.request.user)
+            order = serializer.save(user=order_user)
             # Stock is NOT decremented on creation — only when order is confirmed (perform_update)
 
             if not order.tracking_number:
@@ -389,6 +419,9 @@ def warranty_claim_view(request):
             .prefetch_related('tire_images')
             .order_by('-created_at')
         )
+        status_filter = request.query_params.get('status', '').strip()
+        if status_filter:
+            claims = claims.filter(status=status_filter)
         return Response([_serialize_claim(c, request) for c in claims])
 
     # POST — create claim

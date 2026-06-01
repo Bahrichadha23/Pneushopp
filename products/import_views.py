@@ -23,6 +23,7 @@ PRICE_ALIASES = {'prix ttc', 'prix', 'prix vente', 'tarif', 'price', 'prix de ve
 DESCRIPTION_ALIASES = {'description', 'desc', 'details', 'detail'}
 STOCK_ALIASES = {'stock', 'quantite', 'qty', 'qte', 'quantity'}
 REFERENCE_ALIASES = {'ref', 'reference', 'code', 'code article', 'code produit'}
+CATEG_ALIASES = {'categorie', 'category', 'type', 'famille', 'segment', 'cat'}
 BRAND_ALIASES = {'marque', 'brand', 'fabricant'}
 SIZE_ALIASES = {'taille', 'dimension', 'size', 'dimension pneu', 'dimensions'}
 IMAGE_ALIASES = {'image', 'photo', 'img', 'image url', 'photo url', 'lien image', 'url image', 'image principale'}
@@ -115,8 +116,8 @@ def detect_season(name: str) -> str:
     return 'summer'
 
 
-def get_or_create_category(name: str) -> Category:
-    n = name.lower()
+def get_or_create_category(name: str, categ_override: str = '') -> Category:
+    n = (categ_override or name).lower()
     if 'agricole' in n:
         cat_name = 'Agricole'
     elif 'moto' in n or 'scooter' in n:
@@ -213,11 +214,12 @@ def map_row_to_product(row: dict) -> dict | None:
     name_fallback = None
     price = None
     description = ''
-    stock = 10
+    stock = 0  # Import catalogue only — stock managed via Achats
     reference = ''
     brand = ''
     size = ''
     image = ''
+    categ = ''
     embedded_images = row.get('__embedded_images__') or []  # list of bytes
 
     for col, val in row.items():
@@ -230,6 +232,8 @@ def map_row_to_product(row: dict) -> dict | None:
             name_fallback = str(val).strip()
         if col_n in REFERENCE_ALIASES and not reference and val:
             reference = str(val).strip()
+        if col_n in CATEG_ALIASES and not categ and val:
+            categ = str(val).strip()
         if col_n in PRICE_ALIASES and price is None and val is not None:
             try:
                 price = float(str(val).replace(',', '.').replace(' ', '').replace('\xa0', ''))
@@ -276,6 +280,7 @@ def map_row_to_product(row: dict) -> dict | None:
         'image': image,
         'embedded_images': embedded_images,
         'season': detect_season(name),
+        'categ': categ,
     }
 
 
@@ -389,7 +394,7 @@ def import_excel(request):
                 errors.append(f'Ligne {i + 2}: Nom ou prix manquant — ignoré.')
                 continue
             try:
-                category = get_or_create_category(product_data['name'])
+                category = get_or_create_category(product_data['name'], product_data.get('categ', ''))
                 slug_base = re.sub(r'[^a-z0-9]+', '-', product_data['name'].lower())[:200]
 
                 # Check if product with same reference already exists
@@ -405,10 +410,13 @@ def import_excel(request):
                 any_image = bool(image_url or image_url2 or image_url3)
 
                 if existing:
-                    # Update price and stock; also set images if missing
+                    # Update price, description and images — do NOT touch stock (stock managed via Achats)
                     existing.price = product_data['price']
-                    existing.stock = (existing.stock or 0) + product_data['stock']
-                    update_fields = ['price', 'stock', 'updated_at']
+                    if product_data['description']:
+                        existing.description = product_data['description']
+                    update_fields = ['price', 'updated_at']
+                    if product_data['description']:
+                        update_fields.append('description')
                     if not existing.image and image_url:
                         existing.image = image_url
                         update_fields.append('image')
@@ -440,7 +448,7 @@ def import_excel(request):
                         brand=product_data['brand'],
                         size=product_data['size'],
                         season=product_data['season'],
-                        stock=product_data['stock'],
+                        stock=0,  # Stock = 0 — géré exclusivement via les Achats
                         reference=product_data['reference'],
                         category=category,
                         image=image_url,

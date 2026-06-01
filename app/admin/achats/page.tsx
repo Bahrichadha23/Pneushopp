@@ -72,6 +72,7 @@ interface PurchaseItem {
   designation: string;
   priceHT: number;
   discount: number;
+  fraisLivraison: number;
   quantity: number;
   totalHT: number;
   dot: string;
@@ -148,6 +149,7 @@ export default function AchatsPage() {
       designation: manualDesignation.trim(),
       priceHT: manualPrice,
       discount: 0,
+      fraisLivraison: 0,
       quantity: 1,
       totalHT: manualPrice,
       dot: "",
@@ -498,6 +500,7 @@ export default function AchatsPage() {
       designation: product.name || product.designation,
       priceHT: price,
       discount: 0,
+      fraisLivraison: 0,
       quantity: 1,
       totalHT: price,
       dot,
@@ -512,12 +515,13 @@ export default function AchatsPage() {
       items.map((item) => {
         if (item.id === id) {
           const updated = { ...item, [field]: value };
-          if (field === "quantity" || field === "priceHT" || field === "discount") {
+          if (field === "quantity" || field === "priceHT" || field === "discount" || field === "fraisLivraison") {
             const priceHT = Number(updated.priceHT) || 0;
             const quantity = Number(updated.quantity) || 0;
             const discount = Number(updated.discount) || 0;
+            const fraisLivraison = Number(updated.fraisLivraison) || 0;
             const baseTotal = priceHT * quantity;
-            updated.totalHT = baseTotal - (baseTotal * discount) / 100;
+            updated.totalHT = baseTotal - (baseTotal * discount) / 100 + fraisLivraison;
           }
           return updated;
         }
@@ -607,6 +611,7 @@ export default function AchatsPage() {
         prix_unitaire: Number(item.priceHT),
         reference: item.reference,
         discount: Number(item.discount),
+        frais_livraison: Number(item.fraisLivraison) || 0,
         total_ht: Number(item.totalHT),
         dot: item.dot || '',
         emplacement: item.emplacement || '',
@@ -962,7 +967,7 @@ export default function AchatsPage() {
                               size="sm"
                               variant="outline"
                               onClick={() => handleProductDetail(product)}
-                              className="border-blue-500 text-blue-600 hover:bg-blue-50"
+                              className="border-yellow-500 text-yellow-700 hover:bg-yellow-50"
                             >
                               <Eye className="h-3 w-3 mr-1" />
                               Détail
@@ -1029,7 +1034,8 @@ export default function AchatsPage() {
                     <TableRow>
                       <TableHead>Désignation</TableHead>
                       <TableHead className="text-right">Prix</TableHead>
-                      <TableHead className="text-right">Remise</TableHead>
+                      <TableHead className="text-right">Remise %</TableHead>
+                      <TableHead className="text-right">Fr. Livraison</TableHead>
                       <TableHead className="text-right">Quantité</TableHead>
                       <TableHead className="text-center">DOT</TableHead>
                       <TableHead>Emplacement</TableHead>
@@ -1039,7 +1045,7 @@ export default function AchatsPage() {
                   <TableBody>
                     {items.length === 0 ? (
                       <TableRow>
-                        <TableCell colSpan={7} className="text-center text-gray-500 py-8">
+                        <TableCell colSpan={8} className="text-center text-gray-500 py-8">
                           Aucun article ajouté
                         </TableCell>
                       </TableRow>
@@ -1074,6 +1080,21 @@ export default function AchatsPage() {
                                 )
                               }
                               className="w-16 text-right"
+                            />
+                          </TableCell>
+                          <TableCell className="text-right">
+                            <Input
+                              type="number"
+                              step="0.001"
+                              value={item.fraisLivraison}
+                              onChange={(e) =>
+                                updateItem(
+                                  item.id,
+                                  "fraisLivraison",
+                                  parseFloat(e.target.value) || 0
+                                )
+                              }
+                              className="w-24 text-right"
                             />
                           </TableCell>
                           <TableCell className="text-right">
