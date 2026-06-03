@@ -78,8 +78,10 @@ class AdminProductDetailView(generics.RetrieveUpdateDestroyAPIView):
     def perform_update(self, serializer):
         old = self.get_object()
         old_price = old.price
+        old_stock = old.stock
         product = serializer.save()
         try:
+            # Log price change
             if old_price != product.price:
                 log_activity(
                     self.request.user,
@@ -95,6 +97,25 @@ class AdminProductDetailView(generics.RetrieveUpdateDestroyAPIView):
                     f'Modification article : {product.brand} {product.name} ({product.size})',
                     request=self.request,
                     extra={'product_id': product.id},
+                )
+            # Log stock change as a StockMovement so gestion-stock is always in sync
+            if old_stock != product.stock:
+                delta = product.stock - old_stock
+                StockMovement.objects.create(
+                    product=product,
+                    product_name=product.name,
+                    type='in' if delta > 0 else 'out',
+                    quantity=delta,
+                    reason='ajustement_catalogue',
+                    reference=f'Modif. catalogue par {self.request.user}',
+                    created_by=self.request.user if self.request.user.is_authenticated else None,
+                )
+                log_activity(
+                    self.request.user,
+                    'adjust_stock',
+                    f'Modification stock catalogue : {product.brand} {product.name} — {old_stock} → {product.stock} unité(s)',
+                    request=self.request,
+                    extra={'product_id': product.id, 'old_stock': old_stock, 'new_stock': product.stock, 'delta': delta},
                 )
         except Exception:
             pass
