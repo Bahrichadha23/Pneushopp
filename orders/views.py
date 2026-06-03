@@ -613,7 +613,19 @@ def confirm_with_dot(request, pk):
             # Set order status without triggering the automatic stock decrement
             # (stock was already decremented via DOT batches above)
             order.status = 'confirmed'
-            order.save(update_fields=['status'])
+            update_fields = ['status']
+
+            # Update delivery cost if provided
+            delivery_cost = request.data.get('delivery_cost')
+            if delivery_cost is not None:
+                try:
+                    from decimal import Decimal
+                    order.delivery_cost = Decimal(str(delivery_cost))
+                    update_fields.append('delivery_cost')
+                except Exception:
+                    pass
+
+            order.save(update_fields=update_fields)
 
     except ValueError as e:
         return Response({'error': str(e)}, status=400)
