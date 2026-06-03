@@ -25,6 +25,7 @@ import {
   XCircle,
   Image,
   X,
+  Download,
 } from "lucide-react";
 import { API_URL } from "@/lib/config";
 
@@ -51,6 +52,7 @@ interface OrderApi {
 interface ClaimApi {
   id: number;
   order_ref: string;
+  invoice_number: string;
   order_item_name: string;
   description: string;
   mileage_at_purchase: string;
@@ -64,6 +66,21 @@ interface ClaimApi {
   updated_at: string;
 }
 
+interface SubmittedFormData {
+  claimId: number;
+  orderNumber: string;
+  invoiceRef: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  item: string;
+  mileageAtPurchase: string;
+  currentMileage: string;
+  description: string;
+  imageCount: number;
+  hasVideo: boolean;
+}
+
 /* ─── Helpers ───────────────────────────────────────────── */
 function formatDate(iso: string) {
   return new Date(iso).toLocaleDateString("fr-FR");
@@ -75,6 +92,132 @@ const STATUS_CONFIG: Record<string, { label: string; color: string; icon: React.
   resolved:   { label: "Résolu",         color: "bg-green-100 text-green-800 border-green-200",    icon: <CheckCircle className="h-3 w-3" /> },
   rejected:   { label: "Rejeté",         color: "bg-red-100 text-red-800 border-red-200",          icon: <XCircle className="h-3 w-3" /> },
 };
+
+/* ─── PDF generation ─────────────────────────────────────── */
+async function generateClaimPDF(data: SubmittedFormData) {
+  const { default: jsPDF } = await import("jspdf");
+  const doc = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
+
+  const PRIMARY  = [234, 179, 8]   as [number, number, number]; // yellow-500
+  const DARK     = [17, 24, 39]    as [number, number, number]; // gray-900
+  const MEDIUM   = [75, 85, 99]    as [number, number, number]; // gray-600
+  const LIGHT    = [243, 244, 246] as [number, number, number]; // gray-100
+
+  const PAGE_W = 210;
+  const M      = 20; // margin
+  const COL_W  = (PAGE_W - M * 2) / 2;
+
+  // ── Header band ──────────────────────────────────────────
+  doc.setFillColor(...PRIMARY);
+  doc.rect(0, 0, PAGE_W, 28, "F");
+  doc.setTextColor(255, 255, 255);
+  doc.setFontSize(18);
+  doc.setFont("helvetica", "bold");
+  doc.text("PNEU SHOP", M, 12);
+  doc.setFontSize(10);
+  doc.setFont("helvetica", "normal");
+  doc.text("Service Après Vente — Récapitulatif de réclamation", M, 20);
+
+  // Claim ref (right side)
+  doc.setFontSize(14);
+  doc.setFont("helvetica", "bold");
+  const ref = `SAV-${String(data.claimId).padStart(4, "0")}`;
+  doc.text(ref, PAGE_W - M, 12, { align: "right" });
+  doc.setFontSize(9);
+  doc.setFont("helvetica", "normal");
+  doc.text(new Date().toLocaleDateString("fr-FR"), PAGE_W - M, 20, { align: "right" });
+
+  let y = 38;
+
+  // ── Helper: section heading ──────────────────────────────
+  const sectionHeading = (title: string) => {
+    doc.setFillColor(...LIGHT);
+    doc.rect(M, y, PAGE_W - M * 2, 8, "F");
+    doc.setTextColor(...DARK);
+    doc.setFontSize(10);
+    doc.setFont("helvetica", "bold");
+    doc.text(title, M + 3, y + 5.5);
+    y += 12;
+  };
+
+  // ── Helper: two-column row ───────────────────────────────
+  const row = (label: string, value: string, col: 0 | 1 = 0) => {
+    const x = M + col * COL_W;
+    doc.setTextColor(...MEDIUM);
+    doc.setFontSize(8);
+    doc.setFont("helvetica", "normal");
+    doc.text(label, x, y);
+    doc.setTextColor(...DARK);
+    doc.setFontSize(9);
+    doc.setFont("helvetica", "bold");
+    doc.text(value || "—", x, y + 5);
+  };
+
+  // ── Helper: full-width row ───────────────────────────────
+  const fullRow = (label: string, value: string) => {
+    doc.setTextColor(...MEDIUM);
+    doc.setFontSize(8);
+    doc.setFont("helvetica", "normal");
+    doc.text(label, M, y);
+    doc.setTextColor(...DARK);
+    doc.setFontSize(9);
+    doc.setFont("helvetica", "bold");
+    const lines = doc.splitTextToSize(value || "—", PAGE_W - M * 2);
+    doc.text(lines, M, y + 5);
+    return lines.length;
+  };
+
+  // ── Section 1: Références ────────────────────────────────
+  sectionHeading("Références");
+  row("Réf. commande",  data.orderNumber,  0);
+  row("Réf. facture",   data.invoiceRef,   1);
+  y += 16;
+
+  // ── Section 2: Client ────────────────────────────────────
+  sectionHeading("Informations client");
+  row("Prénom", data.firstName, 0);
+  row("Nom",    data.lastName,  1);
+  y += 16;
+  fullRow("Email", data.email);
+  y += 16;
+
+  // ── Section 3: Article concerné ─────────────────────────
+  sectionHeading("Article concerné");
+  const itemLines = fullRow("Désignation", data.item);
+  y += (itemLines > 1 ? itemLines * 5 : 0) + 16;
+
+  // ── Section 4: Kilométrage ───────────────────────────────
+  sectionHeading("Kilométrage");
+  row("À l'achat",           data.mileageAtPurchase, 0);
+  row("Au moment de la réclamation", data.currentMileage,   1);
+  y += 16;
+
+  // ── Section 5: Description ───────────────────────────────
+  sectionHeading("Description du problème");
+  const descLines = fullRow("", data.description || "Aucune description fournie.");
+  y += (descLines > 1 ? descLines * 5 : 0) + 16;
+
+  // ── Section 6: Pièces jointes ────────────────────────────
+  sectionHeading("Pièces jointes");
+  row("Photos fournies", `${data.imageCount} fichier(s)`,           0);
+  row("Vidéo du pneu",   data.hasVideo ? "✓ Fournie" : "✗ Absente", 1);
+  y += 20;
+
+  // ── Footer ───────────────────────────────────────────────
+  doc.setDrawColor(...PRIMARY);
+  doc.setLineWidth(0.5);
+  doc.line(M, y, PAGE_W - M, y);
+  y += 6;
+  doc.setTextColor(...MEDIUM);
+  doc.setFontSize(8);
+  doc.setFont("helvetica", "italic");
+  doc.text(
+    "Ce document est un récapitulatif de votre réclamation SAV. Notre équipe vous contactera sous 48h.",
+    PAGE_W / 2, y, { align: "center" }
+  );
+
+  doc.save(`SAV-${String(data.claimId).padStart(4, "0")}-recap.pdf`);
+}
 
 /* ═══════════════════════════════════════════════════════════
    Composant : liste des réclamations
@@ -125,7 +268,6 @@ function ClaimsList({ refreshKey }: { refreshKey: number }) {
         const isOpen = expanded === claim.id;
         return (
           <div key={claim.id} className="border border-gray-200 rounded-lg overflow-hidden">
-            {/* En-tête de la réclamation */}
             <button
               onClick={() => setExpanded(isOpen ? null : claim.id)}
               className="w-full text-left px-4 py-3 flex items-center justify-between hover:bg-gray-50 transition-colors"
@@ -146,13 +288,16 @@ function ClaimsList({ refreshKey }: { refreshKey: number }) {
               </div>
             </button>
 
-            {/* Détail */}
             {isOpen && (
               <div className="border-t border-gray-100 bg-gray-50 px-4 py-4 space-y-3">
                 <div className="grid grid-cols-2 gap-3 text-sm">
                   <div>
-                    <p className="text-xs text-gray-400 mb-0.5">Référence facture</p>
-                    <p className="font-mono font-medium">{(claim as any).invoice_number || claim.order_ref}</p>
+                    <p className="text-xs text-gray-400 mb-0.5">Réf. commande</p>
+                    <p className="font-mono font-medium">{claim.order_ref}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-gray-400 mb-0.5">Réf. facture</p>
+                    <p className="font-mono font-medium">{claim.invoice_number || "—"}</p>
                   </div>
                   <div>
                     <p className="text-xs text-gray-400 mb-0.5">Article</p>
@@ -179,7 +324,6 @@ function ClaimsList({ refreshKey }: { refreshKey: number }) {
                   </div>
                 )}
 
-                {/* Pièces jointes */}
                 <div className="flex gap-2">
                   {claim.invoice_photo_url && (
                     <a href={claim.invoice_photo_url} target="_blank" rel="noopener noreferrer"
@@ -195,7 +339,6 @@ function ClaimsList({ refreshKey }: { refreshKey: number }) {
                   )}
                 </div>
 
-                {/* Note admin */}
                 {claim.admin_notes && (
                   <div className={`rounded-lg px-3 py-2 border text-sm ${cfg.color}`}>
                     <p className="text-xs font-semibold mb-1">Réponse de notre équipe :</p>
@@ -231,9 +374,8 @@ export default function SAVPage() {
   const [selectedItem, setSelectedItem] = useState<OrderItemApi | null>(null);
 
   const [currentMileage, setCurrentMileage] = useState("");
-  const [invoiceRef, setInvoiceRef] = useState("");
+  const [invoiceRef, setInvoiceRef] = useState(""); // réf. facture — saisie manuelle
   const [description, setDescription] = useState("");
-  // Single combined image field: first image = invoice, rest = tire images
   const [allImages, setAllImages] = useState<File[]>([]);
   const [videoFile, setVideoFile] = useState<File | null>(null);
   const allImagesInputRef = useRef<HTMLInputElement>(null);
@@ -243,6 +385,8 @@ export default function SAVPage() {
   const [submitError, setSubmitError] = useState("");
   const [submitSuccess, setSubmitSuccess] = useState(false);
   const [claimId, setClaimId] = useState<number | null>(null);
+  const [submittedData, setSubmittedData] = useState<SubmittedFormData | null>(null);
+  const [generatingPdf, setGeneratingPdf] = useState(false);
 
   /* ── Charger les commandes avec garantie ── */
   useEffect(() => {
@@ -265,14 +409,11 @@ export default function SAVPage() {
   useEffect(() => {
     setSelectedItem(null);
     setCurrentMileage("");
+    setInvoiceRef(""); // la réf. facture repart vide à chaque changement de commande
     setDescription("");
     setAllImages([]);
     setVideoFile(null);
     setSubmitError("");
-    // Pre-fill invoice ref from selected order number
-    if (selectedOrder) {
-      setInvoiceRef(selectedOrder.order_number);
-    }
   }, [selectedOrder]);
 
   function removeImage(index: number) {
@@ -290,7 +431,7 @@ export default function SAVPage() {
       return;
     }
     if (allImages.length === 0) {
-      setSubmitError("Veuillez joindre au moins une photo (facture ou pneu).");
+      setSubmitError("Veuillez joindre au moins une photo (la photo de la facture est obligatoire en premier).");
       return;
     }
     if (!videoFile) {
@@ -314,13 +455,13 @@ export default function SAVPage() {
       form.append("mileage_at_purchase", selectedOrder.warranty_vehicle_mileage || "");
       form.append("current_mileage", currentMileage);
       form.append("description", description);
-      // First image is the invoice photo; remaining are tire images
-      if (allImages[0]) form.append("invoice_photo", allImages[0]);
+      // First image = invoice photo; rest = tire images
+      form.append("invoice_photo", allImages[0]);
       allImages.slice(1).forEach((f) => form.append("tire_images", f));
-      form.append("tire_video", videoFile!);
+      form.append("tire_video", videoFile);
 
       const controller = new AbortController();
-      const timeout = setTimeout(() => controller.abort(), 120000); // 2 min max
+      const timeout = setTimeout(() => controller.abort(), 120000);
       let res: Response;
       try {
         res = await fetch(`${API_URL}/orders/sav/`, {
@@ -347,8 +488,25 @@ export default function SAVPage() {
       }
       const data = await res.json();
       setClaimId(data.id);
+
+      // Store form data for PDF generation
+      setSubmittedData({
+        claimId: data.id,
+        orderNumber: selectedOrder.order_number,
+        invoiceRef: invoiceRef.trim(),
+        firstName: selectedOrder.shipping_address?.first_name || user?.first_name || "",
+        lastName: selectedOrder.shipping_address?.last_name || user?.last_name || "",
+        email: user?.email || "",
+        item: selectedItem.product_name,
+        mileageAtPurchase: selectedOrder.warranty_vehicle_mileage || "",
+        currentMileage,
+        description,
+        imageCount: allImages.length,
+        hasVideo: !!videoFile,
+      });
+
       setSubmitSuccess(true);
-      setRefreshKey((k) => k + 1); // actualiser la liste
+      setRefreshKey((k) => k + 1);
     } catch (err: any) {
       setSubmitError(err.message || "Erreur lors de l'envoi.");
     } finally {
@@ -356,8 +514,21 @@ export default function SAVPage() {
     }
   }
 
+  async function handleDownloadPDF() {
+    if (!submittedData) return;
+    setGeneratingPdf(true);
+    try {
+      await generateClaimPDF(submittedData);
+    } catch (err) {
+      console.error("PDF generation failed", err);
+    } finally {
+      setGeneratingPdf(false);
+    }
+  }
+
   function resetForm() {
     setSubmitSuccess(false);
+    setSubmittedData(null);
     setSelectedOrder(null);
     setSelectedItem(null);
     setCurrentMileage("");
@@ -391,9 +562,34 @@ export default function SAVPage() {
         <p className="text-gray-600 mb-2">
           Votre réclamation <strong>SAV-{String(claimId).padStart(4, "0")}</strong> a bien été enregistrée.
         </p>
-        <p className="text-gray-500 text-sm mb-8">
+        <p className="text-gray-500 text-sm mb-4">
           Notre équipe vous contactera à <strong>{user.email}</strong>.
         </p>
+
+        {/* PDF download banner */}
+        <div className="bg-yellow-50 border border-yellow-200 rounded-xl px-5 py-4 mb-6 text-left">
+          <div className="flex items-start gap-3">
+            <FileText className="h-6 w-6 text-yellow-500 flex-shrink-0 mt-0.5" />
+            <div className="flex-1">
+              <p className="font-semibold text-gray-800 text-sm mb-1">Récapitulatif PDF disponible</p>
+              <p className="text-xs text-gray-500 mb-3">
+                Téléchargez le récapitulatif de votre réclamation pour vos archives.
+              </p>
+              <Button
+                size="sm"
+                variant="outline"
+                className="border-yellow-400 text-yellow-700 hover:bg-yellow-100"
+                onClick={handleDownloadPDF}
+                disabled={generatingPdf}
+              >
+                {generatingPdf
+                  ? <><Loader2 className="h-3.5 w-3.5 animate-spin mr-1.5" />Génération…</>
+                  : <><Download className="h-3.5 w-3.5 mr-1.5" />Télécharger le récapitulatif</>}
+              </Button>
+            </div>
+          </div>
+        </div>
+
         <div className="flex gap-3 justify-center">
           <Button variant="outline" onClick={resetForm}>
             <ClipboardList className="h-4 w-4 mr-2" /> Voir mes réclamations
@@ -561,10 +757,22 @@ export default function SAVPage() {
                             className="w-full border border-gray-200 rounded-md px-3 py-2 text-sm bg-gray-50 text-gray-500" />
                         </div>
 
-                        {/* Réf facture + Article */}
+                        {/* Réf. commande (read-only) + Réf. facture (saisie) */}
                         <div className="grid grid-cols-2 gap-4">
                           <div>
-                            <label className="block text-xs font-medium text-gray-700 mb-1">Réf. facture <span className="text-red-500">*</span></label>
+                            <label className="block text-xs font-medium text-gray-600 mb-1">
+                              Réf. commande <span className="text-red-500">*</span>
+                            </label>
+                            <input
+                              readOnly
+                              value={selectedOrder.order_number}
+                              className="w-full border border-gray-200 rounded-md px-3 py-2 text-sm bg-gray-50 text-gray-500 font-mono"
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-xs font-medium text-gray-700 mb-1">
+                              Réf. facture <span className="text-gray-400 font-normal">(facultatif)</span>
+                            </label>
                             <input
                               type="text"
                               value={invoiceRef}
@@ -573,11 +781,13 @@ export default function SAVPage() {
                               className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-yellow-400 font-mono"
                             />
                           </div>
-                          <div>
-                            <label className="block text-xs font-medium text-gray-600 mb-1">Article concerné <span className="text-red-500">*</span></label>
-                            <input readOnly value={selectedItem.product_name}
-                              className="w-full border border-gray-200 rounded-md px-3 py-2 text-sm bg-gray-50 text-gray-500" />
-                          </div>
+                        </div>
+
+                        {/* Article concerné */}
+                        <div>
+                          <label className="block text-xs font-medium text-gray-600 mb-1">Article concerné <span className="text-red-500">*</span></label>
+                          <input readOnly value={selectedItem.product_name}
+                            className="w-full border border-gray-200 rounded-md px-3 py-2 text-sm bg-gray-50 text-gray-500" />
                         </div>
 
                         {/* Kilométrages */}
@@ -605,11 +815,13 @@ export default function SAVPage() {
                             className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-yellow-400 resize-none" />
                         </div>
 
-                        {/* Photos — facture + pneus (champ unique) */}
+                        {/* Photos — facture + pneus */}
                         <div>
                           <label className="block text-xs font-medium text-gray-700 mb-1">
                             Photos <span className="text-red-500">*</span>
-                            <span className="text-gray-400 font-normal ml-1">(facture et photos du pneu)</span>
+                            <span className="text-gray-400 font-normal ml-1">
+                              (1ʳᵉ photo = photo de la facture · suivantes = photos du pneu)
+                            </span>
                           </label>
                           <input ref={allImagesInputRef} type="file" accept="image/*,.pdf" multiple className="hidden"
                             onChange={(e) => {
@@ -632,9 +844,14 @@ export default function SAVPage() {
                           {allImages.length > 0 && (
                             <div className="mt-2 space-y-1">
                               {allImages.map((f, i) => (
-                                <div key={i} className="flex items-center gap-2 bg-yellow-50 border border-yellow-200 rounded-md px-3 py-1.5 text-sm">
-                                  <Image className="h-3.5 w-3.5 text-yellow-500 flex-shrink-0" />
+                                <div key={i} className={`flex items-center gap-2 rounded-md px-3 py-1.5 text-sm border ${
+                                  i === 0 ? "bg-blue-50 border-blue-200" : "bg-yellow-50 border-yellow-200"
+                                }`}>
+                                  {i === 0
+                                    ? <FileText className="h-3.5 w-3.5 text-blue-500 flex-shrink-0" />
+                                    : <Image className="h-3.5 w-3.5 text-yellow-500 flex-shrink-0" />}
                                   <span className="flex-1 truncate text-xs">{f.name}</span>
+                                  <span className="text-[10px] text-gray-400">{i === 0 ? "facture" : "pneu"}</span>
                                   <button type="button" onClick={() => removeImage(i)} className="text-gray-400 hover:text-red-500">
                                     <X className="h-3.5 w-3.5" />
                                   </button>

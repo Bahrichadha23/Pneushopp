@@ -1,6 +1,6 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { TrendingUp, Package, Users, AlertTriangle, Star, Plus } from "lucide-react"
+import { TrendingUp, Package, Users, AlertTriangle, Star, Plus, Shield, Clock, CheckCircle, XCircle } from "lucide-react"
 import type { AdminStats } from "@/lib/services/admin"
 import SalesChart from "./charts/sales-chart"
 import TopProductsChart from "./charts/top-products-chart"
@@ -252,6 +252,47 @@ export default function DashboardStatsComponent({ stats, analytics }: DashboardS
           </div>
         </CardContent>
       </Card>
+
+      {/* SAV — Service Après Vente */}
+      {stats.sav_stats && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Shield className="h-5 w-5 text-yellow-500" />
+              Service Après Vente (SAV)
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+              <div className="col-span-2 md:col-span-1 text-center p-4 bg-gray-50 rounded-lg border">
+                <p className="text-xs text-gray-500 mb-1">Total</p>
+                <p className="text-2xl font-bold text-gray-800">{stats.sav_stats.total}</p>
+                <p className="text-xs text-gray-400 mt-1">réclamations</p>
+              </div>
+              <div className="text-center p-4 bg-yellow-50 rounded-lg border border-yellow-200">
+                <Clock className="h-4 w-4 text-yellow-500 mx-auto mb-1" />
+                <p className="text-xs text-yellow-700 mb-1">En attente</p>
+                <p className="text-xl font-bold text-yellow-600">{stats.sav_stats.pending}</p>
+              </div>
+              <div className="text-center p-4 bg-blue-50 rounded-lg border border-blue-200">
+                <TrendingUp className="h-4 w-4 text-blue-500 mx-auto mb-1" />
+                <p className="text-xs text-blue-700 mb-1">En traitement</p>
+                <p className="text-xl font-bold text-blue-600">{stats.sav_stats.processing}</p>
+              </div>
+              <div className="text-center p-4 bg-green-50 rounded-lg border border-green-200">
+                <CheckCircle className="h-4 w-4 text-green-500 mx-auto mb-1" />
+                <p className="text-xs text-green-700 mb-1">Résolus</p>
+                <p className="text-xl font-bold text-green-600">{stats.sav_stats.resolved}</p>
+              </div>
+              <div className="text-center p-4 bg-red-50 rounded-lg border border-red-200">
+                <XCircle className="h-4 w-4 text-red-500 mx-auto mb-1" />
+                <p className="text-xs text-red-700 mb-1">Rejetés</p>
+                <p className="text-xl font-bold text-red-600">{stats.sav_stats.rejected}</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
     </div>
   )
 }

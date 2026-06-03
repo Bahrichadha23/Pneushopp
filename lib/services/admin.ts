@@ -31,6 +31,13 @@ export interface AdminStats {
     min_price: number
     max_price: number
   }
+  sav_stats?: {
+    total: number
+    pending: number
+    processing: number
+    resolved: number
+    rejected: number
+  }
 }
 
 export interface AnalyticsData {
@@ -64,6 +71,14 @@ export interface AnalyticsData {
     commandes: number
     total: number
   }>
+  sav_stats?: {
+    total: number
+    pending: number
+    processing: number
+    resolved: number
+    rejected: number
+    this_month: number
+  }
 }
 
 export interface AdminProduct {

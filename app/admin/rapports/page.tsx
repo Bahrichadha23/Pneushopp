@@ -23,6 +23,11 @@ import {
   Loader2,
   Euro,
   FileDown,
+  Shield,
+  Clock,
+  CheckCircle,
+  XCircle,
+  RefreshCw,
 } from "lucide-react";
 import ExcelJS from "exceljs";
 import { API_URL } from "@/lib/config";
@@ -62,11 +67,21 @@ interface TopClient {
   total: number;
 }
 
+interface SavStats {
+  total: number;
+  pending: number;
+  processing: number;
+  resolved: number;
+  rejected: number;
+  this_month: number;
+}
+
 interface ReportsData {
   stats_ventes: StatsVentes;
   ventes_par_mois: VentesParMois[];
   top_produits: TopProduit[];
   top_clients: TopClient[];
+  sav_stats?: SavStats;
 }
 
 export default function RapportsPage() {
@@ -370,6 +385,59 @@ export default function RapportsPage() {
           </CardContent>
         </Card>
       </div>
+
+      {/* SAV Stats */}
+      {reportsData.sav_stats && (
+        <div>
+          <h2 className="text-lg font-semibold text-gray-800 mb-3 flex items-center gap-2">
+            <Shield className="h-5 w-5 text-yellow-500" /> Service Après Vente
+          </h2>
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+            <Card className="col-span-2 md:col-span-1">
+              <CardContent className="pt-4 text-center">
+                <p className="text-xs text-gray-500 mb-1">Total réclamations</p>
+                <p className="text-2xl font-bold text-gray-800">{reportsData.sav_stats.total}</p>
+                <p className="text-xs text-gray-400 mt-1">depuis le début</p>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardContent className="pt-4 text-center">
+                <p className="text-xs text-gray-500 mb-1">Ce mois</p>
+                <p className="text-2xl font-bold text-blue-600">{reportsData.sav_stats.this_month}</p>
+                <p className="text-xs text-gray-400 mt-1">nouvelles</p>
+              </CardContent>
+            </Card>
+            <Card className="border-yellow-200 bg-yellow-50">
+              <CardContent className="pt-4 text-center">
+                <Clock className="h-4 w-4 text-yellow-500 mx-auto mb-1" />
+                <p className="text-xs text-yellow-700 mb-1">En attente</p>
+                <p className="text-xl font-bold text-yellow-600">{reportsData.sav_stats.pending}</p>
+              </CardContent>
+            </Card>
+            <Card className="border-blue-200 bg-blue-50">
+              <CardContent className="pt-4 text-center">
+                <RefreshCw className="h-4 w-4 text-blue-500 mx-auto mb-1" />
+                <p className="text-xs text-blue-700 mb-1">En traitement</p>
+                <p className="text-xl font-bold text-blue-600">{reportsData.sav_stats.processing}</p>
+              </CardContent>
+            </Card>
+            <Card className="border-green-200 bg-green-50">
+              <CardContent className="pt-4 text-center">
+                <CheckCircle className="h-4 w-4 text-green-500 mx-auto mb-1" />
+                <p className="text-xs text-green-700 mb-1">Résolus</p>
+                <p className="text-xl font-bold text-green-600">{reportsData.sav_stats.resolved}</p>
+              </CardContent>
+            </Card>
+            <Card className="border-red-200 bg-red-50">
+              <CardContent className="pt-4 text-center">
+                <XCircle className="h-4 w-4 text-red-500 mx-auto mb-1" />
+                <p className="text-xs text-red-700 mb-1">Rejetés</p>
+                <p className="text-xl font-bold text-red-600">{reportsData.sav_stats.rejected}</p>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+      )}
 
       {/* Top produits et clients */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
