@@ -208,8 +208,9 @@ def admin_dashboard_stats(request):
         'max_price': float(price_agg['max_price'] or 0),
     }
 
-    # SAV stats
+    # SAV stats + top produits réclamés
     from orders.models import WarrantyClaim
+    from django.db.models import Q as DQ2
     sav_stats = {
         'total':      WarrantyClaim.objects.count(),
         'pending':    WarrantyClaim.objects.filter(status='pending').count(),
@@ -217,6 +218,17 @@ def admin_dashboard_stats(request):
         'resolved':   WarrantyClaim.objects.filter(status='resolved').count(),
         'rejected':   WarrantyClaim.objects.filter(status='rejected').count(),
     }
+    sav_top_products_qs2 = (
+        WarrantyClaim.objects
+        .exclude(order_item_name='')
+        .values('order_item_name')
+        .annotate(reclamations=Count('id'), resolues=Count('id', filter=DQ2(status='resolved')))
+        .order_by('-reclamations')[:5]
+    )
+    sav_top_products = [
+        {'produit': r['order_item_name'], 'reclamations': r['reclamations'], 'resolues': r['resolues']}
+        for r in sav_top_products_qs2
+    ]
 
     return Response({
         'total_products': total_products,
@@ -233,9 +245,10 @@ def admin_dashboard_stats(request):
         'products_by_category': products_by_category,
         'top_stock_products': top_stock_products,
         'low_stock_products': low_stock_count,
-        'low_stock_details': low_stock_details,
-        'price_stats': price_stats,
-        'sav_stats': sav_stats,
+        'low_stock_details':  low_stock_details,
+        'price_stats':        price_stats,
+        'sav_stats':          sav_stats,
+        'sav_top_products':   sav_top_products,
     })
 
 
@@ -352,7 +365,7 @@ def reports_data(request):
             'total':     float(r['total'] or 0),
         })
 
-    # SAV stats
+    # SAV stats + top produits réclamés
     from orders.models import WarrantyClaim
     sav_stats = {
         'total':      WarrantyClaim.objects.count(),
@@ -362,6 +375,22 @@ def reports_data(request):
         'rejected':   WarrantyClaim.objects.filter(status='rejected').count(),
         'this_month': WarrantyClaim.objects.filter(created_at__gte=month_start).count(),
     }
+    from django.db.models import Q as DQ
+    sav_top_products_qs = (
+        WarrantyClaim.objects
+        .exclude(order_item_name='')
+        .values('order_item_name')
+        .annotate(reclamations=Count('id'), resolues=Count('id', filter=DQ(status='resolved')))
+        .order_by('-reclamations')[:10]
+    )
+    sav_top_products = [
+        {
+            'produit':     r['order_item_name'],
+            'reclamations': r['reclamations'],
+            'resolues':    r['resolues'],
+        }
+        for r in sav_top_products_qs
+    ]
 
     return Response({
         'stats_ventes': {
@@ -377,10 +406,11 @@ def reports_data(request):
             'commandes_total':    commandes_total,
             'panier_moyen':       float(panier_moyen),
         },
-        'ventes_par_mois': ventes_par_mois,
-        'top_produits':    top_produits,
-        'top_clients':     top_clients,
-        'sav_stats':       sav_stats,
+        'ventes_par_mois':    ventes_par_mois,
+        'top_produits':       top_produits,
+        'top_clients':        top_clients,
+        'sav_stats':          sav_stats,
+        'sav_top_products':   sav_top_products,
     })
 
 
