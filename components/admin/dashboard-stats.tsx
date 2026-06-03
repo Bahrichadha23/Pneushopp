@@ -253,64 +253,73 @@ export default function DashboardStatsComponent({ stats, analytics }: DashboardS
         </CardContent>
       </Card>
 
-      {/* SAV — Service Après Vente */}
-      {stats.sav_stats && (() => {
-        const sav = stats.sav_stats!;
-        const resolutionRate = sav.total > 0 ? Math.round((sav.resolved / sav.total) * 100) : 0;
-        const segments = [
-          { label: "En attente",    value: sav.pending,    color: "bg-amber-400",   pct: sav.total > 0 ? (sav.pending    / sav.total) * 100 : 0 },
-          { label: "En traitement", value: sav.processing, color: "bg-blue-400",    pct: sav.total > 0 ? (sav.processing / sav.total) * 100 : 0 },
-          { label: "Résolus",       value: sav.resolved,   color: "bg-emerald-500", pct: sav.total > 0 ? (sav.resolved   / sav.total) * 100 : 0 },
-          { label: "Rejetés",       value: sav.rejected,   color: "bg-red-400",     pct: sav.total > 0 ? (sav.rejected   / sav.total) * 100 : 0 },
-        ];
+      {/* SAV — Top produits réclamés */}
+      {stats.sav_top_products && stats.sav_top_products.length > 0 && (() => {
+        const topProds = stats.sav_top_products!;
+        const sav = stats.sav_stats;
+        const maxCount = Math.max(...topProds.map((p) => p.reclamations), 1);
+        const resolutionRate = sav && sav.total > 0 ? Math.round((sav.resolved / sav.total) * 100) : 0;
         return (
           <Card className="border border-gray-200 shadow-sm">
             <CardContent className="p-5">
-              {/* Header */}
-              <div className="flex items-center gap-2 mb-4">
-                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-yellow-100">
-                  <Shield className="h-4 w-4 text-yellow-600" />
-                </div>
-                <div>
-                  <p className="text-sm font-semibold text-gray-800">Service Après Vente</p>
-                  <p className="text-xs text-gray-400">Suivi des réclamations clients</p>
-                </div>
-              </div>
-
-              {/* KPIs */}
-              <div className="grid grid-cols-3 gap-3 mb-4">
-                <div className="rounded-xl bg-gray-50 border border-gray-100 px-3 py-2.5">
-                  <p className="text-[11px] text-gray-400 mb-0.5">Total</p>
-                  <p className="text-2xl font-bold text-gray-900">{sav.total}</p>
-                </div>
-                <div className="rounded-xl bg-emerald-50 border border-emerald-100 px-3 py-2.5">
-                  <p className="text-[11px] text-emerald-600 font-medium mb-0.5">Résolution</p>
-                  <p className="text-2xl font-bold text-emerald-700">{resolutionRate}<span className="text-base">%</span></p>
-                </div>
-                <div className="rounded-xl bg-amber-50 border border-amber-100 px-3 py-2.5">
-                  <p className="text-[11px] text-amber-600 font-medium mb-0.5">En cours</p>
-                  <p className="text-2xl font-bold text-amber-700">{sav.pending + sav.processing}</p>
-                </div>
-              </div>
-
-              {/* Progress bar */}
-              <div className="flex h-2 w-full overflow-hidden rounded-full bg-gray-100 mb-3">
-                {segments.map((s) => s.pct > 0 && (
-                  <div key={s.label} className={`${s.color} h-full`} style={{ width: `${s.pct}%` }} />
-                ))}
-              </div>
-
-              {/* Legend */}
-              <div className="grid grid-cols-2 gap-x-4 gap-y-1.5">
-                {segments.map((s) => (
-                  <div key={s.label} className="flex items-center justify-between">
-                    <div className="flex items-center gap-1.5">
-                      <span className={`h-2 w-2 rounded-full ${s.color}`} />
-                      <span className="text-xs text-gray-500">{s.label}</span>
-                    </div>
-                    <span className="text-xs font-semibold text-gray-700">{s.value}</span>
+              {/* Header + KPIs */}
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-2">
+                  <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-yellow-100">
+                    <Shield className="h-4 w-4 text-yellow-600" />
                   </div>
-                ))}
+                  <div>
+                    <p className="text-sm font-semibold text-gray-800">SAV — Top produits réclamés</p>
+                    <p className="text-xs text-gray-400">Produits les plus réclamés</p>
+                  </div>
+                </div>
+                {sav && (
+                  <div className="flex gap-3 text-right text-xs">
+                    <div>
+                      <p className="text-gray-400">Total</p>
+                      <p className="text-base font-bold text-gray-800">{sav.total}</p>
+                    </div>
+                    <div>
+                      <p className="text-emerald-500">Résolution</p>
+                      <p className="text-base font-bold text-emerald-600">{resolutionRate}%</p>
+                    </div>
+                    <div>
+                      <p className="text-amber-500">En cours</p>
+                      <p className="text-base font-bold text-amber-600">{sav.pending + sav.processing}</p>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Barres */}
+              <div className="space-y-2.5">
+                {topProds.map((p, i) => {
+                  const pct = (p.reclamations / maxCount) * 100;
+                  const resolvePct = p.reclamations > 0 ? Math.round((p.resolues / p.reclamations) * 100) : 0;
+                  return (
+                    <div key={i}>
+                      <div className="flex items-center justify-between mb-0.5">
+                        <div className="flex items-center gap-1.5 min-w-0">
+                          <span className="text-[10px] font-bold text-gray-400 w-4 flex-shrink-0">{i + 1}</span>
+                          <p className="text-xs font-medium text-gray-700 truncate">{p.produit}</p>
+                        </div>
+                        <div className="flex items-center gap-2 flex-shrink-0 ml-2 text-xs">
+                          <span className="text-gray-400">{resolvePct}% résolus</span>
+                          <span className="font-bold text-gray-800">{p.reclamations}</span>
+                        </div>
+                      </div>
+                      <div className="relative h-1.5 w-full rounded-full bg-gray-100 overflow-hidden">
+                        <div className="absolute inset-y-0 left-0 rounded-full bg-red-300" style={{ width: `${pct}%` }} />
+                        <div className="absolute inset-y-0 left-0 rounded-full bg-emerald-400" style={{ width: `${pct * resolvePct / 100}%` }} />
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+
+              <div className="mt-3 flex items-center gap-3 text-[10px] text-gray-400">
+                <div className="flex items-center gap-1"><span className="h-1.5 w-3 rounded-full bg-red-300" />Total</div>
+                <div className="flex items-center gap-1"><span className="h-1.5 w-3 rounded-full bg-emerald-400" />Résolues</div>
               </div>
             </CardContent>
           </Card>

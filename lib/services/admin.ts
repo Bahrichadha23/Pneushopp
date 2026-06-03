@@ -38,6 +38,11 @@ export interface AdminStats {
     resolved: number
     rejected: number
   }
+  sav_top_products?: Array<{
+    produit: string
+    reclamations: number
+    resolues: number
+  }>
 }
 
 export interface AnalyticsData {
@@ -79,6 +84,11 @@ export interface AnalyticsData {
     rejected: number
     this_month: number
   }
+  sav_top_products?: Array<{
+    produit: string
+    reclamations: number
+    resolues: number
+  }>
 }
 
 export interface AdminProduct {

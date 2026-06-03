@@ -76,12 +76,19 @@ interface SavStats {
   this_month: number;
 }
 
+interface SavTopProduct {
+  produit: string;
+  reclamations: number;
+  resolues: number;
+}
+
 interface ReportsData {
   stats_ventes: StatsVentes;
   ventes_par_mois: VentesParMois[];
   top_produits: TopProduit[];
   top_clients: TopClient[];
   sav_stats?: SavStats;
+  sav_top_products?: SavTopProduct[];
 }
 
 export default function RapportsPage() {
@@ -386,17 +393,12 @@ export default function RapportsPage() {
         </Card>
       </div>
 
-      {/* SAV Stats */}
-      {reportsData.sav_stats && (() => {
-        const sav = reportsData.sav_stats!;
-        const resolutionRate = sav.total > 0 ? Math.round((sav.resolved / sav.total) * 100) : 0;
-        const activeRate     = sav.total > 0 ? Math.round(((sav.pending + sav.processing) / sav.total) * 100) : 0;
-        const segments = [
-          { label: "En attente",    value: sav.pending,    color: "bg-amber-400",  pct: sav.total > 0 ? (sav.pending    / sav.total) * 100 : 0 },
-          { label: "En traitement", value: sav.processing, color: "bg-blue-400",   pct: sav.total > 0 ? (sav.processing / sav.total) * 100 : 0 },
-          { label: "Résolus",       value: sav.resolved,   color: "bg-emerald-500",pct: sav.total > 0 ? (sav.resolved   / sav.total) * 100 : 0 },
-          { label: "Rejetés",       value: sav.rejected,   color: "bg-red-400",    pct: sav.total > 0 ? (sav.rejected   / sav.total) * 100 : 0 },
-        ];
+      {/* SAV — Top produits réclamés */}
+      {reportsData.sav_top_products && reportsData.sav_top_products.length > 0 && (() => {
+        const topProds = reportsData.sav_top_products!;
+        const maxCount = Math.max(...topProds.map((p) => p.reclamations), 1);
+        const sav = reportsData.sav_stats;
+        const resolutionRate = sav && sav.total > 0 ? Math.round((sav.resolved / sav.total) * 100) : 0;
         return (
           <Card className="border border-gray-200 shadow-sm">
             <CardContent className="p-6">
@@ -407,63 +409,65 @@ export default function RapportsPage() {
                     <Shield className="h-4 w-4 text-yellow-600" />
                   </div>
                   <div>
-                    <p className="text-sm font-semibold text-gray-800">Service Après Vente</p>
-                    <p className="text-xs text-gray-400">Suivi des réclamations clients</p>
+                    <p className="text-sm font-semibold text-gray-800">Service Après Vente — Top produits réclamés</p>
+                    <p className="text-xs text-gray-400">Produits ayant généré le plus de réclamations clients</p>
                   </div>
                 </div>
-                <div className="text-right">
-                  <p className="text-xs text-gray-400">Ce mois</p>
-                  <p className="text-lg font-bold text-gray-800">
-                    +{sav.this_month}
-                    <span className="text-xs font-normal text-gray-400 ml-1">nouvelle{sav.this_month > 1 ? "s" : ""}</span>
-                  </p>
-                </div>
-              </div>
-
-              {/* KPIs row */}
-              <div className="grid grid-cols-3 gap-4 mb-5">
-                <div className="rounded-xl bg-gray-50 border border-gray-100 px-4 py-3">
-                  <p className="text-xs text-gray-500 mb-1">Total réclamations</p>
-                  <p className="text-3xl font-bold text-gray-900">{sav.total}</p>
-                  <p className="text-xs text-gray-400 mt-0.5">depuis le début</p>
-                </div>
-                <div className="rounded-xl bg-emerald-50 border border-emerald-100 px-4 py-3">
-                  <p className="text-xs text-emerald-600 mb-1 font-medium">Taux de résolution</p>
-                  <p className="text-3xl font-bold text-emerald-700">{resolutionRate}<span className="text-lg">%</span></p>
-                  <p className="text-xs text-emerald-500 mt-0.5">{sav.resolved} cas résolus</p>
-                </div>
-                <div className="rounded-xl bg-amber-50 border border-amber-100 px-4 py-3">
-                  <p className="text-xs text-amber-600 mb-1 font-medium">En cours de traitement</p>
-                  <p className="text-3xl font-bold text-amber-700">{sav.pending + sav.processing}</p>
-                  <p className="text-xs text-amber-500 mt-0.5">{activeRate}% du total</p>
-                </div>
-              </div>
-
-              {/* Stacked progress bar */}
-              <div className="mb-3">
-                <div className="flex h-2.5 w-full overflow-hidden rounded-full bg-gray-100">
-                  {segments.map((s) => s.pct > 0 && (
-                    <div key={s.label} className={`${s.color} h-full transition-all`} style={{ width: `${s.pct}%` }} />
-                  ))}
-                </div>
-              </div>
-
-              {/* Legend */}
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                {segments.map((s) => (
-                  <div key={s.label} className="flex items-center gap-2">
-                    <span className={`h-2.5 w-2.5 rounded-full flex-shrink-0 ${s.color}`} />
-                    <div className="min-w-0">
-                      <p className="text-xs text-gray-500 truncate">{s.label}</p>
-                      <p className="text-sm font-semibold text-gray-800">
-                        {s.value}
-                        <span className="text-xs font-normal text-gray-400 ml-1">
-                          ({s.pct.toFixed(0)}%)
-                        </span>
-                      </p>
+                {sav && (
+                  <div className="hidden sm:flex items-center gap-4 text-right">
+                    <div>
+                      <p className="text-xs text-gray-400">Total réclamations</p>
+                      <p className="text-xl font-bold text-gray-800">{sav.total}</p>
+                    </div>
+                    <div>
+                      <p className="text-xs text-emerald-600">Taux de résolution</p>
+                      <p className="text-xl font-bold text-emerald-700">{resolutionRate}%</p>
+                    </div>
+                    <div>
+                      <p className="text-xs text-amber-500">En cours</p>
+                      <p className="text-xl font-bold text-amber-600">{sav.pending + sav.processing}</p>
                     </div>
                   </div>
-                ))}
+                )}
+              </div>
+
+              {/* Liste des top produits */}
+              <div className="space-y-3">
+                {topProds.map((p, i) => {
+                  const pct = (p.reclamations / maxCount) * 100;
+                  const resolvePct = p.reclamations > 0 ? Math.round((p.resolues / p.reclamations) * 100) : 0;
+                  return (
+                    <div key={i} className="space-y-1">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2 min-w-0">
+                          <span className="flex h-5 w-5 items-center justify-center rounded-full bg-gray-100 text-[10px] font-bold text-gray-500 flex-shrink-0">
+                            {i + 1}
+                          </span>
+                          <p className="text-sm font-medium text-gray-800 truncate">{p.produit}</p>
+                        </div>
+                        <div className="flex items-center gap-3 flex-shrink-0 ml-3">
+                          <span className="text-xs text-gray-400">
+                            {resolvePct}% résolus
+                          </span>
+                          <span className="text-sm font-bold text-gray-800">
+                            {p.reclamations} réclamation{p.reclamations > 1 ? "s" : ""}
+                          </span>
+                        </div>
+                      </div>
+                      {/* Barre double : réclamations totales + résolues */}
+                      <div className="relative h-2 w-full rounded-full bg-gray-100 overflow-hidden">
+                        <div className="absolute inset-y-0 left-0 rounded-full bg-red-300" style={{ width: `${pct}%` }} />
+                        <div className="absolute inset-y-0 left-0 rounded-full bg-emerald-400" style={{ width: `${pct * resolvePct / 100}%` }} />
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* Légende */}
+              <div className="mt-4 flex items-center gap-4 text-xs text-gray-500">
+                <div className="flex items-center gap-1.5"><span className="h-2 w-3 rounded-full bg-red-300" />Réclamations totales</div>
+                <div className="flex items-center gap-1.5"><span className="h-2 w-3 rounded-full bg-emerald-400" />Résolues</div>
               </div>
             </CardContent>
           </Card>
