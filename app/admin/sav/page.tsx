@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import {
   Shield, Loader2, AlertTriangle, FileText, Video,
   ExternalLink, ChevronDown, ChevronRight,
-  Check, X, Clock, RefreshCw, Image as ImageIcon,
+  Check, X, Clock, RefreshCw, Image as ImageIcon, FileDown,
 } from "lucide-react";
 import { API_URL } from "@/lib/config";
 
@@ -74,6 +74,31 @@ export default function AdminSAVPage() {
   const [editNotes, setEditNotes]   = useState("");
   const [saving, setSaving]         = useState(false);
   const [saveError, setSaveError]   = useState("");
+  const [exporting, setExporting]   = useState(false);
+
+  async function handleExportExcel() {
+    setExporting(true);
+    try {
+      const token = localStorage.getItem("access_token");
+      const params = new URLSearchParams();
+      if (filterStatus) params.set("status", filterStatus);
+      const res = await fetch(`${API_URL}/orders/sav/export/?${params}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!res.ok) throw new Error(`Erreur ${res.status}`);
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `SAV_export_${new Date().toLocaleDateString("fr-FR").replace(/\//g, "-")}.xlsx`;
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch (err: any) {
+      alert(err.message || "Erreur lors de l'export");
+    } finally {
+      setExporting(false);
+    }
+  }
 
   async function loadClaims() {
     setLoading(true); setFetchError("");
@@ -131,10 +156,18 @@ export default function AdminSAVPage() {
             <p className="text-gray-500 text-sm">Réclamations clients sous garantie</p>
           </div>
         </div>
-        <Button variant="outline" size="sm" onClick={loadClaims} disabled={loading}>
-          <RefreshCw className={`h-4 w-4 mr-1 ${loading ? "animate-spin" : ""}`} />
-          Actualiser
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button variant="outline" size="sm" onClick={handleExportExcel} disabled={exporting || loading}>
+            {exporting
+              ? <Loader2 className="h-4 w-4 mr-1 animate-spin" />
+              : <FileDown className="h-4 w-4 mr-1" />}
+            Exporter (Excel)
+          </Button>
+          <Button variant="outline" size="sm" onClick={loadClaims} disabled={loading}>
+            <RefreshCw className={`h-4 w-4 mr-1 ${loading ? "animate-spin" : ""}`} />
+            Actualiser
+          </Button>
+        </div>
       </div>
 
       {/* Stats */}
