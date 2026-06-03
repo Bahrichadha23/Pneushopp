@@ -22,6 +22,8 @@ import {
   CheckCircle,
   XCircle,
   AlertTriangle,
+  Eye,
+  X as XIcon,
 } from "lucide-react";
 import { API_URL } from "@/lib/config";
 
@@ -50,6 +52,7 @@ export default function PendingOrdersPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
+  const [selectedOrder, setSelectedOrder] = useState<PendingOrder | null>(null);
   const [confirmation, setConfirmation] = useState<ConfirmationDialog>({
     isOpen: false,
     orderId: null,
@@ -322,6 +325,13 @@ export default function PendingOrdersPage() {
                   <Button
                     size="sm"
                     variant="outline"
+                    onClick={() => setSelectedOrder(order)}
+                  >
+                    <Eye className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="outline"
                     onClick={() => handleApprove(order.numericId, order.id)}
                   >
                     <CheckCircle className="h-4 w-4 mr-1" />
@@ -379,6 +389,14 @@ export default function PendingOrdersPage() {
                         <Button
                           size="sm"
                           variant="outline"
+                          onClick={() => setSelectedOrder(order)}
+                          title="Voir les détails"
+                        >
+                          <Eye className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="outline"
                           onClick={() => handleApprove(order.numericId, order.id)}
                           className="text-yellow-600 hover:text-yellow-700"
                         >
@@ -403,6 +421,89 @@ export default function PendingOrdersPage() {
           </div>
         </CardContent>
       </Card>
+
+      {/* Modal détails commande */}
+      {selectedOrder && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+          <div className="w-full max-w-lg bg-white rounded-xl shadow-2xl overflow-hidden">
+            {/* Header */}
+            <div className="flex items-center justify-between bg-slate-800 px-5 py-3">
+              <h2 className="text-white font-semibold text-sm">
+                Commande {selectedOrder.id}
+              </h2>
+              <button onClick={() => setSelectedOrder(null)} className="text-slate-300 hover:text-white text-xl leading-none">
+                <XIcon className="h-4 w-4" />
+              </button>
+            </div>
+
+            <div className="p-5 space-y-4 text-sm">
+              {/* Infos client */}
+              <div className="grid grid-cols-2 gap-3">
+                <div className="rounded-lg border bg-gray-50 px-3 py-2">
+                  <p className="text-[11px] text-gray-400 uppercase font-semibold mb-1">Client</p>
+                  <p className="font-medium text-gray-800">{selectedOrder.client || "—"}</p>
+                  <p className="text-xs text-gray-500 truncate">{selectedOrder.email}</p>
+                </div>
+                <div className="rounded-lg border bg-gray-50 px-3 py-2">
+                  <p className="text-[11px] text-gray-400 uppercase font-semibold mb-1">Date</p>
+                  <p className="font-medium text-gray-800">{selectedOrder.date}</p>
+                  <p className="text-xs text-gray-500">{selectedOrder.items.length} article{selectedOrder.items.length > 1 ? "s" : ""}</p>
+                </div>
+              </div>
+
+              {/* Articles */}
+              {selectedOrder.items.length > 0 && (
+                <div>
+                  <p className="text-[11px] text-gray-400 uppercase font-semibold mb-2">Articles</p>
+                  <div className="rounded-lg border overflow-hidden">
+                    <table className="w-full text-xs">
+                      <thead className="bg-slate-100 text-slate-600">
+                        <tr>
+                          <th className="px-3 py-2 text-left font-semibold">Désignation</th>
+                          <th className="px-3 py-2 text-center font-semibold">Qté</th>
+                          <th className="px-3 py-2 text-right font-semibold">P.U.</th>
+                          <th className="px-3 py-2 text-right font-semibold">Total</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {selectedOrder.items.map((item: any, idx: number) => (
+                          <tr key={idx} className={idx % 2 === 0 ? "bg-white" : "bg-gray-50"}>
+                            <td className="px-3 py-1.5">{item.product_name || item.productName || "—"}</td>
+                            <td className="px-3 py-1.5 text-center">{item.quantity}</td>
+                            <td className="px-3 py-1.5 text-right">{parseFloat(item.unit_price || item.unitPrice || "0").toFixed(3)} DT</td>
+                            <td className="px-3 py-1.5 text-right font-medium">{parseFloat(item.total_price || item.totalPrice || "0").toFixed(3)} DT</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              )}
+
+              {/* Total */}
+              <div className="flex justify-between items-center border-t pt-3">
+                <span className="text-gray-500">Montant total</span>
+                <span className="text-lg font-bold text-yellow-600">{formatCurrency(selectedOrder.total)}</span>
+              </div>
+
+              {/* Actions rapides depuis le modal */}
+              <div className="flex gap-2 justify-end border-t pt-3">
+                <Button size="sm" variant="outline" onClick={() => setSelectedOrder(null)}>Fermer</Button>
+                <Button size="sm" variant="outline"
+                  className="text-yellow-600 hover:text-yellow-700"
+                  onClick={() => { setSelectedOrder(null); handleApprove(selectedOrder.numericId, selectedOrder.id); }}>
+                  <CheckCircle className="h-3.5 w-3.5 mr-1" /> Approuver
+                </Button>
+                <Button size="sm" variant="outline"
+                  className="text-red-600 hover:text-red-700"
+                  onClick={() => { setSelectedOrder(null); handleReject(selectedOrder.numericId, selectedOrder.id); }}>
+                  <XCircle className="h-3.5 w-3.5 mr-1" /> Rejeter
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Confirmation Dialog */}
       <AnimatePresence>
