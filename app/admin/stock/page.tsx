@@ -630,12 +630,13 @@ function OrderPrepPanel({ onClose }: { onClose: () => void }) {
 
   const token = () => localStorage.getItem("access_token");
   const fpsNum = (n: string) => (n || "").replace(/^CPS/i, "FPS");
+  const [deliveryCostInput, setDeliveryCostInput] = useState<number>(0);
 
   useEffect(() => {
     const load = async () => {
       setLoadingOrders(true);
       try {
-        const r = await fetch(`${API_URL}/orders/?status=pending&no_pagination=true`, {
+        const r = await fetch(`${API_URL}/orders/?no_pagination=true`, {
           headers: { Authorization: `Bearer ${token()}` },
         });
         if (!r.ok) throw new Error();
@@ -666,6 +667,7 @@ function OrderPrepPanel({ onClose }: { onClose: () => void }) {
 
   const selectOrder = async (order: PrepOrder) => {
     setSelectedOrder(order);
+    setDeliveryCostInput(order.deliveryCost || 0);
     setLoadingBatches(true);
 
     const init: PrepItem[] = order.items.map((item, idx) => ({
@@ -750,7 +752,7 @@ function OrderPrepPanel({ onClose }: { onClose: () => void }) {
         {/* Order selector */}
         <div>
           <label className="text-xs font-semibold text-gray-600 uppercase tracking-wide block mb-1.5">
-            Commande en attente
+            Commande
           </label>
           {loadingOrders ? (
             <div className="flex items-center gap-2 text-sm text-gray-400 py-2">
@@ -800,9 +802,26 @@ function OrderPrepPanel({ onClose }: { onClose: () => void }) {
                 <span className="text-gray-500">Date</span>
                 <span>{selectedOrder.createdAt ? new Date(selectedOrder.createdAt).toLocaleDateString("fr-FR") : "—"}</span>
               </div>
-              <div className="flex justify-between">
-                <span className="text-gray-500">Total TTC</span>
-                <span className="font-bold">{fmtCurrency(selectedOrder.totalAmount + (selectedOrder.deliveryCost || 0))}</span>
+              <div className="flex justify-between items-center">
+                <span className="text-gray-500">Frais de livraison</span>
+                <div className="flex items-center gap-1.5">
+                  <input
+                    type="number"
+                    min={0}
+                    step={0.001}
+                    value={deliveryCostInput}
+                    onChange={(e) => {
+                      const v = parseFloat(e.target.value);
+                      setDeliveryCostInput(isNaN(v) ? 0 : Math.max(0, v));
+                    }}
+                    className="w-24 text-right border border-yellow-300 rounded px-2 py-0.5 text-sm font-bold bg-white focus:outline-none focus:ring-2 focus:ring-yellow-400"
+                  />
+                  <span className="text-xs text-gray-400">DT</span>
+                </div>
+              </div>
+              <div className="flex justify-between border-t border-yellow-200 pt-1.5">
+                <span className="text-gray-500 font-semibold">Total TTC</span>
+                <span className="font-bold text-yellow-700">{fmtCurrency(selectedOrder.totalAmount + deliveryCostInput)}</span>
               </div>
             </div>
 
@@ -976,7 +995,12 @@ function OrderPrepPanel({ onClose }: { onClose: () => void }) {
         </span>
         {selectedOrder && (
           <Button
-            onClick={() => { router.push("/admin/commandes"); onClose(); }}
+            onClick={() => {
+              // Persiste les frais de livraison pour que la modal de confirmation les récupère
+              localStorage.setItem(`order_delivery_${selectedOrder.id}`, String(deliveryCostInput));
+              router.push("/admin/commandes");
+              onClose();
+            }}
             disabled={!allDone}
             className="bg-yellow-500 hover:bg-yellow-600 text-black font-bold shadow-sm disabled:opacity-40 whitespace-nowrap"
           >

@@ -427,6 +427,18 @@ export default function OrdersTable({
       }
     } catch {}
 
+    // Read delivery cost saved from OrderPrepPanel
+    try {
+      const savedDelivery = localStorage.getItem(`order_delivery_${order.id}`);
+      if (savedDelivery !== null) {
+        const dv = parseFloat(savedDelivery);
+        if (!isNaN(dv)) {
+          // Store on the order object for use in handleDotConfirm
+          (order as any)._prepDeliveryCost = dv;
+        }
+      }
+    } catch {}
+
     setDotSelections(preSelections);
     setPreFilledFromPrep(hasPrepData);
 
@@ -468,13 +480,19 @@ export default function OrdersTable({
         };
       });
 
+      const prepDeliveryCost = (dotConfirmOrder as any)._prepDeliveryCost;
+      const body: Record<string, any> = { dot_assignments };
+      if (prepDeliveryCost !== undefined) {
+        body.delivery_cost = prepDeliveryCost;
+      }
+
       const res = await fetch(`${API_URL}/orders/${dotConfirmOrder.id}/confirm-with-dot/`, {
         method: "POST",
         headers: {
           Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ dot_assignments }),
+        body: JSON.stringify(body),
       });
 
       if (!res.ok) {
@@ -484,6 +502,7 @@ export default function OrdersTable({
 
       // Clear prep data from localStorage
       localStorage.removeItem(`order_prep_${dotConfirmOrder.id}`);
+      localStorage.removeItem(`order_delivery_${dotConfirmOrder.id}`);
 
       setDotConfirmOrder(null);
       setPreFilledFromPrep(false);
