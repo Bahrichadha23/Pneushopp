@@ -978,46 +978,9 @@ export default function OrdersTable({
                               </select>
 
                               {selection && selectedBatch && (
-                                <div className="flex flex-wrap items-center gap-3">
-                                  <label className="text-xs text-gray-600 flex-shrink-0">Qté :</label>
-                                  <input
-                                    type="number"
-                                    min={1}
-                                    max={Math.min(item.quantity, selectedBatch.quantity)}
-                                    value={selection.qty}
-                                    onChange={(e) => {
-                                      const v = parseInt(e.target.value);
-                                      if (!isNaN(v)) {
-                                        setDotSelections((prev) => ({
-                                          ...prev,
-                                          [idx]: {
-                                            ...prev[idx],
-                                            qty: Math.min(
-                                              Math.min(item.quantity, selectedBatch.quantity),
-                                              Math.max(1, v)
-                                            ),
-                                          },
-                                        }));
-                                      }
-                                    }}
-                                    className="w-16 border border-gray-300 rounded px-2 py-1 text-sm text-center focus:outline-none focus:ring-2 focus:ring-yellow-400"
-                                  />
-                                  <span className="text-xs text-gray-400">/ {selectedBatch.quantity} dispo</span>
-                                  <label className="text-xs text-gray-600 flex-shrink-0 ml-2">Remise&nbsp;:</label>
-                                  <input
-                                    type="number" min={0} max={100}
-                                    value={selection.discount ?? 0}
-                                    onChange={(e) => {
-                                      const v = parseInt(e.target.value);
-                                      setDotSelections((prev) => ({
-                                        ...prev,
-                                        [idx]: { ...prev[idx], discount: isNaN(v) ? 0 : Math.min(100, Math.max(0, v)) },
-                                      }));
-                                    }}
-                                    className="w-14 border border-gray-300 rounded px-2 py-1 text-sm text-center focus:outline-none focus:ring-2 focus:ring-yellow-400"
-                                  />
-                                  <span className="text-xs text-gray-400">%</span>
-                                </div>
+                                <p className="text-xs text-gray-400 mt-1">
+                                  {selectedBatch.quantity} unité(s) disponible(s) dans ce lot
+                                </p>
                               )}
                             </div>
                           )}
