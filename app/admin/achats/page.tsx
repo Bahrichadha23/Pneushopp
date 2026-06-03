@@ -5,8 +5,8 @@
  * 
  * IMPORTANT: This is DIFFERENT from regular Orders/Clients
  * 
- * - Regular Orders (Commandes/Clients): Company SELLS TO clients â†’ stock DECREASES
- * - Achats (This Page): Company BUYS FROM suppliers â†’ stock INCREASES
+ * - Regular Orders (Commandes/Clients): Company SELLS TO clients → stock DECREASES
+ * - Achats (This Page): Company BUYS FROM suppliers → stock INCREASES
  * 
  * When you buy 3 tires from a supplier:
  * 1. Search and find the tire in left panel
@@ -145,7 +145,7 @@ export default function AchatsPage() {
     const newItem: PurchaseItem = {
       id: Date.now().toString(),
       productId: createdProductId,
-      reference: manualReference.trim() || "â€”",
+      reference: manualReference.trim() || "—",
       designation: manualDesignation.trim(),
       priceHT: manualPrice,
       discount: 0,
@@ -171,7 +171,7 @@ export default function AchatsPage() {
   const [invoiceNumber, setInvoiceNumber] = useState("");
   const [blNumber, setBlNumber] = useState("");
   const [invoiceDate, setInvoiceDate] = useState(() => {
-    // Initialiser Ã  la date du jour
+    // Initialiser à la date du jour
     const today = new Date();
     return today.toISOString().split("T")[0];
   });
@@ -352,9 +352,9 @@ export default function AchatsPage() {
 
     try {
       const token = localStorage.getItem("access_token");
-      console.log('ðŸ”„ Updating product ID:', selectedProduct.id);
-      console.log('ðŸ“¤ Sending update data:', updateData);
-      console.log('ðŸ”— API URL:', `${API_URL}/products/${selectedProduct.id}/`);
+      console.log('🔄 Updating product ID:', selectedProduct.id);
+      console.log('📤 Sending update data:', updateData);
+      console.log('🔗 API URL:', `${API_URL}/products/${selectedProduct.id}/`);
       
       const response = await fetch(`${API_URL}/products/${selectedProduct.id}/`, {
         method: 'PATCH',
@@ -365,11 +365,11 @@ export default function AchatsPage() {
         body: JSON.stringify(updateData),
       });
 
-      console.log('ðŸ“¥ Response status:', response.status);
-      console.log('ðŸ“¥ Response headers:', Object.fromEntries(response.headers.entries()));
+      console.log('📥 Response status:', response.status);
+      console.log('📥 Response headers:', Object.fromEntries(response.headers.entries()));
       
       const responseData = await response.json();
-      console.log('ðŸ“¥ Response data:', responseData);
+      console.log('📥 Response data:', responseData);
 
       if (response.ok) {
         // Update the product in search results with the actual response data
@@ -383,7 +383,7 @@ export default function AchatsPage() {
         setSelectedProduct({ ...selectedProduct, ...responseData });
         
         setShowProductEdit(false);
-        alert('âœ… Produit mis Ã  jour avec succÃ¨s dans la base de donnÃ©es!');
+        alert('✅ Produit mis à jour avec succès dans la base de données!');
         
         // Refresh search results to get latest data from database
         if (searchRef || searchBrand !== 'all' || searchCategory !== 'all') {
@@ -391,31 +391,31 @@ export default function AchatsPage() {
         }
         
       } else {
-        console.error('âŒ API Error:', responseData);
-        alert(`âŒ Erreur lors de la mise Ã  jour: ${JSON.stringify(responseData)}`);
+        console.error('❌ API Error:', responseData);
+        alert(`❌ Erreur lors de la mise à jour: ${JSON.stringify(responseData)}`);
       }
     } catch (error :any) {
-      console.error('ðŸ’¥ Network error:', error);
-      alert(`âŒ Erreur de connexion: ${error.message}`);
+      console.error('💥 Network error:', error);
+      alert(`❌ Erreur de connexion: ${error.message}`);
     }
   };
 
 
   /**
    * Normalise tous les formats de dimension pneu vers "LLL/HHrDD"
-   * Exemples acceptÃ©s (toutes largeurs : 155, 165, 175, 185, 195, 205, 215, 225, 235â€¦) :
-   *   "20555R16"   â†’ "205/55R16"   (compact, sans sÃ©parateur)
-   *   "21560r15"   â†’ "215/60R15"   (minuscule r)
-   *   "225 45 R17" â†’ "225/45R17"   (espaces)
-   *   "235-40-R18" â†’ "235/40R18"   (tirets)
-   *   "205/55R16"  â†’ "205/55R16"   (dÃ©jÃ  correct)
-   *   "205"        â†’ "205"         (largeur seule)
-   *   "Michelin"   â†’ "Michelin"    (marque)
-   *   "REF123"     â†’ "REF123"      (rÃ©fÃ©rence)
+   * Exemples acceptés (toutes largeurs : 155, 165, 175, 185, 195, 205, 215, 225, 235…) :
+   *   "20555R16"   → "205/55R16"   (compact, sans séparateur)
+   *   "21560r15"   → "215/60R15"   (minuscule r)
+   *   "225 45 R17" → "225/45R17"   (espaces)
+   *   "235-40-R18" → "235/40R18"   (tirets)
+   *   "205/55R16"  → "205/55R16"   (déjà correct)
+   *   "205"        → "205"         (largeur seule)
+   *   "Michelin"   → "Michelin"    (marque)
+   *   "REF123"     → "REF123"      (référence)
    */
   const normalizeSizeInput = (input: string): string => {
     const s = input.trim();
-    // Regex gÃ©nÃ©rique : 3 chiffres + sÃ©parateur optionnel + 2 chiffres + sÃ©parateur optionnel + R/r + 2 chiffres
+    // Regex générique : 3 chiffres + séparateur optionnel + 2 chiffres + séparateur optionnel + R/r + 2 chiffres
     const m = s.match(/^(\d{3})[\s\/\-]?(\d{2})[\s\/\-]?[Rr][\s]?(\d{2})$/);
     if (m) return `${m[1]}/${m[2]}R${m[3]}`;
     return s;
@@ -448,7 +448,7 @@ export default function AchatsPage() {
         // FIFO: sort by fabrication_date ascending so the oldest DOT appears first
         const results: Product[] = data?.results || [];
         results.sort((a, b) => {
-          if (!a.fabrication_date) return 1;   // no date â†’ goes to end
+          if (!a.fabrication_date) return 1;   // no date → goes to end
           if (!b.fabrication_date) return -1;
           return new Date(a.fabrication_date).getTime() - new Date(b.fabrication_date).getTime();
         });
@@ -540,7 +540,7 @@ export default function AchatsPage() {
     return subtotal - discount;
   };
 
-  /** Parse "WW.YY" â†’ numeric sort key. Lower = older = minimum. */
+  /** Parse "WW.YY" → numeric sort key. Lower = older = minimum. */
   const parseDot = (dot: string): number => {
     const parts = dot.trim().split('.');
     if (parts.length !== 2) return Infinity;
@@ -572,16 +572,16 @@ export default function AchatsPage() {
       return !item.dot || parts.length !== 2 || isNaN(week) || isNaN(year) || week < 1 || week > 52;
     });
     if (itemsWithoutDot.length > 0) {
-      const names = itemsWithoutDot.map((i) => i.designation).join("\nâ€¢ ");
-      alert(`âŒ DOT obligatoire pour chaque article.\n\nArticles sans DOT valide :\nâ€¢ ${names}\n\nVeuillez renseigner la semaine et l'annÃ©e pour chaque pneu.`);
+      const names = itemsWithoutDot.map((i) => i.designation).join("\n• ");
+      alert(`❌ DOT obligatoire pour chaque article.\n\nArticles sans DOT valide :\n• ${names}\n\nVeuillez renseigner la semaine et l'année pour chaque pneu.`);
       return;
     }
 
     // Emplacement mandatory validation
     const itemsWithoutEmplacement = items.filter((item) => !item.emplacement || !item.emplacement.trim());
     if (itemsWithoutEmplacement.length > 0) {
-      const names = itemsWithoutEmplacement.map((i) => i.designation).join("\nâ€¢ ");
-      alert(`âŒ Emplacement obligatoire pour chaque article.\n\nArticles sans emplacement :\nâ€¢ ${names}\n\nVeuillez indiquer l'emplacement de chaque pneu.`);
+      const names = itemsWithoutEmplacement.map((i) => i.designation).join("\n• ");
+      alert(`❌ Emplacement obligatoire pour chaque article.\n\nArticles sans emplacement :\n• ${names}\n\nVeuillez indiquer l'emplacement de chaque pneu.`);
       return;
     }
 
@@ -625,8 +625,8 @@ export default function AchatsPage() {
     try {
       const token = localStorage.getItem("access_token");
       
-      console.log("ðŸ“¤ Sending order data:", orderData);
-      console.log("ðŸ”‘ Using token:", token ? "Token present" : "NO TOKEN!");
+      console.log("📤 Sending order data:", orderData);
+      console.log("🔑 Using token:", token ? "Token present" : "NO TOKEN!");
       
       const response = await fetch(`${API_URL}/purchase-orders/`, {
         method: "POST",
@@ -637,17 +637,17 @@ export default function AchatsPage() {
         body: JSON.stringify(orderData),
       });
       
-      console.log("ðŸ“¥ Response status:", response.status);
+      console.log("📥 Response status:", response.status);
       
       const { data: body, isJson, errorText } = await safeResponseJson(response);
       
       if (response.ok) {
         if (!isJson) {
-          alert("âŒ RÃ©ponse serveur invalide (non-JSON). VÃ©rifiez les logs backend. " + (errorText || ""));
+          alert("❌ Réponse serveur invalide (non-JSON). Vérifiez les logs backend. " + (errorText || ""));
           return;
         }
         const savedOrder = body;
-        console.log("âœ… Order saved successfully:", savedOrder);
+        console.log("✅ Order saved successfully:", savedOrder);
         
         const currentOrders = Array.isArray(confirmedOrders) ? confirmedOrders : [];
         setConfirmedOrders([...currentOrders, savedOrder]);
@@ -662,15 +662,15 @@ export default function AchatsPage() {
         setSelectedDot("");
         setGlobalDiscount(0);
         
-        alert("produit ajoutÃ© avec succÃ¨s!");
+        alert("produit ajouté avec succès!");
       } else {
         const msg = isJson ? JSON.stringify(body) : (errorText || `HTTP ${response.status}`);
-        console.error("âŒ Error response:", msg);
-        alert("âŒ Erreur lors de l'enregistrement: " + msg);
+        console.error("❌ Error response:", msg);
+        alert("❌ Erreur lors de l'enregistrement: " + msg);
       }
     } catch (error) {
-      console.error("ðŸ’¥ Error saving purchase order:", error);
-      alert("âŒ Erreur de connexion: " + String(error));
+      console.error("💥 Error saving purchase order:", error);
+      alert("❌ Erreur de connexion: " + String(error));
     }
   };
 
@@ -691,13 +691,13 @@ export default function AchatsPage() {
     const ws = workbook.addWorksheet("Historique Achats");
 
     ws.columns = [
-      { header: "NÂ° Facture", key: "invoice", width: 18 },
-      { header: "NÂ° BL", key: "bl", width: 18 },
+      { header: "N° Facture", key: "invoice", width: 18 },
+      { header: "N° BL", key: "bl", width: 18 },
       { header: "Date Achat", key: "date", width: 16 },
       { header: "Fournisseur", key: "supplier", width: 22 },
-      { header: "DÃ©signation", key: "designation", width: 35 },
-      { header: "RÃ©fÃ©rence", key: "reference", width: 20 },
-      { header: "QuantitÃ©", key: "quantity", width: 10 },
+      { header: "Désignation", key: "designation", width: 35 },
+      { header: "Référence", key: "reference", width: 20 },
+      { header: "Quantité", key: "quantity", width: 10 },
       { header: "Prix Unitaire (DT)", key: "unitPrice", width: 18 },
       { header: "Remise (%)", key: "discount", width: 12 },
       { header: "Total HT (DT)", key: "totalHT", width: 16 },
@@ -821,9 +821,9 @@ export default function AchatsPage() {
             {/* Manual entry form */}
             {leftMode === "manual" && (
               <div className="space-y-3 border border-yellow-200 bg-yellow-50 rounded-lg p-4 mb-4">
-                <p className="text-xs text-brand-gold font-semibold">Article non rÃ©fÃ©rencÃ© dans la base de donnÃ©es</p>
+                <p className="text-xs text-brand-gold font-semibold">Article non référencé dans la base de données</p>
                 <div>
-                  <Label className="text-xs">DÃ©signation <span className="text-red-500">*</span></Label>
+                  <Label className="text-xs">Désignation <span className="text-red-500">*</span></Label>
                   <Input
                     value={manualDesignation}
                     onChange={(e) => setManualDesignation(e.target.value)}
@@ -832,7 +832,7 @@ export default function AchatsPage() {
                   />
                 </div>
                 <div>
-                  <Label className="text-xs">RÃ©fÃ©rence</Label>
+                  <Label className="text-xs">Référence</Label>
                   <Input
                     value={manualReference}
                     onChange={(e) => setManualReference(e.target.value)}
@@ -883,9 +883,9 @@ export default function AchatsPage() {
             {/* Search mode */}
             {leftMode === "search" && (<>
             <div className="flex items-center gap-3">
-                    <Label>RÃ©f.</Label>
+                    <Label>Réf.</Label>
                     <Input
-                      placeholder="Ex : 215 Â· 22545R17 Â· 215/55R16 Â· Michelin Â· REF123"
+                      placeholder="Ex : 215 · 22545R17 · 215/55R16 · Michelin · REF123"
                       value={searchRef}
                       onChange={(e) => setSearchRef(e.target.value)}
                       onKeyDown={(e) => e.key === "Enter" && handleSearch()}
@@ -910,7 +910,7 @@ export default function AchatsPage() {
                     </div>
                   ) : searchResults.length === 0 ? (
                     <div className="text-center text-gray-500 py-12">
-                      Aucun produit trouvÃ©. Utilisez la recherche pour afficher les rÃ©sultats.
+                      Aucun produit trouvé. Utilisez la recherche pour afficher les résultats.
                     </div>
                   ) : (
                     <div className="space-y-2">
@@ -938,7 +938,7 @@ export default function AchatsPage() {
                                   <span className="text-brand-gold">{getBrandName(product.brand)}</span>
                                 </div>
                                 <div>
-                                  <span className="font-bold">CATÃ‰GORIE :</span> {getCategoryName(product.category)}
+                                  <span className="font-bold">CATÉGORIE :</span> {getCategoryName(product.category)}
                                 </div>
                                 {product.location && (
                                   <div>
@@ -958,7 +958,7 @@ export default function AchatsPage() {
                                 {Number(product.price).toFixed(3)} <span className="text-sm">DT</span>
                               </div>
                               <div className={product.stock > 0 ? "text-brand-gold" : "text-black"}>
-                                {product.stock} PiÃ¨ce{product.stock > 1 ? "s" : ""}
+                                {product.stock} Pièce{product.stock > 1 ? "s" : ""}
                               </div>
                             </div>
                           </div>
@@ -970,7 +970,7 @@ export default function AchatsPage() {
                               className="border-brand-orange text-brand-gold hover:bg-yellow-50"
                             >
                               <Eye className="h-3 w-3 mr-1" />
-                              DÃ©tail
+                              Détail
                             </Button>
                             <Button
                               size="sm"
@@ -1013,7 +1013,7 @@ export default function AchatsPage() {
               </Label>
               <Select value={supplier} onValueChange={setSupplier}>
                 <SelectTrigger>
-                  <SelectValue placeholder="SÃ©lectionner un fournisseur" />
+                  <SelectValue placeholder="Sélectionner un fournisseur" />
                 </SelectTrigger>
                 <SelectContent>
                   {suppliers.map((sup) => (
@@ -1032,11 +1032,11 @@ export default function AchatsPage() {
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>DÃ©signation</TableHead>
+                      <TableHead>Désignation</TableHead>
                       <TableHead className="text-right">Prix</TableHead>
                       <TableHead className="text-right">Remise %</TableHead>
                       <TableHead className="text-right">Fr. Livraison</TableHead>
-                      <TableHead className="text-right">QuantitÃ©</TableHead>
+                      <TableHead className="text-right">Quantité</TableHead>
                       <TableHead className="text-center">DOT</TableHead>
                       <TableHead>Emplacement</TableHead>
                       <TableHead className="w-10"></TableHead>
@@ -1046,7 +1046,7 @@ export default function AchatsPage() {
                     {items.length === 0 ? (
                       <TableRow>
                         <TableCell colSpan={8} className="text-center text-gray-500 py-8">
-                          Aucun article ajoutÃ©
+                          Aucun article ajouté
                         </TableCell>
                       </TableRow>
                     ) : (
@@ -1111,7 +1111,7 @@ export default function AchatsPage() {
                               className="w-16 text-right"
                             />
                           </TableCell>
-                          {/* DOT = Semaine . AnnÃ©e â€” saisie par article */}
+                          {/* DOT = Semaine . Année — saisie par article */}
                           <TableCell className="text-center">
                             {(() => {
                               const parts = (item.dot || "").split(".");
@@ -1184,10 +1184,10 @@ export default function AchatsPage() {
               </div>
             </div>
 
-            {/* NÂ° Facture + NÂ° BL */}
+            {/* N° Facture + N° BL */}
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <Label className="text-xs font-semibold text-gray-700">NÂ° Facture</Label>
+                <Label className="text-xs font-semibold text-gray-700">N° Facture</Label>
                 <Input
                   type="text"
                   value={invoiceNumber}
@@ -1197,7 +1197,7 @@ export default function AchatsPage() {
                 />
               </div>
               <div>
-                <Label className="text-xs font-semibold text-gray-700">NÂ° BL <span className="text-brand-gold">(Bon de Livraison)</span></Label>
+                <Label className="text-xs font-semibold text-gray-700">N° BL <span className="text-brand-gold">(Bon de Livraison)</span></Label>
                 <Input
                   type="text"
                   value={blNumber}
@@ -1262,7 +1262,7 @@ export default function AchatsPage() {
               <div className="flex items-center justify-between px-6 py-3">
                 <span className="font-bold text-gray-600 text-sm uppercase tracking-wide">Emplacement</span>
                 <span className="text-gray-900 font-medium">
-                  {selectedProduct.emplacement || selectedProduct.location || 'â€”'}
+                  {selectedProduct.emplacement || selectedProduct.location || '—'}
                 </span>
               </div>
               <div className="flex items-center justify-between px-6 py-3">
@@ -1279,8 +1279,8 @@ export default function AchatsPage() {
               </div>
               <div className="px-6 py-3 bg-yellow-50 space-y-1">
                 <div className="text-sm"><span className="font-bold text-gray-700">Marque : </span><span className="text-brand-gold font-semibold">{getBrandName(selectedProduct.brand)}</span></div>
-                <div className="text-sm"><span className="font-bold text-gray-700">CatÃ©gorie : </span><span>{getCategoryName(selectedProduct.category)}</span></div>
-                <div className="text-sm"><span className="font-bold text-gray-700">DÃ©signation : </span><span className="text-gray-600">{selectedProduct.designation || selectedProduct.name}</span></div>
+                <div className="text-sm"><span className="font-bold text-gray-700">Catégorie : </span><span>{getCategoryName(selectedProduct.category)}</span></div>
+                <div className="text-sm"><span className="font-bold text-gray-700">Désignation : </span><span className="text-gray-600">{selectedProduct.designation || selectedProduct.name}</span></div>
               </div>
               <div className="px-6 py-4">
                 <Button
@@ -1328,7 +1328,7 @@ export default function AchatsPage() {
               {/* Fabrication Date */}
               <div>
                 <Label className="font-bold text-gray-700">
-                  Date de Fabrication (Semaine.AnnÃ©e)
+                  Date de Fabrication (Semaine.Année)
                 </Label>
                 <div className="flex gap-2 mt-1">
                   <Input
@@ -1354,7 +1354,7 @@ export default function AchatsPage() {
                   />
                 </div>
                 <p className="text-xs text-gray-500 mt-1">
-                  Format: Semaine (01-52) . AnnÃ©e (22 pour 2022)
+                  Format: Semaine (01-52) . Année (22 pour 2022)
                 </p>
               </div>
 

@@ -41,14 +41,14 @@ type ConfirmationDialog = {
 };
 
 const formatDate = (dateStr: string | null | undefined): string => {
-  if (!dateStr) return "â€”";
+  if (!dateStr) return "—";
   const d = new Date(dateStr);
-  if (isNaN(d.getTime())) return "â€”";
+  if (isNaN(d.getTime())) return "—";
   return d.toLocaleDateString("fr-FR");
 };
 
 const fmtMoney = (amount: number | null | undefined): string => {
-  if (amount == null) return "â€”";
+  if (amount == null) return "—";
   return (
     new Intl.NumberFormat("fr-FR", {
       minimumFractionDigits: 3,
@@ -57,7 +57,7 @@ const fmtMoney = (amount: number | null | undefined): string => {
   );
 };
 
-// Download Purchase Order PDF â€” uses enriched serializer data directly
+// Download Purchase Order PDF — uses enriched serializer data directly
 const handleDownloadPurchaseOrder = async (bon: BonCommande) => {
   const pdf = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
   const pageWidth = pdf.internal.pageSize.width;
@@ -67,7 +67,7 @@ const handleDownloadPurchaseOrder = async (bon: BonCommande) => {
   // Use enriched data directly from the serializer
   const orderNumber = bon.order_number || `BDC-${bon.id}`;
   const deliveryCost = bon.delivery_cost || 0;
-  const clientName = bon.client_name || "â€”";
+  const clientName = bon.client_name || "—";
 
   let y = 50.8;
 
@@ -78,7 +78,7 @@ const handleDownloadPurchaseOrder = async (bon: BonCommande) => {
 
   y += 8;
   pdf.setFontSize(11);
-  pdf.text(`NÂ° ${bon.id}`, pageWidth / 2, y, { align: "center" });
+  pdf.text(`N° ${bon.id}`, pageWidth / 2, y, { align: "center" });
 
   y += 6;
   pdf.setFontSize(9);
@@ -97,19 +97,19 @@ const handleDownloadPurchaseOrder = async (bon: BonCommande) => {
   // === Client + Order Info ===
   pdf.setFont("helvetica", "bold");
   pdf.setFontSize(12);
-  pdf.text("DÃ©tails de la commande", margin, y);
+  pdf.text("Détails de la commande", margin, y);
   y += 8;
 
-  const infoHeaders = ["Client", "Date commande", "PrioritÃ©", "Statut"];
+  const infoHeaders = ["Client", "Date commande", "Priorité", "Statut"];
   const infoValues = [
     clientName,
     formatDate(bon.dateCommande),
     bon.priorite === "urgent" ? "URGENT" : "Normale",
     bon.statut === "en_attente"
       ? "En attente"
-      : bon.statut === "confirmÃ©"
-      ? "ConfirmÃ©"
-      : "LivrÃ©",
+      : bon.statut === "confirmé"
+      ? "Confirmé"
+      : "Livré",
   ];
 
   const colWidth = (pageWidth - 2 * margin) / 4;
@@ -130,7 +130,7 @@ const handleDownloadPurchaseOrder = async (bon: BonCommande) => {
   currentX = margin;
   infoValues.forEach((value) => {
     pdf.rect(currentX, y, colWidth, valueHeight);
-    const truncated = value.length > 20 ? value.substring(0, 18) + "â€¦" : value;
+    const truncated = value.length > 20 ? value.substring(0, 18) + "…" : value;
     pdf.text(truncated, currentX + colWidth / 2, y + 5.5, { align: "center" });
     currentX += colWidth;
   });
@@ -141,10 +141,10 @@ const handleDownloadPurchaseOrder = async (bon: BonCommande) => {
   if (bon.articles && bon.articles.length > 0) {
     pdf.setFont("helvetica", "bold");
     pdf.setFontSize(12);
-    pdf.text("Articles commandÃ©s", margin, y);
+    pdf.text("Articles commandés", margin, y);
     y += 8;
 
-    const headers = ["Produit", "QtÃ©", "Prix Unit.", "Total"];
+    const headers = ["Produit", "Qté", "Prix Unit.", "Total"];
     const colWidths = [90, 25, 30, 35];
 
     pdf.setFontSize(9);
@@ -171,7 +171,7 @@ const handleDownloadPurchaseOrder = async (bon: BonCommande) => {
       const maxWidth = colWidths[0] - 4;
       const wrapped = pdf.splitTextToSize(productName, maxWidth);
       pdf.text(
-        wrapped.length > 1 ? wrapped[0].substring(0, wrapped[0].length - 3) + "â€¦" : productName,
+        wrapped.length > 1 ? wrapped[0].substring(0, wrapped[0].length - 3) + "…" : productName,
         currentX + 2,
         y + 5.5
       );
@@ -236,9 +236,9 @@ const handleDownloadPurchaseOrder = async (bon: BonCommande) => {
   // === Footer ===
   pdf.setFont("helvetica", "italic");
   pdf.setFontSize(8);
-  pdf.text("PNEU SHOP â€” Bon de commande", pageWidth / 2, pageHeight - 15, { align: "center" });
+  pdf.text("PNEU SHOP — Bon de commande", pageWidth / 2, pageHeight - 15, { align: "center" });
   pdf.text(
-    `GÃ©nÃ©rÃ© le ${new Date().toLocaleDateString("fr-FR")} Ã  ${new Date().toLocaleTimeString("fr-FR")}`,
+    `Généré le ${new Date().toLocaleDateString("fr-FR")} à ${new Date().toLocaleTimeString("fr-FR")}`,
     pageWidth / 2,
     pageHeight - 10,
     { align: "center" }
@@ -324,7 +324,7 @@ export default function BonsCommandePage() {
 
     try {
       const token = localStorage.getItem("access_token");
-      const requestBody: any = { statut: "confirmÃ©" };
+      const requestBody: any = { statut: "confirmé" };
       if (orderId && orderId > 0) requestBody.order = orderId;
 
       const res = await fetch(`${API_URL}/orders/purchase-orders/${bonId}/`, {
@@ -340,7 +340,7 @@ export default function BonsCommandePage() {
       }
 
       setBonsCommande((prev) =>
-        prev.map((bon) => (bon.id === bonId ? { ...bon, statut: "confirmÃ©" } : bon))
+        prev.map((bon) => (bon.id === bonId ? { ...bon, statut: "confirmé" } : bon))
       );
     } catch (err) {
       console.error("Error:", err);
@@ -357,10 +357,10 @@ export default function BonsCommandePage() {
     switch (statut) {
       case "en_attente":
         return <Badge className="bg-yellow-100 text-brand-gold border-yellow-200">En attente</Badge>;
-      case "confirmÃ©":
-        return <Badge className="bg-yellow-100 text-brand-gold border-yellow-200">ConfirmÃ©</Badge>;
-      case "livrÃ©":
-        return <Badge className="bg-black text-white border-black">LivrÃ©</Badge>;
+      case "confirmé":
+        return <Badge className="bg-yellow-100 text-brand-gold border-yellow-200">Confirmé</Badge>;
+      case "livré":
+        return <Badge className="bg-black text-white border-black">Livré</Badge>;
       default:
         return <Badge variant="outline">{statut}</Badge>;
     }
@@ -386,8 +386,8 @@ export default function BonsCommandePage() {
 
   const totalCommandes = bonsCommande.length;
   const commandesEnAttente = bonsCommande.filter((b) => b.statut === "en_attente").length;
-  const commandesConfirmees = bonsCommande.filter((b) => b.statut === "confirmÃ©").length;
-  const commandesLivrees = bonsCommande.filter((b) => b.statut === "livrÃ©").length;
+  const commandesConfirmees = bonsCommande.filter((b) => b.statut === "confirmé").length;
+  const commandesLivrees = bonsCommande.filter((b) => b.statut === "livré").length;
 
   return (
     <div className="space-y-6">
@@ -419,7 +419,7 @@ export default function BonsCommandePage() {
         </Card>
         <Card>
           <CardHeader className="flex flex-row justify-between items-center pb-2">
-            <CardTitle className="text-sm font-medium">ConfirmÃ©es</CardTitle>
+            <CardTitle className="text-sm font-medium">Confirmées</CardTitle>
             <Check className="h-4 w-4 text-yellow-500" />
           </CardHeader>
           <CardContent>
@@ -428,7 +428,7 @@ export default function BonsCommandePage() {
         </Card>
         <Card>
           <CardHeader className="flex flex-row justify-between items-center pb-2">
-            <CardTitle className="text-sm font-medium">LivrÃ©es</CardTitle>
+            <CardTitle className="text-sm font-medium">Livrées</CardTitle>
             <Truck className="h-4 w-4 text-yellow-500" />
           </CardHeader>
           <CardContent>
@@ -440,7 +440,7 @@ export default function BonsCommandePage() {
       {/* Search */}
       <div className="flex items-center gap-2">
         <Input
-          placeholder="Rechercher par NÂ° commande, client, suivi..."
+          placeholder="Rechercher par N° commande, client, suivi..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
           className="max-w-sm"
@@ -480,7 +480,7 @@ export default function BonsCommandePage() {
                 Date: <span className="text-gray-800">{formatDate(bon.dateCommande)}</span>
               </div>
               <div className="text-gray-500">
-                PrioritÃ©: {getPrioriteBadge(bon.priorite)}
+                Priorité: {getPrioriteBadge(bon.priorite)}
               </div>
               <div className="text-gray-500 col-span-2">
                 Total:{" "}
@@ -522,12 +522,12 @@ export default function BonsCommandePage() {
               <Table>
                 <TableHeader>
                   <TableRow className="bg-gray-50">
-                    <TableHead>BDC / NÂ° Commande</TableHead>
+                    <TableHead>BDC / N° Commande</TableHead>
                     <TableHead>Client</TableHead>
-                    <TableHead>NÂ° Suivi</TableHead>
+                    <TableHead>N° Suivi</TableHead>
                     <TableHead>Date commande</TableHead>
                     <TableHead>Total TTC</TableHead>
-                    <TableHead>PrioritÃ©</TableHead>
+                    <TableHead>Priorité</TableHead>
                     <TableHead>Statut</TableHead>
                     <TableHead>Actions</TableHead>
                   </TableRow>
@@ -555,7 +555,7 @@ export default function BonsCommandePage() {
                             )}
                           </div>
                         ) : (
-                          <span className="text-gray-400">â€”</span>
+                          <span className="text-gray-400">—</span>
                         )}
                       </TableCell>
                       <TableCell>
@@ -565,7 +565,7 @@ export default function BonsCommandePage() {
                             {bon.tracking_number}
                           </div>
                         ) : (
-                          <span className="text-gray-400 text-sm">â€”</span>
+                          <span className="text-gray-400 text-sm">—</span>
                         )}
                       </TableCell>
                       <TableCell>{formatDate(bon.dateCommande)}</TableCell>
@@ -588,7 +588,7 @@ export default function BonsCommandePage() {
                             size="sm"
                             variant="outline"
                             onClick={() => handleDownloadPurchaseOrder(bon)}
-                            title="TÃ©lÃ©charger PDF"
+                            title="Télécharger PDF"
                           >
                             <Download className="h-4 w-4" />
                           </Button>
@@ -664,7 +664,7 @@ export default function BonsCommandePage() {
                   <User className="h-4 w-4 text-gray-400" />
                   <div>
                     <div className="text-xs text-gray-500">Client</div>
-                    <div className="font-medium text-gray-900">{selectedBon.client_name || "â€”"}</div>
+                    <div className="font-medium text-gray-900">{selectedBon.client_name || "—"}</div>
                     {selectedBon.client_email && (
                       <div className="text-xs text-gray-500 truncate max-w-[180px]">
                         {selectedBon.client_email}
@@ -691,11 +691,11 @@ export default function BonsCommandePage() {
                     <div className="font-medium mt-0.5">{formatDate(selectedBon.dateCommande)}</div>
                   </div>
                   <div>
-                    <div className="text-xs text-gray-500 uppercase tracking-wide">Livraison prÃ©vue</div>
+                    <div className="text-xs text-gray-500 uppercase tracking-wide">Livraison prévue</div>
                     <div className="font-medium mt-0.5">{formatDate(selectedBon.dateLivraisonPrevue)}</div>
                   </div>
                   <div>
-                    <div className="text-xs text-gray-500 uppercase tracking-wide">PrioritÃ©</div>
+                    <div className="text-xs text-gray-500 uppercase tracking-wide">Priorité</div>
                     <div className="mt-0.5">{getPrioriteBadge(selectedBon.priorite)}</div>
                   </div>
                   <div>
@@ -735,7 +735,7 @@ export default function BonsCommandePage() {
                           <div key={i} className="flex justify-between items-center text-sm bg-gray-50 rounded px-3 py-2">
                             <div className="text-gray-800 truncate max-w-[200px]">{name}</div>
                             <div className="text-gray-500 ml-2 shrink-0">
-                              {qty} Ã— {fmtMoney(parseFloat(price))}
+                              {qty} × {fmtMoney(parseFloat(price))}
                             </div>
                           </div>
                         );
@@ -753,7 +753,7 @@ export default function BonsCommandePage() {
                   className="flex items-center gap-2"
                 >
                   <Download className="h-4 w-4" />
-                  TÃ©lÃ©charger PDF
+                  Télécharger PDF
                 </Button>
                 <Button onClick={() => setShowForm(false)}>Fermer</Button>
               </div>
@@ -783,7 +783,7 @@ export default function BonsCommandePage() {
                 Confirmer le bon de commande
               </h2>
               <p className="text-gray-600 mb-4">
-                Confirmer le bon <strong>{confirmation.bonNumber}</strong> ? Une livraison sera automatiquement crÃ©Ã©e.
+                Confirmer le bon <strong>{confirmation.bonNumber}</strong> ? Une livraison sera automatiquement créée.
               </p>
               <div className="flex gap-3 justify-end">
                 <Button variant="outline" onClick={handleCancelDialog}>

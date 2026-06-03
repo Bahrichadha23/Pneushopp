@@ -18,11 +18,11 @@ import {
   StickyNote, ChevronRight, Phone, ShoppingBag, DollarSign,
 } from "lucide-react";
 
-// â”€â”€ helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── helpers ─────────────────────────────────────────────────────────────────
 const fmt = (d: string | null | undefined) => {
-  if (!d) return "â€”";
+  if (!d) return "—";
   const dt = new Date(d);
-  return isNaN(dt.getTime()) ? "â€”" : dt.toLocaleDateString("fr-FR");
+  return isNaN(dt.getTime()) ? "—" : dt.toLocaleDateString("fr-FR");
 };
 const toInputDate = (d: string | null | undefined) => {
   if (!d) return "";
@@ -30,21 +30,21 @@ const toInputDate = (d: string | null | undefined) => {
   return isNaN(dt.getTime()) ? "" : dt.toISOString().slice(0, 10);
 };
 const fmtMoney = (v: number | null | undefined) =>
-  v == null ? "â€”" : v.toLocaleString("fr-TN", { minimumFractionDigits: 3 }) + " DT";
+  v == null ? "—" : v.toLocaleString("fr-TN", { minimumFractionDigits: 3 }) + " DT";
 
-// â”€â”€ status â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── status ───────────────────────────────────────────────────────────────────
 const STATUS_STEPS: { key: Livraison["statut"]; label: string; icon: React.ReactNode }[] = [
-  { key: "prepare",  label: "En prÃ©paration", icon: <Clock className="h-4 w-4" /> },
+  { key: "prepare",  label: "En préparation", icon: <Clock className="h-4 w-4" /> },
   { key: "en_route", label: "En route",        icon: <Navigation className="h-4 w-4" /> },
-  { key: "livre",    label: "LivrÃ©",           icon: <CheckCircle2 className="h-4 w-4" /> },
+  { key: "livre",    label: "Livré",           icon: <CheckCircle2 className="h-4 w-4" /> },
 ];
 const STATUS_IDX: Record<Livraison["statut"], number> = { prepare: 0, en_route: 1, livre: 2 };
 
 const statusBadge = (statut: Livraison["statut"]) => {
   const cfg = {
-    prepare:  { cls: "bg-yellow-100 text-brand-gold border border-yellow-300", label: "En prÃ©paration" },
+    prepare:  { cls: "bg-yellow-100 text-brand-gold border border-yellow-300", label: "En préparation" },
     en_route: { cls: "bg-gray-100 text-gray-700 border border-gray-300",        label: "En route" },
-    livre:    { cls: "bg-black text-white border border-black",                 label: "LivrÃ©" },
+    livre:    { cls: "bg-black text-white border border-black",                 label: "Livré" },
   } as const;
   const c = cfg[statut] ?? { cls: "bg-gray-100 text-gray-600", label: statut };
   return (
@@ -54,7 +54,7 @@ const statusBadge = (statut: Livraison["statut"]) => {
   );
 };
 
-// â”€â”€ EditModal â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── EditModal ────────────────────────────────────────────────────────────────
 function EditModal({ delivery, onClose, onSaved }: {
   delivery: Livraison;
   onClose: () => void;
@@ -134,8 +134,8 @@ function EditModal({ delivery, onClose, onSaved }: {
             <p className="font-semibold text-gray-800">{delivery.colis}</p>
           </div>
           <div className="px-3">
-            <p className="text-gray-400">TÃ©lÃ©phone</p>
-            <p className="font-semibold text-gray-800">{delivery.client_phone || "â€”"}</p>
+            <p className="text-gray-400">Téléphone</p>
+            <p className="font-semibold text-gray-800">{delivery.client_phone || "—"}</p>
           </div>
         </div>
 
@@ -190,7 +190,7 @@ function EditModal({ delivery, onClose, onSaved }: {
             </div>
             <div>
               <Label className="flex items-center gap-2 text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1">
-                <Hash className="h-3.5 w-3.5" /> NÂ° de suivi
+                <Hash className="h-3.5 w-3.5" /> N° de suivi
               </Label>
               <Input value={form.numeroSuivi ?? ""} onChange={(e) => set("numeroSuivi", e.target.value)}
                 placeholder="Ex: TRK-001234" className="h-9" />
@@ -200,14 +200,14 @@ function EditModal({ delivery, onClose, onSaved }: {
           <div className="grid grid-cols-2 gap-3">
             <div>
               <Label className="flex items-center gap-2 text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1">
-                <CalendarDays className="h-3.5 w-3.5" /> Date d'expÃ©dition
+                <CalendarDays className="h-3.5 w-3.5" /> Date d'expédition
               </Label>
               <Input type="date" value={form.dateExpedition ?? ""}
                 onChange={(e) => set("dateExpedition", e.target.value)} className="h-9" />
             </div>
             <div>
               <Label className="flex items-center gap-2 text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1">
-                <CalendarDays className="h-3.5 w-3.5" /> Livraison prÃ©vue
+                <CalendarDays className="h-3.5 w-3.5" /> Livraison prévue
               </Label>
               <Input type="date" value={form.dateLivraison ?? ""}
                 onChange={(e) => set("dateLivraison", e.target.value)} className="h-9" />
@@ -219,7 +219,7 @@ function EditModal({ delivery, onClose, onSaved }: {
               <MapPin className="h-3.5 w-3.5" /> Adresse livraison
             </Label>
             <p className="rounded-md border border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-700 leading-snug">
-              {delivery.adresse || "â€”"}
+              {delivery.adresse || "—"}
             </p>
           </div>
 
@@ -228,7 +228,7 @@ function EditModal({ delivery, onClose, onSaved }: {
               <StickyNote className="h-3.5 w-3.5" /> Notes internes
             </Label>
             <textarea value={form.notes ?? ""} onChange={(e) => set("notes", e.target.value)}
-              placeholder="Notes pour le livreur, instructions spÃ©ciales..." rows={2}
+              placeholder="Notes pour le livreur, instructions spéciales..." rows={2}
               className="w-full rounded-md border border-input px-3 py-2 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-brand-orange"
             />
           </div>
@@ -253,7 +253,7 @@ function EditModal({ delivery, onClose, onSaved }: {
   );
 }
 
-// â”€â”€ Main page â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── Main page ────────────────────────────────────────────────────────────────
 export default function DeliveriesPage() {
   const { user } = useAuth();
   const router   = useRouter();
@@ -285,7 +285,7 @@ export default function DeliveriesPage() {
 
   const handleSaved = (updated: Livraison) => {
     setDeliveries((prev) => prev.map((d) => (d.id === updated.id ? updated : d)));
-    showToast("âœ… Livraison mise Ã  jour avec succÃ¨s");
+    showToast("✅ Livraison mise à jour avec succès");
     // Force full reload to ensure fresh data
     load();
   };
@@ -308,9 +308,9 @@ export default function DeliveriesPage() {
 
   const FILTER_TABS = [
     { key: "tous"     as const, label: "Toutes",         count: total    },
-    { key: "prepare"  as const, label: "En prÃ©paration", count: nPrepare },
+    { key: "prepare"  as const, label: "En préparation", count: nPrepare },
     { key: "en_route" as const, label: "En route",       count: nEnRoute },
-    { key: "livre"    as const, label: "LivrÃ©es",        count: nLivre   },
+    { key: "livre"    as const, label: "Livrées",        count: nLivre   },
   ];
 
   return (
@@ -330,7 +330,7 @@ export default function DeliveriesPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Gestion des livraisons</h1>
-          <p className="text-sm text-gray-500 mt-0.5">Suivi et mise Ã  jour des expÃ©ditions clients</p>
+          <p className="text-sm text-gray-500 mt-0.5">Suivi et mise à jour des expéditions clients</p>
         </div>
         <Badge variant="secondary" className="text-sm px-3 py-1">
           {total} livraison{total !== 1 ? "s" : ""}
@@ -340,9 +340,9 @@ export default function DeliveriesPage() {
       {/* KPI Cards */}
       <div className="grid grid-cols-3 gap-4">
         {[
-          { n: nPrepare, label: "En prÃ©paration", icon: <Clock className="h-6 w-6 text-brand-gold" />, bg: "bg-yellow-50", border: "border-l-yellow-400" },
+          { n: nPrepare, label: "En préparation", icon: <Clock className="h-6 w-6 text-brand-gold" />, bg: "bg-yellow-50", border: "border-l-yellow-400" },
           { n: nEnRoute, label: "En route",        icon: <Truck className="h-6 w-6 text-gray-600" />,   bg: "bg-gray-50",   border: "border-l-gray-400"   },
-          { n: nLivre,   label: "LivrÃ©es",         icon: <CheckCircle2 className="h-6 w-6 text-black" />, bg: "bg-black/5", border: "border-l-black" },
+          { n: nLivre,   label: "Livrées",         icon: <CheckCircle2 className="h-6 w-6 text-black" />, bg: "bg-black/5", border: "border-l-black" },
         ].map((s) => (
           <Card key={s.label} className={`border-l-4 ${s.border}`}>
             <CardContent className="p-4 flex items-center gap-4">
@@ -383,7 +383,7 @@ export default function DeliveriesPage() {
         {loading ? (
           <p className="text-center text-gray-400 py-8">Chargement...</p>
         ) : filtered.length === 0 ? (
-          <p className="text-center text-gray-400 py-8">Aucune livraison trouvÃ©e</p>
+          <p className="text-center text-gray-400 py-8">Aucune livraison trouvée</p>
         ) : filtered.map((d) => (
           <Card key={d.id} className="overflow-hidden">
             <div className="bg-gray-50 px-4 py-3 flex justify-between items-start border-b">
@@ -406,18 +406,18 @@ export default function DeliveriesPage() {
             <CardContent className="p-4 space-y-2 text-sm">
               <div className="flex justify-between">
                 <span className="text-gray-500">Transporteur</span>
-                <span className="font-medium">{d.transporteur || <span className="text-orange-500 italic text-xs">Ã€ assigner</span>}</span>
+                <span className="font-medium">{d.transporteur || <span className="text-orange-500 italic text-xs">À assigner</span>}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-gray-500">NÂ° suivi</span>
-                <span className="font-mono text-xs">{d.numeroSuivi || "â€”"}</span>
+                <span className="text-gray-500">N° suivi</span>
+                <span className="font-mono text-xs">{d.numeroSuivi || "—"}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-gray-500">Colis / Articles</span>
-                <span>{d.colis} colis Â· {d.articles_count ?? "?"} art.</span>
+                <span>{d.colis} colis · {d.articles_count ?? "?"} art.</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-gray-500">Livraison prÃ©vue</span>
+                <span className="text-gray-500">Livraison prévue</span>
                 <span>{fmt(d.dateLivraison)}</span>
               </div>
               <button onClick={() => setEditTarget(d)}
@@ -444,9 +444,9 @@ export default function DeliveriesPage() {
                 <TableHead className="font-semibold text-gray-600 text-xs uppercase">Client</TableHead>
                 <TableHead className="font-semibold text-gray-600 text-xs uppercase">Transporteur</TableHead>
                 <TableHead className="font-semibold text-gray-600 text-xs uppercase text-center">Colis</TableHead>
-                <TableHead className="font-semibold text-gray-600 text-xs uppercase">NÂ° Suivi</TableHead>
-                <TableHead className="font-semibold text-gray-600 text-xs uppercase">ExpÃ©dition</TableHead>
-                <TableHead className="font-semibold text-gray-600 text-xs uppercase">Liv. prÃ©vue</TableHead>
+                <TableHead className="font-semibold text-gray-600 text-xs uppercase">N° Suivi</TableHead>
+                <TableHead className="font-semibold text-gray-600 text-xs uppercase">Expédition</TableHead>
+                <TableHead className="font-semibold text-gray-600 text-xs uppercase">Liv. prévue</TableHead>
                 <TableHead className="font-semibold text-gray-600 text-xs uppercase">Montant</TableHead>
                 <TableHead className="font-semibold text-gray-600 text-xs uppercase text-center">Statut</TableHead>
                 <TableHead className="font-semibold text-gray-600 text-xs uppercase text-center pr-6">Action</TableHead>
@@ -463,7 +463,7 @@ export default function DeliveriesPage() {
                 <TableRow>
                   <TableCell colSpan={10} className="text-center py-12 text-gray-400">
                     <Truck className="h-8 w-8 mx-auto mb-2 opacity-30" />
-                    Aucune livraison trouvÃ©e
+                    Aucune livraison trouvée
                   </TableCell>
                 </TableRow>
               ) : filtered.map((d) => (
@@ -484,7 +484,7 @@ export default function DeliveriesPage() {
                       </p>
                     )}
                     <p className="text-xs text-gray-300 max-w-[140px] truncate" title={d.adresse}>
-                      <MapPin className="inline h-2.5 w-2.5 mr-0.5" />{d.adresse || "â€”"}
+                      <MapPin className="inline h-2.5 w-2.5 mr-0.5" />{d.adresse || "—"}
                     </p>
                   </TableCell>
                   {/* Transporteur */}
@@ -494,7 +494,7 @@ export default function DeliveriesPage() {
                         <Truck className="h-3.5 w-3.5 text-gray-400" />{d.transporteur}
                       </span>
                     ) : (
-                      <span className="text-xs text-orange-500 italic">Ã€ assigner</span>
+                      <span className="text-xs text-orange-500 italic">À assigner</span>
                     )}
                   </TableCell>
                   {/* Colis */}
@@ -508,17 +508,17 @@ export default function DeliveriesPage() {
                       )}
                     </div>
                   </TableCell>
-                  {/* NÂ° Suivi */}
+                  {/* N° Suivi */}
                   <TableCell>
                     {d.numeroSuivi ? (
                       <span className="font-mono text-xs bg-gray-100 rounded px-2 py-0.5">{d.numeroSuivi}</span>
                     ) : (
-                      <span className="text-xs text-gray-300">â€”</span>
+                      <span className="text-xs text-gray-300">—</span>
                     )}
                   </TableCell>
-                  {/* ExpÃ©dition */}
+                  {/* Expédition */}
                   <TableCell className="text-sm text-gray-700">{fmt(d.dateExpedition)}</TableCell>
-                  {/* Livraison prÃ©vue */}
+                  {/* Livraison prévue */}
                   <TableCell className="text-sm text-gray-700">{fmt(d.dateLivraison)}</TableCell>
                   {/* Montant */}
                   <TableCell>

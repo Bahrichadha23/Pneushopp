@@ -72,8 +72,8 @@ export default function PendingOrdersPage() {
     const loadOrders = async () => {
       try {
         const data = await fetchPendingOrders();
-        console.log("ðŸ” Pending orders fetched:", data); // Add this
-        console.log("ðŸ” Count:", data.length); // Add this
+        console.log("🔍 Pending orders fetched:", data); // Add this
+        console.log("🔍 Count:", data.length); // Add this
         setOrders(data);
       } catch (err) {
         setError("Impossible de charger les commandes.");
@@ -86,12 +86,12 @@ export default function PendingOrdersPage() {
   }, []);
 
   async function fetchPendingOrders() {
-    const token = localStorage.getItem("access_token"); // ðŸ‘ˆ store this on login
+    const token = localStorage.getItem("access_token"); // 👈 store this on login
 
     const res = await fetch(`${API_URL}/orders/?status=pending`, {
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`, // ðŸ‘ˆ add token here
+        Authorization: `Bearer ${token}`, // 👈 add token here
       },
     });
 
@@ -101,7 +101,7 @@ export default function PendingOrdersPage() {
     // map backend data to frontend Order type
     return data.results.map((o: any) => ({
       id: o.order_number, // or o.id if you prefer
-      numericId: o.id, // âœ… numeric backend ID for PATCH
+      numericId: o.id, // ✅ numeric backend ID for PATCH
       client:
         (o.shipping_address?.first_name || o.shipping_address?.firstName || "") +
         " " +
@@ -257,7 +257,7 @@ export default function PendingOrdersPage() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">
-              Haute prioritÃ©
+              Haute priorité
             </CardTitle>
             <AlertTriangle className="h-4 w-4 text-red-500" />
           </CardHeader>
@@ -355,7 +355,7 @@ export default function PendingOrdersPage() {
       {/* Desktop view: Table */}
       <Card className="hidden md:block">
         <CardHeader>
-          <CardTitle>Commandes Ã  traiter</CardTitle>
+          <CardTitle>Commandes à traiter</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="border rounded-lg overflow-x-auto">
@@ -390,7 +390,7 @@ export default function PendingOrdersPage() {
                           size="sm"
                           variant="outline"
                           onClick={() => setSelectedOrder(order)}
-                          title="Voir les dÃ©tails"
+                          title="Voir les détails"
                         >
                           <Eye className="h-4 w-4" />
                         </Button>
@@ -422,7 +422,7 @@ export default function PendingOrdersPage() {
         </CardContent>
       </Card>
 
-      {/* Modal dÃ©tails commande */}
+      {/* Modal détails commande */}
       {selectedOrder && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
           <div className="w-full max-w-lg bg-white rounded-xl shadow-2xl overflow-hidden">
@@ -441,7 +441,7 @@ export default function PendingOrdersPage() {
               <div className="grid grid-cols-2 gap-3">
                 <div className="rounded-lg border bg-gray-50 px-3 py-2">
                   <p className="text-[11px] text-gray-400 uppercase font-semibold mb-1">Client</p>
-                  <p className="font-medium text-gray-800">{selectedOrder.client || "â€”"}</p>
+                  <p className="font-medium text-gray-800">{selectedOrder.client || "—"}</p>
                   <p className="text-xs text-gray-500 truncate">{selectedOrder.email}</p>
                 </div>
                 <div className="rounded-lg border bg-gray-50 px-3 py-2">
@@ -459,8 +459,8 @@ export default function PendingOrdersPage() {
                     <table className="w-full text-xs">
                       <thead className="bg-slate-100 text-slate-600">
                         <tr>
-                          <th className="px-3 py-2 text-left font-semibold">DÃ©signation</th>
-                          <th className="px-3 py-2 text-center font-semibold">QtÃ©</th>
+                          <th className="px-3 py-2 text-left font-semibold">Désignation</th>
+                          <th className="px-3 py-2 text-center font-semibold">Qté</th>
                           <th className="px-3 py-2 text-right font-semibold">P.U.</th>
                           <th className="px-3 py-2 text-right font-semibold">Total</th>
                         </tr>
@@ -468,7 +468,7 @@ export default function PendingOrdersPage() {
                       <tbody>
                         {selectedOrder.items.map((item: any, idx: number) => (
                           <tr key={idx} className={idx % 2 === 0 ? "bg-white" : "bg-gray-50"}>
-                            <td className="px-3 py-1.5">{item.product_name || item.productName || "â€”"}</td>
+                            <td className="px-3 py-1.5">{item.product_name || item.productName || "—"}</td>
                             <td className="px-3 py-1.5 text-center">{item.quantity}</td>
                             <td className="px-3 py-1.5 text-right">{parseFloat(item.unit_price || item.unitPrice || "0").toFixed(3)} DT</td>
                             <td className="px-3 py-1.5 text-right font-medium">{parseFloat(item.total_price || item.totalPrice || "0").toFixed(3)} DT</td>
@@ -531,8 +531,8 @@ export default function PendingOrdersPage() {
               </h2>
               <p className="text-gray-600 mb-4">
                 {confirmation.action === "approve"
-                  ? `ÃŠtes-vous sÃ»r de vouloir approuver la commande ${confirmation.orderName} ?`
-                  : `ÃŠtes-vous sÃ»r de vouloir rejeter la commande ${confirmation.orderName} ?`}
+                  ? `Êtes-vous sûr de vouloir approuver la commande ${confirmation.orderName} ?`
+                  : `Êtes-vous sûr de vouloir rejeter la commande ${confirmation.orderName} ?`}
               </p>
 
               {confirmation.action === "approve" && (
@@ -555,7 +555,7 @@ export default function PendingOrdersPage() {
                     className="w-full"
                   />
                   <p className="text-xs text-gray-400 mt-1">
-                    Sera ajoutÃ© au montant total de la commande et inclus dans la facture.
+                    Sera ajouté au montant total de la commande et inclus dans la facture.
                   </p>
                 </div>
               )}

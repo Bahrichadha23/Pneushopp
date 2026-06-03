@@ -100,12 +100,12 @@ export default function AvoirPage() {
     const ws = workbook.addWorksheet("Historique Avoirs");
 
     ws.columns = [
-      { header: "NÂ° Avoir", key: "avoir_number", width: 18 },
+      { header: "N° Avoir", key: "avoir_number", width: 18 },
       { header: "Facture d'origine", key: "original_invoice_number", width: 20 },
       { header: "Date", key: "date", width: 14 },
       { header: "Motif", key: "reason", width: 30 },
       { header: "Article", key: "product", width: 35 },
-      { header: "QuantitÃ©", key: "qty", width: 10 },
+      { header: "Quantité", key: "qty", width: 10 },
       { header: "Prix Unit. (DT)", key: "unit_price", width: 16 },
       { header: "Total (DT)", key: "total", width: 14 },
       { header: "Total Avoir (DT)", key: "avoir_total", width: 16 },
@@ -253,7 +253,7 @@ export default function AvoirPage() {
     doc.text("AVOIR", pageW / 2, 18, { align: "center" });
     doc.setFontSize(11);
     doc.setFont("helvetica", "normal");
-    doc.text(`NÂ° ${savedAvoir.avoir_number}`, pageW / 2, 28, { align: "center" });
+    doc.text(`N° ${savedAvoir.avoir_number}`, pageW / 2, 28, { align: "center" });
 
     // Info
     doc.setTextColor(0, 0, 0);
@@ -268,8 +268,8 @@ export default function AvoirPage() {
     doc.setFillColor(240, 240, 240);
     doc.rect(14, y - 6, pageW - 28, 10, "F");
     doc.setFont("helvetica", "bold");
-    doc.text("DÃ©signation", 16, y);
-    doc.text("QtÃ©", 130, y, { align: "right" });
+    doc.text("Désignation", 16, y);
+    doc.text("Qté", 130, y, { align: "right" });
     doc.text("Prix Unit.", 160, y, { align: "right" });
     doc.text("Total HT", pageW - 14, y, { align: "right" });
     y += 10;
@@ -298,24 +298,24 @@ export default function AvoirPage() {
     doc.setFont("helvetica", "italic");
     doc.setFontSize(9);
     doc.setTextColor(120, 120, 120);
-    doc.text("PneuShop â€” Document gÃ©nÃ©rÃ© automatiquement", pageW / 2, 280, { align: "center" });
+    doc.text("PneuShop — Document généré automatiquement", pageW / 2, 280, { align: "center" });
 
     doc.save(`AVOIR_${savedAvoir.avoir_number}.pdf`);
   };
 
-  // â”€â”€ If avoir created â†’ show result â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── If avoir created → show result ────────────────────────────────────────
   if (savedAvoir) {
     return (
       <div className="p-6 max-w-3xl mx-auto space-y-6">
         <div className="flex items-center justify-between">
           <h1 className="text-3xl font-bold flex items-center gap-2">
             <RotateCcw className="h-7 w-7 text-brand-gold" />
-            Avoir crÃ©Ã©
+            Avoir créé
           </h1>
           <div className="flex gap-2">
             <Button onClick={generatePDF} className="bg-black text-white">
               <Printer className="h-4 w-4 mr-2" />
-              TÃ©lÃ©charger PDF
+              Télécharger PDF
             </Button>
             <Button variant="outline" onClick={() => {
               setSavedAvoir(null);
@@ -335,7 +335,7 @@ export default function AvoirPage() {
             {/* Avoir header */}
             <div className="bg-gray-900 text-white text-center py-4 rounded-lg">
               <div className="text-2xl font-bold">AVOIR</div>
-              <div className="text-sm opacity-80">NÂ° {savedAvoir.avoir_number}</div>
+              <div className="text-sm opacity-80">N° {savedAvoir.avoir_number}</div>
             </div>
 
             <div className="grid grid-cols-2 gap-4 text-sm">
@@ -347,8 +347,8 @@ export default function AvoirPage() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>DÃ©signation</TableHead>
-                  <TableHead className="text-right">QtÃ©</TableHead>
+                  <TableHead>Désignation</TableHead>
+                  <TableHead className="text-right">Qté</TableHead>
                   <TableHead className="text-right">Prix Unit.</TableHead>
                   <TableHead className="text-right">Total HT</TableHead>
                 </TableRow>
@@ -376,7 +376,7 @@ export default function AvoirPage() {
     );
   }
 
-  // â”€â”€ Main form â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── Main form ──────────────────────────────────────────────────────────────
   return (
     <div className="p-6 space-y-6">
       <div className="flex items-center justify-between">
@@ -391,13 +391,13 @@ export default function AvoirPage() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Left â€” Search */}
+        {/* Left — Search */}
         <Card>
           <CardHeader><CardTitle>Rechercher la facture</CardTitle></CardHeader>
           <CardContent className="space-y-4">
             <div className="flex gap-2">
               <Input
-                placeholder="NÂ° facture (ex: CPS26000001)"
+                placeholder="N° facture (ex: CPS26000001)"
                 value={searchInvoice}
                 onChange={(e) => setSearchInvoice(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && handleSearch()}
@@ -418,16 +418,16 @@ export default function AvoirPage() {
                   <div><span className="font-bold">Total :</span> {parseFloat(foundOrder.total_amount).toFixed(3)} DT</div>
                 </div>
 
-                <Label className="font-bold">Articles Ã  retourner</Label>
+                <Label className="font-bold">Articles à retourner</Label>
                 <div className="space-y-2">
                   {foundOrder.items.map((item) => (
                     <div key={item.id} className="border rounded-lg p-3">
                       <div className="flex items-center justify-between mb-2">
                         <span className="text-sm font-medium">{item.product_name}</span>
-                        <span className="text-xs text-gray-500">{parseFloat(item.unit_price).toFixed(3)} DT Ã— {item.quantity}</span>
+                        <span className="text-xs text-gray-500">{parseFloat(item.unit_price).toFixed(3)} DT × {item.quantity}</span>
                       </div>
                       <div className="flex items-center gap-2">
-                        <Label className="text-xs text-gray-500 w-24">QtÃ© retour :</Label>
+                        <Label className="text-xs text-gray-500 w-24">Qté retour :</Label>
                         <Input
                           type="number"
                           min={0}
@@ -449,14 +449,14 @@ export default function AvoirPage() {
           </CardContent>
         </Card>
 
-        {/* Right â€” Avoir summary */}
+        {/* Right — Avoir summary */}
         <Card>
-          <CardHeader><CardTitle>RÃ©capitulatif de l'avoir</CardTitle></CardHeader>
+          <CardHeader><CardTitle>Récapitulatif de l'avoir</CardTitle></CardHeader>
           <CardContent className="space-y-4">
             <div>
               <Label>Motif du retour</Label>
               <Input
-                placeholder="Produit dÃ©fectueux, erreur de commande..."
+                placeholder="Produit défectueux, erreur de commande..."
                 value={reason}
                 onChange={(e) => setReason(e.target.value)}
                 className="mt-1"
@@ -465,7 +465,7 @@ export default function AvoirPage() {
             <div>
               <Label>Notes (optionnel)</Label>
               <Textarea
-                placeholder="Informations complÃ©mentaires..."
+                placeholder="Informations complémentaires..."
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
                 className="mt-1"
@@ -479,7 +479,7 @@ export default function AvoirPage() {
                   <TableHeader>
                     <TableRow>
                       <TableHead>Article</TableHead>
-                      <TableHead className="text-right">QtÃ©</TableHead>
+                      <TableHead className="text-right">Qté</TableHead>
                       <TableHead className="text-right">Total</TableHead>
                     </TableRow>
                   </TableHeader>
@@ -503,7 +503,7 @@ export default function AvoirPage() {
 
             {selectedItems.length === 0 && (
               <div className="text-center text-gray-400 py-8 text-sm">
-                SÃ©lectionnez les articles Ã  retourner
+                Sélectionnez les articles à retourner
               </div>
             )}
 
@@ -517,13 +517,13 @@ export default function AvoirPage() {
               ) : (
                 <FileText className="h-4 w-4 mr-2" />
               )}
-              CrÃ©er l'Avoir + Remettre en stock
+              Créer l'Avoir + Remettre en stock
             </Button>
           </CardContent>
         </Card>
       </div>
 
-      {/* â”€â”€ Historique des avoirs â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+      {/* ── Historique des avoirs ───────────────────────────────────────────── */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
@@ -538,16 +538,16 @@ export default function AvoirPage() {
           {loadingHistory ? (
             <div className="flex items-center justify-center py-8">
               <Loader2 className="h-5 w-5 animate-spin mr-2 text-gray-400" />
-              <span className="text-gray-400 text-sm">Chargementâ€¦</span>
+              <span className="text-gray-400 text-sm">Chargement…</span>
             </div>
           ) : avoirHistory.length === 0 ? (
-            <p className="text-center text-gray-400 py-6 text-sm">Aucun avoir enregistrÃ©</p>
+            <p className="text-center text-gray-400 py-6 text-sm">Aucun avoir enregistré</p>
           ) : (
             <div className="overflow-x-auto">
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>NÂ° Avoir</TableHead>
+                    <TableHead>N° Avoir</TableHead>
                     <TableHead>Facture origine</TableHead>
                     <TableHead>Date</TableHead>
                     <TableHead>Motif</TableHead>
@@ -561,11 +561,11 @@ export default function AvoirPage() {
                       <TableCell className="font-mono text-sm font-semibold">{avoir.avoir_number}</TableCell>
                       <TableCell className="font-mono text-sm">{fps(avoir.original_invoice_number)}</TableCell>
                       <TableCell className="text-sm">{new Date(avoir.created_at).toLocaleDateString("fr-FR")}</TableCell>
-                      <TableCell className="text-sm text-gray-600">{avoir.reason || "â€”"}</TableCell>
+                      <TableCell className="text-sm text-gray-600">{avoir.reason || "—"}</TableCell>
                       <TableCell className="text-sm text-gray-600">
                         {Array.isArray(avoir.items) && avoir.items.length > 0
-                          ? avoir.items.map((it: any) => `${it.product_name} (Ã—${it.quantity})`).join(", ")
-                          : "â€”"}
+                          ? avoir.items.map((it: any) => `${it.product_name} (×${it.quantity})`).join(", ")
+                          : "—"}
                       </TableCell>
                       <TableCell className="text-right font-bold text-brand-red">
                         {parseFloat(avoir.total_amount).toFixed(3)} DT

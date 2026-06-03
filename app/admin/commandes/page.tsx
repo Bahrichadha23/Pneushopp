@@ -80,7 +80,7 @@ export default function OrdersPage() {
       });
 
       if (response.ok) {
-        alert("Bon de commande crÃ©Ã© avec succÃ¨s!");
+        alert("Bon de commande créé avec succès!");
       }
     } catch (error) {
       console.error("Erreur:", error);
@@ -98,7 +98,7 @@ export default function OrdersPage() {
 
     const token = localStorage.getItem("access_token");
     if (!token) {
-      alert("Erreur: Vous n'Ãªtes pas connectÃ©.");
+      alert("Erreur: Vous n'êtes pas connecté.");
       return;
     }
 
@@ -131,24 +131,24 @@ export default function OrdersPage() {
 
     // Define columns with headers
     worksheet.columns = [
-      { header: 'NumÃ©ro Commande', key: 'orderNumber', width: 15 },
+      { header: 'Numéro Commande', key: 'orderNumber', width: 15 },
       { header: 'Date Commande', key: 'orderDate', width: 18 },
       { header: 'Client', key: 'customerName', width: 20 },
       { header: 'Email', key: 'email', width: 25 },
-      { header: 'TÃ©lÃ©phone', key: 'phone', width: 15 },
+      { header: 'Téléphone', key: 'phone', width: 15 },
       { header: 'Produit', key: 'product', width: 30 },
-      { header: 'RÃ©fÃ©rence', key: 'reference', width: 20 },
-      { header: 'QuantitÃ©', key: 'quantity', width: 10 },
+      { header: 'Référence', key: 'reference', width: 20 },
+      { header: 'Quantité', key: 'quantity', width: 10 },
       { header: 'Prix Unitaire (DT)', key: 'unitPrice', width: 18 },
       { header: 'Total Produit (DT)', key: 'totalProduct', width: 18 },
       { header: 'Total Commande (DT)', key: 'totalOrder', width: 18 },
       { header: 'Statut Commande', key: 'orderStatus', width: 15 },
       { header: 'Statut Paiement', key: 'paymentStatus', width: 15 },
-      { header: 'MÃ©thode Paiement', key: 'paymentMethod', width: 18 },
-      { header: 'NumÃ©ro Suivi', key: 'tracking', width: 15 },
+      { header: 'Méthode Paiement', key: 'paymentMethod', width: 18 },
+      { header: 'Numéro Suivi', key: 'tracking', width: 15 },
       { header: 'Adresse Livraison', key: 'address', width: 50 },
-      { header: 'Matricule VÃ©hicule', key: 'vehicle', width: 18 },
-      { header: 'KilomÃ©trage', key: 'mileage', width: 12 },
+      { header: 'Matricule Véhicule', key: 'vehicle', width: 18 },
+      { header: 'Kilométrage', key: 'mileage', width: 12 },
     ];
 
     // Make header row bold
@@ -177,14 +177,14 @@ export default function OrdersPage() {
             totalProduct: Number(item.totalPrice).toFixed(3),
             totalOrder: index === 0 ? Number(order.totalAmount).toFixed(3) : '',
             orderStatus: order.status === 'pending' ? 'En attente' :
-                        order.status === 'confirmed' ? 'ConfirmÃ©e' :
+                        order.status === 'confirmed' ? 'Confirmée' :
                         order.status === 'processing' ? 'En cours' :
-                        order.status === 'shipped' ? 'ExpÃ©diÃ©e' :
-                        order.status === 'delivered' ? 'LivrÃ©e' : 'AnnulÃ©e',
+                        order.status === 'shipped' ? 'Expédiée' :
+                        order.status === 'delivered' ? 'Livrée' : 'Annulée',
             paymentStatus: order.paymentStatus === 'pending' ? 'En attente' :
-                          order.paymentStatus === 'paid' ? 'PayÃ©' :
-                          order.paymentStatus === 'failed' ? 'Ã‰chec' : 'RemboursÃ©',
-            paymentMethod: ({card:'Carte bancaire',bank_transfer:'Virement',cash_on_delivery:'TPE livraison',cri:'CRI',cheque:'ChÃ¨que',lettre_de_change:'Lettre de change',mixed:'Multi-modalitÃ©s'} as Record<string,string>)[order.paymentMethod] || order.paymentMethod || 'N/A',
+                          order.paymentStatus === 'paid' ? 'Payé' :
+                          order.paymentStatus === 'failed' ? 'Échec' : 'Remboursé',
+            paymentMethod: ({card:'Carte bancaire',bank_transfer:'Virement',cash_on_delivery:'TPE livraison',cri:'CRI',cheque:'Chèque',lettre_de_change:'Lettre de change',mixed:'Multi-modalités'} as Record<string,string>)[order.paymentMethod] || order.paymentMethod || 'N/A',
             tracking: order.trackingNumber || 'N/A',
             address: order.shippingAddress ? 
               `${order.shippingAddress.street}, ${order.shippingAddress.city}, ${order.shippingAddress.postalCode}, ${order.shippingAddress.region}, ${order.shippingAddress.country}` : 'N/A',
@@ -212,14 +212,14 @@ export default function OrdersPage() {
           totalProduct: '0.000',
           totalOrder: Number(order.totalAmount).toFixed(3),
           orderStatus: order.status === 'pending' ? 'En attente' :
-                      order.status === 'confirmed' ? 'ConfirmÃ©e' :
+                      order.status === 'confirmed' ? 'Confirmée' :
                       order.status === 'processing' ? 'En cours' :
-                      order.status === 'shipped' ? 'ExpÃ©diÃ©e' :
-                      order.status === 'delivered' ? 'LivrÃ©e' : 'AnnulÃ©e',
+                      order.status === 'shipped' ? 'Expédiée' :
+                      order.status === 'delivered' ? 'Livrée' : 'Annulée',
           paymentStatus: order.paymentStatus === 'pending' ? 'En attente' :
-                        order.paymentStatus === 'paid' ? 'PayÃ©' :
-                        order.paymentStatus === 'failed' ? 'Ã‰chec' : 'RemboursÃ©',
-          paymentMethod: order.paymentMethod === 'card' ? 'Carte' : 'Ã€ la livraison',
+                        order.paymentStatus === 'paid' ? 'Payé' :
+                        order.paymentStatus === 'failed' ? 'Échec' : 'Remboursé',
+          paymentMethod: order.paymentMethod === 'card' ? 'Carte' : 'À la livraison',
           tracking: order.trackingNumber || 'N/A',
           address: order.shippingAddress ? 
             `${order.shippingAddress.street}, ${order.shippingAddress.city}, ${order.shippingAddress.postalCode}, ${order.shippingAddress.region}, ${order.shippingAddress.country}` : 'N/A',
@@ -252,7 +252,7 @@ export default function OrdersPage() {
             Gestion des commandes
           </h1>
           <p className="text-gray-600 text-sm md:text-base">
-            GÃ©rez toutes les commandes de votre boutique
+            Gérez toutes les commandes de votre boutique
           </p>
         </div>
         <Button
@@ -267,8 +267,8 @@ export default function OrdersPage() {
 
       {fetchError && (
         <div className="bg-gray-100 border border-gray-300 text-gray-700 rounded-lg px-4 py-3 text-sm flex items-center justify-between">
-          <span>âš ï¸ Impossible de charger les commandes : <strong>{fetchError}</strong></span>
-          <Button variant="outline" size="sm" onClick={loadOrders} className="ml-4">RÃ©essayer</Button>
+          <span>⚠️ Impossible de charger les commandes : <strong>{fetchError}</strong></span>
+          <Button variant="outline" size="sm" onClick={loadOrders} className="ml-4">Réessayer</Button>
         </div>
       )}
 

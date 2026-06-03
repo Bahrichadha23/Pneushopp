@@ -28,7 +28,7 @@ export default function ClientsPage() {
     router.push("/admin"); // or show "Access Denied"
     return null;
   }
-  const [clients, setClients] = useState<any[]>([]); // ðŸ‘ˆ start empty
+  const [clients, setClients] = useState<any[]>([]); // 👈 start empty
   const [searchTerm, setSearchTerm] = useState("");
   const [typeFilter, setTypeFilter] = useState("tous");
   const [selectedClient, setSelectedClient] = useState<any>(null);
@@ -57,7 +57,7 @@ export default function ClientsPage() {
         const data = await res.json();
         console.log("All users:", data);
 
-        // âœ… Filter only users with role = "customer"
+        // ✅ Filter only users with role = "customer"
         // const customers = data.filter((user) => user.role === "customer");
         const customers = data.filter(
           (user: { role: string }) => user.role === "customer"
@@ -103,14 +103,14 @@ export default function ClientsPage() {
     ws.columns = [
       { header: "Nom", key: "nom", width: 25 },
       { header: "Email", key: "email", width: 30 },
-      { header: "TÃ©lÃ©phone", key: "phone", width: 16 },
+      { header: "Téléphone", key: "phone", width: 16 },
       { header: "Adresse", key: "adresse", width: 40 },
       { header: "Type", key: "type", width: 16 },
       { header: "Date d'inscription", key: "inscription", width: 20 },
       { header: "Commandes", key: "commandes", width: 12 },
       { header: "CA Total (DT)", key: "ca", width: 16 },
-      { header: "DerniÃ¨re commande", key: "derniere", width: 20 },
-      { header: "VÃ©rifiÃ©", key: "verifie", width: 10 },
+      { header: "Dernière commande", key: "derniere", width: 20 },
+      { header: "Vérifié", key: "verifie", width: 10 },
     ];
     ws.getRow(1).font = { bold: true, color: { argb: "FFFFFFFF" } };
     ws.getRow(1).fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FF1E293B" } };
@@ -272,7 +272,7 @@ export default function ClientsPage() {
               </div>
               <div className="flex justify-between mt-1 text-xs text-gray-500">
                 <span>CA: {formatCurrency(client.montantTotal)}</span>
-                <span>DerniÃ¨re: {client.derniereCommande}</span>
+                <span>Dernière: {client.derniereCommande}</span>
               </div>
             </div>
             <div className="mt-2 flex justify-end">
@@ -281,7 +281,7 @@ export default function ClientsPage() {
                 variant="outline"
                 onClick={() => handleViewClient(client)}
               >
-                Voir dÃ©tails
+                Voir détails
               </Button>
             </div>
           </Card>
@@ -305,7 +305,7 @@ export default function ClientsPage() {
                   <TableHead>Inscription</TableHead>
                   <TableHead>Commandes</TableHead>
                   <TableHead>CA Total</TableHead>
-                  <TableHead>DerniÃ¨re commande</TableHead>
+                  <TableHead>Dernière commande</TableHead>
                   <TableHead>Actions</TableHead>
                 </TableRow>
               </TableHeader>
@@ -346,7 +346,7 @@ export default function ClientsPage() {
                         variant="outline"
                         onClick={() => handleViewClient(client)}
                       >
-                        Voir dÃ©tails
+                        Voir détails
                       </Button>
                     </TableCell>
                   </TableRow>
@@ -362,14 +362,14 @@ export default function ClientsPage() {
           <div className="bg-white rounded-lg p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
             <div className="flex justify-between items-center mb-6">
               <h2 className="text-2xl font-bold text-gray-900">
-                DÃ©tails du client
+                Détails du client
               </h2>
               <Button
                 variant="outline"
                 size="sm"
                 onClick={handleCloseClientDetails}
               >
-                âœ•
+                ✕
               </Button>
             </div>
 
@@ -401,11 +401,11 @@ export default function ClientsPage() {
                   </div>
                   <div>
                     <label className="text-sm font-medium text-gray-500">
-                      TÃ©lÃ©phone
+                      Téléphone
                     </label>
                     <p className="flex items-center">
                       <Phone className="h-4 w-4 mr-2" />
-                      {selectedClient.telephone || "Non renseignÃ©"}
+                      {selectedClient.telephone || "Non renseigné"}
                     </p>
                   </div>
                   <div>
@@ -425,7 +425,7 @@ export default function ClientsPage() {
                 <CardContent>
                   <div className="flex items-start">
                     <MapPin className="h-4 w-4 mr-2 mt-1" />
-                    <p>{selectedClient.adresse || "Adresse non renseignÃ©e"}</p>
+                    <p>{selectedClient.adresse || "Adresse non renseignée"}</p>
                   </div>
                 </CardContent>
               </Card>
@@ -450,9 +450,9 @@ export default function ClientsPage() {
                     </label>
                     <p>
                       {selectedClient.is_verified ? (
-                        <Badge className="bg-brand-orange text-black">VÃ©rifiÃ©</Badge>
+                        <Badge className="bg-brand-orange text-black">Vérifié</Badge>
                       ) : (
-                        <Badge variant="secondary">Non vÃ©rifiÃ©</Badge>
+                        <Badge variant="secondary">Non vérifié</Badge>
                       )}
                     </p>
                   </div>
@@ -485,7 +485,7 @@ export default function ClientsPage() {
                   </div>
                   <div>
                     <label className="text-sm font-medium text-gray-500">
-                      DerniÃ¨re commande
+                      Dernière commande
                     </label>
                     <p>{selectedClient.derniereCommande}</p>
                   </div>

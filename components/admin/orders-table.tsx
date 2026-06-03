@@ -101,7 +101,7 @@ export async function handleDownloadInvoice(order: any) {
       boxY + 20
     );
     pdf.text(
-      `KilomÃ©trage: ${order.warrantyInfo?.vehicleMileage || "-"}`,
+      `Kilométrage: ${order.warrantyInfo?.vehicleMileage || "-"}`,
       boxX + 2,
       boxY + 25
     );
@@ -278,7 +278,7 @@ export async function handleDownloadInvoice(order: any) {
   const netHT = totalHT - totalRemise + deliveryCost;
   const totalTTC = netHT + totalTVA + 1;
 
-  // === Inline â€œQUATRE CENT â€¦â€ + Vertical Totals ===
+  // === Inline “QUATRE CENT …” + Vertical Totals ===
   const boxY = y + 5;
   const boxH = 14;
   const totalRowH = 7;
@@ -333,7 +333,7 @@ interface DotBatch {
   notes: string;
 }
 
-/** Convert stored CPS prefix â†’ display FPS prefix */
+/** Convert stored CPS prefix → display FPS prefix */
 const fps = (n: string) => (n || "").replace(/^CPS/i, "FPS");
 
 export default function OrdersTable({
@@ -397,10 +397,10 @@ export default function OrdersTable({
         // Mark this order as having a purchase order created
         setPurchaseOrderCreated((prev) => new Set(prev).add(order.id));
       } else {
-        alert(result.message || "Erreur lors de la crÃ©ation");
+        alert(result.message || "Erreur lors de la création");
       }
     } catch (error) {
-      alert("Erreur lors de la crÃ©ation du bon de commande");
+      alert("Erreur lors de la création du bon de commande");
     } finally {
       setCreatingPurchaseOrder(null);
     }
@@ -545,11 +545,11 @@ export default function OrdersTable({
 
     const labels: Record<string, string> = {
       pending:    "En attente",
-      confirmed:  "ConfirmÃ©e",
+      confirmed:  "Confirmée",
       processing: "En cours",
-      shipped:    "ExpÃ©diÃ©e",
-      delivered:  "LivrÃ©e",
-      cancelled:  "AnnulÃ©e",
+      shipped:    "Expédiée",
+      delivered:  "Livrée",
+      cancelled:  "Annulée",
     };
 
     return (
@@ -569,9 +569,9 @@ export default function OrdersTable({
 
     const labels = {
       pending: "En attente",
-      paid: "PayÃ©",
-      failed: "Ã‰chec",
-      refunded: "RemboursÃ©",
+      paid: "Payé",
+      failed: "Échec",
+      refunded: "Remboursé",
     };
 
     return (
@@ -614,7 +614,7 @@ export default function OrdersTable({
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 h-4 w-4" />
           <Input
-            placeholder="Rechercher par numÃ©ro, client, email..."
+            placeholder="Rechercher par numéro, client, email..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="pl-10"
@@ -624,10 +624,10 @@ export default function OrdersTable({
 
         <Select value={yearFilter} onValueChange={setYearFilter}>
           <SelectTrigger className="w-full sm:w-48">
-            <SelectValue placeholder="AnnÃ©e" />
+            <SelectValue placeholder="Année" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">Toutes les annÃ©es</SelectItem>
+            <SelectItem value="all">Toutes les années</SelectItem>
             {availableYears.map(year => (
               <SelectItem key={year} value={year.toString()}>{year}</SelectItem>
             ))}
@@ -640,7 +640,7 @@ export default function OrdersTable({
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>NumÃ©ro</TableHead>
+              <TableHead>Numéro</TableHead>
               <TableHead>Client</TableHead>
               <TableHead>Date</TableHead>
               <TableHead>Montant</TableHead>
@@ -678,7 +678,7 @@ export default function OrdersTable({
                         variant="ghost"
                         size="icon"
                         onClick={() => setSelectedOrder(order)}
-                        title="Voir dÃ©tails"
+                        title="Voir détails"
                       >
                         <Eye className="h-4 w-4" />
                       </Button>
@@ -689,7 +689,7 @@ export default function OrdersTable({
                           size="sm"
                           className="bg-black text-white hover:bg-gray-800 h-7 px-2 text-xs gap-1"
                           onClick={() => handleOpenDotConfirm(order)}
-                          title="Confirmer la commande (sÃ©lectionner les lots DOT)"
+                          title="Confirmer la commande (sélectionner les lots DOT)"
                         >
                           <Check className="h-3 w-3" /> Confirmer
                         </Button>
@@ -712,7 +712,7 @@ export default function OrdersTable({
                           variant="ghost"
                           size="icon"
                           onClick={() => onUpdateStatus(order.id, "shipped")}
-                          title="Marquer comme expÃ©diÃ©e"
+                          title="Marquer comme expédiée"
                         >
                           <Truck className="h-4 w-4" />
                         </Button>
@@ -729,8 +729,8 @@ export default function OrdersTable({
                           }
                           title={
                             purchaseOrderCreated.has(order.id)
-                              ? "Bon de commande dÃ©jÃ  crÃ©Ã©"
-                              : "CrÃ©er bon de commande"
+                              ? "Bon de commande déjà créé"
+                              : "Créer bon de commande"
                           }
                         >
                           {creatingPurchaseOrder === order.id ? (
@@ -829,8 +829,8 @@ export default function OrdersTable({
                     }
                     title={
                       purchaseOrderCreated.has(order.id)
-                        ? "Bon de commande dÃ©jÃ  crÃ©Ã©"
-                        : "CrÃ©er bon de commande"
+                        ? "Bon de commande déjà créé"
+                        : "Créer bon de commande"
                     }
                   >
                     {creatingPurchaseOrder === order.id ? (
@@ -853,7 +853,7 @@ export default function OrdersTable({
       </div>
       {filteredOrders.length === 0 && (
         <div className="text-center py-8 text-gray-500">
-          Aucune commande trouvÃ©e avec les critÃ¨res sÃ©lectionnÃ©s.
+          Aucune commande trouvée avec les critères sélectionnés.
         </div>
       )}
 
@@ -877,10 +877,10 @@ export default function OrdersTable({
                 <div>
                   <h2 className="font-bold text-gray-900 text-lg flex items-center gap-2">
                     <Calendar className="h-5 w-5 text-brand-gold" />
-                    Assignation DOT â€” Confirmer la commande
+                    Assignation DOT — Confirmer la commande
                   </h2>
                   <p className="text-sm text-gray-500 mt-0.5">
-                    #{fps(dotConfirmOrder.orderNumber)} Â· {dotConfirmOrder.customerName}
+                    #{fps(dotConfirmOrder.orderNumber)} · {dotConfirmOrder.customerName}
                   </p>
                 </div>
                 <button
@@ -896,17 +896,17 @@ export default function OrdersTable({
                 {preFilledFromPrep && (
                   <div className="text-sm text-brand-gold bg-yellow-50 border border-yellow-200 rounded-lg px-4 py-3 flex items-center gap-2">
                     <Check className="h-4 w-4 text-brand-gold flex-shrink-0" />
-                    Lots DOT prÃ©-assignÃ©s depuis la prÃ©paration stock. VÃ©rifiez et confirmez.
+                    Lots DOT pré-assignés depuis la préparation stock. Vérifiez et confirmez.
                   </div>
                 )}
                 <div className="text-sm text-brand-gold bg-yellow-50 border border-yellow-200 rounded-lg px-4 py-3">
-                  SÃ©lectionnez un lot DOT pour chaque article. Le stock sera dÃ©crÃ©mentÃ© automatiquement Ã  la confirmation.
+                  Sélectionnez un lot DOT pour chaque article. Le stock sera décrémenté automatiquement à la confirmation.
                 </div>
 
                 {loadingDotBatches ? (
                   <div className="text-center py-8">
                     <Loader2 className="h-6 w-6 animate-spin mx-auto text-yellow-500" />
-                    <p className="text-sm text-gray-400 mt-2">Chargement des lots DOTâ€¦</p>
+                    <p className="text-sm text-gray-400 mt-2">Chargement des lots DOT…</p>
                   </div>
                 ) : (
                   <div className="space-y-3">
@@ -927,23 +927,23 @@ export default function OrdersTable({
                             <div className="flex-1 min-w-0">
                               <p className="font-medium text-sm text-gray-900 truncate">{item.productName}</p>
                               <p className="text-xs text-gray-500 mt-0.5">
-                                QuantitÃ© commandÃ©e : <strong>{item.quantity}</strong>
+                                Quantité commandée : <strong>{item.quantity}</strong>
                               </p>
                             </div>
                             {isAssigned ? (
                               <span className="text-xs font-bold text-brand-gold bg-yellow-100 px-2 py-1 rounded-full whitespace-nowrap">
-                                âœ“ DOT assignÃ©
+                                ✓ DOT assigné
                               </span>
                             ) : (
                               <span className="text-xs font-bold text-orange-600 bg-orange-50 px-2 py-1 rounded-full whitespace-nowrap">
-                                âš  Requis
+                                ⚠ Requis
                               </span>
                             )}
                           </div>
 
                           {batches.length === 0 ? (
                             <p className="text-xs text-brand-red bg-red-50 border border-red-100 rounded-lg px-3 py-2">
-                              Aucun lot DOT disponible pour ce produit â€” ajoutez du stock via la gestion DOT.
+                              Aucun lot DOT disponible pour ce produit — ajoutez du stock via la gestion DOT.
                             </p>
                           ) : (
                             <div className="space-y-2">
@@ -969,20 +969,20 @@ export default function OrdersTable({
                                     });
                                   }
                                 }}
-                                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-yellow-400 bg-white"
+                                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-orange bg-white"
                               >
-                                <option value="">â€” Choisir un lot DOT â€”</option>
+                                <option value="">— Choisir un lot DOT —</option>
                                 {batches.map((b) => (
                                   <option key={b.id} value={b.id} disabled={b.quantity < 1}>
-                                    DOT {b.dot} â€” {b.quantity} unitÃ©(s)
-                                    {b.emplacement ? ` â€” ${b.emplacement}` : ""}
+                                    DOT {b.dot} — {b.quantity} unité(s)
+                                    {b.emplacement ? ` — ${b.emplacement}` : ""}
                                   </option>
                                 ))}
                               </select>
 
                               {selection && selectedBatch && (
                                 <p className="text-xs text-gray-400 mt-1">
-                                  {selectedBatch.quantity} unitÃ©(s) disponible(s) dans ce lot
+                                  {selectedBatch.quantity} unité(s) disponible(s) dans ce lot
                                 </p>
                               )}
                             </div>
@@ -1003,7 +1003,7 @@ export default function OrdersTable({
               {/* Modal Footer */}
               <div className="border-t bg-gray-50 px-6 py-4 flex items-center justify-between flex-shrink-0">
                 <span className="text-sm text-gray-500">
-                  {Object.keys(dotSelections).length} / {dotConfirmOrder.items.length} article(s) assignÃ©(s)
+                  {Object.keys(dotSelections).length} / {dotConfirmOrder.items.length} article(s) assigné(s)
                 </span>
                 <div className="flex gap-3">
                   <Button variant="outline" onClick={() => setDotConfirmOrder(null)} disabled={confirmingDot}>
@@ -1021,7 +1021,7 @@ export default function OrdersTable({
                     {confirmingDot ? (
                       <>
                         <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                        Confirmationâ€¦
+                        Confirmation…
                       </>
                     ) : (
                       <>
@@ -1061,7 +1061,7 @@ export default function OrdersTable({
               <div className="sticky top-0 bg-white border-b px-6 py-4 flex items-center justify-between z-10">
                 <div>
                   <h2 className="text-xl font-bold text-gray-900">
-                    DÃ©tails de la commande #{fps(selectedOrder.orderNumber)}
+                    Détails de la commande #{fps(selectedOrder.orderNumber)}
                   </h2>
                   <p className="text-sm text-gray-500 mt-1">
                     {formatDate(selectedOrder.createdAt)}
@@ -1103,36 +1103,36 @@ export default function OrdersTable({
                       <strong>Email:</strong> {selectedOrder.customerEmail}
                     </p>
                     <p className="text-sm">
-                      <strong>TÃ©lÃ©phone:</strong> {selectedOrder.customerPhone}
+                      <strong>Téléphone:</strong> {selectedOrder.customerPhone}
                     </p>
                   </div>
 
-                  {/* DÃ©tails commande */}
+                  {/* Détails commande */}
                   <div className="space-y-3">
                     <h4 className="font-semibold text-lg border-b pb-2 text-gray-900">
-                      DÃ©tails commande
+                      Détails commande
                     </h4>
                     <p className="text-sm">
-                      <strong>NumÃ©ro:</strong> {fps(selectedOrder.orderNumber)}
+                      <strong>Numéro:</strong> {fps(selectedOrder.orderNumber)}
                     </p>
                     <p className="text-sm">
                       <strong>Date:</strong> {formatDate(selectedOrder.createdAt)}
                     </p>
                     <p className="text-sm">
-                      <strong>NumÃ©ro de suivi:</strong>{" "}
+                      <strong>Numéro de suivi:</strong>{" "}
                       {selectedOrder.trackingNumber || "N/A"}
                     </p>
                     <p className="text-sm">
-                      <strong>MÃ©thode de paiement:</strong>{" "}
+                      <strong>Méthode de paiement:</strong>{" "}
                       {({
                         card: "Carte bancaire",
-                        especes: "EspÃ¨ces",
+                        especes: "Espèces",
                         bank_transfer: "Virement bancaire",
-                        cash_on_delivery: "TPE Ã  la livraison",
+                        cash_on_delivery: "TPE à la livraison",
                         cri: "CRI",
-                        cheque: "ChÃ¨que",
+                        cheque: "Chèque",
                         lettre_de_change: "Lettre de change",
-                        mixed: "Multi-modalitÃ©s",
+                        mixed: "Multi-modalités",
                       } as Record<string, string>)[selectedOrder.paymentMethod] || selectedOrder.paymentMethod || "N/A"}
                     </p>
                   </div>
@@ -1152,7 +1152,7 @@ export default function OrdersTable({
                       <strong>Code postal:</strong> {selectedOrder.shippingAddress?.postalCode}
                     </p>
                     <p className="text-sm">
-                      <strong>RÃ©gion:</strong> {selectedOrder.shippingAddress?.region}
+                      <strong>Région:</strong> {selectedOrder.shippingAddress?.region}
                     </p>
                     <p className="text-sm">
                       <strong>Pays:</strong> {selectedOrder.shippingAddress?.country}
@@ -1163,7 +1163,7 @@ export default function OrdersTable({
                 {/* Order Items */}
                 <div className="pt-4">
                   <h4 className="font-semibold text-lg border-b pb-2 mb-4 text-gray-900">
-                    Articles commandÃ©s
+                    Articles commandés
                   </h4>
                   <div className="overflow-x-auto">
                     <table className="min-w-full divide-y divide-gray-200">
@@ -1173,13 +1173,13 @@ export default function OrdersTable({
                             Produit
                           </th>
                           <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            RÃ©fÃ©rence
+                            Référence
                           </th>
                           <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
                             Prix unitaire
                           </th>
                           <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            QtÃ©
+                            Qté
                           </th>
                           <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
                             Total

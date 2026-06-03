@@ -85,7 +85,7 @@ export default function FournisseursPage() {
       setFournisseurs([...fournisseurs, newSupplier]);
       setShowCreateModal(false);
     } catch (err) {
-      console.error("Erreur crÃ©ation fournisseur:", err);
+      console.error("Erreur création fournisseur:", err);
     }
   };
 
@@ -143,7 +143,7 @@ export default function FournisseursPage() {
   //         statut: "en_attente",
   //         priorite: "normale",
   //         articles: [
-  //           { id: 1, nom: "Article par dÃ©faut", quantite: 1, prix_unitaire: 0 },
+  //           { id: 1, nom: "Article par défaut", quantite: 1, prix_unitaire: 0 },
   //         ],
   //         total_ht: 0,
   //         total_ttc: 0,
@@ -154,9 +154,9 @@ export default function FournisseursPage() {
   //       }),
   //     });
   //     console.log("Response status:", res.status);
-  //     if (!res.ok) throw new Error("Erreur crÃ©ation commande");
+  //     if (!res.ok) throw new Error("Erreur création commande");
   //     const newBon = await res.json();
-  //     console.log("Bon crÃ©Ã©:", newBon);
+  //     console.log("Bon créé:", newBon);
 
   //     // optional: redirect to bons page
   //     window.location.href = "/admin/bons-commande";
@@ -205,7 +205,7 @@ export default function FournisseursPage() {
         <Card>
           <CardHeader className="flex justify-between items-center">
             <CardTitle className="text-sm font-medium">
-              Ã‰valuation moyenne
+              Évaluation moyenne
             </CardTitle>
             <Star className="h-4 w-4 text-yellow-500" />
           </CardHeader>
@@ -218,7 +218,7 @@ export default function FournisseursPage() {
 
         <Card>
           <CardHeader className="flex justify-between items-center">
-            <CardTitle className="text-sm font-medium">DÃ©lai moyen</CardTitle>
+            <CardTitle className="text-sm font-medium">Délai moyen</CardTitle>
             <Package className="h-4 w-4 text-gray-500" />
           </CardHeader>
           <CardContent>
@@ -313,11 +313,11 @@ export default function FournisseursPage() {
                 <TableRow>
                   <TableHead>Entreprise</TableHead>
                   <TableHead>Contact</TableHead>
-                  <TableHead>CoordonnÃ©es</TableHead>
-                  {/* <TableHead>SpÃ©cialitÃ©s</TableHead> */}
-                  <TableHead>Ã‰valuation</TableHead>
+                  <TableHead>Coordonnées</TableHead>
+                  {/* <TableHead>Spécialités</TableHead> */}
+                  <TableHead>Évaluation</TableHead>
                   <TableHead>Commandes</TableHead>
-                  <TableHead>DÃ©lai livraison</TableHead>
+                  <TableHead>Délai livraison</TableHead>
                   <TableHead>Actions</TableHead>
                 </TableRow>
               </TableHeader>
@@ -463,10 +463,10 @@ export default function FournisseursPage() {
               defaultValue={editingSupplier?.address}
             />
 
-            {/* TÃ©lÃ©phone */}
+            {/* Téléphone */}
             <Input
               name="telephone"
-              placeholder="TÃ©lÃ©phone"
+              placeholder="Téléphone"
               defaultValue={editingSupplier?.phone}
             />
 
@@ -480,34 +480,34 @@ export default function FournisseursPage() {
               <option value="inactive">Inactif</option>
             </select>
 
-            {/* Ã‰valuation */}
+            {/* Évaluation */}
             <Input
               name="evaluation"
               type="number"
               min={0}
               max={5}
               step={1}
-              placeholder="Ã‰valuation (0-5)"
+              placeholder="Évaluation (0-5)"
               defaultValue={editingSupplier?.rating}
             />
 
-            {/* DÃ©lai de livraison */}
+            {/* Délai de livraison */}
             <Input
               name="delaiLivraison"
-              placeholder="DÃ©lai de livraison (ex: 3-5 jours)"
+              placeholder="Délai de livraison (ex: 3-5 jours)"
               defaultValue={editingSupplier?.delivery_time}
             />
 
-            {/* SpÃ©cialitÃ©s (comma separated) */}
+            {/* Spécialités (comma separated) */}
             <Input
               name="specialites"
-              placeholder="SpÃ©cialitÃ©s (sÃ©parÃ©es par des virgules)"
+              placeholder="Spécialités (séparées par des virgules)"
               defaultValue={editingSupplier?.specialties?.join(", ")}
             />
 
             <div className="flex justify-end">
               <Button type="submit">
-                {editingSupplier ? "Mettre Ã  jour" : "CrÃ©er"}
+                {editingSupplier ? "Mettre à jour" : "Créer"}
               </Button>
             </div>
           </form>
@@ -519,7 +519,7 @@ export default function FournisseursPage() {
         <DialogContent className="max-w-md">
           <DialogHeader>
             <DialogTitle className="text-gray-800 flex items-center gap-2">
-              <span>âš ï¸</span> Suppression impossible
+              <span>⚠️</span> Suppression impossible
             </DialogTitle>
           </DialogHeader>
           <p className="text-sm text-gray-700 mt-2">{deleteError}</p>

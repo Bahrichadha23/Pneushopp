@@ -59,19 +59,19 @@ const ACTION_COLORS: Record<string, string> = {
   toggle_user:     "bg-gray-200 text-gray-800",
   confirm_order:   "bg-brand-orange text-black",
   cancel_order:    "bg-black text-white",
-  create_invoice:  "bg-yellow-100 text-brand-gold-dark",
+  create_invoice:  "bg-yellow-100 text-yellow-900",
   create_delivery: "bg-gray-100 text-gray-700",
   update_delivery: "bg-gray-50 text-gray-600",
   create_bon:      "bg-yellow-50 text-brand-gold",
-  add_stock:       "bg-yellow-200 text-brand-gold-dark",
+  add_stock:       "bg-yellow-200 text-yellow-900",
   adjust_stock:    "bg-yellow-100 text-brand-gold",
   create_purchase: "bg-gray-100 text-gray-700",
   sav_update:      "bg-yellow-50 text-brand-gold",
   add_product:     "bg-yellow-300 text-black",
-  update_product:  "bg-yellow-100 text-brand-gold-dark",
+  update_product:  "bg-yellow-100 text-yellow-900",
   delete_product:  "bg-black text-white",
   update_price:    "bg-brand-orange text-black",
-  dot_sale:        "bg-yellow-200 text-brand-gold-dark",
+  dot_sale:        "bg-yellow-200 text-yellow-900",
   other:           "bg-gray-100 text-gray-700",
 };
 
@@ -149,14 +149,14 @@ export default function JournalPage() {
 
     ws.columns = [
       { header: "Date",     key: "date",        width: 22 },
-      { header: "EmployÃ©",  key: "employe",     width: 28 },
+      { header: "Employé",  key: "employe",     width: 28 },
       { header: "Email",    key: "email",        width: 32 },
       { header: "Action",   key: "action",       width: 22 },
-      { header: "DÃ©tails",  key: "details",      width: 50 },
+      { header: "Détails",  key: "details",      width: 50 },
       { header: "IP",       key: "ip",           width: 16 },
     ];
 
-    // Style en-tÃªte
+    // Style en-tête
     const hdr = ws.getRow(1);
     hdr.font = { bold: true, color: { argb: "FFFFFFFF" } };
     hdr.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FF334155" } };
@@ -169,8 +169,8 @@ export default function JournalPage() {
         employe: log.user_name,
         email:   log.user_email,
         action:  log.action_label,
-        details: log.description + (log.target_user_email && log.target_user_email !== log.user_email ? ` â†’ ${log.target_user_email}` : ""),
-        ip:      log.ip_address || "â€”",
+        details: log.description + (log.target_user_email && log.target_user_email !== log.user_email ? ` → ${log.target_user_email}` : ""),
+        ip:      log.ip_address || "—",
       });
       row.fill = {
         type: "pattern", pattern: "solid",
@@ -179,7 +179,7 @@ export default function JournalPage() {
     });
 
     // Lignes totales en bas
-    const totalRow = ws.addRow({ date: `Total : ${filtered.length} entrÃ©e(s)` });
+    const totalRow = ws.addRow({ date: `Total : ${filtered.length} entrée(s)` });
     totalRow.font = { bold: true, italic: true };
     totalRow.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FFFEF9C3" } };
 
@@ -204,9 +204,9 @@ export default function JournalPage() {
         <div className="flex items-center gap-3">
           <BookOpen className="h-7 w-7 text-yellow-500" />
           <div>
-            <h1 className="text-2xl font-bold">Journal des activitÃ©s</h1>
+            <h1 className="text-2xl font-bold">Journal des activités</h1>
             <p className="text-gray-500 text-sm">
-              Actions du back-office â€” {logs.length} entrÃ©e{logs.length !== 1 ? "s" : ""}
+              Actions du back-office — {logs.length} entrée{logs.length !== 1 ? "s" : ""}
             </p>
           </div>
         </div>
@@ -244,7 +244,7 @@ export default function JournalPage() {
           <AlertTriangle className="h-4 w-4" />
           <span>Erreur : {error}</span>
           <Button size="sm" variant="outline" onClick={loadLogs} className="ml-auto">
-            RÃ©essayer
+            Réessayer
           </Button>
         </div>
       )}
@@ -252,7 +252,7 @@ export default function JournalPage() {
       {loading && (
         <div className="text-center py-12">
           <Loader2 className="h-8 w-8 animate-spin text-yellow-500 mx-auto mb-2" />
-          <p className="text-gray-400 text-sm">Chargementâ€¦</p>
+          <p className="text-gray-400 text-sm">Chargement…</p>
         </div>
       )}
 
@@ -260,7 +260,7 @@ export default function JournalPage() {
         <Card>
           <CardContent className="py-12 text-center text-gray-400">
             <BookOpen className="h-12 w-12 mx-auto mb-3 opacity-30" />
-            <p className="font-medium">Aucune activitÃ© enregistrÃ©e</p>
+            <p className="font-medium">Aucune activité enregistrée</p>
           </CardContent>
         </Card>
       )}
@@ -271,9 +271,9 @@ export default function JournalPage() {
             <thead className="bg-gray-50 border-b">
               <tr>
                 <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide">Date</th>
-                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide">EmployÃ©</th>
+                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide">Employé</th>
                 <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide">Action</th>
-                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide">DÃ©tails</th>
+                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide">Détails</th>
                 <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide">IP</th>
               </tr>
             </thead>
@@ -300,11 +300,11 @@ export default function JournalPage() {
                   <td className="px-4 py-3">
                     <p className="text-gray-700">{log.description}</p>
                     {log.target_user_email && log.target_user_email !== log.user_email && (
-                      <p className="text-xs text-gray-400">â†’ {log.target_user_email}</p>
+                      <p className="text-xs text-gray-400">→ {log.target_user_email}</p>
                     )}
                   </td>
                   <td className="px-4 py-3 text-xs text-gray-400 font-mono">
-                    {log.ip_address || "â€”"}
+                    {log.ip_address || "—"}
                   </td>
                 </tr>
               ))}
