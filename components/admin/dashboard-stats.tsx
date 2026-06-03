@@ -254,45 +254,68 @@ export default function DashboardStatsComponent({ stats, analytics }: DashboardS
       </Card>
 
       {/* SAV — Service Après Vente */}
-      {stats.sav_stats && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Shield className="h-5 w-5 text-yellow-500" />
-              Service Après Vente (SAV)
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-              <div className="col-span-2 md:col-span-1 text-center p-4 bg-gray-50 rounded-lg border">
-                <p className="text-xs text-gray-500 mb-1">Total</p>
-                <p className="text-2xl font-bold text-gray-800">{stats.sav_stats.total}</p>
-                <p className="text-xs text-gray-400 mt-1">réclamations</p>
+      {stats.sav_stats && (() => {
+        const sav = stats.sav_stats!;
+        const resolutionRate = sav.total > 0 ? Math.round((sav.resolved / sav.total) * 100) : 0;
+        const segments = [
+          { label: "En attente",    value: sav.pending,    color: "bg-amber-400",   pct: sav.total > 0 ? (sav.pending    / sav.total) * 100 : 0 },
+          { label: "En traitement", value: sav.processing, color: "bg-blue-400",    pct: sav.total > 0 ? (sav.processing / sav.total) * 100 : 0 },
+          { label: "Résolus",       value: sav.resolved,   color: "bg-emerald-500", pct: sav.total > 0 ? (sav.resolved   / sav.total) * 100 : 0 },
+          { label: "Rejetés",       value: sav.rejected,   color: "bg-red-400",     pct: sav.total > 0 ? (sav.rejected   / sav.total) * 100 : 0 },
+        ];
+        return (
+          <Card className="border border-gray-200 shadow-sm">
+            <CardContent className="p-5">
+              {/* Header */}
+              <div className="flex items-center gap-2 mb-4">
+                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-yellow-100">
+                  <Shield className="h-4 w-4 text-yellow-600" />
+                </div>
+                <div>
+                  <p className="text-sm font-semibold text-gray-800">Service Après Vente</p>
+                  <p className="text-xs text-gray-400">Suivi des réclamations clients</p>
+                </div>
               </div>
-              <div className="text-center p-4 bg-yellow-50 rounded-lg border border-yellow-200">
-                <Clock className="h-4 w-4 text-yellow-500 mx-auto mb-1" />
-                <p className="text-xs text-yellow-700 mb-1">En attente</p>
-                <p className="text-xl font-bold text-yellow-600">{stats.sav_stats.pending}</p>
+
+              {/* KPIs */}
+              <div className="grid grid-cols-3 gap-3 mb-4">
+                <div className="rounded-xl bg-gray-50 border border-gray-100 px-3 py-2.5">
+                  <p className="text-[11px] text-gray-400 mb-0.5">Total</p>
+                  <p className="text-2xl font-bold text-gray-900">{sav.total}</p>
+                </div>
+                <div className="rounded-xl bg-emerald-50 border border-emerald-100 px-3 py-2.5">
+                  <p className="text-[11px] text-emerald-600 font-medium mb-0.5">Résolution</p>
+                  <p className="text-2xl font-bold text-emerald-700">{resolutionRate}<span className="text-base">%</span></p>
+                </div>
+                <div className="rounded-xl bg-amber-50 border border-amber-100 px-3 py-2.5">
+                  <p className="text-[11px] text-amber-600 font-medium mb-0.5">En cours</p>
+                  <p className="text-2xl font-bold text-amber-700">{sav.pending + sav.processing}</p>
+                </div>
               </div>
-              <div className="text-center p-4 bg-blue-50 rounded-lg border border-blue-200">
-                <TrendingUp className="h-4 w-4 text-blue-500 mx-auto mb-1" />
-                <p className="text-xs text-blue-700 mb-1">En traitement</p>
-                <p className="text-xl font-bold text-blue-600">{stats.sav_stats.processing}</p>
+
+              {/* Progress bar */}
+              <div className="flex h-2 w-full overflow-hidden rounded-full bg-gray-100 mb-3">
+                {segments.map((s) => s.pct > 0 && (
+                  <div key={s.label} className={`${s.color} h-full`} style={{ width: `${s.pct}%` }} />
+                ))}
               </div>
-              <div className="text-center p-4 bg-green-50 rounded-lg border border-green-200">
-                <CheckCircle className="h-4 w-4 text-green-500 mx-auto mb-1" />
-                <p className="text-xs text-green-700 mb-1">Résolus</p>
-                <p className="text-xl font-bold text-green-600">{stats.sav_stats.resolved}</p>
+
+              {/* Legend */}
+              <div className="grid grid-cols-2 gap-x-4 gap-y-1.5">
+                {segments.map((s) => (
+                  <div key={s.label} className="flex items-center justify-between">
+                    <div className="flex items-center gap-1.5">
+                      <span className={`h-2 w-2 rounded-full ${s.color}`} />
+                      <span className="text-xs text-gray-500">{s.label}</span>
+                    </div>
+                    <span className="text-xs font-semibold text-gray-700">{s.value}</span>
+                  </div>
+                ))}
               </div>
-              <div className="text-center p-4 bg-red-50 rounded-lg border border-red-200">
-                <XCircle className="h-4 w-4 text-red-500 mx-auto mb-1" />
-                <p className="text-xs text-red-700 mb-1">Rejetés</p>
-                <p className="text-xl font-bold text-red-600">{stats.sav_stats.rejected}</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      )}
+            </CardContent>
+          </Card>
+        );
+      })()}
     </div>
   )
 }

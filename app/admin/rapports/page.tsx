@@ -387,57 +387,88 @@ export default function RapportsPage() {
       </div>
 
       {/* SAV Stats */}
-      {reportsData.sav_stats && (
-        <div>
-          <h2 className="text-lg font-semibold text-gray-800 mb-3 flex items-center gap-2">
-            <Shield className="h-5 w-5 text-yellow-500" /> Service Après Vente
-          </h2>
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-            <Card className="col-span-2 md:col-span-1">
-              <CardContent className="pt-4 text-center">
-                <p className="text-xs text-gray-500 mb-1">Total réclamations</p>
-                <p className="text-2xl font-bold text-gray-800">{reportsData.sav_stats.total}</p>
-                <p className="text-xs text-gray-400 mt-1">depuis le début</p>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardContent className="pt-4 text-center">
-                <p className="text-xs text-gray-500 mb-1">Ce mois</p>
-                <p className="text-2xl font-bold text-blue-600">{reportsData.sav_stats.this_month}</p>
-                <p className="text-xs text-gray-400 mt-1">nouvelles</p>
-              </CardContent>
-            </Card>
-            <Card className="border-yellow-200 bg-yellow-50">
-              <CardContent className="pt-4 text-center">
-                <Clock className="h-4 w-4 text-yellow-500 mx-auto mb-1" />
-                <p className="text-xs text-yellow-700 mb-1">En attente</p>
-                <p className="text-xl font-bold text-yellow-600">{reportsData.sav_stats.pending}</p>
-              </CardContent>
-            </Card>
-            <Card className="border-blue-200 bg-blue-50">
-              <CardContent className="pt-4 text-center">
-                <RefreshCw className="h-4 w-4 text-blue-500 mx-auto mb-1" />
-                <p className="text-xs text-blue-700 mb-1">En traitement</p>
-                <p className="text-xl font-bold text-blue-600">{reportsData.sav_stats.processing}</p>
-              </CardContent>
-            </Card>
-            <Card className="border-green-200 bg-green-50">
-              <CardContent className="pt-4 text-center">
-                <CheckCircle className="h-4 w-4 text-green-500 mx-auto mb-1" />
-                <p className="text-xs text-green-700 mb-1">Résolus</p>
-                <p className="text-xl font-bold text-green-600">{reportsData.sav_stats.resolved}</p>
-              </CardContent>
-            </Card>
-            <Card className="border-red-200 bg-red-50">
-              <CardContent className="pt-4 text-center">
-                <XCircle className="h-4 w-4 text-red-500 mx-auto mb-1" />
-                <p className="text-xs text-red-700 mb-1">Rejetés</p>
-                <p className="text-xl font-bold text-red-600">{reportsData.sav_stats.rejected}</p>
-              </CardContent>
-            </Card>
-          </div>
-        </div>
-      )}
+      {reportsData.sav_stats && (() => {
+        const sav = reportsData.sav_stats!;
+        const resolutionRate = sav.total > 0 ? Math.round((sav.resolved / sav.total) * 100) : 0;
+        const activeRate     = sav.total > 0 ? Math.round(((sav.pending + sav.processing) / sav.total) * 100) : 0;
+        const segments = [
+          { label: "En attente",    value: sav.pending,    color: "bg-amber-400",  pct: sav.total > 0 ? (sav.pending    / sav.total) * 100 : 0 },
+          { label: "En traitement", value: sav.processing, color: "bg-blue-400",   pct: sav.total > 0 ? (sav.processing / sav.total) * 100 : 0 },
+          { label: "Résolus",       value: sav.resolved,   color: "bg-emerald-500",pct: sav.total > 0 ? (sav.resolved   / sav.total) * 100 : 0 },
+          { label: "Rejetés",       value: sav.rejected,   color: "bg-red-400",    pct: sav.total > 0 ? (sav.rejected   / sav.total) * 100 : 0 },
+        ];
+        return (
+          <Card className="border border-gray-200 shadow-sm">
+            <CardContent className="p-6">
+              {/* Header */}
+              <div className="flex items-center justify-between mb-5">
+                <div className="flex items-center gap-2">
+                  <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-yellow-100">
+                    <Shield className="h-4 w-4 text-yellow-600" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-semibold text-gray-800">Service Après Vente</p>
+                    <p className="text-xs text-gray-400">Suivi des réclamations clients</p>
+                  </div>
+                </div>
+                <div className="text-right">
+                  <p className="text-xs text-gray-400">Ce mois</p>
+                  <p className="text-lg font-bold text-gray-800">
+                    +{sav.this_month}
+                    <span className="text-xs font-normal text-gray-400 ml-1">nouvelle{sav.this_month > 1 ? "s" : ""}</span>
+                  </p>
+                </div>
+              </div>
+
+              {/* KPIs row */}
+              <div className="grid grid-cols-3 gap-4 mb-5">
+                <div className="rounded-xl bg-gray-50 border border-gray-100 px-4 py-3">
+                  <p className="text-xs text-gray-500 mb-1">Total réclamations</p>
+                  <p className="text-3xl font-bold text-gray-900">{sav.total}</p>
+                  <p className="text-xs text-gray-400 mt-0.5">depuis le début</p>
+                </div>
+                <div className="rounded-xl bg-emerald-50 border border-emerald-100 px-4 py-3">
+                  <p className="text-xs text-emerald-600 mb-1 font-medium">Taux de résolution</p>
+                  <p className="text-3xl font-bold text-emerald-700">{resolutionRate}<span className="text-lg">%</span></p>
+                  <p className="text-xs text-emerald-500 mt-0.5">{sav.resolved} cas résolus</p>
+                </div>
+                <div className="rounded-xl bg-amber-50 border border-amber-100 px-4 py-3">
+                  <p className="text-xs text-amber-600 mb-1 font-medium">En cours de traitement</p>
+                  <p className="text-3xl font-bold text-amber-700">{sav.pending + sav.processing}</p>
+                  <p className="text-xs text-amber-500 mt-0.5">{activeRate}% du total</p>
+                </div>
+              </div>
+
+              {/* Stacked progress bar */}
+              <div className="mb-3">
+                <div className="flex h-2.5 w-full overflow-hidden rounded-full bg-gray-100">
+                  {segments.map((s) => s.pct > 0 && (
+                    <div key={s.label} className={`${s.color} h-full transition-all`} style={{ width: `${s.pct}%` }} />
+                  ))}
+                </div>
+              </div>
+
+              {/* Legend */}
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                {segments.map((s) => (
+                  <div key={s.label} className="flex items-center gap-2">
+                    <span className={`h-2.5 w-2.5 rounded-full flex-shrink-0 ${s.color}`} />
+                    <div className="min-w-0">
+                      <p className="text-xs text-gray-500 truncate">{s.label}</p>
+                      <p className="text-sm font-semibold text-gray-800">
+                        {s.value}
+                        <span className="text-xs font-normal text-gray-400 ml-1">
+                          ({s.pct.toFixed(0)}%)
+                        </span>
+                      </p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        );
+      })()}
 
       {/* Top produits et clients */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
