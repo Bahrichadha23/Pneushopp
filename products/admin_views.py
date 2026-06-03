@@ -208,6 +208,16 @@ def admin_dashboard_stats(request):
         'max_price': float(price_agg['max_price'] or 0),
     }
 
+    # SAV stats
+    from orders.models import WarrantyClaim
+    sav_stats = {
+        'total':      WarrantyClaim.objects.count(),
+        'pending':    WarrantyClaim.objects.filter(status='pending').count(),
+        'processing': WarrantyClaim.objects.filter(status='processing').count(),
+        'resolved':   WarrantyClaim.objects.filter(status='resolved').count(),
+        'rejected':   WarrantyClaim.objects.filter(status='rejected').count(),
+    }
+
     return Response({
         'total_products': total_products,
         'active_products': active_products,
@@ -225,6 +235,7 @@ def admin_dashboard_stats(request):
         'low_stock_products': low_stock_count,
         'low_stock_details': low_stock_details,
         'price_stats': price_stats,
+        'sav_stats': sav_stats,
     })
 
 
@@ -341,6 +352,17 @@ def reports_data(request):
             'total':     float(r['total'] or 0),
         })
 
+    # SAV stats
+    from orders.models import WarrantyClaim
+    sav_stats = {
+        'total':      WarrantyClaim.objects.count(),
+        'pending':    WarrantyClaim.objects.filter(status='pending').count(),
+        'processing': WarrantyClaim.objects.filter(status='processing').count(),
+        'resolved':   WarrantyClaim.objects.filter(status='resolved').count(),
+        'rejected':   WarrantyClaim.objects.filter(status='rejected').count(),
+        'this_month': WarrantyClaim.objects.filter(created_at__gte=month_start).count(),
+    }
+
     return Response({
         'stats_ventes': {
             'ventes_jour':        float(ventes_jour),
@@ -358,6 +380,7 @@ def reports_data(request):
         'ventes_par_mois': ventes_par_mois,
         'top_produits':    top_produits,
         'top_clients':     top_clients,
+        'sav_stats':       sav_stats,
     })
 
 

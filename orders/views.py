@@ -432,6 +432,12 @@ def warranty_claim_view(request):
     if not order_id:
         return Response({'error': 'order requis'}, status=400)
 
+    # Validate required files
+    if 'invoice_photo' not in files:
+        return Response({'invoice_photo': ['La photo de facture est obligatoire.']}, status=400)
+    if 'tire_video' not in files:
+        return Response({'tire_video': ['La vidéo du pneu est obligatoire.']}, status=400)
+
     try:
         order = Order.objects.get(pk=order_id, user=request.user)
     except Order.DoesNotExist:
@@ -451,14 +457,19 @@ def warranty_claim_view(request):
         description=data.get('description', ''),
         created_by=request.user,
     )
-    if 'invoice_photo' in files:
-        claim.invoice_photo = files['invoice_photo']
-    if 'tire_video' in files:
-        claim.tire_video = files['tire_video']
-    claim.save()
+    claim.invoice_photo = files['invoice_photo']
+    claim.tire_video = files['tire_video']
+
+    try:
+        claim.save()
+    except Exception as e:
+        return Response({'error': f'Erreur lors de l\'enregistrement: {str(e)}'}, status=500)
 
     for img_file in files.getlist('tire_images'):
-        WarrantyClaimTireImage.objects.create(claim=claim, image=img_file)
+        try:
+            WarrantyClaimTireImage.objects.create(claim=claim, image=img_file)
+        except Exception:
+            pass  # tire images are optional; don't fail the whole claim
 
     return Response(_serialize_claim(claim, request), status=201)
 
