@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useState, useMemo, useCallback } from "react";
 import { Card, CardContent } from "@/components/ui/card";
@@ -13,16 +13,16 @@ import type { StockMovement } from "@/types/admin";
 import { API_URL } from "@/lib/config";
 import ExcelJS from "exceljs";
 
-// ── Types ────────────────────────────────────────────────────────────────────
+// â”€â”€ Types â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 interface StockMovementsProps {
   movements: StockMovement[];
   onAddMovement: (m: Omit<StockMovement, "id" | "createdAt">) => Promise<void>;
 }
 
 const TYPE_CONFIG = {
-  in:         { label: "Entrée",      color: "bg-green-100 text-green-700 border-green-200", dot: "bg-green-500",  sign: "+", textColor: "text-green-700" },
-  out:        { label: "Sortie",       color: "bg-red-100 text-red-700 border-red-200",      dot: "bg-red-500",    sign: "−", textColor: "text-red-700"   },
-  adjustment: { label: "Ajustement",  color: "bg-blue-100 text-blue-700 border-blue-200",   dot: "bg-blue-500",   sign: "±", textColor: "text-blue-700"  },
+  in:         { label: "EntrÃ©e",      color: "bg-green-100 text-green-700 border-green-200", dot: "bg-green-500",  sign: "+", textColor: "text-green-700" },
+  out:        { label: "Sortie",       color: "bg-red-100 text-brand-red border-red-200",      dot: "bg-brand-red",    sign: "âˆ’", textColor: "text-brand-red"   },
+  adjustment: { label: "Ajustement",  color: "bg-blue-100 text-brand-blue border-blue-200",   dot: "bg-brand-blue",   sign: "Â±", textColor: "text-brand-blue"  },
   return:     { label: "Avoir/Retour",color: "bg-purple-100 text-purple-700 border-purple-200", dot: "bg-purple-500", sign: "+", textColor: "text-purple-700" },
 } as const;
 
@@ -30,13 +30,13 @@ type MvtType = keyof typeof TYPE_CONFIG;
 
 const fmtDate = (d: Date | string) => {
   const dt = d instanceof Date ? d : new Date(d);
-  return isNaN(dt.getTime()) ? "—" : new Intl.DateTimeFormat("fr-FR", {
+  return isNaN(dt.getTime()) ? "â€”" : new Intl.DateTimeFormat("fr-FR", {
     day: "2-digit", month: "2-digit", year: "numeric",
     hour: "2-digit", minute: "2-digit",
   }).format(dt);
 };
 
-// ── Main component ────────────────────────────────────────────────────────────
+// â”€â”€ Main component â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 export default function StockMovements({ movements, onAddMovement }: StockMovementsProps) {
   const [search, setSearch]         = useState("");
   const [typeFilter, setTypeFilter] = useState<string>("all");
@@ -81,19 +81,19 @@ export default function StockMovements({ movements, onAddMovement }: StockMoveme
     setTimeout(() => setToast(null), 3500);
   };
 
-  // ── KPIs (fixed) ──────────────────────────────────────────────────────────
+  // â”€â”€ KPIs (fixed) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   const kpis = useMemo(() => {
-    const entrées   = movements.filter(m => m.type === "in" || (m.type as string) === "return")
+    const entrÃ©es   = movements.filter(m => m.type === "in" || (m.type as string) === "return")
                                .reduce((s, m) => s + Number(m.quantity), 0);
     const sorties   = movements.filter(m => m.type === "out")
                                .reduce((s, m) => s + Number(m.quantity), 0);
     const ajust     = movements.filter(m => m.type === "adjustment").length;
     const retours   = movements.filter(m => (m.type as string) === "return")
                                .reduce((s, m) => s + Number(m.quantity), 0);
-    return { entrées, sorties, ajust, retours, net: entrées - sorties };
+    return { entrÃ©es, sorties, ajust, retours, net: entrÃ©es - sorties };
   }, [movements]);
 
-  // ── Filtered list ─────────────────────────────────────────────────────────
+  // â”€â”€ Filtered list â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   const filtered = useMemo(() => {
     return movements.filter(m => {
       const name = (m.product_name || "").toLowerCase();
@@ -110,7 +110,7 @@ export default function StockMovements({ movements, onAddMovement }: StockMoveme
     });
   }, [movements, search, typeFilter, dateFrom, dateTo]);
 
-  // ── Product autocomplete filtered ─────────────────────────────────────────
+  // â”€â”€ Product autocomplete filtered â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   const productOptions = useMemo(() => {
     if (!productSearch) return products.slice(0, 20);
     const q = productSearch.toLowerCase();
@@ -119,10 +119,10 @@ export default function StockMovements({ movements, onAddMovement }: StockMoveme
     ).slice(0, 20);
   }, [products, productSearch]);
 
-  // ── Submit form ────────────────────────────────────────────────────────────
+  // â”€â”€ Submit form â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   const handleSubmit = async () => {
     if (!form.productId || !form.quantity || !form.reason) {
-      showToast("Produit, quantité et raison sont requis.", false);
+      showToast("Produit, quantitÃ© et raison sont requis.", false);
       return;
     }
     setSaving(true);
@@ -136,7 +136,7 @@ export default function StockMovements({ movements, onAddMovement }: StockMoveme
         reference: form.reference,
         createdBy: "Admin",
       });
-      showToast("Mouvement enregistré avec succès.");
+      showToast("Mouvement enregistrÃ© avec succÃ¨s.");
       setForm({ productId: "", product_name: "", type: "in", quantity: "", reason: "", reference: "" });
       setProductSearch("");
       setShowForm(false);
@@ -147,7 +147,7 @@ export default function StockMovements({ movements, onAddMovement }: StockMoveme
     }
   };
 
-  // ── Export Excel ──────────────────────────────────────────────────────────
+  // â”€â”€ Export Excel â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   const handleExport = async () => {
     const wb = new ExcelJS.Workbook();
     const ws = wb.addWorksheet("Mouvements Stock");
@@ -155,9 +155,9 @@ export default function StockMovements({ movements, onAddMovement }: StockMoveme
       { header: "Date",      key: "date",    width: 20 },
       { header: "Produit",   key: "product", width: 32 },
       { header: "Type",      key: "type",    width: 16 },
-      { header: "Quantité",  key: "qty",     width: 12 },
+      { header: "QuantitÃ©",  key: "qty",     width: 12 },
       { header: "Raison",    key: "reason",  width: 30 },
-      { header: "Référence", key: "ref",     width: 18 },
+      { header: "RÃ©fÃ©rence", key: "ref",     width: 18 },
     ];
     ws.getRow(1).font = { bold: true };
     filtered.forEach(m => {
@@ -187,21 +187,21 @@ export default function StockMovements({ movements, onAddMovement }: StockMoveme
       {/* Toast */}
       {toast && (
         <div className={`fixed top-4 right-4 z-50 flex items-center gap-2 rounded-lg px-5 py-3 text-sm font-medium shadow-lg text-white
-          ${toast.ok ? "bg-green-600" : "bg-red-600"}`}>
+          ${toast.ok ? "bg-green-600" : "bg-brand-red"}`}>
           {toast.ok ? <Check className="h-4 w-4" /> : <AlertTriangle className="h-4 w-4" />}
           {toast.msg}
         </div>
       )}
 
-      {/* ── KPI Cards ──────────────────────────────────────────────────────── */}
+      {/* â”€â”€ KPI Cards â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <Card className="border-l-4 border-l-green-500">
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">Entrées</p>
-                <p className="text-3xl font-black text-green-600">+{kpis.entrées}</p>
-                <p className="text-xs text-gray-400 mt-0.5">unités reçues</p>
+                <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">EntrÃ©es</p>
+                <p className="text-3xl font-black text-green-600">+{kpis.entrÃ©es}</p>
+                <p className="text-xs text-gray-400 mt-0.5">unitÃ©s reÃ§ues</p>
               </div>
               <div className="rounded-xl bg-green-50 p-3">
                 <TrendingUp className="h-6 w-6 text-green-600" />
@@ -215,11 +215,11 @@ export default function StockMovements({ movements, onAddMovement }: StockMoveme
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">Sorties</p>
-                <p className="text-3xl font-black text-red-600">−{kpis.sorties}</p>
-                <p className="text-xs text-gray-400 mt-0.5">unités sorties</p>
+                <p className="text-3xl font-black text-brand-red">âˆ’{kpis.sorties}</p>
+                <p className="text-xs text-gray-400 mt-0.5">unitÃ©s sorties</p>
               </div>
               <div className="rounded-xl bg-red-50 p-3">
-                <TrendingDown className="h-6 w-6 text-red-600" />
+                <TrendingDown className="h-6 w-6 text-brand-red" />
               </div>
             </div>
           </CardContent>
@@ -245,26 +245,26 @@ export default function StockMovements({ movements, onAddMovement }: StockMoveme
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">Stock net</p>
-                <p className={`text-3xl font-black ${kpis.net >= 0 ? "text-gray-900" : "text-red-600"}`}>
+                <p className={`text-3xl font-black ${kpis.net >= 0 ? "text-gray-900" : "text-brand-red"}`}>
                   {kpis.net >= 0 ? "+" : ""}{kpis.net}
                 </p>
-                <p className="text-xs text-gray-400 mt-0.5">entrées − sorties</p>
+                <p className="text-xs text-gray-400 mt-0.5">entrÃ©es âˆ’ sorties</p>
               </div>
               <div className="rounded-xl bg-yellow-50 p-3">
-                <Package className="h-6 w-6 text-yellow-600" />
+                <Package className="h-6 w-6 text-brand-gold" />
               </div>
             </div>
           </CardContent>
         </Card>
       </div>
 
-      {/* ── Toolbar ────────────────────────────────────────────────────────── */}
+      {/* â”€â”€ Toolbar â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
       <div className="flex flex-wrap gap-3 items-center bg-white rounded-xl border border-gray-100 shadow-sm px-4 py-3">
         {/* Search */}
         <div className="relative flex-1 min-w-[200px]">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
           <Input
-            placeholder="Produit, raison, référence…"
+            placeholder="Produit, raison, rÃ©fÃ©renceâ€¦"
             value={search}
             onChange={e => setSearch(e.target.value)}
             className="pl-9"
@@ -275,10 +275,10 @@ export default function StockMovements({ movements, onAddMovement }: StockMoveme
         <select
           value={typeFilter}
           onChange={e => setTypeFilter(e.target.value)}
-          className="rounded-lg border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-yellow-400"
+          className="rounded-lg border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-orange"
         >
           <option value="all">Tous les types</option>
-          <option value="in">Entrées</option>
+          <option value="in">EntrÃ©es</option>
           <option value="out">Sorties</option>
           <option value="adjustment">Ajustements</option>
           <option value="return">Avoirs/Retours</option>
@@ -287,12 +287,12 @@ export default function StockMovements({ movements, onAddMovement }: StockMoveme
         {/* Date range */}
         <input
           type="date" value={dateFrom} onChange={e => setDateFrom(e.target.value)}
-          className="rounded-lg border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-yellow-400"
+          className="rounded-lg border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-orange"
         />
-        <span className="text-gray-400 text-sm">→</span>
+        <span className="text-gray-400 text-sm">â†’</span>
         <input
           type="date" value={dateTo} onChange={e => setDateTo(e.target.value)}
-          className="rounded-lg border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-yellow-400"
+          className="rounded-lg border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-orange"
         />
 
         {(search || typeFilter !== "all" || dateFrom || dateTo) && (
@@ -316,7 +316,7 @@ export default function StockMovements({ movements, onAddMovement }: StockMoveme
         </div>
       </div>
 
-      {/* ── Add movement form ──────────────────────────────────────────────── */}
+      {/* â”€â”€ Add movement form â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
       {showForm && (
         <Card className="border-2 border-yellow-300 shadow-md">
           <CardContent className="p-6 space-y-4">
@@ -337,8 +337,8 @@ export default function StockMovements({ movements, onAddMovement }: StockMoveme
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
                   <input
                     type="text"
-                    className="w-full pl-9 pr-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-yellow-400"
-                    placeholder="Rechercher un produit par nom ou référence…"
+                    className="w-full pl-9 pr-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-orange"
+                    placeholder="Rechercher un produit par nom ou rÃ©fÃ©renceâ€¦"
                     value={form.productId ? form.product_name : productSearch}
                     onChange={e => {
                       setProductSearch(e.target.value);
@@ -373,7 +373,7 @@ export default function StockMovements({ movements, onAddMovement }: StockMoveme
                           {p.reference && <span className="ml-2 text-xs text-gray-400 font-mono">{p.reference}</span>}
                         </div>
                         {p.stock !== undefined && (
-                          <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${p.stock > 0 ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"}`}>
+                          <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${p.stock > 0 ? "bg-green-100 text-green-700" : "bg-red-100 text-brand-red"}`}>
                             Stock: {p.stock}
                           </span>
                         )}
@@ -408,7 +408,7 @@ export default function StockMovements({ movements, onAddMovement }: StockMoveme
               {/* Quantity */}
               <div>
                 <label className="block text-xs font-semibold text-gray-600 mb-1 uppercase tracking-wide">
-                  Quantité <span className="text-red-500">*</span>
+                  QuantitÃ© <span className="text-red-500">*</span>
                 </label>
                 <Input
                   type="number" min={1}
@@ -426,19 +426,19 @@ export default function StockMovements({ movements, onAddMovement }: StockMoveme
                 <Input
                   value={form.reason}
                   onChange={e => setForm(f => ({ ...f, reason: e.target.value }))}
-                  placeholder="Ex: Réception fournisseur, Inventaire…"
+                  placeholder="Ex: RÃ©ception fournisseur, Inventaireâ€¦"
                 />
               </div>
 
               {/* Reference */}
               <div>
                 <label className="block text-xs font-semibold text-gray-600 mb-1 uppercase tracking-wide">
-                  Référence (optionnel)
+                  RÃ©fÃ©rence (optionnel)
                 </label>
                 <Input
                   value={form.reference}
                   onChange={e => setForm(f => ({ ...f, reference: e.target.value }))}
-                  placeholder="N° bon de commande, facture…"
+                  placeholder="NÂ° bon de commande, factureâ€¦"
                 />
               </div>
             </div>
@@ -451,7 +451,7 @@ export default function StockMovements({ movements, onAddMovement }: StockMoveme
                 className="bg-gray-900 text-white hover:bg-gray-800 gap-2"
               >
                 {saving
-                  ? <><div className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" /> Enregistrement…</>
+                  ? <><div className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" /> Enregistrementâ€¦</>
                   : <><Check className="h-4 w-4" /> Enregistrer</>}
               </Button>
             </div>
@@ -459,15 +459,15 @@ export default function StockMovements({ movements, onAddMovement }: StockMoveme
         </Card>
       )}
 
-      {/* ── Summary bar ────────────────────────────────────────────────────── */}
+      {/* â”€â”€ Summary bar â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
       <div className="flex items-center justify-between bg-gray-50 border rounded-lg px-4 py-2 text-sm">
         <span className="text-gray-600">
-          <span className="font-semibold text-gray-900">{filtered.length}</span> mouvement{filtered.length !== 1 ? "s" : ""} affiché{filtered.length !== 1 ? "s" : ""}
+          <span className="font-semibold text-gray-900">{filtered.length}</span> mouvement{filtered.length !== 1 ? "s" : ""} affichÃ©{filtered.length !== 1 ? "s" : ""}
         </span>
         <span className="text-gray-500">{movements.length} au total</span>
       </div>
 
-      {/* ── Table ──────────────────────────────────────────────────────────── */}
+      {/* â”€â”€ Table â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
       <Card className="overflow-hidden shadow-sm">
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
@@ -476,9 +476,9 @@ export default function StockMovements({ movements, onAddMovement }: StockMoveme
                 <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">Date</th>
                 <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">Produit</th>
                 <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">Type</th>
-                <th className="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wide text-gray-500">Quantité</th>
+                <th className="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wide text-gray-500">QuantitÃ©</th>
                 <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">Raison</th>
-                <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">Référence</th>
+                <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">RÃ©fÃ©rence</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-50">
@@ -486,7 +486,7 @@ export default function StockMovements({ movements, onAddMovement }: StockMoveme
                 <tr>
                   <td colSpan={6} className="text-center py-16 text-gray-400">
                     <Package className="h-10 w-10 mx-auto mb-3 opacity-30" />
-                    <p className="font-medium">Aucun mouvement trouvé</p>
+                    <p className="font-medium">Aucun mouvement trouvÃ©</p>
                     <p className="text-xs mt-1">Modifiez vos filtres ou ajoutez un mouvement</p>
                   </td>
                 </tr>
@@ -499,7 +499,7 @@ export default function StockMovements({ movements, onAddMovement }: StockMoveme
                         {fmtDate(m.createdAt)}
                       </td>
                       <td className="px-4 py-3">
-                        <span className="font-medium text-gray-900">{m.product_name || "—"}</span>
+                        <span className="font-medium text-gray-900">{m.product_name || "â€”"}</span>
                       </td>
                       <td className="px-4 py-3">
                         <span className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-xs font-semibold ${c.color}`}>
@@ -510,11 +510,11 @@ export default function StockMovements({ movements, onAddMovement }: StockMoveme
                       <td className={`px-4 py-3 text-right font-bold text-base ${c.textColor}`}>
                         {c.sign}{m.quantity}
                       </td>
-                      <td className="px-4 py-3 text-gray-600 max-w-xs truncate">{m.reason || "—"}</td>
+                      <td className="px-4 py-3 text-gray-600 max-w-xs truncate">{m.reason || "â€”"}</td>
                       <td className="px-4 py-3">
                         {m.reference
                           ? <span className="font-mono text-xs bg-gray-100 rounded px-2 py-0.5">{m.reference}</span>
-                          : <span className="text-gray-300">—</span>}
+                          : <span className="text-gray-300">â€”</span>}
                       </td>
                     </tr>
                   );

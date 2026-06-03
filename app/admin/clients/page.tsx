@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -28,7 +28,7 @@ export default function ClientsPage() {
     router.push("/admin"); // or show "Access Denied"
     return null;
   }
-  const [clients, setClients] = useState<any[]>([]); // 👈 start empty
+  const [clients, setClients] = useState<any[]>([]); // ðŸ‘ˆ start empty
   const [searchTerm, setSearchTerm] = useState("");
   const [typeFilter, setTypeFilter] = useState("tous");
   const [selectedClient, setSelectedClient] = useState<any>(null);
@@ -57,7 +57,7 @@ export default function ClientsPage() {
         const data = await res.json();
         console.log("All users:", data);
 
-        // ✅ Filter only users with role = "customer"
+        // âœ… Filter only users with role = "customer"
         // const customers = data.filter((user) => user.role === "customer");
         const customers = data.filter(
           (user: { role: string }) => user.role === "customer"
@@ -103,14 +103,14 @@ export default function ClientsPage() {
     ws.columns = [
       { header: "Nom", key: "nom", width: 25 },
       { header: "Email", key: "email", width: 30 },
-      { header: "Téléphone", key: "phone", width: 16 },
+      { header: "TÃ©lÃ©phone", key: "phone", width: 16 },
       { header: "Adresse", key: "adresse", width: 40 },
       { header: "Type", key: "type", width: 16 },
       { header: "Date d'inscription", key: "inscription", width: 20 },
       { header: "Commandes", key: "commandes", width: 12 },
       { header: "CA Total (DT)", key: "ca", width: 16 },
-      { header: "Dernière commande", key: "derniere", width: 20 },
-      { header: "Vérifié", key: "verifie", width: 10 },
+      { header: "DerniÃ¨re commande", key: "derniere", width: 20 },
+      { header: "VÃ©rifiÃ©", key: "verifie", width: 10 },
     ];
     ws.getRow(1).font = { bold: true, color: { argb: "FFFFFFFF" } };
     ws.getRow(1).fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FF1E293B" } };
@@ -213,10 +213,10 @@ export default function ClientsPage() {
         <Card>
           <CardHeader className="flex justify-between items-center">
             <CardTitle className="text-sm font-medium">CA Total</CardTitle>
-            <span className="h-4 w-4 text-yellow-600 font-bold">DT</span>
+            <span className="h-4 w-4 text-brand-gold font-bold">DT</span>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-yellow-600">
+            <div className="text-2xl font-bold text-brand-gold">
               {formatCurrency(totalCA)}
             </div>
           </CardContent>
@@ -272,7 +272,7 @@ export default function ClientsPage() {
               </div>
               <div className="flex justify-between mt-1 text-xs text-gray-500">
                 <span>CA: {formatCurrency(client.montantTotal)}</span>
-                <span>Dernière: {client.derniereCommande}</span>
+                <span>DerniÃ¨re: {client.derniereCommande}</span>
               </div>
             </div>
             <div className="mt-2 flex justify-end">
@@ -281,7 +281,7 @@ export default function ClientsPage() {
                 variant="outline"
                 onClick={() => handleViewClient(client)}
               >
-                Voir détails
+                Voir dÃ©tails
               </Button>
             </div>
           </Card>
@@ -305,7 +305,7 @@ export default function ClientsPage() {
                   <TableHead>Inscription</TableHead>
                   <TableHead>Commandes</TableHead>
                   <TableHead>CA Total</TableHead>
-                  <TableHead>Dernière commande</TableHead>
+                  <TableHead>DerniÃ¨re commande</TableHead>
                   <TableHead>Actions</TableHead>
                 </TableRow>
               </TableHeader>
@@ -336,7 +336,7 @@ export default function ClientsPage() {
                     <TableCell className="text-center">
                       <Badge variant="outline">{client.totalCommandes}</Badge>
                     </TableCell>
-                    <TableCell className="font-medium text-yellow-600">
+                    <TableCell className="font-medium text-brand-gold">
                       {formatCurrency(client.montantTotal)}
                     </TableCell>
                     <TableCell>{client.derniereCommande}</TableCell>
@@ -346,7 +346,7 @@ export default function ClientsPage() {
                         variant="outline"
                         onClick={() => handleViewClient(client)}
                       >
-                        Voir détails
+                        Voir dÃ©tails
                       </Button>
                     </TableCell>
                   </TableRow>
@@ -362,14 +362,14 @@ export default function ClientsPage() {
           <div className="bg-white rounded-lg p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
             <div className="flex justify-between items-center mb-6">
               <h2 className="text-2xl font-bold text-gray-900">
-                Détails du client
+                DÃ©tails du client
               </h2>
               <Button
                 variant="outline"
                 size="sm"
                 onClick={handleCloseClientDetails}
               >
-                ✕
+                âœ•
               </Button>
             </div>
 
@@ -401,11 +401,11 @@ export default function ClientsPage() {
                   </div>
                   <div>
                     <label className="text-sm font-medium text-gray-500">
-                      Téléphone
+                      TÃ©lÃ©phone
                     </label>
                     <p className="flex items-center">
                       <Phone className="h-4 w-4 mr-2" />
-                      {selectedClient.telephone || "Non renseigné"}
+                      {selectedClient.telephone || "Non renseignÃ©"}
                     </p>
                   </div>
                   <div>
@@ -425,7 +425,7 @@ export default function ClientsPage() {
                 <CardContent>
                   <div className="flex items-start">
                     <MapPin className="h-4 w-4 mr-2 mt-1" />
-                    <p>{selectedClient.adresse || "Adresse non renseignée"}</p>
+                    <p>{selectedClient.adresse || "Adresse non renseignÃ©e"}</p>
                   </div>
                 </CardContent>
               </Card>
@@ -450,9 +450,9 @@ export default function ClientsPage() {
                     </label>
                     <p>
                       {selectedClient.is_verified ? (
-                        <Badge className="bg-yellow-500 text-black">Vérifié</Badge>
+                        <Badge className="bg-brand-orange text-black">VÃ©rifiÃ©</Badge>
                       ) : (
-                        <Badge variant="secondary">Non vérifié</Badge>
+                        <Badge variant="secondary">Non vÃ©rifiÃ©</Badge>
                       )}
                     </p>
                   </div>
@@ -479,13 +479,13 @@ export default function ClientsPage() {
                     <label className="text-sm font-medium text-gray-500">
                       Chiffre d'affaires total
                     </label>
-                    <p className="text-2xl font-bold text-yellow-600">
+                    <p className="text-2xl font-bold text-brand-gold">
                       {formatCurrency(selectedClient.montantTotal)}
                     </p>
                   </div>
                   <div>
                     <label className="text-sm font-medium text-gray-500">
-                      Dernière commande
+                      DerniÃ¨re commande
                     </label>
                     <p>{selectedClient.derniereCommande}</p>
                   </div>

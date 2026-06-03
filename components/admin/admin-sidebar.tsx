@@ -289,7 +289,7 @@ export default function AdminSidebar({
             level > 0 ? "pl-6" : "pl-3"
           } ${
             isActive(item.href || "")
-              ? "bg-yellow-100 text-yellow-800 hover:bg-yellow-200"
+              ? "bg-brand-blue-light text-brand-blue hover:bg-brand-blue-light/80 font-semibold"
               : "hover:bg-gray-100"
           } flex items-center justify-between`}
         >
@@ -299,12 +299,12 @@ export default function AdminSidebar({
           </div>
 
           {item.title === "Commandes en attente" && pendingCount > 0 && (
-            <span className="ml-1 inline-flex items-center justify-center px-2 py-0.5 text-xs font-bold leading-none text-red-100 bg-red-600 rounded-full">
+            <span className="ml-1 inline-flex items-center justify-center px-2 py-0.5 text-xs font-bold leading-none text-white bg-brand-red rounded-full">
               {pendingCount}
             </span>
           )}
           {item.title === "Bons de commande achat" && bonsCount > 0 && (
-            <span className="ml-1 inline-flex items-center justify-center px-2 py-0.5 text-xs font-bold leading-none text-red-100 bg-red-600 rounded-full">
+            <span className="ml-1 inline-flex items-center justify-center px-2 py-0.5 text-xs font-bold leading-none text-white bg-brand-red rounded-full">
               {bonsCount}
             </span>
           )}
@@ -325,7 +325,7 @@ export default function AdminSidebar({
         <div className="p-3 sticky top-0 bg-white z-10 border-b border-gray-100">
           <Image src="/logo.png" alt="Logo PneuShop" width={100} height={100} />
           {roleLabel && (
-            <p className="pl-2 pt-0.5 text-xs font-medium text-yellow-700 bg-yellow-50 rounded px-2 py-0.5 mt-1 inline-block">
+            <p className="pl-2 pt-0.5 text-xs font-medium text-brand-gold bg-brand-gold-light rounded px-2 py-0.5 mt-1 inline-block">
               {roleLabel}
             </p>
           )}

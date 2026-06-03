@@ -1,4 +1,4 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+﻿import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { TrendingUp, Package, Users, AlertTriangle, Star, Plus, Shield, Clock, CheckCircle, XCircle } from "lucide-react"
 import type { AdminStats } from "@/lib/services/admin"
@@ -73,7 +73,7 @@ export default function DashboardStatsComponent({ stats, analytics }: DashboardS
                 ventes: item.ventes,
                 commandes: item.commandes
               }))} 
-              title="Ventes hebdomadaires (8 dernières semaines)"
+              title="Ventes hebdomadaires (8 derniÃ¨res semaines)"
             />
           )}
           {analytics.ventes_par_mois && analytics.ventes_par_mois.length > 0 && (
@@ -120,7 +120,7 @@ export default function DashboardStatsComponent({ stats, analytics }: DashboardS
           <CardContent>
             <div className="text-2xl font-bold">{stats.total_customers}</div>
             <p className="text-xs text-muted-foreground">
-              Total des clients enregistrés
+              Total des clients enregistrÃ©s
             </p>
           </CardContent>
         </Card>
@@ -133,7 +133,7 @@ export default function DashboardStatsComponent({ stats, analytics }: DashboardS
           <CardContent>
             <div className="text-2xl font-bold text-orange-600">{stats.low_stock_products}</div>
             <p className="text-xs text-muted-foreground">
-              Produits nécessitant un réapprovisionnement
+              Produits nÃ©cessitant un rÃ©approvisionnement
             </p>
           </CardContent>
         </Card>
@@ -152,11 +152,11 @@ export default function DashboardStatsComponent({ stats, analytics }: DashboardS
         </Card>
       </div>
 
-      {/* Statistiques détaillées */}
+      {/* Statistiques dÃ©taillÃ©es */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <Card>
           <CardHeader>
-            <CardTitle>Produits par catégorie</CardTitle>
+            <CardTitle>Produits par catÃ©gorie</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="space-y-3">
@@ -172,7 +172,7 @@ export default function DashboardStatsComponent({ stats, analytics }: DashboardS
 
         <Card>
           <CardHeader>
-            <CardTitle>Stock élevé</CardTitle>
+            <CardTitle>Stock Ã©levÃ©</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="space-y-3">
@@ -187,7 +187,7 @@ export default function DashboardStatsComponent({ stats, analytics }: DashboardS
                     </p>
                   </div>
                   <Badge variant="outline" className="ml-2">
-                    {product.stock} unités
+                    {product.stock} unitÃ©s
                   </Badge>
                 </div>
               ))}
@@ -202,7 +202,7 @@ export default function DashboardStatsComponent({ stats, analytics }: DashboardS
           <CardHeader>
             <CardTitle className="flex items-center">
               <AlertTriangle className="h-5 w-5 text-orange-500 mr-2" />
-              Produits à réapprovisionner
+              Produits Ã  rÃ©approvisionner
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -233,7 +233,7 @@ export default function DashboardStatsComponent({ stats, analytics }: DashboardS
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="text-center p-4 bg-blue-50 rounded-lg">
               <p className="text-sm text-gray-600">Prix moyen</p>
-              <p className="text-xl font-bold text-blue-600">
+              <p className="text-xl font-bold text-brand-blue">
                 {formatCurrency(stats.price_stats?.avg_price || 0)}
               </p>
             </div>
@@ -253,7 +253,7 @@ export default function DashboardStatsComponent({ stats, analytics }: DashboardS
         </CardContent>
       </Card>
 
-      {/* SAV — Top produits réclamés */}
+      {/* SAV â€” Top produits rÃ©clamÃ©s */}
       {stats.sav_top_products && stats.sav_top_products.length > 0 && (() => {
         const topProds = stats.sav_top_products!;
         const sav = stats.sav_stats;
@@ -266,11 +266,11 @@ export default function DashboardStatsComponent({ stats, analytics }: DashboardS
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-2">
                   <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-yellow-100">
-                    <Shield className="h-4 w-4 text-yellow-600" />
+                    <Shield className="h-4 w-4 text-brand-gold" />
                   </div>
                   <div>
-                    <p className="text-sm font-semibold text-gray-800">SAV — Top produits réclamés</p>
-                    <p className="text-xs text-gray-400">Produits les plus réclamés</p>
+                    <p className="text-sm font-semibold text-gray-800">SAV â€” Top produits rÃ©clamÃ©s</p>
+                    <p className="text-xs text-gray-400">Produits les plus rÃ©clamÃ©s</p>
                   </div>
                 </div>
                 {sav && (
@@ -280,7 +280,7 @@ export default function DashboardStatsComponent({ stats, analytics }: DashboardS
                       <p className="text-base font-bold text-gray-800">{sav.total}</p>
                     </div>
                     <div>
-                      <p className="text-emerald-500">Résolution</p>
+                      <p className="text-emerald-500">RÃ©solution</p>
                       <p className="text-base font-bold text-emerald-600">{resolutionRate}%</p>
                     </div>
                     <div>
@@ -304,7 +304,7 @@ export default function DashboardStatsComponent({ stats, analytics }: DashboardS
                           <p className="text-xs font-medium text-gray-700 truncate">{p.produit}</p>
                         </div>
                         <div className="flex items-center gap-2 flex-shrink-0 ml-2 text-xs">
-                          <span className="text-gray-400">{resolvePct}% résolus</span>
+                          <span className="text-gray-400">{resolvePct}% rÃ©solus</span>
                           <span className="font-bold text-gray-800">{p.reclamations}</span>
                         </div>
                       </div>
@@ -319,7 +319,7 @@ export default function DashboardStatsComponent({ stats, analytics }: DashboardS
 
               <div className="mt-3 flex items-center gap-3 text-[10px] text-gray-400">
                 <div className="flex items-center gap-1"><span className="h-1.5 w-3 rounded-full bg-red-300" />Total</div>
-                <div className="flex items-center gap-1"><span className="h-1.5 w-3 rounded-full bg-emerald-400" />Résolues</div>
+                <div className="flex items-center gap-1"><span className="h-1.5 w-3 rounded-full bg-emerald-400" />RÃ©solues</div>
               </div>
             </CardContent>
           </Card>

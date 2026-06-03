@@ -3,6 +3,32 @@
 
 @custom-variant dark (&:is(.dark *));
 
+/* ═══════════════════════════════════════════════════════════
+   CHARTE GRAPHIQUE PNEUSHOP
+   - Validation / Achat   → Orange  #FF8C00
+   - Navigation / Info    → Bleu    #0066CC
+   - Luxe / Qualité       → Or      #A68823
+   - Suppression / Rejet  → Rouge   #9B2226
+═══════════════════════════════════════════════════════════ */
+@theme {
+  /* Brand colors as Tailwind utilities */
+  --color-brand-orange:        #FF8C00;
+  --color-brand-orange-light:  #FFF3E0;
+  --color-brand-orange-dark:   #CC7000;
+
+  --color-brand-blue:          #0066CC;
+  --color-brand-blue-light:    #E3F0FF;
+  --color-brand-blue-dark:     #004E9E;
+
+  --color-brand-gold:          #A68823;
+  --color-brand-gold-light:    #FBF5E0;
+  --color-brand-gold-dark:     #7D6318;
+
+  --color-brand-red:           #9B2226;
+  --color-brand-red-light:     #F9E5E6;
+  --color-brand-red-dark:      #730019;
+}
+
 :root {
   --background: oklch(1 0 0);
   --foreground: oklch(0.145 0 0);

@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useState } from "react";
 import { useAuth } from "@/contexts/auth-context";
@@ -12,7 +12,7 @@ import {
 } from "lucide-react";
 import { API_URL } from "@/lib/config";
 
-/* ─── Types ─────────────────────────────────────────────── */
+/* â”€â”€â”€ Types â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 interface Claim {
   id: number;
   order_ref: string;
@@ -34,10 +34,10 @@ interface Claim {
 }
 
 const STATUS_COLORS: Record<string, string> = {
-  pending:    "bg-yellow-100 text-yellow-800 border border-yellow-300",
+  pending:    "bg-yellow-100 text-brand-gold border border-yellow-300",
   processing: "bg-gray-100 text-gray-700 border border-gray-300",
   resolved:   "bg-black text-white border border-black",
-  rejected:   "bg-yellow-50 text-yellow-900 border border-yellow-400 line-through",
+  rejected:   "bg-yellow-50 text-brand-gold-dark border border-brand-orange line-through",
 };
 const STATUS_ICONS: Record<string, React.ReactNode> = {
   pending:    <Clock className="h-3 w-3 mr-1" />,
@@ -49,8 +49,8 @@ const STATUS_OPTIONS = [
   { value: "",           label: "Tous les statuts" },
   { value: "pending",    label: "En attente" },
   { value: "processing", label: "En traitement" },
-  { value: "resolved",   label: "Résolues" },
-  { value: "rejected",   label: "Réclamations rejetées" },
+  { value: "resolved",   label: "RÃ©solues" },
+  { value: "rejected",   label: "RÃ©clamations rejetÃ©es" },
 ];
 
 function formatDate(iso: string) {
@@ -60,7 +60,7 @@ function formatDate(iso: string) {
   });
 }
 
-/* ═══════════════════════════════════════════════════════════ */
+/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
 export default function AdminSAVPage() {
   const { user } = useAuth();
   const [claims, setClaims]         = useState<Claim[]>([]);
@@ -147,13 +147,13 @@ export default function AdminSAVPage() {
 
   return (
     <div className="p-6 max-w-5xl mx-auto">
-      {/* En-tête */}
+      {/* En-tÃªte */}
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-3">
           <Shield className="h-7 w-7 text-yellow-500" />
           <div>
-            <h1 className="text-2xl font-bold">Service Après Vente</h1>
-            <p className="text-gray-500 text-sm">Réclamations clients sous garantie</p>
+            <h1 className="text-2xl font-bold">Service AprÃ¨s Vente</h1>
+            <p className="text-gray-500 text-sm">RÃ©clamations clients sous garantie</p>
           </div>
         </div>
         <div className="flex items-center gap-2">
@@ -174,10 +174,10 @@ export default function AdminSAVPage() {
       <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 mb-6">
         {[
           { label: "Total",           value: stats.total,      color: "bg-gray-100 text-gray-700" },
-          { label: "En attente",      value: stats.pending,    color: "bg-yellow-100 text-yellow-800 border border-yellow-200" },
+          { label: "En attente",      value: stats.pending,    color: "bg-yellow-100 text-brand-gold border border-yellow-200" },
           { label: "En traitement",   value: stats.processing, color: "bg-gray-100 text-gray-700 border border-gray-200" },
-          { label: "Résolus",         value: stats.resolved,   color: "bg-black text-white" },
-          { label: "Rejetés",         value: stats.rejected,   color: "bg-yellow-50 text-yellow-900 border border-yellow-300" },
+          { label: "RÃ©solus",         value: stats.resolved,   color: "bg-black text-white" },
+          { label: "RejetÃ©s",         value: stats.rejected,   color: "bg-yellow-50 text-brand-gold-dark border border-yellow-300" },
         ].map((s) => (
           <div key={s.label} className={`rounded-lg px-4 py-3 ${s.color}`}>
             <p className="text-2xl font-bold">{s.value}</p>
@@ -193,8 +193,8 @@ export default function AdminSAVPage() {
           <button key={opt.value} onClick={() => setFilterStatus(opt.value)}
             className={`px-3 py-1 rounded-full text-xs font-medium border transition-colors ${
               filterStatus === opt.value
-                ? "bg-yellow-400 border-yellow-400 text-black"
-                : "bg-white border-gray-300 text-gray-600 hover:border-yellow-400"
+                ? "bg-brand-orange border-brand-orange text-black"
+                : "bg-white border-gray-300 text-gray-600 hover:border-brand-orange"
             }`}>
             {opt.label}
           </button>
@@ -205,21 +205,21 @@ export default function AdminSAVPage() {
         <div className="bg-gray-100 border border-gray-300 text-gray-700 rounded-lg px-4 py-3 mb-4 flex items-center gap-2">
           <AlertTriangle className="h-4 w-4 flex-shrink-0" />
           <span>Erreur : {fetchError}</span>
-          <Button size="sm" variant="outline" onClick={loadClaims} className="ml-auto">Réessayer</Button>
+          <Button size="sm" variant="outline" onClick={loadClaims} className="ml-auto">RÃ©essayer</Button>
         </div>
       )}
 
       {loading && (
         <div className="text-center py-12">
           <Loader2 className="h-8 w-8 animate-spin text-yellow-500 mx-auto mb-2" />
-          <p className="text-gray-400 text-sm">Chargement…</p>
+          <p className="text-gray-400 text-sm">Chargementâ€¦</p>
         </div>
       )}
 
       {!loading && !fetchError && filteredClaims.length === 0 && (
         <Card><CardContent className="py-12 text-center text-gray-400">
           <Shield className="h-12 w-12 mx-auto mb-3 opacity-30" />
-          <p className="font-medium">Aucune réclamation{filterStatus ? " pour ce statut" : ""}</p>
+          <p className="font-medium">Aucune rÃ©clamation{filterStatus ? " pour ce statut" : ""}</p>
         </CardContent></Card>
       )}
 
@@ -241,7 +241,7 @@ export default function AdminSAVPage() {
                     </span>
                     <div>
                       <p className="font-medium text-sm">{claim.first_name} {claim.last_name}</p>
-                      <p className="text-xs text-gray-500">{claim.invoice_number || claim.order_ref || "—"} · {claim.order_item_name}</p>
+                      <p className="text-xs text-gray-500">{claim.invoice_number || claim.order_ref || "â€”"} Â· {claim.order_item_name}</p>
                     </div>
                   </div>
                   <div className="flex items-center gap-3">
@@ -259,22 +259,22 @@ export default function AdminSAVPage() {
                     <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 text-sm">
                       <div><p className="text-xs text-gray-400">Email</p><p>{claim.email}</p></div>
                       <div>
-                        <p className="text-xs text-gray-400">Réf. facture</p>
-                        <p className="font-mono">{claim.invoice_number || claim.order_ref || "—"}</p>
+                        <p className="text-xs text-gray-400">RÃ©f. facture</p>
+                        <p className="font-mono">{claim.invoice_number || claim.order_ref || "â€”"}</p>
                       </div>
                       <div><p className="text-xs text-gray-400">Article</p><p>{claim.order_item_name}</p></div>
                     </div>
 
-                    {/* Kilométrages */}
+                    {/* KilomÃ©trages */}
                     {(claim.mileage_at_purchase || claim.current_mileage) && (
                       <div className="grid grid-cols-2 gap-3 text-sm bg-white border border-gray-200 rounded-lg p-3">
                         <div>
-                          <p className="text-xs text-gray-400 font-medium">Kilométrage à l'achat</p>
-                          <p className="font-semibold">{claim.mileage_at_purchase || "—"}</p>
+                          <p className="text-xs text-gray-400 font-medium">KilomÃ©trage Ã  l'achat</p>
+                          <p className="font-semibold">{claim.mileage_at_purchase || "â€”"}</p>
                         </div>
                         <div>
-                          <p className="text-xs text-gray-400 font-medium">Kilométrage actuel</p>
-                          <p className="font-semibold">{claim.current_mileage || "—"}</p>
+                          <p className="text-xs text-gray-400 font-medium">KilomÃ©trage actuel</p>
+                          <p className="font-semibold">{claim.current_mileage || "â€”"}</p>
                         </div>
                       </div>
                     )}
@@ -287,18 +287,18 @@ export default function AdminSAVPage() {
                       </div>
                     )}
 
-                    {/* Pièces jointes — liens rapides */}
+                    {/* PiÃ¨ces jointes â€” liens rapides */}
                     <div className="flex gap-3 flex-wrap">
                       {claim.invoice_photo_url && (
                         <a href={claim.invoice_photo_url} target="_blank" rel="noopener noreferrer"
-                          className="flex items-center gap-1 text-sm text-yellow-700 bg-yellow-50 border border-yellow-200 rounded-md px-3 py-1.5 hover:bg-yellow-100">
+                          className="flex items-center gap-1 text-sm text-brand-gold bg-yellow-50 border border-yellow-200 rounded-md px-3 py-1.5 hover:bg-yellow-100">
                           <FileText className="h-4 w-4" /> Photo facture <ExternalLink className="h-3 w-3" />
                         </a>
                       )}
                       {claim.tire_video_url && (
                         <a href={claim.tire_video_url} target="_blank" rel="noopener noreferrer"
                           className="flex items-center gap-1 text-sm text-purple-600 bg-purple-50 border border-purple-200 rounded-md px-3 py-1.5 hover:bg-purple-100">
-                          <Video className="h-4 w-4" /> Vidéo pneu <ExternalLink className="h-3 w-3" />
+                          <Video className="h-4 w-4" /> VidÃ©o pneu <ExternalLink className="h-3 w-3" />
                         </a>
                       )}
                       {claim.tire_image_urls?.length > 0 && (
@@ -315,7 +315,7 @@ export default function AdminSAVPage() {
                         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
                           {claim.tire_image_urls.map((url, idx) => (
                             <a key={idx} href={url} target="_blank" rel="noopener noreferrer"
-                              className="relative group aspect-square rounded-lg overflow-hidden border border-gray-200 hover:border-yellow-400 transition-colors bg-gray-100">
+                              className="relative group aspect-square rounded-lg overflow-hidden border border-gray-200 hover:border-brand-orange transition-colors bg-gray-100">
                               {/* eslint-disable-next-line @next/next/no-img-element */}
                               <img src={url} alt={`Pneu ${idx + 1}`}
                                 className="w-full h-full object-cover group-hover:opacity-90 transition-opacity" />
@@ -336,28 +336,28 @@ export default function AdminSAVPage() {
                       </div>
                     )}
 
-                    {/* Zone édition */}
+                    {/* Zone Ã©dition */}
                     {isEditing ? (
                       <div className="space-y-3 pt-2 border-t">
                         <div>
                           <label className="text-xs text-gray-500 font-medium block mb-1">Statut</label>
                           <select value={editStatus} onChange={(e) => setEditStatus(e.target.value)}
-                            className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-yellow-400">
+                            className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-orange">
                             {STATUS_OPTIONS.slice(1).map((opt) => (
                               <option key={opt.value} value={opt.value}>{opt.label}</option>
                             ))}
                           </select>
                         </div>
                         <div>
-                          <label className="text-xs text-gray-500 font-medium block mb-1">Réponse au client</label>
+                          <label className="text-xs text-gray-500 font-medium block mb-1">RÃ©ponse au client</label>
                           <textarea rows={3} value={editNotes} onChange={(e) => setEditNotes(e.target.value)}
-                            placeholder="Ce message sera visible par le client dans son espace SAV…"
-                            className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-yellow-400 resize-none" />
+                            placeholder="Ce message sera visible par le client dans son espace SAVâ€¦"
+                            className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-orange resize-none" />
                         </div>
-                        {saveError && <p className="text-xs text-red-600">{saveError}</p>}
+                        {saveError && <p className="text-xs text-brand-red">{saveError}</p>}
                         <div className="flex gap-2">
                           <Button size="sm" onClick={() => handleSaveStatus(claim.id)} disabled={saving}
-                            className="bg-yellow-500 hover:bg-yellow-600 text-black">
+                            className="bg-brand-orange hover:bg-brand-orange-dark text-black">
                             {saving ? <Loader2 className="h-3 w-3 animate-spin mr-1" /> : <Check className="h-3 w-3 mr-1" />}
                             Enregistrer
                           </Button>
@@ -370,7 +370,7 @@ export default function AdminSAVPage() {
                           setEditingId(claim.id); setEditStatus(claim.status);
                           setEditNotes(claim.admin_notes || ""); setSaveError("");
                         }}>
-                          Modifier le statut / répondre
+                          Modifier le statut / rÃ©pondre
                         </Button>
                       </div>
                     )}

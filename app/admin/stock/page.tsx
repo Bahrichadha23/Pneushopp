@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useState, useCallback, useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -16,7 +16,7 @@ import { useAuth } from "@/contexts/auth-context";
 import { useRouter, useSearchParams } from "next/navigation";
 import { API_URL } from "@/lib/config";
 
-/* ─── Types ─────────────────────────────────────────────── */
+/* â”€â”€â”€ Types â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 type StockVariant = "default" | "secondary" | "destructive" | "outline";
 
 interface StockStatus { status: string; variant: StockVariant; }
@@ -24,7 +24,7 @@ const getStockStatus = (current: number, min = 5, max = 100): StockStatus => {
   if (current <= 0) return { status: "Rupture de stock", variant: "destructive" };
   if (current <= min) return { status: "Stock faible", variant: "secondary" };
   if (current < max) return { status: "En stock", variant: "default" };
-  return { status: "Stock élevé", variant: "outline" };
+  return { status: "Stock Ã©levÃ©", variant: "outline" };
 };
 
 interface AdminProduct {
@@ -39,10 +39,10 @@ interface DotBatch {
   emplacement: string; notes: string; created_at: string;
 }
 
-/* ─── Types client ───────────────────────────────────────── */
+/* â”€â”€â”€ Types client â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 interface Customer { id: number; name: string; email: string; phone: string; }
 
-/* ─── Composant panneau DOT ──────────────────────────────── */
+/* â”€â”€â”€ Composant panneau DOT â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 function DotPanel({
   product, onClose, onStockChanged,
 }: {
@@ -80,7 +80,7 @@ function DotPanel({
 
   const token = () => localStorage.getItem("access_token");
 
-  /* ── load batches ── */
+  /* â”€â”€ load batches â”€â”€ */
   const loadBatches = useCallback(async () => {
     setLoading(true); setError("");
     try {
@@ -96,7 +96,7 @@ function DotPanel({
 
   useEffect(() => { loadBatches(); }, [loadBatches]);
 
-  /* ── client search debounce ── */
+  /* â”€â”€ client search debounce â”€â”€ */
   useEffect(() => {
     if (!clientSearch || clientSearch.length < 2) { setClientSuggestions([]); return; }
     const t = setTimeout(async () => {
@@ -112,7 +112,7 @@ function DotPanel({
 
   const totalStock = batches.reduce((s, b) => s + b.quantity, 0);
 
-  /* ── open/close sell form ── */
+  /* â”€â”€ open/close sell form â”€â”€ */
   function openSell(batch: DotBatch) {
     setSellBatchId(batch.id);
     setSellQty(1);
@@ -135,7 +135,7 @@ function DotPanel({
     setLastSale(null);
   }
 
-  /* ── sell ── */
+  /* â”€â”€ sell â”€â”€ */
   async function handleSell(batch: DotBatch) {
     if (sellQty < 1 || sellQty > batch.quantity) return;
     setSelling(true); setSellMsg(null);
@@ -155,17 +155,17 @@ function DotPanel({
       });
       const data = await r.json();
       if (!r.ok) throw new Error(data.error || "Erreur");
-      setSellMsg({ text: `✓ ${sellQty} pneu(s) vendu(s) — DOT ${batch.dot}.`, ok: true });
+      setSellMsg({ text: `âœ“ ${sellQty} pneu(s) vendu(s) â€” DOT ${batch.dot}.`, ok: true });
       setLastSale({ batch, qty: sellQty, discount: sellDiscount, clientName, deliveryCost: sellDeliveryCost });
       onStockChanged(product.id, data.new_stock ?? (totalStock - sellQty));
       await loadBatches();
-      // No auto-close — user clicks "Imprimer facture" or X manually
+      // No auto-close â€” user clicks "Imprimer facture" or X manually
     } catch (e: any) {
       setSellMsg({ text: e.message, ok: false });
     } finally { setSelling(false); }
   }
 
-  /* ── generate sale invoice ── */
+  /* â”€â”€ generate sale invoice â”€â”€ */
   function generateDotSaleInvoice() {
     if (!lastSale) return;
     const { batch, qty, discount, clientName, deliveryCost } = lastSale;
@@ -210,13 +210,13 @@ function DotPanel({
     </div>
     <div class="header-info">
       <div>
-        <div><b>Client :</b> ${clientName || "—"}</div>
+        <div><b>Client :</b> ${clientName || "â€”"}</div>
         <div><b>Date :</b> ${today}</div>
       </div>
     </div>
     <table style="margin-bottom:16px">
       <thead><tr>
-        <th>REF.</th><th>DÉSIGNATION</th><th>QTÉ</th>
+        <th>REF.</th><th>DÃ‰SIGNATION</th><th>QTÃ‰</th>
         <th>PU HT</th><th>TVA %</th><th>REM %</th>
         <th>Mnt HT</th><th>Mnt TTC</th>
       </tr></thead>
@@ -252,7 +252,7 @@ function DotPanel({
     win.document.close();
   }
 
-  /* ── add batch ── */
+  /* â”€â”€ add batch â”€â”€ */
   async function handleAddBatch() {
     if (!addDot || addQty < 1) return;
     setAdding(true);
@@ -288,10 +288,10 @@ function DotPanel({
       <div className="flex items-center justify-between px-5 py-4 border-b bg-yellow-50">
         <div>
           <h2 className="font-bold text-gray-900 flex items-center gap-2">
-            <Calendar className="h-4 w-4 text-yellow-600" />
-            Gestion DOT — Lots de stock
+            <Calendar className="h-4 w-4 text-brand-gold" />
+            Gestion DOT â€” Lots de stock
           </h2>
-          <p className="text-xs text-gray-500 mt-0.5 line-clamp-1">{product.brand} · {product.name} · {product.size}</p>
+          <p className="text-xs text-gray-500 mt-0.5 line-clamp-1">{product.brand} Â· {product.name} Â· {product.size}</p>
         </div>
         <button onClick={onClose} className="text-gray-400 hover:text-gray-700 p-1 rounded hover:bg-gray-100">
           <X className="h-5 w-5" />
@@ -300,11 +300,11 @@ function DotPanel({
 
       <div className="flex-1 overflow-y-auto px-5 py-4 space-y-4">
 
-        {/* Résumé */}
+        {/* RÃ©sumÃ© */}
         <div className="flex gap-3">
           <div className="flex-1 bg-yellow-50 border border-yellow-200 rounded-lg p-3 text-center">
-            <p className="text-2xl font-bold text-yellow-700">{totalStock}</p>
-            <p className="text-xs text-yellow-600">unités en stock</p>
+            <p className="text-2xl font-bold text-brand-gold">{totalStock}</p>
+            <p className="text-xs text-brand-gold">unitÃ©s en stock</p>
           </div>
           <div className="flex-1 bg-gray-50 border border-gray-200 rounded-lg p-3 text-center">
             <p className="text-2xl font-bold text-gray-700">{batches.length}</p>
@@ -315,12 +315,12 @@ function DotPanel({
         {loading && (
           <div className="text-center py-10">
             <Loader2 className="h-6 w-6 animate-spin text-yellow-500 mx-auto mb-2" />
-            <p className="text-sm text-gray-400">Chargement des lots…</p>
+            <p className="text-sm text-gray-400">Chargement des lotsâ€¦</p>
           </div>
         )}
 
         {error && (
-          <div className="bg-red-50 border border-red-200 text-red-700 rounded-lg p-3 flex items-center gap-2 text-sm">
+          <div className="bg-red-50 border border-red-200 text-brand-red rounded-lg p-3 flex items-center gap-2 text-sm">
             <AlertCircle className="h-4 w-4 flex-shrink-0" />{error}
           </div>
         )}
@@ -329,7 +329,7 @@ function DotPanel({
         {!loading && !error && batches.length === 0 && (
           <div className="text-center py-10 text-gray-400">
             <Package className="h-10 w-10 mx-auto mb-2 opacity-30" />
-            <p className="text-sm">Aucun lot DOT enregistré</p>
+            <p className="text-sm">Aucun lot DOT enregistrÃ©</p>
             <p className="text-xs mt-1">Ajoutez un lot manuellement ci-dessous</p>
           </div>
         )}
@@ -337,7 +337,7 @@ function DotPanel({
         {!loading && batches.length > 0 && (
           <div className="space-y-3">
             <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide flex items-center gap-1">
-              <Calendar className="h-3 w-3" /> Lots du plus ancien au plus récent — sélectionnez lequel vendre
+              <Calendar className="h-3 w-3" /> Lots du plus ancien au plus rÃ©cent â€” sÃ©lectionnez lequel vendre
             </p>
 
             {batches.map((batch, idx) => {
@@ -348,7 +348,7 @@ function DotPanel({
                   key={batch.id}
                   className={`rounded-xl border-2 overflow-hidden transition-all ${
                     isSelling
-                      ? "border-yellow-400 shadow-md"
+                      ? "border-brand-orange shadow-md"
                       : isFirst
                       ? "border-yellow-300 bg-yellow-50"
                       : "border-gray-200 bg-white"
@@ -360,19 +360,19 @@ function DotPanel({
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 flex-wrap">
                         <span className="font-mono font-bold text-sm text-gray-900">
-                          DOT {batch.dot || "—"}
+                          DOT {batch.dot || "â€”"}
                         </span>
                         {isFirst && (
-                          <span className="text-[10px] font-bold bg-yellow-500 text-white px-2 py-0.5 rounded-full">
-                            PRIORITÉ DOT
+                          <span className="text-[10px] font-bold bg-brand-orange text-white px-2 py-0.5 rounded-full">
+                            PRIORITÃ‰ DOT
                           </span>
                         )}
                       </div>
                       <div className="text-xs text-gray-500 mt-0.5 space-y-0.5">
                         {batch.dot_date && (
                           <p>
-                            Fabriqué&nbsp;: {new Date(batch.dot_date).toLocaleDateString("fr-FR")}
-                            {" · "}Âge&nbsp;: {dotAge(batch.dot_date)}
+                            FabriquÃ©&nbsp;: {new Date(batch.dot_date).toLocaleDateString("fr-FR")}
+                            {" Â· "}Ã‚ge&nbsp;: {dotAge(batch.dot_date)}
                           </p>
                         )}
                         {batch.emplacement && <p>Emplacement&nbsp;: <span className="font-medium">{batch.emplacement}</span></p>}
@@ -381,17 +381,17 @@ function DotPanel({
 
                     {/* Quantity */}
                     <div className="text-right flex-shrink-0 mr-2">
-                      <span className={`text-xl font-bold ${isFirst ? "text-yellow-600" : "text-gray-700"}`}>
+                      <span className={`text-xl font-bold ${isFirst ? "text-brand-gold" : "text-gray-700"}`}>
                         {batch.quantity}
                       </span>
-                      <p className="text-[10px] text-gray-400">unité(s)</p>
+                      <p className="text-[10px] text-gray-400">unitÃ©(s)</p>
                     </div>
 
                     {/* Actions */}
                     {!isSelling ? (
                       <button
                         onClick={() => openSell(batch)}
-                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold bg-yellow-500 hover:bg-yellow-600 text-white transition-colors shadow-sm"
+                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold bg-brand-orange hover:bg-brand-orange-dark text-white transition-colors shadow-sm"
                       >
                         <Minus className="h-3 w-3" /> Vendre
                       </button>
@@ -409,22 +409,22 @@ function DotPanel({
                   {/* Inline sell form */}
                   {isSelling && (
                     <div className="border-t-2 border-yellow-300 bg-yellow-50 px-4 py-4 space-y-3">
-                      <p className="text-xs font-semibold text-yellow-800">
-                        Vente depuis DOT {batch.dot} — {batch.quantity} unité(s) disponible(s)
+                      <p className="text-xs font-semibold text-brand-gold">
+                        Vente depuis DOT {batch.dot} â€” {batch.quantity} unitÃ©(s) disponible(s)
                       </p>
 
                       {/* Quantity */}
                       <div className="flex items-center gap-3">
-                        <label className="text-xs font-medium text-gray-700 w-24 flex-shrink-0">Quantité</label>
+                        <label className="text-xs font-medium text-gray-700 w-24 flex-shrink-0">QuantitÃ©</label>
                         <div className="flex items-center gap-2">
                           <button
                             onClick={() => setSellQty((q) => Math.max(1, q - 1))}
                             className="w-7 h-7 rounded-full border border-gray-300 bg-white flex items-center justify-center hover:bg-gray-100 text-sm font-bold"
-                          >−</button>
+                          >âˆ’</button>
                           <input
                             type="number" min={1} max={batch.quantity} value={sellQty}
                             onChange={(e) => { const v = parseInt(e.target.value); if (!isNaN(v)) setSellQty(Math.min(batch.quantity, Math.max(1, v))); }}
-                            className="w-14 text-center border border-gray-300 rounded px-1 py-1 text-sm font-bold focus:outline-none focus:ring-2 focus:ring-yellow-400"
+                            className="w-14 text-center border border-gray-300 rounded px-1 py-1 text-sm font-bold focus:outline-none focus:ring-2 focus:ring-brand-orange"
                           />
                           <button
                             onClick={() => setSellQty((q) => Math.min(batch.quantity, q + 1))}
@@ -436,7 +436,7 @@ function DotPanel({
                       {/* Client */}
                       <div className="relative">
                         <label className="text-xs font-medium text-gray-700 block mb-1">
-                          Client <span className="text-gray-400 font-normal">(nom, email ou téléphone)</span>
+                          Client <span className="text-gray-400 font-normal">(nom, email ou tÃ©lÃ©phone)</span>
                         </label>
                         <input
                           type="text"
@@ -448,14 +448,14 @@ function DotPanel({
                           }}
                           onFocus={() => setShowSugg(true)}
                           onBlur={() => setTimeout(() => setShowSugg(false), 200)}
-                          placeholder="Nom, email ou téléphone…"
-                          className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-yellow-400"
+                          placeholder="Nom, email ou tÃ©lÃ©phoneâ€¦"
+                          className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-orange"
                         />
                         {selectedClient && (
                           <div className="mt-1 flex items-center gap-2 text-xs bg-yellow-100 border border-yellow-300 rounded-lg px-3 py-1.5">
-                            <span className="font-medium text-yellow-800">{selectedClient.name}</span>
-                            <span className="text-yellow-600">{selectedClient.email}</span>
-                            <button onClick={() => { setSelectedClient(null); setClientSearch(""); }} className="ml-auto text-yellow-600 hover:text-red-500">
+                            <span className="font-medium text-brand-gold">{selectedClient.name}</span>
+                            <span className="text-brand-gold">{selectedClient.email}</span>
+                            <button onClick={() => { setSelectedClient(null); setClientSearch(""); }} className="ml-auto text-brand-gold hover:text-red-500">
                               <X className="h-3 w-3" />
                             </button>
                           </div>
@@ -490,14 +490,14 @@ function DotPanel({
                           <input
                             type="number" min={0} max={100} value={sellDiscount}
                             onChange={(e) => { const v = parseInt(e.target.value); if (!isNaN(v)) setSellDiscount(Math.min(100, Math.max(0, v))); else setSellDiscount(0); }}
-                            className="w-14 text-center border border-gray-300 rounded px-1 py-1 text-sm font-bold focus:outline-none focus:ring-2 focus:ring-yellow-400"
+                            className="w-14 text-center border border-gray-300 rounded px-1 py-1 text-sm font-bold focus:outline-none focus:ring-2 focus:ring-brand-orange"
                             placeholder="0"
                           />
                           <span className="text-xs text-gray-400">%</span>
                         </div>
                         {sellDiscount > 0 && (
-                          <span className="text-xs text-yellow-700 font-semibold ml-1">
-                            − {(product.prixVente * sellDiscount / 100 * sellQty).toFixed(3)} DT
+                          <span className="text-xs text-brand-gold font-semibold ml-1">
+                            âˆ’ {(product.prixVente * sellDiscount / 100 * sellQty).toFixed(3)} DT
                           </span>
                         )}
                       </div>
@@ -509,13 +509,13 @@ function DotPanel({
                           <input
                             type="number" min={0} step={0.001} value={sellDeliveryCost}
                             onChange={(e) => { const v = parseFloat(e.target.value); setSellDeliveryCost(isNaN(v) ? 0 : Math.max(0, v)); }}
-                            className="w-20 text-center border border-gray-300 rounded px-1 py-1 text-sm font-bold focus:outline-none focus:ring-2 focus:ring-yellow-400"
+                            className="w-20 text-center border border-gray-300 rounded px-1 py-1 text-sm font-bold focus:outline-none focus:ring-2 focus:ring-brand-orange"
                             placeholder="0.000"
                           />
                           <span className="text-xs text-gray-400">DT</span>
                         </div>
                         {sellDeliveryCost > 0 && (
-                          <span className="text-xs text-yellow-700 font-semibold ml-1">
+                          <span className="text-xs text-brand-gold font-semibold ml-1">
                             + {sellDeliveryCost.toFixed(3)} DT livraison
                           </span>
                         )}
@@ -523,14 +523,14 @@ function DotPanel({
 
                       {/* Submit */}
                       {sellMsg && (
-                        <p className={`text-xs font-medium text-center py-1 rounded ${sellMsg.ok ? "text-yellow-700 bg-yellow-50" : "text-gray-700 bg-gray-100"}`}>
+                        <p className={`text-xs font-medium text-center py-1 rounded ${sellMsg.ok ? "text-brand-gold bg-yellow-50" : "text-gray-700 bg-gray-100"}`}>
                           {sellMsg.text}
                         </p>
                       )}
                       {sellMsg?.ok && lastSale && (
                         <Button
                           onClick={generateDotSaleInvoice}
-                          className="w-full bg-yellow-500 hover:bg-yellow-600 text-black font-bold shadow-sm"
+                          className="w-full bg-brand-orange hover:bg-brand-orange-dark text-black font-bold shadow-sm"
                         >
                           <Printer className="h-4 w-4 mr-2" /> Imprimer et Valider
                         </Button>
@@ -539,11 +539,11 @@ function DotPanel({
                         <Button
                           onClick={() => handleSell(batch)}
                           disabled={selling || sellQty > batch.quantity}
-                          className="w-full bg-yellow-500 hover:bg-yellow-600 text-white font-bold shadow-sm"
+                          className="w-full bg-brand-orange hover:bg-brand-orange-dark text-white font-bold shadow-sm"
                         >
                           {selling
-                            ? <><Loader2 className="h-4 w-4 animate-spin mr-2" />Traitement…</>
-                            : <><Minus className="h-4 w-4 mr-2" />Vendre {sellQty} pneu{sellQty > 1 ? "s" : ""} — DOT {batch.dot}</>}
+                            ? <><Loader2 className="h-4 w-4 animate-spin mr-2" />Traitementâ€¦</>
+                            : <><Minus className="h-4 w-4 mr-2" />Vendre {sellQty} pneu{sellQty > 1 ? "s" : ""} â€” DOT {batch.dot}</>}
                         </Button>
                       )}
                     </div>
@@ -556,19 +556,19 @@ function DotPanel({
 
       </div>
 
-      {/* Fixed validation button at bottom right — always visible */}
+      {/* Fixed validation button at bottom right â€” always visible */}
       <div className="flex-shrink-0 border-t border-yellow-200 bg-yellow-50 px-5 py-3 flex items-center justify-between">
-        <span className="text-xs text-yellow-700">
+        <span className="text-xs text-brand-gold">
           {sellMsg?.ok
-            ? "✓ Vente enregistrée — imprimez la facture ou fermez"
+            ? "âœ“ Vente enregistrÃ©e â€” imprimez la facture ou fermez"
             : sellBatchId !== null
-            ? `DOT sélectionné — ${sellQty} pneu(s) à vendre${sellDiscount > 0 ? ` · remise ${sellDiscount}%` : ""}`
-            : "Cliquez sur « Vendre » pour sélectionner un lot"}
+            ? `DOT sÃ©lectionnÃ© â€” ${sellQty} pneu(s) Ã  vendre${sellDiscount > 0 ? ` Â· remise ${sellDiscount}%` : ""}`
+            : "Cliquez sur Â« Vendre Â» pour sÃ©lectionner un lot"}
         </span>
         {sellMsg?.ok && lastSale ? (
           <Button
             onClick={generateDotSaleInvoice}
-            className="bg-yellow-500 hover:bg-yellow-600 text-black font-bold shadow-sm px-6"
+            className="bg-brand-orange hover:bg-brand-orange-dark text-black font-bold shadow-sm px-6"
           >
             <Printer className="h-4 w-4 mr-2" /> Imprimer et Valider
           </Button>
@@ -582,10 +582,10 @@ function DotPanel({
               const b = batches.find(x => x.id === sellBatchId);
               return b ? sellQty > b.quantity : false;
             })()}
-            className="bg-yellow-500 hover:bg-yellow-600 text-white font-bold shadow-sm px-6 disabled:opacity-40"
+            className="bg-brand-orange hover:bg-brand-orange-dark text-white font-bold shadow-sm px-6 disabled:opacity-40"
           >
             {selling
-              ? <><Loader2 className="h-4 w-4 animate-spin mr-2" />Traitement…</>
+              ? <><Loader2 className="h-4 w-4 animate-spin mr-2" />Traitementâ€¦</>
               : <><Minus className="h-4 w-4 mr-2" />Valider la vente</>}
           </Button>
         )}
@@ -594,7 +594,7 @@ function DotPanel({
   );
 }
 
-/* ─── Types pour le panneau préparation commande ─────────── */
+/* â”€â”€â”€ Types pour le panneau prÃ©paration commande â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 interface PrepItem {
   itemIndex: number;
   productId: string;
@@ -618,7 +618,7 @@ interface PrepOrder {
   createdAt: string;
 }
 
-/* ─── Panneau préparation commande ───────────────────────── */
+/* â”€â”€â”€ Panneau prÃ©paration commande â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 function OrderPrepPanel({ onClose }: { onClose: () => void }) {
   const router = useRouter();
   const [orders, setOrders] = useState<PrepOrder[]>([]);
@@ -646,8 +646,8 @@ function OrderPrepPanel({ onClose }: { onClose: () => void }) {
           id: String(o.id),
           orderNumber: o.order_number || "",
           customerName: o.shipping_address
-            ? `${o.shipping_address.first_name || ""} ${o.shipping_address.last_name || ""}`.trim() || o.user?.email || "—"
-            : o.user?.email || "—",
+            ? `${o.shipping_address.first_name || ""} ${o.shipping_address.last_name || ""}`.trim() || o.user?.email || "â€”"
+            : o.user?.email || "â€”",
           customerPhone: o.shipping_address?.phone || "",
           items: (o.items || []).map((it: any) => ({
             productId: String(it.product_id || ""),
@@ -738,8 +738,8 @@ function OrderPrepPanel({ onClose }: { onClose: () => void }) {
       <div className="flex items-center justify-between px-5 py-4 border-b bg-yellow-50">
         <div>
           <h2 className="font-bold text-gray-900 flex items-center gap-2">
-            <ClipboardList className="h-4 w-4 text-yellow-600" />
-            Préparer une commande
+            <ClipboardList className="h-4 w-4 text-brand-gold" />
+            PrÃ©parer une commande
           </h2>
           <p className="text-xs text-gray-500 mt-0.5">Assignez les lots DOT avant confirmation</p>
         </div>
@@ -756,7 +756,7 @@ function OrderPrepPanel({ onClose }: { onClose: () => void }) {
           </label>
           {loadingOrders ? (
             <div className="flex items-center gap-2 text-sm text-gray-400 py-2">
-              <Loader2 className="h-4 w-4 animate-spin" /> Chargement…
+              <Loader2 className="h-4 w-4 animate-spin" /> Chargementâ€¦
             </div>
           ) : orders.length === 0 ? (
             <p className="text-sm text-gray-400 py-2">Aucune commande en attente</p>
@@ -770,10 +770,10 @@ function OrderPrepPanel({ onClose }: { onClose: () => void }) {
                 else { setSelectedOrder(null); setAssignments([]); }
               }}
             >
-              <option value="">— Sélectionner une commande —</option>
+              <option value="">â€” SÃ©lectionner une commande â€”</option>
               {orders.map(o => (
                 <option key={o.id} value={o.id}>
-                  #{fpsNum(o.orderNumber)} · {o.customerName} · {o.items.length} art.
+                  #{fpsNum(o.orderNumber)} Â· {o.customerName} Â· {o.items.length} art.
                 </option>
               ))}
             </select>
@@ -785,8 +785,8 @@ function OrderPrepPanel({ onClose }: { onClose: () => void }) {
             {/* Order summary */}
             <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 text-sm space-y-1.5">
               <div className="flex justify-between">
-                <span className="text-gray-500">N° commande</span>
-                <span className="font-mono font-bold text-yellow-700">#{fpsNum(selectedOrder.orderNumber)}</span>
+                <span className="text-gray-500">NÂ° commande</span>
+                <span className="font-mono font-bold text-brand-gold">#{fpsNum(selectedOrder.orderNumber)}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-gray-500">Client</span>
@@ -794,13 +794,13 @@ function OrderPrepPanel({ onClose }: { onClose: () => void }) {
               </div>
               {selectedOrder.customerPhone && (
                 <div className="flex justify-between">
-                  <span className="text-gray-500">Téléphone</span>
+                  <span className="text-gray-500">TÃ©lÃ©phone</span>
                   <span>{selectedOrder.customerPhone}</span>
                 </div>
               )}
               <div className="flex justify-between">
                 <span className="text-gray-500">Date</span>
-                <span>{selectedOrder.createdAt ? new Date(selectedOrder.createdAt).toLocaleDateString("fr-FR") : "—"}</span>
+                <span>{selectedOrder.createdAt ? new Date(selectedOrder.createdAt).toLocaleDateString("fr-FR") : "â€”"}</span>
               </div>
               <div className="flex justify-between items-center">
                 <span className="text-gray-500">Frais de livraison</span>
@@ -814,31 +814,31 @@ function OrderPrepPanel({ onClose }: { onClose: () => void }) {
                       const v = parseFloat(e.target.value);
                       setDeliveryCostInput(isNaN(v) ? 0 : Math.max(0, v));
                     }}
-                    className="w-24 text-right border border-yellow-300 rounded px-2 py-0.5 text-sm font-bold bg-white focus:outline-none focus:ring-2 focus:ring-yellow-400"
+                    className="w-24 text-right border border-yellow-300 rounded px-2 py-0.5 text-sm font-bold bg-white focus:outline-none focus:ring-2 focus:ring-brand-orange"
                   />
                   <span className="text-xs text-gray-400">DT</span>
                 </div>
               </div>
               <div className="flex justify-between border-t border-yellow-200 pt-1.5">
                 <span className="text-gray-500 font-semibold">Total TTC</span>
-                <span className="font-bold text-yellow-700">{fmtCurrency(selectedOrder.totalAmount + deliveryCostInput)}</span>
+                <span className="font-bold text-brand-gold">{fmtCurrency(selectedOrder.totalAmount + deliveryCostInput)}</span>
               </div>
             </div>
 
             {/* Items */}
             <div>
               <div className="flex items-center justify-between mb-2">
-                <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Produits à préparer</p>
+                <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Produits Ã  prÃ©parer</p>
                 <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${
-                  allDone ? "bg-yellow-100 text-yellow-700" : "bg-orange-100 text-orange-700"
+                  allDone ? "bg-yellow-100 text-brand-gold" : "bg-orange-100 text-orange-700"
                 }`}>
-                  {doneCount}/{assignments.length} prêts
+                  {doneCount}/{assignments.length} prÃªts
                 </span>
               </div>
 
               {loadingBatches ? (
                 <div className="flex items-center gap-2 text-sm text-gray-400 py-6 justify-center">
-                  <Loader2 className="h-4 w-4 animate-spin" /> Chargement des lots DOT…
+                  <Loader2 className="h-4 w-4 animate-spin" /> Chargement des lots DOTâ€¦
                 </div>
               ) : (
                 <div className="space-y-3">
@@ -849,25 +849,25 @@ function OrderPrepPanel({ onClose }: { onClose: () => void }) {
                       <div
                         key={asgn.itemIndex}
                         className={`rounded-xl border-2 overflow-hidden transition-all ${
-                          asgn.confirmed ? "border-yellow-400 bg-yellow-50" : "border-gray-200 bg-white"
+                          asgn.confirmed ? "border-brand-orange bg-yellow-50" : "border-gray-200 bg-white"
                         }`}
                       >
                         {/* Item header */}
                         <div className="flex items-start gap-3 px-4 py-3">
                           <div className={`mt-0.5 w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 ${
-                            asgn.confirmed ? "border-yellow-500 bg-yellow-500" : "border-gray-300"
+                            asgn.confirmed ? "border-brand-orange bg-brand-orange" : "border-gray-300"
                           }`}>
                             {asgn.confirmed && <Check className="h-3 w-3 text-white" />}
                           </div>
                           <div className="flex-1 min-w-0">
                             <p className="font-semibold text-sm text-gray-900 leading-snug">{asgn.productName}</p>
                             <p className="text-xs text-gray-500 mt-0.5">
-                              Qté commandée : <span className="font-bold text-gray-700">{asgn.needed}</span>
+                              QtÃ© commandÃ©e : <span className="font-bold text-gray-700">{asgn.needed}</span>
                             </p>
                             {asgn.confirmed && selBatch && (
-                              <p className="text-xs text-yellow-700 mt-1 font-medium">
-                                ✓ DOT {selBatch.dot} · {asgn.qty} unité(s)
-                                {asgn.discount > 0 ? ` · Remise ${asgn.discount}%` : ""}
+                              <p className="text-xs text-brand-gold mt-1 font-medium">
+                                âœ“ DOT {selBatch.dot} Â· {asgn.qty} unitÃ©(s)
+                                {asgn.discount > 0 ? ` Â· Remise ${asgn.discount}%` : ""}
                               </p>
                             )}
                           </div>
@@ -881,7 +881,7 @@ function OrderPrepPanel({ onClose }: { onClose: () => void }) {
                               <label className="text-xs font-medium text-gray-600 block mb-1">Lot DOT</label>
                               {batches.length === 0 ? (
                                 <p className="text-xs text-red-500 bg-red-50 border border-red-200 rounded px-2 py-1">
-                                  Aucun lot dispo — ajoutez du stock via Gestion DOT
+                                  Aucun lot dispo â€” ajoutez du stock via Gestion DOT
                                 </p>
                               ) : (
                                 <select
@@ -892,10 +892,10 @@ function OrderPrepPanel({ onClose }: { onClose: () => void }) {
                                     updateItem(asgn.itemIndex, { batchId: b?.id ?? null, batchDot: b?.dot ?? null });
                                   }}
                                 >
-                                  <option value="">— Sélectionner un lot —</option>
+                                  <option value="">â€” SÃ©lectionner un lot â€”</option>
                                   {batches.map(b => (
                                     <option key={b.id} value={b.id} disabled={b.quantity < 1}>
-                                      DOT {b.dot} · {b.quantity} dispo{b.quantity < asgn.needed ? " ⚠ insuffisant" : ""}
+                                      DOT {b.dot} Â· {b.quantity} dispo{b.quantity < asgn.needed ? " âš  insuffisant" : ""}
                                     </option>
                                   ))}
                                 </select>
@@ -904,12 +904,12 @@ function OrderPrepPanel({ onClose }: { onClose: () => void }) {
 
                             {/* Qty */}
                             <div className="flex items-center gap-3">
-                              <label className="text-xs font-medium text-gray-600 w-20 flex-shrink-0">Quantité</label>
+                              <label className="text-xs font-medium text-gray-600 w-20 flex-shrink-0">QuantitÃ©</label>
                               <div className="flex items-center gap-1.5">
                                 <button
                                   onClick={() => updateItem(asgn.itemIndex, { qty: Math.max(1, asgn.qty - 1) })}
                                   className="w-6 h-6 rounded border border-gray-300 bg-white flex items-center justify-center text-xs font-bold hover:bg-gray-100"
-                                >−</button>
+                                >âˆ’</button>
                                 <input
                                   type="number" min={1} max={selBatch?.quantity ?? asgn.needed}
                                   value={asgn.qty}
@@ -946,8 +946,8 @@ function OrderPrepPanel({ onClose }: { onClose: () => void }) {
 
                             {/* Validate */}
                             {asgn.batchId && selBatch && asgn.qty > selBatch.quantity && (
-                              <p className="text-xs text-red-600 bg-red-50 border border-red-200 rounded px-2 py-1">
-                                ⚠ Quantité demandée ({asgn.qty}) supérieure au stock disponible ({selBatch.quantity})
+                              <p className="text-xs text-brand-red bg-red-50 border border-red-200 rounded px-2 py-1">
+                                âš  QuantitÃ© demandÃ©e ({asgn.qty}) supÃ©rieure au stock disponible ({selBatch.quantity})
                               </p>
                             )}
                             <button
@@ -956,7 +956,7 @@ function OrderPrepPanel({ onClose }: { onClose: () => void }) {
                                 updateItem(asgn.itemIndex, { confirmed: true });
                               }}
                               disabled={!asgn.batchId || (!!selBatch && asgn.qty > selBatch.quantity)}
-                              className="w-full py-1.5 rounded-lg text-sm font-bold bg-yellow-500 hover:bg-yellow-600 text-black disabled:opacity-40 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
+                              className="w-full py-1.5 rounded-lg text-sm font-bold bg-brand-orange hover:bg-brand-orange-dark text-black disabled:opacity-40 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
                             >
                               <Check className="h-3.5 w-3.5" /> Valider ce produit
                             </button>
@@ -986,25 +986,25 @@ function OrderPrepPanel({ onClose }: { onClose: () => void }) {
 
       {/* Bottom bar */}
       <div className="flex-shrink-0 border-t border-yellow-200 bg-yellow-50 px-5 py-3 flex items-center justify-between gap-3">
-        <span className="text-xs text-yellow-700 flex-1">
+        <span className="text-xs text-brand-gold flex-1">
           {!selectedOrder
-            ? "Sélectionnez une commande pour commencer"
+            ? "SÃ©lectionnez une commande pour commencer"
             : allDone
-            ? "✓ Tous les produits sont prêts — allez confirmer"
-            : `${doneCount}/${assignments.length} produit(s) assigné(s)`}
+            ? "âœ“ Tous les produits sont prÃªts â€” allez confirmer"
+            : `${doneCount}/${assignments.length} produit(s) assignÃ©(s)`}
         </span>
         {selectedOrder && (
           <Button
             onClick={() => {
-              // Persiste les frais de livraison pour que la modal de confirmation les récupère
+              // Persiste les frais de livraison pour que la modal de confirmation les rÃ©cupÃ¨re
               localStorage.setItem(`order_delivery_${selectedOrder.id}`, String(deliveryCostInput));
               router.push("/admin/commandes");
               onClose();
             }}
             disabled={!allDone}
-            className="bg-yellow-500 hover:bg-yellow-600 text-black font-bold shadow-sm disabled:opacity-40 whitespace-nowrap"
+            className="bg-brand-orange hover:bg-brand-orange-dark text-black font-bold shadow-sm disabled:opacity-40 whitespace-nowrap"
           >
-            Confirmer dans Commandes →
+            Confirmer dans Commandes â†’
           </Button>
         )}
       </div>
@@ -1012,9 +1012,9 @@ function OrderPrepPanel({ onClose }: { onClose: () => void }) {
   );
 }
 
-/* ═══════════════════════════════════════════════════════════
+/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
    Page principale
-═══════════════════════════════════════════════════════════ */
+â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
 export default function StockManagementPage() {
   const [stock, setStock] = useState<AdminProduct[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
@@ -1121,7 +1121,7 @@ export default function StockManagementPage() {
 
   const handleDotStockChanged = (productId: number, newStock: number) => {
     setStock((prev) => prev.map((p) => p.id === productId ? { ...p, stock: newStock } : p));
-    // Met aussi à jour le produit dans le panneau DOT si ouvert
+    // Met aussi Ã  jour le produit dans le panneau DOT si ouvert
     setDotPanel((prev) => prev && prev.id === productId ? { ...prev, stock: newStock } : prev);
   };
 
@@ -1130,13 +1130,13 @@ export default function StockManagementPage() {
 
   const handleExportStock = async () => {
     const workbook = new ExcelJS.Workbook();
-    const ws = workbook.addWorksheet("État Stock");
+    const ws = workbook.addWorksheet("Ã‰tat Stock");
 
     ws.columns = [
       { header: "Produit", key: "name", width: 40 },
       { header: "Marque", key: "brand", width: 16 },
       { header: "Taille", key: "size", width: 14 },
-      { header: "Catégorie", key: "category", width: 18 },
+      { header: "CatÃ©gorie", key: "category", width: 18 },
       { header: "Stock actuel", key: "stock", width: 14 },
       { header: "Stock Min", key: "stockMin", width: 12 },
       { header: "Stock Max", key: "stockMax", width: 12 },
@@ -1198,7 +1198,7 @@ export default function StockManagementPage() {
       if (!response.ok) throw new Error("Erreur");
       setStock((prev) => prev.map((p) => p.id === id ? { ...p, stockMin: minStock, stockMax: maxStock } : p));
       closeStatusPanel();
-    } catch (err) { console.error("Échec mise à jour seuils:", err); }
+    } catch (err) { console.error("Ã‰chec mise Ã  jour seuils:", err); }
   };
 
   const openConfirmation = (id: number, change: number) => {
@@ -1219,7 +1219,7 @@ export default function StockManagementPage() {
       });
       if (!response.ok) throw new Error("Erreur");
       setStock((prev) => prev.map((p) => p.id === id ? { ...p, stock: newStock } : p));
-    } catch (err) { console.error("❌ Échec:", err); }
+    } catch (err) { console.error("âŒ Ã‰chec:", err); }
   };
 
   // Unique brands extracted from loaded page (for quick-filter chips)
@@ -1266,11 +1266,11 @@ export default function StockManagementPage() {
           <Button
             variant="outline"
             size="sm"
-            className="gap-2 border-yellow-400 text-yellow-700 hover:bg-yellow-50"
+            className="gap-2 border-brand-orange text-brand-gold hover:bg-yellow-50"
             onClick={() => setShowOrderPrep(true)}
           >
             <ClipboardList className="h-4 w-4" />
-            Préparer une commande
+            PrÃ©parer une commande
           </Button>
           <Button variant="outline" size="sm" className="gap-2" onClick={handleExportStock}>
             <FileDown className="h-4 w-4" />
@@ -1283,15 +1283,15 @@ export default function StockManagementPage() {
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
         <Card><CardHeader className="flex justify-between items-center"><CardTitle className="text-sm font-medium">Produits en stock</CardTitle><Package className="h-4 w-4 text-gray-500" /></CardHeader><CardContent><div className="text-2xl font-bold">{stock.length}</div></CardContent></Card>
         <Card><CardHeader className="flex justify-between items-center"><CardTitle className="text-sm font-medium">Stock faible</CardTitle><AlertTriangle className="h-4 w-4 text-gray-500" /></CardHeader><CardContent><div className="text-2xl font-bold text-gray-700">{lowStockItems.length}</div></CardContent></Card>
-        <Card><CardHeader className="flex justify-between items-center"><CardTitle className="text-sm font-medium">Valeur stock</CardTitle><TrendingUp className="h-4 w-4 text-yellow-500" /></CardHeader><CardContent><div className="text-2xl font-bold text-yellow-600">{formatCurrency(totalValue)}</div></CardContent></Card>
-        <Card><CardHeader className="flex justify-between items-center"><CardTitle className="text-sm font-medium">Unités totales</CardTitle><Package className="h-4 w-4 text-gray-500" /></CardHeader><CardContent><div className="text-2xl font-bold">{stock.reduce((s, i) => s + i.stock, 0)}</div></CardContent></Card>
+        <Card><CardHeader className="flex justify-between items-center"><CardTitle className="text-sm font-medium">Valeur stock</CardTitle><TrendingUp className="h-4 w-4 text-yellow-500" /></CardHeader><CardContent><div className="text-2xl font-bold text-brand-gold">{formatCurrency(totalValue)}</div></CardContent></Card>
+        <Card><CardHeader className="flex justify-between items-center"><CardTitle className="text-sm font-medium">UnitÃ©s totales</CardTitle><Package className="h-4 w-4 text-gray-500" /></CardHeader><CardContent><div className="text-2xl font-bold">{stock.reduce((s, i) => s + i.stock, 0)}</div></CardContent></Card>
       </div>
 
-      {/* Search bar — full width, prominent */}
+      {/* Search bar â€” full width, prominent */}
       <div className="relative">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 h-5 w-5 pointer-events-none" />
         <Input
-          placeholder="Rechercher par nom, marque, taille, catégorie…"
+          placeholder="Rechercher par nom, marque, taille, catÃ©gorieâ€¦"
           value={searchTerm}
           onChange={(e) => { setSearchTerm(e.target.value); setBrandFilter(null); }}
           className="pl-10 pr-10 h-11 text-sm"
@@ -1321,13 +1321,13 @@ export default function StockManagementPage() {
             const isActive = value === null ? statusFilter === null : statusFilter === value;
             const count = value ? stock.filter(i => getStockStatus(i.stock, i.stockMin, i.stockMax).status === value).length : null;
             const activeColor = value === null ? "bg-gray-800 text-white border-gray-800"
-              : value === "En stock" ? "bg-yellow-500 text-black border-yellow-500"
-              : value === "Stock faible" ? "bg-yellow-500 text-white border-yellow-500"
-              : "bg-red-500 text-white border-red-500";
+              : value === "En stock" ? "bg-brand-orange text-black border-brand-orange"
+              : value === "Stock faible" ? "bg-brand-orange text-white border-brand-orange"
+              : "bg-brand-red text-white border-red-500";
             const idleColor = value === null ? "border-gray-300 bg-white text-gray-700 hover:bg-gray-100"
-              : value === "En stock" ? "border-yellow-300 bg-white text-yellow-700 hover:bg-yellow-50"
-              : value === "Stock faible" ? "border-yellow-300 bg-white text-yellow-700 hover:bg-yellow-50"
-              : "border-red-300 bg-white text-red-700 hover:bg-red-50";
+              : value === "En stock" ? "border-yellow-300 bg-white text-brand-gold hover:bg-yellow-50"
+              : value === "Stock faible" ? "border-yellow-300 bg-white text-brand-gold hover:bg-yellow-50"
+              : "border-red-300 bg-white text-brand-red hover:bg-red-50";
             return (
               <button key={label} onClick={() => setStatusFilter(value)}
                 className={`px-2.5 py-1 rounded-full text-xs font-medium border transition-all ${isActive ? activeColor : idleColor}`}>
@@ -1337,7 +1337,7 @@ export default function StockManagementPage() {
           })}
         </div>
 
-        {/* Brand chips — only shown when brands are loaded */}
+        {/* Brand chips â€” only shown when brands are loaded */}
         {brands.length > 0 && (
           <div className="flex flex-wrap items-center gap-1.5">
             <span className="text-xs font-semibold text-gray-500 mr-1">Marque :</span>
@@ -1371,10 +1371,10 @@ export default function StockManagementPage() {
         {/* Active filters summary */}
         {(searchTerm || brandFilter || statusFilter) && (
           <div className="flex items-center gap-2 text-xs text-gray-500">
-            <span>{filteredStock.length} résultat{filteredStock.length !== 1 ? "s" : ""}</span>
+            <span>{filteredStock.length} rÃ©sultat{filteredStock.length !== 1 ? "s" : ""}</span>
             <button
               onClick={() => { setSearchTerm(""); setBrandFilter(null); setStatusFilter(null); }}
-              className="text-red-500 hover:text-red-700 underline"
+              className="text-red-500 hover:text-brand-red underline"
             >
               Effacer les filtres
             </button>
@@ -1384,7 +1384,7 @@ export default function StockManagementPage() {
 
       {/* Table */}
       <div className="space-y-4">
-        {filteredStock.length === 0 && <p className="text-gray-500 text-sm">Aucun produit trouvé</p>}
+        {filteredStock.length === 0 && <p className="text-gray-500 text-sm">Aucun produit trouvÃ©</p>}
 
         <div className="hidden md:block overflow-x-auto">
           <table className="w-full table-auto border border-gray-200">
@@ -1421,7 +1421,7 @@ export default function StockManagementPage() {
                     <td className="px-2 py-2 text-center">
                       <button
                         onClick={() => setDotPanel(item)}
-                        className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-xs font-bold bg-yellow-100 text-yellow-700 border border-yellow-300 hover:bg-yellow-200 transition-colors"
+                        className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-xs font-bold bg-yellow-100 text-brand-gold border border-yellow-300 hover:bg-yellow-200 transition-colors"
                       >
                         <Calendar className="h-3 w-3" /> DOT
                       </button>
@@ -1448,7 +1448,7 @@ export default function StockManagementPage() {
           </table>
         </div>
 
-        {/* ── Action modal : Vendre ou Diminuer ── */}
+        {/* â”€â”€ Action modal : Vendre ou Diminuer â”€â”€ */}
         <AnimatePresence>
           {actionModal.isOpen && actionModal.product && (
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
@@ -1463,7 +1463,7 @@ export default function StockManagementPage() {
                     <X className="h-4 w-4" />
                   </button>
                 </div>
-                <p className="text-xs text-gray-500 mb-5 line-clamp-2">{actionModal.product.brand} · {actionModal.product.name} · {actionModal.product.size}</p>
+                <p className="text-xs text-gray-500 mb-5 line-clamp-2">{actionModal.product.brand} Â· {actionModal.product.name} Â· {actionModal.product.size}</p>
 
                 <div className="grid grid-cols-2 gap-3">
                   {/* Vendre */}
@@ -1473,11 +1473,11 @@ export default function StockManagementPage() {
                       setActionModal({ isOpen: false, product: null });
                       setDotPanel(p);
                     }}
-                    className="flex flex-col items-center gap-2 p-4 rounded-xl border-2 border-yellow-400 bg-yellow-50 hover:bg-yellow-100 transition-colors text-center"
+                    className="flex flex-col items-center gap-2 p-4 rounded-xl border-2 border-brand-orange bg-yellow-50 hover:bg-yellow-100 transition-colors text-center"
                   >
-                    <span className="text-2xl">🛒</span>
-                    <span className="font-bold text-yellow-800 text-sm">Vendre</span>
-                    <span className="text-[11px] text-yellow-600">Choisir le lot DOT et le client</span>
+                    <span className="text-2xl">ðŸ›’</span>
+                    <span className="font-bold text-brand-gold text-sm">Vendre</span>
+                    <span className="text-[11px] text-brand-gold">Choisir le lot DOT et le client</span>
                   </button>
 
                   {/* Diminuer stock */}
@@ -1489,7 +1489,7 @@ export default function StockManagementPage() {
                     }}
                     className="flex flex-col items-center gap-2 p-4 rounded-xl border-2 border-gray-300 bg-gray-50 hover:bg-gray-100 transition-colors text-center"
                   >
-                    <span className="text-2xl">✏️</span>
+                    <span className="text-2xl">âœï¸</span>
                     <span className="font-bold text-gray-700 text-sm">Correction</span>
                     <span className="text-[11px] text-gray-500">Diminuer le stock manuellement</span>
                   </button>
@@ -1499,7 +1499,7 @@ export default function StockManagementPage() {
           )}
         </AnimatePresence>
 
-        {/* Panneau Préparer commande */}
+        {/* Panneau PrÃ©parer commande */}
         <AnimatePresence>
           {showOrderPrep && (
             <>
@@ -1547,7 +1547,7 @@ export default function StockManagementPage() {
                 </div>
                 <div className="bg-gray-50 rounded-lg p-3 mb-4 space-y-1 text-sm">
                   <div className="flex justify-between"><span className="text-gray-500">Produit</span><span className="font-semibold text-right max-w-[60%]">{statusPanel.product.name}</span></div>
-                  <div className="flex justify-between"><span className="text-gray-500">Stock actuel</span><span className="font-bold text-yellow-700">{statusPanel.product.stock} unité(s)</span></div>
+                  <div className="flex justify-between"><span className="text-gray-500">Stock actuel</span><span className="font-bold text-brand-gold">{statusPanel.product.stock} unitÃ©(s)</span></div>
                 </div>
                 <div className="grid grid-cols-2 gap-4 mb-5">
                   <div>
@@ -1586,12 +1586,12 @@ export default function StockManagementPage() {
                   <button onClick={() => setConfirmation({ isOpen: false, productId: null, change: 0, productName: "" })}><X className="h-5 w-5 text-gray-400" /></button>
                 </div>
                 <p className="text-gray-600 mb-4">
-                  {confirmation.change > 0 ? "Augmenter" : "Diminuer"} le stock de <strong>{confirmation.productName}</strong> de <strong>{Math.abs(confirmation.change)}</strong> unité(s) ?
+                  {confirmation.change > 0 ? "Augmenter" : "Diminuer"} le stock de <strong>{confirmation.productName}</strong> de <strong>{Math.abs(confirmation.change)}</strong> unitÃ©(s) ?
                 </p>
                 <div className="flex gap-3 justify-end">
                   <Button variant="outline" onClick={() => setConfirmation({ isOpen: false, productId: null, change: 0, productName: "" })}>Non</Button>
                   <Button onClick={async () => { await updateStock(confirmation.productId!, confirmation.change); setConfirmation({ isOpen: false, productId: null, change: 0, productName: "" }); }}
-                    className="bg-yellow-500 hover:bg-yellow-600 text-black">Oui</Button>
+                    className="bg-brand-orange hover:bg-brand-orange-dark text-black">Oui</Button>
                 </div>
               </motion.div>
             </motion.div>
@@ -1600,7 +1600,7 @@ export default function StockManagementPage() {
 
         {/* Pagination */}
         <div className="flex justify-center items-center gap-3 mt-4">
-          <Button variant="outline" disabled={pagination.page === 1} onClick={() => setPagination((p) => ({ ...p, page: p.page - 1 }))}>Précédent</Button>
+          <Button variant="outline" disabled={pagination.page === 1} onClick={() => setPagination((p) => ({ ...p, page: p.page - 1 }))}>PrÃ©cÃ©dent</Button>
           <span className="text-gray-700 text-sm">Page {pagination.page} / {Math.max(1, Math.ceil(pagination.total / pagination.limit))}</span>
           <Button variant="outline" disabled={pagination.page >= Math.ceil(pagination.total / pagination.limit)} onClick={() => setPagination((p) => ({ ...p, page: p.page + 1 }))}>Suivant</Button>
         </div>

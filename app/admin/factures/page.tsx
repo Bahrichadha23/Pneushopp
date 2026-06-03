@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useState, useMemo } from "react";
 import { useAuth } from "@/contexts/auth-context";
@@ -22,11 +22,11 @@ import {
 
 const STATUS_LABELS: Record<Order["status"], string> = {
   pending: "En attente",
-  confirmed: "Confirmée",
+  confirmed: "ConfirmÃ©e",
   processing: "En cours",
-  shipped: "Expédiée",
-  delivered: "Livrée",
-  cancelled: "Annulée",
+  shipped: "ExpÃ©diÃ©e",
+  delivered: "LivrÃ©e",
+  cancelled: "AnnulÃ©e",
 };
 
 const STATUS_VARIANTS: Record<Order["status"], "default" | "secondary" | "outline" | "destructive"> = {
@@ -64,12 +64,12 @@ export default function FacturesPage() {
       .finally(() => setLoading(false));
   }, []);
 
-  // Seules les commandes confirmées après assignation DOT apparaissent ici
+  // Seules les commandes confirmÃ©es aprÃ¨s assignation DOT apparaissent ici
   const FACTURE_STATUSES = ["confirmed", "shipped", "delivered"];
 
   const filtered = useMemo(() => {
     return orders.filter((o) => {
-      // Exclure commandes non confirmées (pending, processing, cancelled)
+      // Exclure commandes non confirmÃ©es (pending, processing, cancelled)
       if (!FACTURE_STATUSES.includes(o.status)) return false;
 
       const matchesClient =
@@ -116,13 +116,13 @@ export default function FacturesPage() {
     const wb = new ExcelJS.Workbook();
     const ws = wb.addWorksheet("Factures");
     ws.columns = [
-      { header: "N° Facture", key: "num", width: 18 },
+      { header: "NÂ° Facture", key: "num", width: 18 },
       { header: "Date", key: "date", width: 14 },
       { header: "Client", key: "client", width: 25 },
       { header: "Email", key: "email", width: 28 },
-      { header: "Téléphone", key: "phone", width: 16 },
+      { header: "TÃ©lÃ©phone", key: "phone", width: 16 },
       { header: "Produit", key: "product", width: 40 },
-      { header: "Qté", key: "qty", width: 8 },
+      { header: "QtÃ©", key: "qty", width: 8 },
       { header: "Prix Unit. TTC (DT)", key: "unit_price", width: 18 },
       { header: "Total Produit (DT)", key: "total_product", width: 18 },
       { header: "Total Commande TTC (DT)", key: "total", width: 22 },
@@ -189,7 +189,7 @@ export default function FacturesPage() {
           <div>
             <h1 className="text-2xl font-bold text-gray-900">Factures</h1>
             <p className="text-sm text-gray-500">
-              Consultez et téléchargez toutes les factures clients
+              Consultez et tÃ©lÃ©chargez toutes les factures clients
             </p>
           </div>
         </div>
@@ -230,7 +230,7 @@ export default function FacturesPage() {
 
       {/* Stats */}
       <p className="text-sm text-gray-500">
-        {filtered.length} facture{filtered.length !== 1 ? "s" : ""} trouvée{filtered.length !== 1 ? "s" : ""}
+        {filtered.length} facture{filtered.length !== 1 ? "s" : ""} trouvÃ©e{filtered.length !== 1 ? "s" : ""}
       </p>
 
       {/* Table */}
@@ -238,7 +238,7 @@ export default function FacturesPage() {
         <div className="text-center py-12 text-gray-500">Chargement...</div>
       ) : filtered.length === 0 ? (
         <div className="text-center py-12 text-gray-400">
-          Aucune facture trouvée.
+          Aucune facture trouvÃ©e.
         </div>
       ) : (
         <>
@@ -247,12 +247,12 @@ export default function FacturesPage() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>N° Facture</TableHead>
+                  <TableHead>NÂ° Facture</TableHead>
                   <TableHead>Client</TableHead>
                   <TableHead>Date</TableHead>
                   <TableHead>Montant TTC</TableHead>
                   <TableHead>Statut</TableHead>
-                  <TableHead className="text-right">Télécharger</TableHead>
+                  <TableHead className="text-right">TÃ©lÃ©charger</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>

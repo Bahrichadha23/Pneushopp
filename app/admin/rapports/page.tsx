@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -119,7 +119,7 @@ export default function RapportsPage() {
       });
 
       if (!response.ok) {
-        throw new Error("Erreur lors du chargement des données");
+        throw new Error("Erreur lors du chargement des donnÃ©es");
       }
 
       const data = await response.json();
@@ -128,7 +128,7 @@ export default function RapportsPage() {
     } catch (error) {
       console.error("Error fetching reports data:", error);
       setError(
-        "Erreur lors du chargement des données. Vérifiez votre connexion."
+        "Erreur lors du chargement des donnÃ©es. VÃ©rifiez votre connexion."
       );
     } finally {
       setLoading(false);
@@ -143,7 +143,7 @@ export default function RapportsPage() {
     return (
       <div className="flex items-center justify-center h-64">
         <Loader2 className="h-8 w-8 animate-spin" />
-        <span className="ml-2">Chargement des données...</span>
+        <span className="ml-2">Chargement des donnÃ©es...</span>
       </div>
     );
   }
@@ -152,8 +152,8 @@ export default function RapportsPage() {
     return (
       <div className="flex items-center justify-center h-64">
         <div className="text-center">
-          <p className="text-red-600 mb-4">{error}</p>
-          <Button onClick={fetchReportsData}>Réessayer</Button>
+          <p className="text-brand-red mb-4">{error}</p>
+          <Button onClick={fetchReportsData}>RÃ©essayer</Button>
         </div>
       </div>
     );
@@ -162,7 +162,7 @@ export default function RapportsPage() {
   if (!reportsData) {
     return (
       <div className="flex items-center justify-center h-64">
-        <p>Aucune donnée disponible</p>
+        <p>Aucune donnÃ©e disponible</p>
       </div>
     );
   }
@@ -182,7 +182,7 @@ export default function RapportsPage() {
     const workbook = new ExcelJS.Workbook();
     const date = new Date().toLocaleDateString("fr-FR");
 
-    // Sheet 1 — KPIs
+    // Sheet 1 â€” KPIs
     const wsKpi = workbook.addWorksheet("KPIs");
     wsKpi.columns = [
       { header: "Indicateur", key: "label", width: 30 },
@@ -201,7 +201,7 @@ export default function RapportsPage() {
       { label: "Produits vendus", value: stats_ventes.produits_vendus ?? 0 },
     ].forEach((row) => wsKpi.addRow(row));
 
-    // Sheet 2 — Ventes par mois
+    // Sheet 2 â€” Ventes par mois
     const wsMois = workbook.addWorksheet("Ventes par mois");
     wsMois.columns = [
       { header: "Mois", key: "mois", width: 14 },
@@ -211,17 +211,17 @@ export default function RapportsPage() {
     wsMois.getRow(1).font = { bold: true };
     ventes_par_mois.forEach((row) => wsMois.addRow(row));
 
-    // Sheet 3 — Top produits
+    // Sheet 3 â€” Top produits
     const wsProd = workbook.addWorksheet("Top Produits");
     wsProd.columns = [
       { header: "Produit", key: "nom", width: 35 },
-      { header: "Quantité vendue", key: "ventes", width: 16 },
+      { header: "QuantitÃ© vendue", key: "ventes", width: 16 },
       { header: "CA (DT)", key: "chiffre", width: 14 },
     ];
     wsProd.getRow(1).font = { bold: true };
     top_produits.forEach((row) => wsProd.addRow(row));
 
-    // Sheet 4 — Top clients
+    // Sheet 4 â€” Top clients
     const wsCli = workbook.addWorksheet("Top Clients");
     wsCli.columns = [
       { header: "Client", key: "nom", width: 30 },
@@ -263,10 +263,10 @@ export default function RapportsPage() {
             <p className="h-4 w-4 text-yellow-500 font-bold">DT</p>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-yellow-600">
+            <div className="text-2xl font-bold text-brand-gold">
               {(stats_ventes.ventes_total ?? 0).toLocaleString()} DT
             </div>
-            <p className="text-xs text-gray-500 mt-1">Toutes périodes confondues</p>
+            <p className="text-xs text-gray-500 mt-1">Toutes pÃ©riodes confondues</p>
           </CardContent>
         </Card>
 
@@ -279,7 +279,7 @@ export default function RapportsPage() {
             <div className="text-2xl font-bold text-gray-800">
               {stats_ventes.commandes_total ?? 0}
             </div>
-            <p className="text-xs text-gray-500 mt-1">Toutes périodes confondues</p>
+            <p className="text-xs text-gray-500 mt-1">Toutes pÃ©riodes confondues</p>
           </CardContent>
         </Card>
 
@@ -295,7 +295,7 @@ export default function RapportsPage() {
               {stats_ventes.clients_actifs ?? 0}
             </div>
             <p className="text-xs text-gray-500 mt-1">
-              Données en temps réel
+              DonnÃ©es en temps rÃ©el
             </p>
           </CardContent>
         </Card>
@@ -310,7 +310,7 @@ export default function RapportsPage() {
               {(stats_ventes.panier_moyen ?? 0).toLocaleString()} DT
             </div>
             <p className="text-xs text-orange-600 mt-1">
-              Toutes périodes confondues
+              Toutes pÃ©riodes confondues
             </p>
           </CardContent>
         </Card>
@@ -322,7 +322,7 @@ export default function RapportsPage() {
           <CardHeader>
             <CardTitle className="flex items-center">
               <BarChart className="h-5 w-5 mr-2" />
-              Évolution des ventes
+              Ã‰volution des ventes
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -333,7 +333,7 @@ export default function RapportsPage() {
                   <div className="flex items-center space-x-4">
                     <div className="w-32 bg-gray-200 rounded-full h-2">
                       <div
-                        className="bg-yellow-500 h-2 rounded-full"
+                        className="bg-brand-orange h-2 rounded-full"
                         style={{
                           width: `${
                             (data.ventes /
@@ -359,7 +359,7 @@ export default function RapportsPage() {
           <CardHeader>
             <CardTitle className="flex items-center">
               <LineChart className="h-5 w-5 mr-2" />
-              Évolution des commandes
+              Ã‰volution des commandes
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -393,7 +393,7 @@ export default function RapportsPage() {
         </Card>
       </div>
 
-      {/* SAV — Top produits réclamés */}
+      {/* SAV â€” Top produits rÃ©clamÃ©s */}
       {reportsData.sav_top_products && reportsData.sav_top_products.length > 0 && (() => {
         const topProds = reportsData.sav_top_products!;
         const maxCount = Math.max(...topProds.map((p) => p.reclamations), 1);
@@ -406,21 +406,21 @@ export default function RapportsPage() {
               <div className="flex items-center justify-between mb-5">
                 <div className="flex items-center gap-2">
                   <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-yellow-100">
-                    <Shield className="h-4 w-4 text-yellow-600" />
+                    <Shield className="h-4 w-4 text-brand-gold" />
                   </div>
                   <div>
-                    <p className="text-sm font-semibold text-gray-800">Service Après Vente — Top produits réclamés</p>
-                    <p className="text-xs text-gray-400">Produits ayant généré le plus de réclamations clients</p>
+                    <p className="text-sm font-semibold text-gray-800">Service AprÃ¨s Vente â€” Top produits rÃ©clamÃ©s</p>
+                    <p className="text-xs text-gray-400">Produits ayant gÃ©nÃ©rÃ© le plus de rÃ©clamations clients</p>
                   </div>
                 </div>
                 {sav && (
                   <div className="hidden sm:flex items-center gap-4 text-right">
                     <div>
-                      <p className="text-xs text-gray-400">Total réclamations</p>
+                      <p className="text-xs text-gray-400">Total rÃ©clamations</p>
                       <p className="text-xl font-bold text-gray-800">{sav.total}</p>
                     </div>
                     <div>
-                      <p className="text-xs text-emerald-600">Taux de résolution</p>
+                      <p className="text-xs text-emerald-600">Taux de rÃ©solution</p>
                       <p className="text-xl font-bold text-emerald-700">{resolutionRate}%</p>
                     </div>
                     <div>
@@ -447,14 +447,14 @@ export default function RapportsPage() {
                         </div>
                         <div className="flex items-center gap-3 flex-shrink-0 ml-3">
                           <span className="text-xs text-gray-400">
-                            {resolvePct}% résolus
+                            {resolvePct}% rÃ©solus
                           </span>
                           <span className="text-sm font-bold text-gray-800">
-                            {p.reclamations} réclamation{p.reclamations > 1 ? "s" : ""}
+                            {p.reclamations} rÃ©clamation{p.reclamations > 1 ? "s" : ""}
                           </span>
                         </div>
                       </div>
-                      {/* Barre double : réclamations totales + résolues */}
+                      {/* Barre double : rÃ©clamations totales + rÃ©solues */}
                       <div className="relative h-2 w-full rounded-full bg-gray-100 overflow-hidden">
                         <div className="absolute inset-y-0 left-0 rounded-full bg-red-300" style={{ width: `${pct}%` }} />
                         <div className="absolute inset-y-0 left-0 rounded-full bg-emerald-400" style={{ width: `${pct * resolvePct / 100}%` }} />
@@ -464,10 +464,10 @@ export default function RapportsPage() {
                 })}
               </div>
 
-              {/* Légende */}
+              {/* LÃ©gende */}
               <div className="mt-4 flex items-center gap-4 text-xs text-gray-500">
-                <div className="flex items-center gap-1.5"><span className="h-2 w-3 rounded-full bg-red-300" />Réclamations totales</div>
-                <div className="flex items-center gap-1.5"><span className="h-2 w-3 rounded-full bg-emerald-400" />Résolues</div>
+                <div className="flex items-center gap-1.5"><span className="h-2 w-3 rounded-full bg-red-300" />RÃ©clamations totales</div>
+                <div className="flex items-center gap-1.5"><span className="h-2 w-3 rounded-full bg-emerald-400" />RÃ©solues</div>
               </div>
             </CardContent>
           </Card>
@@ -485,7 +485,7 @@ export default function RapportsPage() {
               <TableHeader>
                 <TableRow>
                   <TableHead>Produit</TableHead>
-                  <TableHead>Quantité</TableHead>
+                  <TableHead>QuantitÃ©</TableHead>
                   <TableHead>CA</TableHead>
                 </TableRow>
               </TableHeader>
@@ -496,7 +496,7 @@ export default function RapportsPage() {
                     <TableCell>
                       <Badge variant="secondary">{produit.ventes}</Badge>
                     </TableCell>
-                    <TableCell className="font-bold text-yellow-600">
+                    <TableCell className="font-bold text-brand-gold">
                       {produit.chiffre.toLocaleString()} DT
                     </TableCell>
                   </TableRow>

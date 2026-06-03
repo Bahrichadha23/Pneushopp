@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useAuth } from "@/contexts/auth-context";
@@ -102,29 +102,29 @@ interface TresorerieRecord {
 }
 
 const PAYMENT_LABELS: Record<string, string> = {
-  card: "Carte de crédit",
-  cash_on_delivery: "TPE à la livraison",
-  especes: "Espèces",
+  card: "Carte de crÃ©dit",
+  cash_on_delivery: "TPE Ã  la livraison",
+  especes: "EspÃ¨ces",
   bank_transfer: "Virement",
   cri: "CRI",
-  cheque: "Chèque",
-  check: "Chèque",
+  cheque: "ChÃ¨que",
+  check: "ChÃ¨que",
   lettre_de_change: "Lettre de change",
-  mixed: "Multi-modalités",
+  mixed: "Multi-modalitÃ©s",
 };
 
 const CHEQUE_STATUS_LABELS: Record<string, string> = {
   pending: "En circulation",
-  paid: "Payé",
-  failed: "Annulé",
+  paid: "PayÃ©",
+  failed: "AnnulÃ©",
   refunded: "Escompte",
 };
 
 const PAYMENT_STATUS_LABELS: Record<string, string> = {
   pending: "En attente",
-  paid: "Payé",
-  failed: "Échoué",
-  refunded: "Remboursé",
+  paid: "PayÃ©",
+  failed: "Ã‰chouÃ©",
+  refunded: "RemboursÃ©",
 };
 
 function formatCurrency(value: number): string {
@@ -278,12 +278,12 @@ function printFacture(record: TresorerieRecord) {
   const win = window.open("", "_blank", "width=900,height=700");
   if (!win) return;
   const getPaymentDetails = () => {
-    if (record.paymentMethod === "bank_transfer") return `N° Virement : ${record.transferNumber || "-"} | Banque : ${record.transferBankName || "-"} | Titulaire : ${record.transferHolderName || "-"}`;
-    if (record.paymentMethod === "lettre_de_change") return `N° Lettre : ${record.lettreNumber || "-"} | Date : ${record.lettreDate || "-"} | Banque : ${record.lettreBankName || "-"}`;
-    if (record.paymentMethod === "cheque" || record.paymentMethod === "check") return `N° Chèque : ${record.chequeNumberValue || "-"} | Date : ${record.chequeDate || "-"} | Banque : ${record.chequeBankName || "-"}`;
-    if (record.paymentMethod === "cash_on_delivery") return `N° Auth : ${record.codAuthorizationNumber || "-"} | Banque : ${record.codBankName || "-"}`;
+    if (record.paymentMethod === "bank_transfer") return `NÂ° Virement : ${record.transferNumber || "-"} | Banque : ${record.transferBankName || "-"} | Titulaire : ${record.transferHolderName || "-"}`;
+    if (record.paymentMethod === "lettre_de_change") return `NÂ° Lettre : ${record.lettreNumber || "-"} | Date : ${record.lettreDate || "-"} | Banque : ${record.lettreBankName || "-"}`;
+    if (record.paymentMethod === "cheque" || record.paymentMethod === "check") return `NÂ° ChÃ¨que : ${record.chequeNumberValue || "-"} | Date : ${record.chequeDate || "-"} | Banque : ${record.chequeBankName || "-"}`;
+    if (record.paymentMethod === "cash_on_delivery") return `NÂ° Auth : ${record.codAuthorizationNumber || "-"} | Banque : ${record.codBankName || "-"}`;
     if (record.paymentMethod === "cri") return `Remarque : ${record.criRemarque || "-"}`;
-    if (record.paymentMethod === "especes") return "Paiement en espèces";
+    if (record.paymentMethod === "especes") return "Paiement en espÃ¨ces";
     return "Carte bancaire";
   };
   const rows = record.items.map((item, i) => `
@@ -312,28 +312,28 @@ function printFacture(record: TresorerieRecord) {
     </div>
     <div class="grid2">
       <div class="box"><div class="box-title">Informations Facture</div>
-        <div class="row"><span class="label">N° Facture :</span>${record.refDoc || "-"}</div>
+        <div class="row"><span class="label">NÂ° Facture :</span>${record.refDoc || "-"}</div>
         <div class="row"><span class="label">Date :</span>${record.dateFormatted}</div>
-        <div class="row"><span class="label">Méthode :</span>${record.type}</div>
+        <div class="row"><span class="label">MÃ©thode :</span>${record.type}</div>
         ${record.commercial ? `<div class="row"><span class="label">Commercial :</span>${record.commercial}</div>` : ""}
         <div class="row"><span class="label">Paiement :</span>${getPaymentDetails()}</div>
       </div>
       <div class="box"><div class="box-title">Client</div>
         <div class="row"><span class="label">Nom :</span>${record.client || "-"}</div>
-        <div class="row"><span class="label">Téléphone :</span>${record.shippingAddress.phone || "-"}</div>
+        <div class="row"><span class="label">TÃ©lÃ©phone :</span>${record.shippingAddress.phone || "-"}</div>
         <div class="row"><span class="label">Adresse :</span>${[record.shippingAddress.address, record.shippingAddress.city].filter(Boolean).join(", ") || "-"}</div>
       </div>
     </div>
-    <table><thead><tr><th>#</th><th>Désignation</th><th style="text-align:center">Qté</th><th style="text-align:right">P.U. TTC</th><th style="text-align:right">Total TTC</th></tr></thead>
+    <table><thead><tr><th>#</th><th>DÃ©signation</th><th style="text-align:center">QtÃ©</th><th style="text-align:right">P.U. TTC</th><th style="text-align:right">Total TTC</th></tr></thead>
     <tbody>${rows}</tbody></table>
     <div class="totals"><table>
       <tr><td>Montant Facture</td><td style="text-align:right;font-weight:bold">${record.totalAmount.toFixed(2)} DT</td></tr>
-      <tr style="color:#059669"><td>Montant Payé</td><td style="text-align:right;font-weight:bold">${paidAmount.toFixed(2)} DT</td></tr>
-      <tr style="color:#dc2626"><td>Reste à payer</td><td style="text-align:right;font-weight:bold">${remaining.toFixed(2)} DT</td></tr>
+      <tr style="color:#059669"><td>Montant PayÃ©</td><td style="text-align:right;font-weight:bold">${paidAmount.toFixed(2)} DT</td></tr>
+      <tr style="color:#dc2626"><td>Reste Ã  payer</td><td style="text-align:right;font-weight:bold">${remaining.toFixed(2)} DT</td></tr>
     </table></div>
     <div style="margin-top:40px;display:flex;justify-content:space-between">
       <div><div style="font-weight:bold">Cachet et Signature</div><div style="margin-top:30px;border-top:1px solid #ddd;width:150px"></div></div>
-      <div style="font-size:10px;color:#64748b;text-align:right">Facture générée par PneuShop<br>${new Date().toLocaleDateString("fr-FR")}</div>
+      <div style="font-size:10px;color:#64748b;text-align:right">Facture gÃ©nÃ©rÃ©e par PneuShop<br>${new Date().toLocaleDateString("fr-FR")}</div>
     </div>
     <script>window.onload=()=>{window.print();}<\/script></body></html>`);
   win.document.close();
@@ -378,7 +378,7 @@ export default function TresoreriePage() {
   useEffect(() => {
     const loadRecords = async () => {
       try {
-        // no_pagination=true → retourne TOUTES les commandes sans limite de page
+        // no_pagination=true â†’ retourne TOUTES les commandes sans limite de page
         const { data } = await apiClient.get("/orders/?no_pagination=true");
 
         // Le backend retourne soit un tableau direct, soit { results: [...] }
@@ -387,7 +387,7 @@ export default function TresoreriePage() {
         const mapped: TresorerieRecord[] = orders.map((o: any) => {
           const createdAt = new Date(o.created_at);
 
-          // Date d'échéance : spécifique au mode de paiement
+          // Date d'Ã©chÃ©ance : spÃ©cifique au mode de paiement
           let dueDate: Date;
           if (
             (o.payment_method === "cheque" || o.payment_method === "check") &&
@@ -397,7 +397,7 @@ export default function TresoreriePage() {
           } else if (o.payment_method === "lettre_de_change" && o.lettre_date) {
             dueDate = new Date(o.lettre_date);
           } else {
-            // Pour CRI et autres : pas d'échéance propre → même date que la commande
+            // Pour CRI et autres : pas d'Ã©chÃ©ance propre â†’ mÃªme date que la commande
             dueDate = new Date(o.created_at);
           }
 
@@ -405,7 +405,7 @@ export default function TresoreriePage() {
           const lastName = o.shipping_address?.last_name || "";
           const fullName = `${firstName} ${lastName}`.trim() || "N/A";
 
-          // Remarque : première remarque non-vide parmi les modes de paiement
+          // Remarque : premiÃ¨re remarque non-vide parmi les modes de paiement
           const remarque =
             o.cri_remarque ||
             o.transfer_remarque ||
@@ -433,9 +433,9 @@ export default function TresoreriePage() {
             refDoc: fps(o.order_number || ""),
             type: PAYMENT_LABELS[o.payment_method] || o.payment_method || "N/A",
             client: fullName,
-            // Les commandes de vente n'ont pas de fournisseur ; champ conservé pour compatibilité
+            // Les commandes de vente n'ont pas de fournisseur ; champ conservÃ© pour compatibilitÃ©
             fournisseur: "",
-            // Numéro de ticket (référence interne = ID commande)
+            // NumÃ©ro de ticket (rÃ©fÃ©rence interne = ID commande)
             chequeNumber: fps(o.order_number || String(o.id).padStart(6, "0")),
             remarque,
             chequeStatus: CHEQUE_STATUS_LABELS[o.payment_status] || "",
@@ -478,7 +478,7 @@ export default function TresoreriePage() {
             lettreLieu: o.lettre_lieu || "",
             lettreImageName: o.lettre_image_name || "",
             lettreRemarque: o.lettre_remarque || "",
-            // Chèque
+            // ChÃ¨que
             chequeAmountPaid: parseFloat(o.cheque_amount_paid || "0"),
             chequeRemaining: parseFloat(o.cheque_remaining || "0"),
             chequeNumberValue: o.cheque_number || "",
@@ -500,7 +500,7 @@ export default function TresoreriePage() {
 
         setRecords(mapped);
       } catch (error) {
-        console.error("Échec du chargement de la trésorerie :", error);
+        console.error("Ã‰chec du chargement de la trÃ©sorerie :", error);
       } finally {
         setLoading(false);
       }
@@ -526,7 +526,7 @@ export default function TresoreriePage() {
 
   const filteredRecords = useMemo(() => {
     return records.filter((r) => {
-      // Quick date filter (today/week/month…) — if dates are also set, both must match
+      // Quick date filter (today/week/monthâ€¦) â€” if dates are also set, both must match
       if (!matchesDateFilter(r.createdAt, dateFilter, dateFrom, dateTo)) {
         return false;
       }
@@ -560,7 +560,7 @@ export default function TresoreriePage() {
         return false;
       }
 
-      // Filtre N° Chèque → recherche sur le vrai numéro de chèque/lettre/virement
+      // Filtre NÂ° ChÃ¨que â†’ recherche sur le vrai numÃ©ro de chÃ¨que/lettre/virement
       if (chequeNumberFilter) {
         const haystack = [
           r.chequeNumberValue,
@@ -641,7 +641,7 @@ export default function TresoreriePage() {
 
   // Sauvegarde du commercial via PATCH
   const handleCommercialChange = async (recordId: string, value: string) => {
-    // Mise à jour optimiste locale
+    // Mise Ã  jour optimiste locale
     setRecords((prev) =>
       prev.map((r) => (r.id === recordId ? { ...r, commercial: value } : r))
     );
@@ -686,13 +686,13 @@ export default function TresoreriePage() {
       { header: "Document", key: "document", width: 18 },
       { header: "Type", key: "type", width: 18 },
       { header: "Client/Fournisseur", key: "tier", width: 28 },
-      { header: "N°", key: "numero", width: 10 },
+      { header: "NÂ°", key: "numero", width: 10 },
       { header: "Remarque", key: "remarque", width: 26 },
-      { header: "Etat Chèque", key: "etatCheque", width: 16 },
-      { header: "Date d'échéance", key: "dueDate", width: 16 },
+      { header: "Etat ChÃ¨que", key: "etatCheque", width: 16 },
+      { header: "Date d'Ã©chÃ©ance", key: "dueDate", width: 16 },
       { header: "Nom", key: "nom", width: 20 },
       { header: "Montant Facture", key: "invoiceAmount", width: 16 },
-      { header: "Montant Payé", key: "paidAmount", width: 16 },
+      { header: "Montant PayÃ©", key: "paidAmount", width: 16 },
       { header: "Reste", key: "remainingAmount", width: 14 },
       { header: "Statut Paiement", key: "statutPaiement", width: 16 },
     ];
@@ -737,7 +737,7 @@ export default function TresoreriePage() {
 
   const handleExportXLSX = async () => {
     const workbook = new ExcelJS.Workbook();
-    const ws = workbook.addWorksheet("Trésorerie");
+    const ws = workbook.addWorksheet("TrÃ©sorerie");
 
     ws.columns = [
       { header: "Date", key: "date", width: 14 },
@@ -746,9 +746,9 @@ export default function TresoreriePage() {
       { header: "Client", key: "client", width: 28 },
       { header: "Commercial", key: "commercial", width: 18 },
       { header: "Statut", key: "statut", width: 16 },
-      { header: "Date Échéance", key: "dueDate", width: 16 },
+      { header: "Date Ã‰chÃ©ance", key: "dueDate", width: 16 },
       { header: "Montant Facture", key: "montant", width: 18 },
-      { header: "Montant Payé", key: "paye", width: 18 },
+      { header: "Montant PayÃ©", key: "paye", width: 18 },
       { header: "Reste", key: "reste", width: 16 },
     ];
 
@@ -811,7 +811,7 @@ export default function TresoreriePage() {
   if (loading) {
     return (
       <div className="flex h-64 items-center justify-center">
-        <div className="text-gray-500">Chargement de la trésorerie...</div>
+        <div className="text-gray-500">Chargement de la trÃ©sorerie...</div>
       </div>
     );
   }
@@ -821,41 +821,41 @@ export default function TresoreriePage() {
       {/* KPI cards */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
         <div className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
-          <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Total Facturé</p>
+          <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Total FacturÃ©</p>
           <p className="mt-1 text-2xl font-bold text-slate-800">{formatCurrency(records.reduce((s, r) => s + r.totalAmount, 0))}</p>
           <p className="text-xs text-slate-400 mt-0.5">{records.length} commandes</p>
         </div>
         <div className="rounded-lg border border-yellow-200 bg-yellow-50 p-4 shadow-sm">
-          <p className="text-xs font-semibold uppercase tracking-wide text-yellow-700">Encaissé</p>
-          <p className="mt-1 text-2xl font-bold text-yellow-700">{formatCurrency(records.reduce((s, r) => s + getPaidAmount(r), 0))}</p>
-          <p className="text-xs text-yellow-600 mt-0.5">{records.filter(r => getRemainingAmount(r) === 0).length} soldées</p>
+          <p className="text-xs font-semibold uppercase tracking-wide text-brand-gold">EncaissÃ©</p>
+          <p className="mt-1 text-2xl font-bold text-brand-gold">{formatCurrency(records.reduce((s, r) => s + getPaidAmount(r), 0))}</p>
+          <p className="text-xs text-brand-gold mt-0.5">{records.filter(r => getRemainingAmount(r) === 0).length} soldÃ©es</p>
         </div>
         <div className="rounded-lg border border-slate-200 bg-slate-50 p-4 shadow-sm">
-          <p className="text-xs font-semibold uppercase tracking-wide text-slate-600">Reste à recouvrer</p>
+          <p className="text-xs font-semibold uppercase tracking-wide text-slate-600">Reste Ã  recouvrer</p>
           <p className="mt-1 text-2xl font-bold text-slate-700">{formatCurrency(records.reduce((s, r) => s + getRemainingAmount(r), 0))}</p>
           <p className="text-xs text-slate-500 mt-0.5">{records.filter(r => getRemainingAmount(r) > 0).length} en cours</p>
         </div>
         <div className="rounded-lg border border-orange-200 bg-orange-50 p-4 shadow-sm">
-          <p className="text-xs font-semibold uppercase tracking-wide text-orange-600">Échéances &lt; 7 jours</p>
+          <p className="text-xs font-semibold uppercase tracking-wide text-orange-600">Ã‰chÃ©ances &lt; 7 jours</p>
           <p className="mt-1 text-2xl font-bold text-orange-700">
             {records.filter(r => {
               const diff = (r.dueDate.getTime() - Date.now()) / 86400000;
               return diff >= 0 && diff <= 7 && getRemainingAmount(r) > 0 && (r.paymentMethod === 'cheque' || r.paymentMethod === 'check' || r.paymentMethod === 'lettre_de_change');
             }).length}
           </p>
-          <p className="text-xs text-orange-500 mt-0.5">chèques/lettres</p>
+          <p className="text-xs text-orange-500 mt-0.5">chÃ¨ques/lettres</p>
         </div>
       </div>
 
       <div className="overflow-hidden rounded-md border border-slate-300 bg-white shadow-sm">
         <div className="border-b border-slate-300 bg-[#f4f6f8] px-4 py-3">
-          <h1 className="text-xl font-semibold text-slate-800">Trésorerie Vente</h1>
+          <h1 className="text-xl font-semibold text-slate-800">TrÃ©sorerie Vente</h1>
         </div>
 
         <div className="space-y-4 p-4">
           <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-5">
             <div>
-              <label className="mb-1 block text-xs font-semibold text-slate-600">Période</label>
+              <label className="mb-1 block text-xs font-semibold text-slate-600">PÃ©riode</label>
               <select
                 value={dateFilter}
                 onChange={(e) => { setDateFilter(e.target.value); if (e.target.value !== "specific") { setDateFrom(""); setDateTo(""); } }}
@@ -864,48 +864,48 @@ export default function TresoreriePage() {
                 <option value="all">Toutes les dates</option>
                 <option value="this_week">Cette semaine</option>
                 <option value="this_month">Ce mois</option>
-                <option value="this_year">Cette année</option>
+                <option value="this_year">Cette annÃ©e</option>
               </select>
             </div>
 
             <div>
               <label className="mb-1 block text-xs font-semibold text-slate-600">
-                Période d'échéance
+                PÃ©riode d'Ã©chÃ©ance
               </label>
               <select
                 value={dueDateFilter}
                 onChange={(e) => { setDueDateFilter(e.target.value); if (e.target.value !== "specific") { setDueDateFrom(""); setDueDateTo(""); } }}
                 className="w-full rounded border border-slate-300 px-2 py-2 text-sm"
               >
-                <option value="all">Toutes les échéances</option>
+                <option value="all">Toutes les Ã©chÃ©ances</option>
                 <option value="this_week">Cette semaine</option>
                 <option value="this_month">Ce mois</option>
-                <option value="this_year">Cette année</option>
+                <option value="this_year">Cette annÃ©e</option>
               </select>
             </div>
 
             <div>
               <label className="mb-1 block text-xs font-semibold text-slate-600">
-                Référence Facture
+                RÃ©fÃ©rence Facture
               </label>
               <Input
-                placeholder="N° référence"
+                placeholder="NÂ° rÃ©fÃ©rence"
                 value={refDocFilter}
                 onChange={(e) => setRefDocFilter(e.target.value)}
               />
             </div>
 
             <div>
-              <label className="mb-1 block text-xs font-semibold text-slate-600">N° Chèque</label>
+              <label className="mb-1 block text-xs font-semibold text-slate-600">NÂ° ChÃ¨que</label>
               <Input
-                placeholder="N° chèque"
+                placeholder="NÂ° chÃ¨que"
                 value={chequeNumberFilter}
                 onChange={(e) => setChequeNumberFilter(e.target.value)}
               />
             </div>
 
             <div>
-              <label className="mb-1 block text-xs font-semibold text-slate-600">Etat Chèque</label>
+              <label className="mb-1 block text-xs font-semibold text-slate-600">Etat ChÃ¨que</label>
               <select
                 value={statusFilter}
                 onChange={(e) => setStatusFilter(e.target.value)}
@@ -913,11 +913,11 @@ export default function TresoreriePage() {
               >
                 <option value="">Tout</option>
                 <option value="En circulation">En circulation</option>
-                <option value="Payé">Payé</option>
-                <option value="Annulé">Annulé</option>
+                <option value="PayÃ©">PayÃ©</option>
+                <option value="AnnulÃ©">AnnulÃ©</option>
                 <option value="Escompte">Escompte</option>
                 <option value="En attente">En attente</option>
-                <option value="Échoué">Échoué</option>
+                <option value="Ã‰chouÃ©">Ã‰chouÃ©</option>
               </select>
             </div>
 
@@ -929,15 +929,15 @@ export default function TresoreriePage() {
                 className="w-full rounded border border-slate-300 px-2 py-2 text-sm"
               >
                 <option value="">Tout</option>
-                <option value="cash_on_delivery">TPE à la livraison</option>
-                <option value="especes">Espèces</option>
-                <option value="card">Carte de crédit</option>
+                <option value="cash_on_delivery">TPE Ã  la livraison</option>
+                <option value="especes">EspÃ¨ces</option>
+                <option value="card">Carte de crÃ©dit</option>
                 <option value="bank_transfer">Virement</option>
-                <option value="cheque">Chèque</option>
-                <option value="check">Chèque (legacy)</option>
+                <option value="cheque">ChÃ¨que</option>
+                <option value="check">ChÃ¨que (legacy)</option>
                 <option value="cri">CRI</option>
                 <option value="lettre_de_change">Lettre de change</option>
-                <option value="mixed">Multi-modalités</option>
+                <option value="mixed">Multi-modalitÃ©s</option>
               </select>
             </div>
 
@@ -984,11 +984,11 @@ export default function TresoreriePage() {
               >
                 <option value="">Tout</option>
                 <option value="En attente">En attente</option>
-                <option value="Payé">Payé</option>
-                <option value="Échoué">Échoué</option>
+                <option value="PayÃ©">PayÃ©</option>
+                <option value="Ã‰chouÃ©">Ã‰chouÃ©</option>
                 <option value="En circulation">En circulation</option>
                 <option value="Escompte">Escompte</option>
-                <option value="Annulé">Annulé</option>
+                <option value="AnnulÃ©">AnnulÃ©</option>
               </select>
             </div>
 
@@ -1009,7 +1009,7 @@ export default function TresoreriePage() {
 
           <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-4">
             <div>
-              <label className="mb-1 block text-xs font-semibold text-slate-600">Date début</label>
+              <label className="mb-1 block text-xs font-semibold text-slate-600">Date dÃ©but</label>
               <Input type="date" value={dateFrom} onChange={(e) => { setDateFrom(e.target.value); setDateFilter("all"); }} />
             </div>
             <div>
@@ -1017,11 +1017,11 @@ export default function TresoreriePage() {
               <Input type="date" value={dateTo} onChange={(e) => { setDateTo(e.target.value); setDateFilter("all"); }} />
             </div>
             <div>
-              <label className="mb-1 block text-xs font-semibold text-slate-600">Date échéance début</label>
+              <label className="mb-1 block text-xs font-semibold text-slate-600">Date Ã©chÃ©ance dÃ©but</label>
               <Input type="date" value={dueDateFrom} onChange={(e) => { setDueDateFrom(e.target.value); setDueDateFilter("all"); }} />
             </div>
             <div>
-              <label className="mb-1 block text-xs font-semibold text-slate-600">Date échéance fin</label>
+              <label className="mb-1 block text-xs font-semibold text-slate-600">Date Ã©chÃ©ance fin</label>
               <Input type="date" value={dueDateTo} onChange={(e) => { setDueDateTo(e.target.value); setDueDateFilter("all"); }} />
             </div>
           </div>
@@ -1047,10 +1047,10 @@ export default function TresoreriePage() {
               </div>
 
               <div className="rounded border border-yellow-200 bg-yellow-50 px-3 py-2">
-                <div className="text-[11px] font-semibold uppercase tracking-wide text-yellow-700">
+                <div className="text-[11px] font-semibold uppercase tracking-wide text-brand-gold">
                   Paye
                 </div>
-                <div className="text-base font-semibold text-yellow-700">
+                <div className="text-base font-semibold text-brand-gold">
                   {formatCurrency(totalPaid)}
                 </div>
               </div>
@@ -1107,13 +1107,13 @@ export default function TresoreriePage() {
                   <th className="px-2 py-2 font-semibold whitespace-nowrap">Date</th>
                   <th className="px-2 py-2 font-semibold whitespace-nowrap">Facture</th>
                   <th className="px-2 py-2 font-semibold whitespace-nowrap">Type</th>
-                  <th className="px-2 py-2 font-semibold whitespace-nowrap">Détails Paiement</th>
+                  <th className="px-2 py-2 font-semibold whitespace-nowrap">DÃ©tails Paiement</th>
                   <th className="px-2 py-2 font-semibold whitespace-nowrap">Client/Fournisseur</th>
                   <th className="px-2 py-2 font-semibold whitespace-nowrap">Commercial</th>
-                  <th className="px-2 py-2 font-semibold whitespace-nowrap">Etat Chèque</th>
-                  <th className="px-2 py-2 font-semibold whitespace-nowrap">Date d'échéance</th>
+                  <th className="px-2 py-2 font-semibold whitespace-nowrap">Etat ChÃ¨que</th>
+                  <th className="px-2 py-2 font-semibold whitespace-nowrap">Date d'Ã©chÃ©ance</th>
                   <th className="px-2 py-2 text-right font-semibold whitespace-nowrap">Montant Facture</th>
-                  <th className="px-2 py-2 text-right font-semibold whitespace-nowrap">Montant Payé</th>
+                  <th className="px-2 py-2 text-right font-semibold whitespace-nowrap">Montant PayÃ©</th>
                   <th className="px-2 py-2 text-right font-semibold whitespace-nowrap">Reste</th>
                   <th className="px-2 py-2 font-semibold whitespace-nowrap">Action</th>
                 </tr>
@@ -1122,7 +1122,7 @@ export default function TresoreriePage() {
                 {filteredRecords.length === 0 ? (
                   <tr>
                     <td colSpan={12} className="px-3 py-10 text-center text-slate-500">
-                      Aucun enregistrement trouvé
+                      Aucun enregistrement trouvÃ©
                     </td>
                   </tr>
                 ) : (
@@ -1154,7 +1154,7 @@ export default function TresoreriePage() {
                         )}
                         {record.paymentMethod === "bank_transfer" && (
                           <>
-                            <div>N° Virement: {record.transferNumber || "-"}</div>
+                            <div>NÂ° Virement: {record.transferNumber || "-"}</div>
                             <div>Nom: {record.transferHolderName || "-"}</div>
                             <div>Banque: {record.transferBankName || "-"}</div>
                             {record.transferImageName && (
@@ -1174,7 +1174,7 @@ export default function TresoreriePage() {
                         )}
                         {record.paymentMethod === "lettre_de_change" && (
                           <>
-                            <div>N° Lettre: {record.lettreNumber || "-"}</div>
+                            <div>NÂ° Lettre: {record.lettreNumber || "-"}</div>
                             <div>Date: {record.lettreDate || "-"}</div>
                             <div>Nom: {record.lettreName || "-"}</div>
                             <div>Banque: {record.lettreBankName || "-"}</div>
@@ -1197,7 +1197,7 @@ export default function TresoreriePage() {
                         )}
                         {(record.paymentMethod === "cheque" || record.paymentMethod === "check") && (
                           <>
-                            <div>N° Chèque: {record.chequeNumberValue || "-"}</div>
+                            <div>NÂ° ChÃ¨que: {record.chequeNumberValue || "-"}</div>
                             <div>Date: {record.chequeDate || "-"}</div>
                             <div>Nom: {record.chequeName || "-"}</div>
                             <div>Banque: {record.chequeBankName || "-"}</div>
@@ -1205,7 +1205,7 @@ export default function TresoreriePage() {
                               <a href={mediaUrl(record.chequeImageName)} target="_blank" rel="noreferrer">
                                 <img
                                   src={mediaUrl(record.chequeImageName)}
-                                  alt="Chèque"
+                                  alt="ChÃ¨que"
                                   className="mt-1 h-14 w-auto rounded border border-slate-200 object-contain cursor-pointer"
                                   onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; (e.target as HTMLImageElement).nextElementSibling?.classList.remove("hidden"); }}
                                 />
@@ -1218,20 +1218,20 @@ export default function TresoreriePage() {
                         )}
                         {record.paymentMethod === "cash_on_delivery" && (
                           <>
-                            <div>N° Autorisation: {record.codAuthorizationNumber || "-"}</div>
+                            <div>NÂ° Autorisation: {record.codAuthorizationNumber || "-"}</div>
                             <div>Banque: {record.codBankName || "-"}</div>
                             <div>Montant: {formatCurrency(record.codAmountPaid)}</div>
                             <div>Reste: {formatCurrency(record.codRemaining)}</div>
                             <div>Remarque: {record.codRemarque || "-"}</div>
                           </>
                         )}
-                        {record.paymentMethod === "especes" && <div>Paiement en espèces</div>}
+                        {record.paymentMethod === "especes" && <div>Paiement en espÃ¨ces</div>}
                         {record.paymentMethod === "card" && <div>Carte bancaire</div>}
                         {record.paymentMethod === "mixed" && (<>
-                          {record.especesAmountPaid > 0 && <div>Espèces: {formatCurrency(record.especesAmountPaid)}</div>}
+                          {record.especesAmountPaid > 0 && <div>EspÃ¨ces: {formatCurrency(record.especesAmountPaid)}</div>}
                           {record.criAmountPaid > 0 && <div>CRI: {formatCurrency(record.criAmountPaid)}</div>}
                           {record.transferAmountPaid > 0 && <div>Virement: {formatCurrency(record.transferAmountPaid)}</div>}
-                          {record.chequeAmountPaid > 0 && <div>Chèque: {formatCurrency(record.chequeAmountPaid)}</div>}
+                          {record.chequeAmountPaid > 0 && <div>ChÃ¨que: {formatCurrency(record.chequeAmountPaid)}</div>}
                           {record.lettreAmountPaid > 0 && <div>Lettre: {formatCurrency(record.lettreAmountPaid)}</div>}
                           {record.codAmountPaid > 0 && <div>TPE: {formatCurrency(record.codAmountPaid)}</div>}
                         </>)}
@@ -1247,9 +1247,9 @@ export default function TresoreriePage() {
                         <select
                           value={record.commercial}
                           onChange={(e) => handleCommercialChange(record.id, e.target.value)}
-                          className="w-36 rounded border border-slate-300 bg-white px-1.5 py-1 text-xs focus:outline-none focus:ring-1 focus:ring-yellow-400"
+                          className="w-36 rounded border border-slate-300 bg-white px-1.5 py-1 text-xs focus:outline-none focus:ring-1 focus:ring-brand-orange"
                         >
-                          <option value="">— Choisir —</option>
+                          <option value="">â€” Choisir â€”</option>
                           {COMMERCIAUX.map((c) => (
                             <option key={c} value={c}>{c}</option>
                           ))}
@@ -1259,23 +1259,23 @@ export default function TresoreriePage() {
                         <select
                           value={record.paymentStatus}
                           onChange={(e) => handlePaymentStatusChange(record.id, e.target.value)}
-                          className={`rounded border px-1.5 py-0.5 text-xs focus:outline-none focus:ring-1 focus:ring-yellow-400 ${
-                            record.paymentStatus === 'paid' ? 'border-emerald-300 bg-emerald-50 text-yellow-700' :
-                            record.paymentStatus === 'failed' ? 'border-red-300 bg-red-50 text-red-700' :
+                          className={`rounded border px-1.5 py-0.5 text-xs focus:outline-none focus:ring-1 focus:ring-brand-orange ${
+                            record.paymentStatus === 'paid' ? 'border-emerald-300 bg-emerald-50 text-brand-gold' :
+                            record.paymentStatus === 'failed' ? 'border-red-300 bg-red-50 text-brand-red' :
                             'border-slate-300 bg-white text-slate-700'
                           }`}
                         >
                           <option value="pending">En attente</option>
-                          <option value="paid">Payé</option>
-                          <option value="failed">Annulé</option>
-                          <option value="refunded">Remboursé</option>
+                          <option value="paid">PayÃ©</option>
+                          <option value="failed">AnnulÃ©</option>
+                          <option value="refunded">RemboursÃ©</option>
                         </select>
                       </td>
                       <td className="px-2 py-2 align-top whitespace-nowrap">{record.dueDateFormatted}</td>
                       <td className="px-2 py-2 text-right align-top whitespace-nowrap font-semibold">
                         {formatCurrency(record.totalAmount)}
                       </td>
-                      <td className="px-2 py-2 text-right align-top whitespace-nowrap font-semibold text-yellow-700">
+                      <td className="px-2 py-2 text-right align-top whitespace-nowrap font-semibold text-brand-gold">
                         {formatCurrency(getPaidAmount(record))}
                       </td>
                       <td className="px-2 py-2 text-right align-top whitespace-nowrap font-semibold text-slate-700">
@@ -1307,7 +1307,7 @@ export default function TresoreriePage() {
             aria-label="Table horizontal scrollbar"
           >
             <div className="flex h-6 min-w-[1500px] items-center px-3 text-[11px] font-medium text-slate-500">
-              Faites défiler horizontalement pour voir toutes les colonnes
+              Faites dÃ©filer horizontalement pour voir toutes les colonnes
             </div>
           </div>
         </div>
@@ -1324,19 +1324,19 @@ export default function TresoreriePage() {
               <button
                 onClick={() => setSelectedRecord(null)}
                 className="text-slate-300 hover:text-white text-lg leading-none"
-              >×</button>
+              >Ã—</button>
             </div>
 
             <div className="p-4 space-y-3">
-              {/* Ligne 1 : Infos facture + Client côte à côte */}
+              {/* Ligne 1 : Infos facture + Client cÃ´te Ã  cÃ´te */}
               <div className="grid grid-cols-2 gap-3">
                 <div className="rounded border border-slate-200">
                   <div className="bg-slate-100 px-2 py-1 text-[11px] font-semibold uppercase tracking-wide text-slate-600">Facture</div>
                   <div className="px-2 py-1.5 space-y-0.5 text-slate-700">
-                    <div className="flex gap-1"><span className="font-semibold w-28 shrink-0">N° Facture :</span><span>{selectedRecord.refDoc || "-"}</span></div>
+                    <div className="flex gap-1"><span className="font-semibold w-28 shrink-0">NÂ° Facture :</span><span>{selectedRecord.refDoc || "-"}</span></div>
                     <div className="flex gap-1"><span className="font-semibold w-28 shrink-0">Date :</span><span>{selectedRecord.dateFormatted}</span></div>
-                    <div className="flex gap-1"><span className="font-semibold w-28 shrink-0">Date échéance :</span><span>{selectedRecord.dueDateFormatted}</span></div>
-                    <div className="flex gap-1"><span className="font-semibold w-28 shrink-0">Méthode :</span><span>{selectedRecord.type}</span></div>
+                    <div className="flex gap-1"><span className="font-semibold w-28 shrink-0">Date Ã©chÃ©ance :</span><span>{selectedRecord.dueDateFormatted}</span></div>
+                    <div className="flex gap-1"><span className="font-semibold w-28 shrink-0">MÃ©thode :</span><span>{selectedRecord.type}</span></div>
                     <div className="flex gap-1"><span className="font-semibold w-28 shrink-0">Statut :</span><span>{PAYMENT_STATUS_LABELS[selectedRecord.paymentStatus] || selectedRecord.paymentStatus}</span></div>
                     {selectedRecord.commercial && (
                       <div className="flex gap-1"><span className="font-semibold w-28 shrink-0">Commercial :</span><span>{selectedRecord.commercial}</span></div>
@@ -1348,7 +1348,7 @@ export default function TresoreriePage() {
                   <div className="bg-slate-100 px-2 py-1 text-[11px] font-semibold uppercase tracking-wide text-slate-600">Client</div>
                   <div className="px-2 py-1.5 space-y-0.5 text-slate-700">
                     <div className="flex gap-1"><span className="font-semibold w-20 shrink-0">Nom :</span><span>{selectedRecord.client || "-"}</span></div>
-                    <div className="flex gap-1"><span className="font-semibold w-20 shrink-0">Tél :</span><span>{selectedRecord.shippingAddress.phone || "-"}</span></div>
+                    <div className="flex gap-1"><span className="font-semibold w-20 shrink-0">TÃ©l :</span><span>{selectedRecord.shippingAddress.phone || "-"}</span></div>
                     <div className="flex gap-1"><span className="font-semibold w-20 shrink-0">Adresse :</span>
                       <span>{[selectedRecord.shippingAddress.address, selectedRecord.shippingAddress.city].filter(Boolean).join(", ") || "-"}</span>
                     </div>
@@ -1361,9 +1361,9 @@ export default function TresoreriePage() {
                 <table className="w-full text-xs">
                   <thead>
                     <tr className="bg-slate-100 text-slate-600">
-                      <th className="px-2 py-1.5 text-left font-semibold w-8">Réf</th>
-                      <th className="px-2 py-1.5 text-left font-semibold">Désignation</th>
-                      <th className="px-2 py-1.5 text-right font-semibold w-14">Qté</th>
+                      <th className="px-2 py-1.5 text-left font-semibold w-8">RÃ©f</th>
+                      <th className="px-2 py-1.5 text-left font-semibold">DÃ©signation</th>
+                      <th className="px-2 py-1.5 text-right font-semibold w-14">QtÃ©</th>
                       <th className="px-2 py-1.5 text-right font-semibold w-24">P.U. TTC</th>
                       <th className="px-2 py-1.5 text-right font-semibold w-24">Total TTC</th>
                     </tr>
@@ -1386,14 +1386,14 @@ export default function TresoreriePage() {
                 </table>
               </div>
 
-              {/* Ligne 3 : Paiement + Totaux côte à côte */}
+              {/* Ligne 3 : Paiement + Totaux cÃ´te Ã  cÃ´te */}
               <div className="grid grid-cols-2 gap-3">
-                {/* Détails paiement */}
+                {/* DÃ©tails paiement */}
                 <div className="rounded border border-slate-200">
-                  <div className="bg-slate-100 px-2 py-1 text-[11px] font-semibold uppercase tracking-wide text-slate-600">Détails Paiement</div>
+                  <div className="bg-slate-100 px-2 py-1 text-[11px] font-semibold uppercase tracking-wide text-slate-600">DÃ©tails Paiement</div>
                   <div className="px-2 py-1.5 space-y-0.5 text-slate-700">
                     {selectedRecord.paymentMethod === "bank_transfer" && (<>
-                      <div><span className="font-semibold">N° Virement :</span> {selectedRecord.transferNumber || "-"}</div>
+                      <div><span className="font-semibold">NÂ° Virement :</span> {selectedRecord.transferNumber || "-"}</div>
                       <div><span className="font-semibold">Banque :</span> {selectedRecord.transferBankName || "-"}</div>
                       <div><span className="font-semibold">Titulaire :</span> {selectedRecord.transferHolderName || "-"}</div>
                       {selectedRecord.transferImageName && (
@@ -1407,14 +1407,14 @@ export default function TresoreriePage() {
                       )}
                     </>)}
                     {selectedRecord.paymentMethod === "lettre_de_change" && (<>
-                      <div><span className="font-semibold">N° Lettre :</span> {selectedRecord.lettreNumber || "-"}</div>
+                      <div><span className="font-semibold">NÂ° Lettre :</span> {selectedRecord.lettreNumber || "-"}</div>
                       <div><span className="font-semibold">Date :</span> {selectedRecord.lettreDate || "-"}</div>
                       <div><span className="font-semibold">Banque :</span> {selectedRecord.lettreBankName || "-"}</div>
                       <div><span className="font-semibold">RIB :</span> {selectedRecord.lettreRib || "-"}</div>
                       <div><span className="font-semibold">Lieu :</span> {selectedRecord.lettreLieu || "-"}</div>
                       {selectedRecord.lettreImageName && (
                         <div className="mt-1">
-                          <span className="font-semibold">Lettre scannée :</span>
+                          <span className="font-semibold">Lettre scannÃ©e :</span>
                           <a href={mediaUrl(selectedRecord.lettreImageName)} target="_blank" rel="noreferrer" className="block mt-1">
                             <img src={mediaUrl(selectedRecord.lettreImageName)} alt="Lettre de change" className="max-h-40 w-auto rounded border border-slate-200 object-contain"
                               onError={(e) => { (e.target as HTMLImageElement).style.display="none"; (e.target as HTMLImageElement).insertAdjacentHTML("afterend","<span class='text-xs text-gray-400 italic'>Image non disponible</span>"); }} />
@@ -1423,44 +1423,44 @@ export default function TresoreriePage() {
                       )}
                     </>)}
                     {(selectedRecord.paymentMethod === "cheque" || selectedRecord.paymentMethod === "check") && (<>
-                      <div><span className="font-semibold">N° Chèque :</span> {selectedRecord.chequeNumberValue || "-"}</div>
+                      <div><span className="font-semibold">NÂ° ChÃ¨que :</span> {selectedRecord.chequeNumberValue || "-"}</div>
                       <div><span className="font-semibold">Date :</span> {selectedRecord.chequeDate || "-"}</div>
                       <div><span className="font-semibold">Nom :</span> {selectedRecord.chequeName || "-"}</div>
                       <div><span className="font-semibold">Banque :</span> {selectedRecord.chequeBankName || "-"}</div>
                       {selectedRecord.chequeImageName && (
                         <div className="mt-1">
-                          <span className="font-semibold">Chèque scanné :</span>
+                          <span className="font-semibold">ChÃ¨que scannÃ© :</span>
                           <a href={mediaUrl(selectedRecord.chequeImageName)} target="_blank" rel="noreferrer" className="block mt-1">
-                            <img src={mediaUrl(selectedRecord.chequeImageName)} alt="Chèque" className="max-h-40 w-auto rounded border border-slate-200 object-contain"
+                            <img src={mediaUrl(selectedRecord.chequeImageName)} alt="ChÃ¨que" className="max-h-40 w-auto rounded border border-slate-200 object-contain"
                               onError={(e) => { (e.target as HTMLImageElement).style.display="none"; (e.target as HTMLImageElement).insertAdjacentHTML("afterend","<span class='text-xs text-gray-400 italic'>Image non disponible</span>"); }} />
                           </a>
                         </div>
                       )}
                     </>)}
                     {selectedRecord.paymentMethod === "cash_on_delivery" && (<>
-                      <div><span className="font-semibold">N° Autorisation :</span> {selectedRecord.codAuthorizationNumber || "-"}</div>
+                      <div><span className="font-semibold">NÂ° Autorisation :</span> {selectedRecord.codAuthorizationNumber || "-"}</div>
                       <div><span className="font-semibold">Banque :</span> {selectedRecord.codBankName || "-"}</div>
                     </>)}
                     {selectedRecord.paymentMethod === "cri" && (
                       <div><span className="font-semibold">Remarque :</span> {selectedRecord.criRemarque || "-"}</div>
                     )}
-                    {selectedRecord.paymentMethod === "especes" && <div>Paiement en espèces</div>}
+                    {selectedRecord.paymentMethod === "especes" && <div>Paiement en espÃ¨ces</div>}
                     {selectedRecord.paymentMethod === "card" && <div>Carte bancaire</div>}
                     {/* Multi-modal: show all non-zero payment method details */}
                     {selectedRecord.paymentMethod === "mixed" && (<>
-                      {selectedRecord.especesAmountPaid > 0 && <div className="font-semibold text-slate-500 mt-1">Espèces</div>}
+                      {selectedRecord.especesAmountPaid > 0 && <div className="font-semibold text-slate-500 mt-1">EspÃ¨ces</div>}
                       {selectedRecord.especesAmountPaid > 0 && <div><span className="font-semibold">Montant :</span> {formatCurrency(selectedRecord.especesAmountPaid)}</div>}
                       {selectedRecord.especesRemarque && selectedRecord.especesAmountPaid > 0 && <div><span className="font-semibold">Remarque :</span> {selectedRecord.especesRemarque}</div>}
                       {selectedRecord.criAmountPaid > 0 && <div className="font-semibold text-slate-500 mt-1">CRI</div>}
                       {selectedRecord.criAmountPaid > 0 && <div><span className="font-semibold">Montant CRI :</span> {formatCurrency(selectedRecord.criAmountPaid)}</div>}
                       {selectedRecord.transferAmountPaid > 0 && <div className="font-semibold text-slate-500 mt-1">Virement</div>}
-                      {selectedRecord.transferAmountPaid > 0 && <><div><span className="font-semibold">N° Virement :</span> {selectedRecord.transferNumber || "-"}</div><div><span className="font-semibold">Banque :</span> {selectedRecord.transferBankName || "-"}</div><div><span className="font-semibold">Montant :</span> {formatCurrency(selectedRecord.transferAmountPaid)}</div></>}
-                      {selectedRecord.chequeAmountPaid > 0 && <div className="font-semibold text-slate-500 mt-1">Chèque</div>}
-                      {selectedRecord.chequeAmountPaid > 0 && <><div><span className="font-semibold">N° Chèque :</span> {selectedRecord.chequeNumberValue || "-"}</div><div><span className="font-semibold">Banque :</span> {selectedRecord.chequeBankName || "-"}</div><div><span className="font-semibold">Montant :</span> {formatCurrency(selectedRecord.chequeAmountPaid)}</div></>}
+                      {selectedRecord.transferAmountPaid > 0 && <><div><span className="font-semibold">NÂ° Virement :</span> {selectedRecord.transferNumber || "-"}</div><div><span className="font-semibold">Banque :</span> {selectedRecord.transferBankName || "-"}</div><div><span className="font-semibold">Montant :</span> {formatCurrency(selectedRecord.transferAmountPaid)}</div></>}
+                      {selectedRecord.chequeAmountPaid > 0 && <div className="font-semibold text-slate-500 mt-1">ChÃ¨que</div>}
+                      {selectedRecord.chequeAmountPaid > 0 && <><div><span className="font-semibold">NÂ° ChÃ¨que :</span> {selectedRecord.chequeNumberValue || "-"}</div><div><span className="font-semibold">Banque :</span> {selectedRecord.chequeBankName || "-"}</div><div><span className="font-semibold">Montant :</span> {formatCurrency(selectedRecord.chequeAmountPaid)}</div></>}
                       {selectedRecord.lettreAmountPaid > 0 && <div className="font-semibold text-slate-500 mt-1">Lettre de change</div>}
-                      {selectedRecord.lettreAmountPaid > 0 && <><div><span className="font-semibold">N° Lettre :</span> {selectedRecord.lettreNumber || "-"}</div><div><span className="font-semibold">Banque :</span> {selectedRecord.lettreBankName || "-"}</div><div><span className="font-semibold">Montant :</span> {formatCurrency(selectedRecord.lettreAmountPaid)}</div></>}
+                      {selectedRecord.lettreAmountPaid > 0 && <><div><span className="font-semibold">NÂ° Lettre :</span> {selectedRecord.lettreNumber || "-"}</div><div><span className="font-semibold">Banque :</span> {selectedRecord.lettreBankName || "-"}</div><div><span className="font-semibold">Montant :</span> {formatCurrency(selectedRecord.lettreAmountPaid)}</div></>}
                       {selectedRecord.codAmountPaid > 0 && <div className="font-semibold text-slate-500 mt-1">TPE</div>}
-                      {selectedRecord.codAmountPaid > 0 && <><div><span className="font-semibold">N° Auth :</span> {selectedRecord.codAuthorizationNumber || "-"}</div><div><span className="font-semibold">Montant :</span> {formatCurrency(selectedRecord.codAmountPaid)}</div></>}
+                      {selectedRecord.codAmountPaid > 0 && <><div><span className="font-semibold">NÂ° Auth :</span> {selectedRecord.codAuthorizationNumber || "-"}</div><div><span className="font-semibold">Montant :</span> {formatCurrency(selectedRecord.codAmountPaid)}</div></>}
                     </>)}
                     {selectedRecord.remarque && (
                       <div><span className="font-semibold">Note :</span> {selectedRecord.remarque}</div>
@@ -1476,12 +1476,12 @@ export default function TresoreriePage() {
                       <span>Montant Facture</span>
                       <span className="font-semibold">{formatCurrency(selectedRecord.totalAmount)}</span>
                     </div>
-                    <div className="flex justify-between text-yellow-700">
-                      <span>Montant Payé</span>
+                    <div className="flex justify-between text-brand-gold">
+                      <span>Montant PayÃ©</span>
                       <span className="font-semibold">{formatCurrency(getPaidAmount(selectedRecord))}</span>
                     </div>
                     <div className="flex justify-between border-t pt-1 text-slate-700">
-                      <span className="font-semibold">Reste à payer</span>
+                      <span className="font-semibold">Reste Ã  payer</span>
                       <span className="font-bold">{formatCurrency(getRemainingAmount(selectedRecord))}</span>
                     </div>
                   </div>
@@ -1496,7 +1496,7 @@ export default function TresoreriePage() {
                     <Printer className="h-3.5 w-3.5 mr-1" />Imprimer facture
                   </Button>
                 ) : (
-                  <Button size="sm" disabled title="Facture disponible après confirmation de la commande" className="opacity-50 cursor-not-allowed">
+                  <Button size="sm" disabled title="Facture disponible aprÃ¨s confirmation de la commande" className="opacity-50 cursor-not-allowed">
                     <Printer className="h-3.5 w-3.5 mr-1" />Imprimer facture
                   </Button>
                 )}
