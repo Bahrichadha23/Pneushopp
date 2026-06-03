@@ -52,11 +52,7 @@ export default function Header() {
 
   const handleCartClick = (e: React.MouseEvent) => {
     e.preventDefault();
-    if (!user) {
-      router.push("/auth/login");
-    } else {
-      router.push("/panier");
-    }
+    router.push("/panier");
   };
 
   const handleSearch = () => {

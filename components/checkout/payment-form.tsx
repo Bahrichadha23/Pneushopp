@@ -58,30 +58,41 @@ export function PaymentForm({ onSubmit, onBack, totalPrice }: PaymentFormProps) 
     );
   };
 
-  // "Paiement à la livraison" : sous-type especes ou tpe
-  const [deliverySubType, setDeliverySubType] = useState<"especes" | "cash_on_delivery" | "">("");
+  // "Paiement à la livraison" : multi-sélection Espèces ET/OU TPE
   const [deliveryExpanded, setDeliveryExpanded] = useState(false);
-  const isDeliverySelected = isSelected("especes") || isSelected("cash_on_delivery");
+  const [especesChecked, setEspecesChecked] = useState(false);
+  const [tpeChecked, setTpeChecked] = useState(false);
+  const isDeliverySelected = especesChecked || tpeChecked;
 
   const toggleDeliveryParent = () => {
     if (deliveryExpanded) {
-      // Décocher : réduire + retirer les deux sous-types + reset sous-type
       setSelectedTypes((prev) => prev.filter((t) => t !== "especes" && t !== "cash_on_delivery"));
-      setDeliverySubType("");
+      setEspecesChecked(false);
+      setTpeChecked(false);
       setDeliveryExpanded(false);
     } else {
-      // Cocher : ouvrir le panneau pour choisir le sous-type
       setDeliveryExpanded(true);
     }
   };
 
-  const selectDeliverySub = (sub: "especes" | "cash_on_delivery") => {
-    // Remplace l'ancien sous-type par le nouveau dans la liste
+  const toggleEspeces = () => {
+    const next = !especesChecked;
+    setEspecesChecked(next);
     setSelectedTypes((prev) => {
-      const filtered = prev.filter((t) => t !== "especes" && t !== "cash_on_delivery");
-      return [...filtered, sub];
+      const filtered = prev.filter((t) => t !== "especes");
+      return next ? [...filtered, "especes"] : filtered;
     });
-    setDeliverySubType(sub);
+    if (!next) setEspecesMontantInput("");
+  };
+
+  const toggleTpe = () => {
+    const next = !tpeChecked;
+    setTpeChecked(next);
+    setSelectedTypes((prev) => {
+      const filtered = prev.filter((t) => t !== "cash_on_delivery");
+      return next ? [...filtered, "cash_on_delivery"] : filtered;
+    });
+    if (!next) setCashOnDeliveryMontantInput("");
   };
 
   const [cardData, setCardData] = useState({
@@ -141,6 +152,7 @@ export function PaymentForm({ onSubmit, onBack, totalPrice }: PaymentFormProps) 
 
   const especesMontantNum = Math.min(Math.max(parseAmount(especesMontantInput), 0), totalPrice);
   const deliveryMontantNum = Math.min(Math.max(parseAmount(deliveryMontantInput), 0), totalPrice);
+  const tpeMontantNum = Math.min(Math.max(parseAmount(cashOnDeliveryMontantInput), 0), totalPrice);
 
   // Combined total across all selected methods (for balance display)
   const totalEnteredAllMethods =
@@ -148,8 +160,8 @@ export function PaymentForm({ onSubmit, onBack, totalPrice }: PaymentFormProps) 
     (isSelected("cri") ? criMontantNum : 0) +
     (isSelected("lettre_de_change") ? lettreMontantNum : 0) +
     (isSelected("cheque") ? chequeMontantNum : 0) +
-    // delivery sub-types share one montant
-    (isDeliverySelected ? deliveryMontantNum : 0);
+    (especesChecked ? especesMontantNum : 0) +
+    (tpeChecked ? tpeMontantNum : 0);
 
   const globalReste = Math.max(totalPrice - totalEnteredAllMethods, 0);
 
@@ -213,17 +225,16 @@ export function PaymentForm({ onSubmit, onBack, totalPrice }: PaymentFormProps) 
   }, [selectedTypes, totalPrice]);
 
   useEffect(() => {
-    if (isSelected("especes") && especesMontantInput === "") {
-      setEspecesMontantInput(formatAmount(initAmountFor("especes", totalPrice)));
+    if (especesChecked && especesMontantInput === "") {
+      setEspecesMontantInput(formatAmount(!tpeChecked ? totalPrice : 0));
     }
-  }, [selectedTypes, totalPrice]);
+  }, [especesChecked, totalPrice]);
 
-  // Shared delivery amount: initialize when a delivery sub-type is first selected
   useEffect(() => {
-    if (isDeliverySelected && deliveryMontantInput === "") {
-      setDeliveryMontantInput(formatAmount(totalPrice));
+    if (tpeChecked && cashOnDeliveryMontantInput === "") {
+      setCashOnDeliveryMontantInput(formatAmount(!especesChecked ? totalPrice : 0));
     }
-  }, [isDeliverySelected, totalPrice]);
+  }, [tpeChecked, totalPrice]);
 
   useEffect(() => {
     if (!criImage) { setCriImagePreview(""); return; }
@@ -327,11 +338,12 @@ export function PaymentForm({ onSubmit, onBack, totalPrice }: PaymentFormProps) 
         _chequeImageFile: chequeImage || undefined,
       } : {}),
 
-      // Delivery (Espèces / TPE) metadata — shared amount and remarque
+      // Delivery (Espèces / TPE) metadata — montants séparés
       ...(isDeliverySelected ? {
         deliveryRemarque: deliveryRemarque || undefined,
-        deliveryMontant: deliveryMontantNum,
-        deliverySubType: deliverySubType,
+        especesMontant: especesChecked ? especesMontantNum : 0,
+        tpeMontant: tpeChecked ? tpeMontantNum : 0,
+        deliverySubType: especesChecked && tpeChecked ? "mixed" : especesChecked ? "especes" : "cash_on_delivery",
       } : {}),
     };
 
@@ -343,9 +355,9 @@ export function PaymentForm({ onSubmit, onBack, totalPrice }: PaymentFormProps) 
       alert("Veuillez sélectionner au moins un mode de paiement.");
       return;
     }
-    // Si livraison sélectionnée → vérifier que le sous-type est choisi
-    if (deliveryExpanded && !deliverySubType) {
-      alert("Veuillez choisir le mode de paiement à la livraison : Espèces ou TPE.");
+    // Si livraison sélectionnée → vérifier qu'au moins un sous-type est coché
+    if (deliveryExpanded && !especesChecked && !tpeChecked) {
+      alert("Veuillez cocher au moins un mode : Espèces ou TPE.");
       return;
     }
     // Image obligatoire pour CRI
@@ -390,7 +402,7 @@ export function PaymentForm({ onSubmit, onBack, totalPrice }: PaymentFormProps) 
   };
 
   const isMultiModal = selectedTypes.length > 1;
-  const deliveryOk = !deliveryExpanded || !!deliverySubType;
+  const deliveryOk = !deliveryExpanded || especesChecked || tpeChecked;
   const canContinue = selectedTypes.length > 0 && totalEnteredAllMethods >= totalPrice - 0.01 && deliveryOk;
 
   return (
@@ -436,49 +448,37 @@ export function PaymentForm({ onSubmit, onBack, totalPrice }: PaymentFormProps) 
                       <span className="flex-1 text-sm font-medium text-slate-700">Paiement à la livraison</span>
                       {isDeliverySelected && (
                         <span className="text-xs text-blue-600 font-semibold">
-                          {deliverySubType === "especes" ? "Espèces" : deliverySubType === "cash_on_delivery" ? "TPE" : ""}
+                          {[especesChecked && "Espèces", tpeChecked && "TPE"].filter(Boolean).join(" + ")}
                         </span>
                       )}
                     </label>
 
-                    {/* Sous-options — visibles quand la case parent est cochée */}
+                    {/* Sous-options — checkboxes multi-sélection */}
                     {deliveryExpanded && (
                       <div className="bg-yellow-50 border-t border-yellow-100 px-4 py-3 flex gap-4">
                         <p className="text-xs text-slate-500 mr-2 self-center">Mode :</p>
                         {/* Espèces */}
                         <label className={`flex items-center gap-2 px-4 py-2 rounded-lg border-2 cursor-pointer transition-all ${
-                          deliverySubType === "especes"
-                            ? "border-yellow-500 bg-yellow-50 text-black font-semibold"
-                            : deliverySubType === "cash_on_delivery"
-                            ? "border-gray-200 bg-gray-100 text-gray-400 opacity-50 cursor-not-allowed"
-                            : "border-gray-200 bg-white hover:border-yellow-400 text-gray-600"
+                          especesChecked ? "border-yellow-500 bg-yellow-50 text-black font-semibold" : "border-gray-200 bg-white hover:border-yellow-400 text-gray-600"
                         }`}>
                           <input
-                            type="radio"
-                            name="delivery_sub"
-                            value="especes"
-                            checked={deliverySubType === "especes"}
-                            onChange={() => selectDeliverySub("especes")}
-                            className="text-yellow-500"
+                            type="checkbox"
+                            checked={especesChecked}
+                            onChange={toggleEspeces}
+                            className="h-4 w-4 rounded text-yellow-500"
                           />
                           <Banknote className="h-4 w-4" />
                           <span className="text-sm font-semibold">Espèces</span>
                         </label>
                         {/* TPE */}
                         <label className={`flex items-center gap-2 px-4 py-2 rounded-lg border-2 cursor-pointer transition-all ${
-                          deliverySubType === "cash_on_delivery"
-                            ? "border-yellow-500 bg-yellow-50 text-black font-semibold"
-                            : deliverySubType === "especes"
-                            ? "border-gray-200 bg-gray-100 text-gray-400 opacity-50 cursor-not-allowed"
-                            : "border-gray-200 bg-white hover:border-yellow-400 text-gray-600"
+                          tpeChecked ? "border-yellow-500 bg-yellow-50 text-black font-semibold" : "border-gray-200 bg-white hover:border-yellow-400 text-gray-600"
                         }`}>
                           <input
-                            type="radio"
-                            name="delivery_sub"
-                            value="cash_on_delivery"
-                            checked={deliverySubType === "cash_on_delivery"}
-                            onChange={() => selectDeliverySub("cash_on_delivery")}
-                            className="text-yellow-500"
+                            type="checkbox"
+                            checked={tpeChecked}
+                            onChange={toggleTpe}
+                            className="h-4 w-4 rounded text-yellow-500"
                           />
                           <CreditCard className="h-4 w-4" />
                           <span className="text-sm font-semibold">TPE</span>
@@ -486,10 +486,10 @@ export function PaymentForm({ onSubmit, onBack, totalPrice }: PaymentFormProps) 
                       </div>
                     )}
 
-                    {/* Si coché mais pas de sous-type → alerte inline */}
-                    {deliveryExpanded && !deliverySubType && (
+                    {/* Si coché mais aucun sous-type → alerte inline */}
+                    {deliveryExpanded && !especesChecked && !tpeChecked && (
                       <p className="text-xs text-amber-600 bg-amber-50 px-4 py-2 border-t border-amber-100">
-                        Veuillez choisir Espèces ou TPE ci-dessus.
+                        Veuillez cocher Espèces et/ou TPE ci-dessus.
                       </p>
                     )}
                   </div>
@@ -593,12 +593,10 @@ export function PaymentForm({ onSubmit, onBack, totalPrice }: PaymentFormProps) 
             </div>
           )}
 
-          {/* ── Delivery (Espèces / TPE) — unified amount section ── */}
+          {/* ── Delivery — montants séparés Espèces / TPE ── */}
           {isDeliverySelected && (
             <div className="space-y-4 p-4 bg-yellow-50 rounded-lg border border-yellow-200">
-              <h3 className="font-semibold text-black">
-                {deliverySubType === "especes" ? "💵 Paiement à la livraison — ESPÈCES" : "💳 Paiement à la livraison — TPE"}
-              </h3>
+              <h3 className="font-semibold text-black">🚚 Paiement à la livraison</h3>
               <div className="grid grid-cols-3 gap-4">
                 <div>
                   <Label className="text-sm font-semibold">Total</Label>
@@ -607,27 +605,46 @@ export function PaymentForm({ onSubmit, onBack, totalPrice }: PaymentFormProps) 
                     <span className="inline-flex items-center px-3 border border-l-0 rounded-r-md bg-gray-100 text-sm text-gray-600">DT</span>
                   </div>
                 </div>
+                {/* Montant payé en Espèces */}
                 <div>
-                  <Label className="text-sm font-semibold text-slate-600">Reste</Label>
-                  <div className="mt-1 flex">
-                    <Input readOnly value={formatAmount(Math.max(totalPrice - deliveryMontantNum, 0))} className="rounded-r-none border-slate-200 bg-slate-50" />
-                    <span className="inline-flex items-center px-3 border border-l-0 rounded-r-md bg-slate-100 text-sm text-slate-600 border-slate-200">DT</span>
-                  </div>
-                </div>
-                <div>
-                  <Label className="text-sm font-semibold text-yellow-700">Montant reçu</Label>
+                  <Label className={`text-sm font-semibold ${especesChecked ? "text-yellow-700" : "text-gray-400"}`}>
+                    Montant payé Espèces
+                  </Label>
                   <div className="mt-1 flex">
                     <Input
                       type="text" inputMode="decimal" placeholder="0,00"
-                      value={deliveryMontantInput}
+                      value={especesChecked ? especesMontantInput : ""}
+                      disabled={!especesChecked}
                       onChange={(e) => {
                         const v = parseAmount(e.target.value);
-                        if (v > totalPrice) { setDeliveryMontantInput(formatAmount(totalPrice)); return; }
-                        setDeliveryMontantInput(e.target.value);
+                        if (v > totalPrice) { setEspecesMontantInput(formatAmount(totalPrice)); if (tpeChecked) setCashOnDeliveryMontantInput("0,00"); return; }
+                        setEspecesMontantInput(e.target.value);
+                        if (tpeChecked) setCashOnDeliveryMontantInput(formatAmount(Math.max(totalPrice - v, 0)));
                       }}
-                      className="rounded-r-none border-yellow-200 bg-yellow-50"
+                      className={`rounded-r-none ${especesChecked ? "border-yellow-200 bg-yellow-50" : "border-gray-200 bg-gray-100 text-gray-400"}`}
                     />
-                    <span className="inline-flex items-center px-3 border border-l-0 rounded-r-md bg-yellow-100 text-sm text-yellow-700 border-yellow-200">DT</span>
+                    <span className={`inline-flex items-center px-3 border border-l-0 rounded-r-md text-sm ${especesChecked ? "bg-yellow-100 text-yellow-700 border-yellow-200" : "bg-gray-100 text-gray-400 border-gray-200"}`}>DT</span>
+                  </div>
+                </div>
+                {/* Montant payé en TPE */}
+                <div>
+                  <Label className={`text-sm font-semibold ${tpeChecked ? "text-blue-700" : "text-gray-400"}`}>
+                    Montant payé TPE
+                  </Label>
+                  <div className="mt-1 flex">
+                    <Input
+                      type="text" inputMode="decimal" placeholder="0,00"
+                      value={tpeChecked ? cashOnDeliveryMontantInput : ""}
+                      disabled={!tpeChecked}
+                      onChange={(e) => {
+                        const v = parseAmount(e.target.value);
+                        if (v > totalPrice) { setCashOnDeliveryMontantInput(formatAmount(totalPrice)); if (especesChecked) setEspecesMontantInput("0,00"); return; }
+                        setCashOnDeliveryMontantInput(e.target.value);
+                        if (especesChecked) setEspecesMontantInput(formatAmount(Math.max(totalPrice - v, 0)));
+                      }}
+                      className={`rounded-r-none ${tpeChecked ? "border-blue-200 bg-blue-50" : "border-gray-200 bg-gray-100 text-gray-400"}`}
+                    />
+                    <span className={`inline-flex items-center px-3 border border-l-0 rounded-r-md text-sm ${tpeChecked ? "bg-blue-100 text-blue-700 border-blue-200" : "bg-gray-100 text-gray-400 border-gray-200"}`}>DT</span>
                   </div>
                 </div>
               </div>
