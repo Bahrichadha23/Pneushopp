@@ -1007,14 +1007,22 @@ export default function TresoreriePage() {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-2">
+          <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-4">
             <div>
-              <label className="mb-1 block text-xs font-semibold text-slate-600">Date spécifique</label>
-              <Input type="date" value={dateFrom} onChange={(e) => { setDateFrom(e.target.value); setDateTo(e.target.value); setDateFilter(e.target.value ? "specific" : "all"); }} />
+              <label className="mb-1 block text-xs font-semibold text-slate-600">Date début</label>
+              <Input type="date" value={dateFrom} onChange={(e) => { setDateFrom(e.target.value); setDateFilter(e.target.value ? "period" : "all"); }} />
             </div>
             <div>
-              <label className="mb-1 block text-xs font-semibold text-slate-600">Date d'échéance spécifique</label>
-              <Input type="date" value={dueDateFrom} onChange={(e) => { setDueDateFrom(e.target.value); setDueDateTo(e.target.value); setDueDateFilter(e.target.value ? "specific" : "all"); }} />
+              <label className="mb-1 block text-xs font-semibold text-slate-600">Date fin</label>
+              <Input type="date" value={dateTo} onChange={(e) => { setDateTo(e.target.value); setDateFilter(e.target.value ? "period" : "all"); }} />
+            </div>
+            <div>
+              <label className="mb-1 block text-xs font-semibold text-slate-600">Date échéance début</label>
+              <Input type="date" value={dueDateFrom} onChange={(e) => { setDueDateFrom(e.target.value); setDueDateFilter(e.target.value ? "period" : "all"); }} />
+            </div>
+            <div>
+              <label className="mb-1 block text-xs font-semibold text-slate-600">Date échéance fin</label>
+              <Input type="date" value={dueDateTo} onChange={(e) => { setDueDateTo(e.target.value); setDueDateFilter(e.target.value ? "period" : "all"); }} />
             </div>
           </div>
 
