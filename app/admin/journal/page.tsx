@@ -10,8 +10,9 @@ import {
   BookOpen, Loader2, RefreshCw, AlertTriangle,
   LogIn, UserPlus, UserCog, UserX, Power,
   ShoppingCart, Truck, FileText, Package, Wallet, Shield, Activity,
-  PlusCircle, Pencil, Trash2, DollarSign, Tag,
+  PlusCircle, Pencil, Trash2, DollarSign, Tag, FileDown,
 } from "lucide-react";
+import ExcelJS from "exceljs";
 import { API_URL } from "@/lib/config";
 
 interface ActivityLog {
@@ -142,6 +143,60 @@ export default function JournalPage() {
     ? logs.filter((l) => activeActions.includes(l.action))
     : logs;
 
+  async function handleExportExcel() {
+    const wb = new ExcelJS.Workbook();
+    const ws = wb.addWorksheet("Journal");
+
+    ws.columns = [
+      { header: "Date",     key: "date",        width: 22 },
+      { header: "Employé",  key: "employe",     width: 28 },
+      { header: "Email",    key: "email",        width: 32 },
+      { header: "Action",   key: "action",       width: 22 },
+      { header: "Détails",  key: "details",      width: 50 },
+      { header: "IP",       key: "ip",           width: 16 },
+    ];
+
+    // Style en-tête
+    const hdr = ws.getRow(1);
+    hdr.font = { bold: true, color: { argb: "FFFFFFFF" } };
+    hdr.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FF334155" } };
+    hdr.alignment = { vertical: "middle", horizontal: "center" };
+    hdr.height = 20;
+
+    filtered.forEach((log, i) => {
+      const row = ws.addRow({
+        date:    formatDate(log.created_at),
+        employe: log.user_name,
+        email:   log.user_email,
+        action:  log.action_label,
+        details: log.description + (log.target_user_email && log.target_user_email !== log.user_email ? ` → ${log.target_user_email}` : ""),
+        ip:      log.ip_address || "—",
+      });
+      row.fill = {
+        type: "pattern", pattern: "solid",
+        fgColor: { argb: i % 2 === 0 ? "FFFFFFFF" : "FFF8FAFC" },
+      };
+    });
+
+    // Lignes totales en bas
+    const totalRow = ws.addRow({ date: `Total : ${filtered.length} entrée(s)` });
+    totalRow.font = { bold: true, italic: true };
+    totalRow.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FFFEF9C3" } };
+
+    const date = new Date().toLocaleDateString("fr-FR").replace(/\//g, "-");
+    const filterLabel = filterGroup
+      ? `_${FILTER_GROUPS.find((g) => g.value === filterGroup)?.label ?? "filtre"}`
+      : "";
+    const buffer = await wb.xlsx.writeBuffer();
+    const blob = new Blob([buffer], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `Journal${filterLabel}_${date}.xlsx`;
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+
   return (
     <div className="p-6 max-w-6xl mx-auto">
       {/* Header */}
@@ -155,10 +210,16 @@ export default function JournalPage() {
             </p>
           </div>
         </div>
-        <Button variant="outline" size="sm" onClick={loadLogs} disabled={loading}>
-          <RefreshCw className={`h-4 w-4 mr-1 ${loading ? "animate-spin" : ""}`} />
-          Actualiser
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button variant="outline" size="sm" onClick={handleExportExcel} disabled={loading || filtered.length === 0}>
+            <FileDown className="h-4 w-4 mr-1" />
+            Exporter (Excel)
+          </Button>
+          <Button variant="outline" size="sm" onClick={loadLogs} disabled={loading}>
+            <RefreshCw className={`h-4 w-4 mr-1 ${loading ? "animate-spin" : ""}`} />
+            Actualiser
+          </Button>
+        </div>
       </div>
 
       {/* Filter chips */}
