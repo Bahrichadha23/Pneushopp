@@ -672,3 +672,146 @@ def search_order_for_avoir(request):
             for item in order.items.all()
         ]
     })
+
+
+@api_view(['GET'])
+@perm_classes([IsAdminOrSales])
+def sav_export_excel(request):
+    """
+    GET /api/orders/sav/export/
+    Export all SAV warranty claims as an Excel (.xlsx) file.
+    Optional query params: status, date_from (YYYY-MM-DD), date_to (YYYY-MM-DD)
+    """
+    import io
+    from django.http import HttpResponse
+    from openpyxl import Workbook
+    from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
+    from openpyxl.utils import get_column_letter
+    from .models import WarrantyClaim
+
+    STATUS_LABELS = {
+        'pending': 'En attente',
+        'processing': 'En traitement',
+        'resolved': 'Résolu',
+        'rejected': 'Rejeté',
+    }
+
+    qs = WarrantyClaim.objects.select_related('created_by').order_by('-created_at')
+
+    # Optional filters
+    status_filter = request.query_params.get('status')
+    date_from = request.query_params.get('date_from')
+    date_to = request.query_params.get('date_to')
+
+    if status_filter:
+        qs = qs.filter(status=status_filter)
+    if date_from:
+        qs = qs.filter(created_at__date__gte=date_from)
+    if date_to:
+        qs = qs.filter(created_at__date__lte=date_to)
+
+    wb = Workbook()
+    ws = wb.active
+    ws.title = 'Réclamations SAV'
+
+    # Styles
+    header_font = Font(name='Arial', bold=True, color='FFFFFF', size=11)
+    header_fill = PatternFill('solid', start_color='1F3864')
+    header_align = Alignment(horizontal='center', vertical='center', wrap_text=True)
+    cell_align = Alignment(horizontal='left', vertical='center', wrap_text=True)
+    center_align = Alignment(horizontal='center', vertical='center')
+    thin = Side(style='thin', color='CCCCCC')
+    border = Border(left=thin, right=thin, top=thin, bottom=thin)
+
+    STATUS_COLORS = {
+        'pending':    'FFF3CD',
+        'processing': 'CCE5FF',
+        'resolved':   'D4EDDA',
+        'rejected':   'F8D7DA',
+    }
+
+    headers = [
+        ('N°', 6),
+        ('Prénom', 15),
+        ('Nom', 15),
+        ('Email', 28),
+        ('Réf. commande', 18),
+        ('N° facture', 16),
+        ('Article concerné', 28),
+        ('Km à l\'achat', 14),
+        ('Km actuels', 14),
+        ('Description', 40),
+        ('Statut', 16),
+        ('Notes admin', 30),
+        ('Date création', 18),
+    ]
+
+    # Header row
+    for col_idx, (title, width) in enumerate(headers, start=1):
+        cell = ws.cell(row=1, column=col_idx, value=title)
+        cell.font = header_font
+        cell.fill = header_fill
+        cell.alignment = header_align
+        cell.border = border
+        ws.column_dimensions[get_column_letter(col_idx)].width = width
+
+    ws.row_dimensions[1].height = 30
+
+    # Data rows
+    for row_idx, claim in enumerate(qs, start=2):
+        status_label = STATUS_LABELS.get(claim.status, claim.status)
+        status_color = STATUS_COLORS.get(claim.status, 'FFFFFF')
+        created_at_str = claim.created_at.strftime('%d/%m/%Y %H:%M') if claim.created_at else ''
+
+        row_data = [
+            f'SAV-{claim.id:04d}',
+            claim.first_name,
+            claim.last_name,
+            claim.email,
+            claim.order_ref,
+            claim.invoice_number,
+            claim.order_item_name,
+            claim.mileage_at_purchase,
+            claim.current_mileage,
+            claim.description,
+            status_label,
+            claim.admin_notes,
+            created_at_str,
+        ]
+
+        for col_idx, value in enumerate(row_data, start=1):
+            cell = ws.cell(row=row_idx, column=col_idx, value=value)
+            cell.font = Font(name='Arial', size=10)
+            cell.border = border
+            # Status column: colored background
+            if col_idx == 11:
+                cell.fill = PatternFill('solid', start_color=status_color)
+                cell.alignment = center_align
+            elif col_idx in (1, 8, 9, 13):
+                cell.alignment = center_align
+            else:
+                cell.alignment = cell_align
+
+        # Alternating row color for readability
+        if row_idx % 2 == 0:
+            for col_idx in range(1, len(headers) + 1):
+                c = ws.cell(row=row_idx, column=col_idx)
+                if col_idx != 11:  # Don't override status color
+                    c.fill = PatternFill('solid', start_color='F5F5F5')
+
+    ws.freeze_panes = 'A2'
+
+    # Build response
+    buffer = io.BytesIO()
+    wb.save(buffer)
+    buffer.seek(0)
+
+    from django.utils import timezone
+    filename = f'sav_export_{timezone.now().strftime("%Y%m%d_%H%M%S")}.xlsx'
+
+    response = HttpResponse(
+        buffer.getvalue(),
+        content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    )
+    response['Content-Disposition'] = f'attachment; filename="{filename}"'
+    return response

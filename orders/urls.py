@@ -9,6 +9,7 @@ router.register(r'purchase-orders', views.PurchaseOrderViewSet, basename='orders
 urlpatterns = [
     path('sav/', views.warranty_claim_view, name='sav-list-create'),
     path('sav/mes-reclamations/', views.mes_reclamations, name='sav-mes-reclamations'),
+    path('sav/export/', views.sav_export_excel, name='sav-export'),
     path('sav/<int:pk>/', views.warranty_claim_detail_view, name='sav-detail'),
     path('', views.OrderListCreateView.as_view(), name='orders-list'),
     path('cri-balance/', views.get_cri_balance, name='cri-balance'),

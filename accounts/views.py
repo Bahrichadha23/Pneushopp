@@ -35,7 +35,7 @@ def get_frontend_url(request):
     """
     frontend_url = request.META.get('HTTP_ORIGIN')
     if frontend_url:
-        print(f'✅ Detected frontend URL from Origin: {frontend_url}')
+        print(f'[OK] Detected frontend URL from Origin: {frontend_url}')
         return frontend_url
 
     referer = request.META.get('HTTP_REFERER')
@@ -44,13 +44,13 @@ def get_frontend_url(request):
             from urllib.parse import urlparse
             parsed = urlparse(referer)
             frontend_url = f'{parsed.scheme}://{parsed.netloc}'
-            print(f'✅ Detected frontend URL from Referer: {frontend_url}')
+            print(f'[OK] Detected frontend URL from Referer: {frontend_url}')
             return frontend_url
         except Exception:
             pass
 
     frontend_url = getattr(settings, 'FRONTEND_URL', 'http://localhost:3000')
-    print(f'⚠️ Using fallback FRONTEND_URL from settings: {frontend_url}')
+    print(f'[WARN] Using fallback FRONTEND_URL from settings: {frontend_url}')
     return frontend_url
 
 
@@ -84,9 +84,9 @@ class RegisterView(generics.CreateAPIView):
         frontend_url = get_frontend_url(request)
         try:
             send_verification_email(user, verification_code, frontend_url)
-            print(f'✅ Verification email sent to {user.email}')
+            print(f'[OK] Verification email sent to {user.email}')
         except Exception as e:
-            print(f'❌ Failed to send verification email: {str(e)}')
+            print(f'[ERR] Failed to send verification email: {str(e)}')
 
         return Response(
             {'message': 'Compte créé avec succès. Vérifiez votre email pour activer votre compte.', 'id': user.id},
@@ -125,9 +125,9 @@ def verify_email(request):
             user.save()
             try:
                 send_welcome_email(user)
-                print(f'✅ Welcome email sent to verified user: {user.email}')
+                print(f'[OK] Welcome email sent to verified user: {user.email}')
             except Exception as e:
-                print(f'⚠️  Email verified but welcome email failed: {str(e)}')
+                print(f'[WARN]  Email verified but welcome email failed: {str(e)}')
             return Response({'message': 'Email vérifié avec succès. Bienvenue chez PneuShop!'})
         else:
             return Response({'error': 'Code de vérification incorrect.'}, status=status.HTTP_400_BAD_REQUEST)
@@ -145,14 +145,14 @@ def forgot_password(request):
         uid = urlsafe_base64_encode(force_bytes(user.pk))
         frontend_url = get_frontend_url(request)
         reset_url = f'{frontend_url}/auth/reset-password?uid={uid}&token={token}'
-        print(f'🔗 Reset URL: {reset_url}')
+        print(f'[LINK] Reset URL: {reset_url}')
 
         request_ip = request.META.get('HTTP_X_FORWARDED_FOR', request.META.get('REMOTE_ADDR', 'Unknown'))
         try:
             send_password_reset_email(user, reset_url, token=token, request_ip=request_ip)
-            print(f'✉️ Password reset email sent to {user.email}')
+            print(f'[MAIL] Password reset email sent to {user.email}')
         except Exception as e:
-            print(f'❌ Erreur envoi email de réinitialisation: {str(e)}')
+            print(f'[ERR] Erreur envoi email de réinitialisation: {str(e)}')
             return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
         return Response({'message': 'Instructions de réinitialisation envoyées par email.'})

@@ -108,7 +108,7 @@ class PurchaseOrderViewSet(viewsets.ModelViewSet):
                             notes=f'Réception #{instance.order_number}',
                         )
                     except Exception as e:
-                        print(f'⚠️ StockBatch non créé pour item {item.id}: {e}')
+                        print(f'[WARN] StockBatch non créé pour item {item.id}: {e}')
         try:
             log_activity(request.user, 'add_stock',
                          f'Réception achat #{instance.order_number} — stock mis à jour',

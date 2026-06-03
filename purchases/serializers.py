@@ -153,11 +153,11 @@ class PurchaseOrderCreateSerializer(serializers.Serializer):
                 product.stock = product.stock + quantity
                 if fab_date:
                     product.fabrication_date = fab_date
-                    print(f'📅 DOT updated: {product.name} → {dot_str} ({fab_date})')
+                    print(f'[DATE] DOT updated: {product.name} → {dot_str} ({fab_date})')
                 if emplacement_str:
                     product.emplacement = emplacement_str
                 product.save()
-                print(f'✅ Stock updated: {product.name} - Added {quantity} units. New stock: {product.stock}')
+                print(f'[OK] Stock updated: {product.name} - Added {quantity} units. New stock: {product.stock}')
 
                 # ── Créer un lot DOT (StockBatch) pour le suivi FEFO ──────────
                 try:
@@ -171,9 +171,9 @@ class PurchaseOrderCreateSerializer(serializers.Serializer):
                         purchase_item=item,
                         notes=f'Achat #{purchase_order.order_number}',
                     )
-                    print(f'📦 StockBatch créé: {product.name} DOT={dot_str} qty={quantity} emp={emplacement_str}')
+                    print(f'[BOX] StockBatch créé: {product.name} DOT={dot_str} qty={quantity} emp={emplacement_str}')
                 except Exception as e:
-                    print(f'⚠️ StockBatch non créé pour {product.name}: {e}')
+                    print(f'[WARN] StockBatch non créé pour {product.name}: {e}')
 
         global_discount = float(validated_data.get('global_discount') or 0)
         purchase_order.subtotal = subtotal

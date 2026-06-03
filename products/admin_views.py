@@ -625,3 +625,20 @@ def stock_movements(request):
     movements = StockMovement.objects.select_related('product', 'created_by').order_by('-created_at')[:100]
     serializer = StockMovementSerializer(movements, many=True)
     return Response(serializer.data)
+
+
+@api_view(['POST'])
+@permission_classes([IsAdminOrPurchasing])
+def reset_all_products(request):
+    """POST /api/admin/products/reset-all/ — Reset stock to 0 for all products."""
+    from .models import Product
+    count = Product.objects.all().update(stock=0)
+    try:
+        log_activity(
+            request.user, 'adjust_stock',
+            f'Remise à zéro du stock de tous les articles ({count} produits)',
+            request=request,
+        )
+    except Exception:
+        pass
+    return Response({'message': f'Stock remis à zéro pour {count} produits.', 'count': count})
