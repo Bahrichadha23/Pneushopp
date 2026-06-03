@@ -1246,7 +1246,7 @@ export default function StockManagementPage() {
             onClick={() => setShowOrderPrep(true)}
           >
             <ClipboardList className="h-4 w-4" />
-            Préparer commande
+            Préparer une commande
           </Button>
           <Button variant="outline" size="sm" className="gap-2" onClick={handleExportStock}>
             <FileDown className="h-4 w-4" />
