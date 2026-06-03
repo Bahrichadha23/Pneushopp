@@ -747,14 +747,6 @@ export default function OrdersTable({
                         </Button>
                       )}
 
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handleDownloadInvoice(order)}
-                        className="flex items-center justify-center"
-                      >
-                        <Download className="w-4 h-4" />
-                      </Button>
                     </div>
                   </TableCell>
                 </TableRow>
@@ -854,14 +846,6 @@ export default function OrdersTable({
                     )}
                   </Button>
                 )}
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => handleDownloadInvoice(order)}
-                  className="flex items-center justify-center"
-                >
-                  <Download className="w-4 h-4" />
-                </Button>
               </div>
             </div>
           </React.Fragment>

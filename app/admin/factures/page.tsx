@@ -64,8 +64,14 @@ export default function FacturesPage() {
       .finally(() => setLoading(false));
   }, []);
 
+  // Seules les commandes confirmées après assignation DOT apparaissent ici
+  const FACTURE_STATUSES = ["confirmed", "shipped", "delivered"];
+
   const filtered = useMemo(() => {
     return orders.filter((o) => {
+      // Exclure commandes non confirmées (pending, processing, cancelled)
+      if (!FACTURE_STATUSES.includes(o.status)) return false;
+
       const matchesClient =
         searchClient === "" ||
         o.customerName.toLowerCase().includes(searchClient.toLowerCase()) ||
