@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import {
   Package, AlertTriangle, TrendingUp, Plus, Minus, X,
   Calendar, ChevronRight, Loader2, AlertCircle, FileDown, Printer,
-  ClipboardList, Check, Search,
+  ClipboardList, Check, Search, RefreshCw,
 } from "lucide-react";
 import ExcelJS from "exceljs";
 import { AnimatePresence, motion } from "framer-motion";
@@ -1014,6 +1014,7 @@ export default function StockManagementPage() {
 
   const [pagination, setPagination] = useState({ page: 1, limit: 20, total: 0 });
   const [showOrderPrep, setShowOrderPrep] = useState(false);
+  const [refreshKey, setRefreshKey] = useState(0);
 
   const { user } = useAuth();
   const router = useRouter();
@@ -1046,6 +1047,28 @@ export default function StockManagementPage() {
     }
   }, [searchParams, stock]);
 
+  // Refetch when:
+  // 1. Tab becomes visible (browser bfcache restore or tab switch)
+  // 2. Catalog page signals a stock update via localStorage (cross-tab)
+  useEffect(() => {
+    const handleVisibility = () => {
+      if (document.visibilityState === "visible") {
+        setRefreshKey((k) => k + 1);
+      }
+    };
+    const handleStorage = (e: StorageEvent) => {
+      if (e.key === "stock_updated_at") {
+        setRefreshKey((k) => k + 1);
+      }
+    };
+    document.addEventListener("visibilitychange", handleVisibility);
+    window.addEventListener("storage", handleStorage);
+    return () => {
+      document.removeEventListener("visibilitychange", handleVisibility);
+      window.removeEventListener("storage", handleStorage);
+    };
+  }, []);
+
   // Fetch products (server-side search + pagination)
   useEffect(() => {
     const fetchStock = async () => {
@@ -1070,7 +1093,7 @@ export default function StockManagementPage() {
       } catch (err) { console.error("Erreur chargement stock :", err); }
     };
     fetchStock();
-  }, [pagination.page, debouncedSearch]);
+  }, [pagination.page, debouncedSearch, refreshKey]);
 
   const handleDotStockChanged = (productId: number, newStock: number) => {
     setStock((prev) => prev.map((p) => p.id === productId ? { ...p, stock: newStock } : p));
@@ -1206,6 +1229,16 @@ export default function StockManagementPage() {
         <h1 className="text-2xl font-bold text-gray-900">Gestion du stock</h1>
         <div className="flex items-center gap-2 flex-wrap">
           <Badge variant="secondary" className="text-sm">{pagination.total} produits</Badge>
+          <Button
+            variant="outline"
+            size="sm"
+            className="gap-2 text-gray-600 hover:bg-gray-100"
+            onClick={() => setRefreshKey((k) => k + 1)}
+            title="Actualiser le stock"
+          >
+            <RefreshCw className="h-4 w-4" />
+            Actualiser
+          </Button>
           <Button
             variant="outline"
             size="sm"

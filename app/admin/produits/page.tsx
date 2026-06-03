@@ -341,6 +341,8 @@ export default function ProductsPage() {
           await loadProducts(pagination.page);
           setIsFormOpen(false);
           setEditingProduct(undefined);
+          // Signal the stock management page to refresh (handles cross-tab updates)
+          localStorage.setItem("stock_updated_at", Date.now().toString());
           return { success: true };
         } else {
           setError(response.error || "Erreur lors de la mise à jour");
