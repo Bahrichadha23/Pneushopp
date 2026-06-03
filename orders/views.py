@@ -592,18 +592,21 @@ def confirm_with_dot(request, pk):
                     ).update(discount=Decimal(str(discount)))
 
                 # Tracer la sortie DOT dans StockMovement
+                # Utilise un savepoint imbriqué pour éviter de corrompre la
+                # transaction principale si le log échoue (erreur DB isolée)
                 try:
                     from products.models import StockMovement
                     if product:
-                        StockMovement.objects.create(
-                            product=product,
-                            product_name=product.name,
-                            type='out',
-                            quantity=-quantity,
-                            reason='vente',
-                            reference=f'CMD:{order.order_number} | DOT:{batch.dot}'[:100],
-                            created_by=request.user if request.user.is_authenticated else None,
-                        )
+                        with transaction.atomic():
+                            StockMovement.objects.create(
+                                product=product,
+                                product_name=product.name,
+                                type='out',
+                                quantity=-quantity,
+                                reason='vente',
+                                reference=f'CMD:{order.order_number} | DOT:{batch.dot}'[:100],
+                                created_by=request.user if request.user.is_authenticated else None,
+                            )
                 except Exception as mv_err:
                     print(f'[CONFIRM_DOT] StockMovement log failed: {mv_err}')
 
