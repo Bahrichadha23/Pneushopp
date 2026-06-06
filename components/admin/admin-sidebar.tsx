@@ -10,6 +10,7 @@ import {
   Package,
   Truck,
   FileText,
+  ScrollText,
   BarChart3,
   Settings,
   ChevronDown,
@@ -100,6 +101,7 @@ const MENU_ADMIN: MenuItem[] = [
   { title: "Rapports",              href: "/admin/rapports",     icon: BarChart3 },
   { title: "Paramètres",            href: "/admin/parametres",   icon: Settings },
   { title: "Personnel Utilisateurs",href: "/admin/Utilisateurs", icon: Users },
+  { title: "Journal d'activité",    href: "/admin/journal",      icon: ScrollText },
   { title: "Support",               href: "/admin/communication",icon: MessageSquare },
 ];
 
@@ -309,7 +311,7 @@ export default function AdminSidebar({
         {/* ── Logo + rôle ── */}
         <div className="flex-shrink-0 px-4 py-4 border-b border-white/10">
           <div className="flex items-center gap-3">
-            <div className="bg-yellow-400 rounded-xl p-1.5 flex-shrink-0">
+            <div className="bg-white rounded-xl p-1.5 flex-shrink-0">
               <Image
                 src="/logo.png"
                 alt="PneuShop"
@@ -324,8 +326,8 @@ export default function AdminSidebar({
             </div>
           </div>
           {roleLabel && (
-            <div className="mt-3 px-2.5 py-1.5 bg-yellow-400/10 border border-yellow-400/20 rounded-lg">
-              <p className="text-yellow-400 text-xs font-semibold">{roleLabel}</p>
+            <div className="mt-3 px-2.5 py-1.5 bg-white/10 border border-white/20 rounded-lg">
+              <p className="text-white text-xs font-semibold">{roleLabel}</p>
             </div>
           )}
         </div>
