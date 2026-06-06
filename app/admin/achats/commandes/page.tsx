@@ -186,10 +186,10 @@ const handleDownloadAchat = (order: any) => {
 
 // ── Status config ─────────────────────────────────────────────────────────────
 const STATUS_CONFIG = {
-  draft:     { label: "Brouillon",  cls: "bg-gray-100 text-gray-600 border border-gray-200" },
-  confirmed: { label: "Confirmée",  cls: "bg-yellow-400 text-black font-semibold" },
-  received:  { label: "Reçue",      cls: "bg-black text-white border border-black" },
-  cancelled: { label: "Annulée",    cls: "bg-red-100 text-red-700 border border-red-200" },
+  draft:     { label: "Brouillon",  cls: "bg-gray-100    text-gray-600    border border-gray-200"   },
+  confirmed: { label: "Confirmée",  cls: "bg-blue-100    text-blue-800    border border-blue-300"   },
+  received:  { label: "Reçue",      cls: "bg-emerald-100 text-emerald-700 border border-emerald-300"},
+  cancelled: { label: "Annulée",    cls: "bg-brand-red-light text-brand-red border border-brand-red"},
 };
 
 const getStatusBadge = (status: string) => {
@@ -729,11 +729,11 @@ export default function AchatsCommandesPage() {
                         <select
                           value={order.status || "draft"}
                           onChange={(e) => handleStatusChange(order.id, e.target.value)}
-                          className={`rounded-full px-3 py-0.5 text-xs font-medium border-0 cursor-pointer focus:outline-none focus:ring-2 focus:ring-yellow-400 ${
-                            order.status === "confirmed" ? "bg-yellow-400 text-black" :
-                            order.status === "received"  ? "bg-black text-white" :
-                            order.status === "cancelled" ? "bg-gray-200 text-gray-600" :
-                            "bg-gray-100 text-gray-600"
+                          className={`rounded-full px-3 py-0.5 text-xs font-medium border cursor-pointer focus:outline-none focus:ring-2 focus:ring-brand-orange ${
+                            order.status === "confirmed" ? "bg-blue-100 text-blue-800 border-blue-300" :
+                            order.status === "received"  ? "bg-emerald-100 text-emerald-700 border-emerald-300" :
+                            order.status === "cancelled" ? "bg-brand-red-light text-brand-red border-brand-red" :
+                            "bg-gray-100 text-gray-600 border-gray-200"
                           }`}
                         >
                           <option value="draft">Brouillon</option>

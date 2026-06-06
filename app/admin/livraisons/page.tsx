@@ -42,9 +42,9 @@ const STATUS_IDX: Record<Livraison["statut"], number> = { prepare: 0, en_route: 
 
 const statusBadge = (statut: Livraison["statut"]) => {
   const cfg = {
-    prepare:  { cls: "bg-yellow-100 text-brand-gold border border-yellow-300", label: "En préparation" },
-    en_route: { cls: "bg-gray-100 text-gray-700 border border-gray-300",        label: "En route" },
-    livre:    { cls: "bg-black text-white border border-black",                 label: "Livré" },
+    prepare:  { cls: "bg-amber-50   text-amber-700   border border-amber-300",       label: "En préparation" },
+    en_route: { cls: "bg-purple-100 text-purple-700  border border-purple-300",      label: "En route" },
+    livre:    { cls: "bg-emerald-100 text-emerald-700 border border-emerald-300",    label: "Livré" },
   } as const;
   const c = cfg[statut] ?? { cls: "bg-gray-100 text-gray-600", label: statut };
   return (
@@ -340,9 +340,9 @@ export default function DeliveriesPage() {
       {/* KPI Cards */}
       <div className="grid grid-cols-3 gap-4">
         {[
-          { n: nPrepare, label: "En préparation", icon: <Clock className="h-6 w-6 text-brand-gold" />, bg: "bg-yellow-50", border: "border-l-yellow-400" },
-          { n: nEnRoute, label: "En route",        icon: <Truck className="h-6 w-6 text-gray-600" />,   bg: "bg-gray-50",   border: "border-l-gray-400"   },
-          { n: nLivre,   label: "Livrées",         icon: <CheckCircle2 className="h-6 w-6 text-black" />, bg: "bg-black/5", border: "border-l-black" },
+          { n: nPrepare, label: "En préparation", icon: <Clock className="h-6 w-6 text-amber-600" />,   bg: "bg-amber-50",   border: "border-l-amber-400"   },
+          { n: nEnRoute, label: "En route",        icon: <Truck className="h-6 w-6 text-purple-600" />, bg: "bg-purple-50",  border: "border-l-purple-400"  },
+          { n: nLivre,   label: "Livrées",         icon: <CheckCircle2 className="h-6 w-6 text-emerald-600" />, bg: "bg-emerald-50", border: "border-l-emerald-500" },
         ].map((s) => (
           <Card key={s.label} className={`border-l-4 ${s.border}`}>
             <CardContent className="p-4 flex items-center gap-4">

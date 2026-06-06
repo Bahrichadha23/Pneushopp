@@ -356,11 +356,11 @@ export default function BonsCommandePage() {
   const getStatutBadge = (statut: string) => {
     switch (statut) {
       case "en_attente":
-        return <Badge className="bg-yellow-100 text-brand-gold border-yellow-200">En attente</Badge>;
+        return <Badge className="bg-amber-50 text-amber-700 border border-amber-300">En attente</Badge>;
       case "confirmé":
-        return <Badge className="bg-yellow-100 text-brand-gold border-yellow-200">Confirmé</Badge>;
+        return <Badge className="bg-blue-100 text-blue-800 border border-blue-300">Confirmé</Badge>;
       case "livré":
-        return <Badge className="bg-black text-white border-black">Livré</Badge>;
+        return <Badge className="bg-emerald-100 text-emerald-700 border border-emerald-300">Livré</Badge>;
       default:
         return <Badge variant="outline">{statut}</Badge>;
     }

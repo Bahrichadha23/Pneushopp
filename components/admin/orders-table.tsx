@@ -560,23 +560,21 @@ export default function OrdersTable({
   };
 
   const getPaymentStatusBadge = (status: Order["paymentStatus"]) => {
-    const variants = {
-      pending: "outline",
-      paid: "default",
-      failed: "destructive",
-      refunded: "secondary",
-    } as const;
-
-    const labels = {
-      pending: "En attente",
-      paid: "Payé",
-      failed: "Échec",
+    const styles: Record<string, string> = {
+      pending:  "bg-amber-50    text-amber-700   border border-amber-300",
+      paid:     "bg-green-100   text-green-700   border border-green-300",
+      failed:   "bg-brand-red-light text-brand-red border border-brand-red",
+      refunded: "bg-purple-100  text-purple-700  border border-purple-300",
+    };
+    const labels: Record<string, string> = {
+      pending:  "En attente",
+      paid:     "Payé",
+      failed:   "Échec",
       refunded: "Remboursé",
     };
-
     return (
-      <Badge variant={variants[status]} className="text-xs">
-        {labels[status]}
+      <Badge className={`text-xs rounded-full ${styles[status] ?? "bg-gray-100 text-gray-600 border border-gray-200"}`}>
+        {labels[status] ?? status}
       </Badge>
     );
   };

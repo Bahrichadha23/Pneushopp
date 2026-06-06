@@ -34,10 +34,10 @@ interface Claim {
 }
 
 const STATUS_COLORS: Record<string, string> = {
-  pending:    "bg-yellow-100 text-brand-gold border border-yellow-300",
-  processing: "bg-gray-100 text-gray-700 border border-gray-300",
-  resolved:   "bg-black text-white border border-black",
-  rejected:   "bg-yellow-50 text-yellow-900 border border-brand-orange line-through",
+  pending:    "bg-amber-50    text-amber-700   border border-amber-300",
+  processing: "bg-brand-blue-light text-brand-blue border border-brand-blue",
+  resolved:   "bg-green-100  text-green-700   border border-green-300",
+  rejected:   "bg-brand-red-light text-brand-red border border-brand-red",
 };
 const STATUS_ICONS: Record<string, React.ReactNode> = {
   pending:    <Clock className="h-3 w-3 mr-1" />,
@@ -173,11 +173,11 @@ export default function AdminSAVPage() {
       {/* Stats */}
       <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 mb-6">
         {[
-          { label: "Total",           value: stats.total,      color: "bg-gray-100 text-gray-700" },
-          { label: "En attente",      value: stats.pending,    color: "bg-yellow-100 text-brand-gold border border-yellow-200" },
-          { label: "En traitement",   value: stats.processing, color: "bg-gray-100 text-gray-700 border border-gray-200" },
-          { label: "Résolus",         value: stats.resolved,   color: "bg-black text-white" },
-          { label: "Rejetés",         value: stats.rejected,   color: "bg-yellow-50 text-yellow-900 border border-yellow-300" },
+          { label: "Total",           value: stats.total,      color: "bg-gray-100 text-gray-700 border border-gray-200" },
+          { label: "En attente",      value: stats.pending,    color: "bg-amber-50 text-amber-700 border border-amber-200" },
+          { label: "En traitement",   value: stats.processing, color: "bg-brand-blue-light text-brand-blue border border-brand-blue" },
+          { label: "Résolus",         value: stats.resolved,   color: "bg-green-100 text-green-700 border border-green-300" },
+          { label: "Rejetés",         value: stats.rejected,   color: "bg-brand-red-light text-brand-red border border-brand-red" },
         ].map((s) => (
           <div key={s.label} className={`rounded-lg px-4 py-3 ${s.color}`}>
             <p className="text-2xl font-bold">{s.value}</p>
