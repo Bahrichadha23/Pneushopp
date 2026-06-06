@@ -1,4 +1,4 @@
-"use client"
+﻿"use client"
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts'
@@ -33,7 +33,7 @@ export default function TopClientsChart({ data }: TopClientsChartProps) {
           <p className="text-sm text-blue-600">
             Commandes: {payload[0].payload.commandes}
           </p>
-          <p className="text-sm text-green-600">
+          <p className="text-sm text-brand-gold">
             Total: {formatCurrency(payload[0].value)}
           </p>
         </div>

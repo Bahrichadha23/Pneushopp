@@ -36,7 +36,7 @@ interface Claim {
 const STATUS_COLORS: Record<string, string> = {
   pending:    "bg-amber-50    text-amber-700   border border-amber-300",
   processing: "bg-brand-blue-light text-brand-blue border border-brand-blue",
-  resolved:   "bg-green-100  text-green-700   border border-green-300",
+  resolved:   "bg-brand-gold-light  text-brand-gold-dark   border border-brand-gold",
   rejected:   "bg-brand-red-light text-brand-red border border-brand-red",
 };
 const STATUS_ICONS: Record<string, React.ReactNode> = {
@@ -176,7 +176,7 @@ export default function AdminSAVPage() {
           { label: "Total",           value: stats.total,      color: "bg-gray-100 text-gray-700 border border-gray-200" },
           { label: "En attente",      value: stats.pending,    color: "bg-amber-50 text-amber-700 border border-amber-200" },
           { label: "En traitement",   value: stats.processing, color: "bg-brand-blue-light text-brand-blue border border-brand-blue" },
-          { label: "Résolus",         value: stats.resolved,   color: "bg-green-100 text-green-700 border border-green-300" },
+          { label: "Résolus",         value: stats.resolved,   color: "bg-brand-gold-light text-brand-gold-dark border border-brand-gold" },
           { label: "Rejetés",         value: stats.rejected,   color: "bg-brand-red-light text-brand-red border border-brand-red" },
         ].map((s) => (
           <div key={s.label} className={`rounded-lg px-4 py-3 ${s.color}`}>
@@ -297,7 +297,7 @@ export default function AdminSAVPage() {
                       )}
                       {claim.tire_video_url && (
                         <a href={claim.tire_video_url} target="_blank" rel="noopener noreferrer"
-                          className="flex items-center gap-1 text-sm text-purple-600 bg-purple-50 border border-purple-200 rounded-md px-3 py-1.5 hover:bg-purple-100">
+                          className="flex items-center gap-1 text-sm text-gray-600 bg-gray-100 border border-purple-200 rounded-md px-3 py-1.5 hover:bg-gray-100">
                           <Video className="h-4 w-4" /> Vidéo pneu <ExternalLink className="h-3 w-3" />
                         </a>
                       )}

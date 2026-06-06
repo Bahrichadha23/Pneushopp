@@ -1,4 +1,4 @@
-// Tableau de gestion des produits avec filtres avancés
+﻿// Tableau de gestion des produits avec filtres avancés
 "use client";
 import { useState } from "react";
 import type { Product } from "@/types/product";
@@ -301,7 +301,7 @@ export default function ProductsTable({
 
         <div className="bg-white p-4 rounded-lg border">
           <div className="flex items-center">
-            <Package className="h-8 w-8 text-green-500" />
+            <Package className="h-8 w-8 text-brand-gold" />
             <div className="ml-3">
               <p className="text-sm font-medium text-gray-500">Valeur stock</p>
               <p className="text-2xl font-bold text-gray-900">
@@ -401,7 +401,7 @@ export default function ProductsTable({
                           <p className="text-sm text-gray-500 line-through">
                             {formatCurrency(product.old_price || 0)}
                           </p>
-                          <p className="text-xs text-green-600">
+                          <p className="text-xs text-brand-gold">
                             -{product.discount_percentage}%
                           </p>
                         </>

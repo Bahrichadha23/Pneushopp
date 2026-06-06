@@ -360,7 +360,7 @@ export default function BonsCommandePage() {
       case "confirmé":
         return <Badge className="bg-blue-100 text-blue-800 border border-blue-300">Confirmé</Badge>;
       case "livré":
-        return <Badge className="bg-emerald-100 text-emerald-700 border border-emerald-300">Livré</Badge>;
+        return <Badge className="bg-brand-gold-light text-brand-gold-dark border border-brand-gold">Livré</Badge>;
       default:
         return <Badge variant="outline">{statut}</Badge>;
     }

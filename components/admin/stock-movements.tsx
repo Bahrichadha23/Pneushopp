@@ -20,10 +20,10 @@ interface StockMovementsProps {
 }
 
 const TYPE_CONFIG = {
-  in:         { label: "Entrée",      color: "bg-green-100 text-green-700 border-green-200", dot: "bg-green-500",  sign: "+", textColor: "text-green-700" },
+  in:         { label: "Entrée",      color: "bg-brand-gold-light text-brand-gold-dark border-brand-gold", dot: "bg-brand-gold-light0",  sign: "+", textColor: "text-brand-gold-dark" },
   out:        { label: "Sortie",       color: "bg-red-100 text-brand-red border-red-200",      dot: "bg-brand-red",    sign: "−", textColor: "text-brand-red"   },
   adjustment: { label: "Ajustement",  color: "bg-blue-100 text-brand-blue border-blue-200",   dot: "bg-brand-blue",   sign: "±", textColor: "text-brand-blue"  },
-  return:     { label: "Avoir/Retour",color: "bg-purple-100 text-purple-700 border-purple-200", dot: "bg-purple-500", sign: "+", textColor: "text-purple-700" },
+  return:     { label: "Avoir/Retour",color: "bg-gray-100 text-gray-700 border-purple-200", dot: "bg-gray-1000", sign: "+", textColor: "text-gray-700" },
 } as const;
 
 type MvtType = keyof typeof TYPE_CONFIG;
@@ -195,16 +195,16 @@ export default function StockMovements({ movements, onAddMovement }: StockMoveme
 
       {/* ── KPI Cards ──────────────────────────────────────────────────────── */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <Card className="border-l-4 border-l-green-500">
+        <Card className="border-l-4 border-l-brand-gold">
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">Entrées</p>
-                <p className="text-3xl font-black text-green-600">+{kpis.entrées}</p>
+                <p className="text-3xl font-black text-brand-gold">+{kpis.entrées}</p>
                 <p className="text-xs text-gray-400 mt-0.5">unités reçues</p>
               </div>
-              <div className="rounded-xl bg-green-50 p-3">
-                <TrendingUp className="h-6 w-6 text-green-600" />
+              <div className="rounded-xl bg-brand-gold-light p-3">
+                <TrendingUp className="h-6 w-6 text-brand-gold" />
               </div>
             </div>
           </CardContent>
@@ -230,11 +230,11 @@ export default function StockMovements({ movements, onAddMovement }: StockMoveme
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">Avoirs/Retours</p>
-                <p className="text-3xl font-black text-purple-600">+{kpis.retours}</p>
+                <p className="text-3xl font-black text-gray-600">+{kpis.retours}</p>
                 <p className="text-xs text-gray-400 mt-0.5">remis en stock</p>
               </div>
-              <div className="rounded-xl bg-purple-50 p-3">
-                <RotateCcw className="h-6 w-6 text-purple-600" />
+              <div className="rounded-xl bg-gray-100 p-3">
+                <RotateCcw className="h-6 w-6 text-gray-600" />
               </div>
             </div>
           </CardContent>
@@ -373,7 +373,7 @@ export default function StockMovements({ movements, onAddMovement }: StockMoveme
                           {p.reference && <span className="ml-2 text-xs text-gray-400 font-mono">{p.reference}</span>}
                         </div>
                         {p.stock !== undefined && (
-                          <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${p.stock > 0 ? "bg-green-100 text-green-700" : "bg-red-100 text-brand-red"}`}>
+                          <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${p.stock > 0 ? "bg-brand-gold-light text-brand-gold-dark" : "bg-red-100 text-brand-red"}`}>
                             Stock: {p.stock}
                           </span>
                         )}

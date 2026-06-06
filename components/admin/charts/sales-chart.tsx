@@ -1,4 +1,4 @@
-"use client"
+﻿"use client"
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts'
@@ -32,7 +32,7 @@ export default function SalesChart({ data, title }: SalesChartProps) {
           <p className="text-sm text-blue-600">
             Ventes: {formatCurrency(payload[0].value)}
           </p>
-          <p className="text-sm text-green-600">
+          <p className="text-sm text-brand-gold">
             Commandes: {payload[1].value}
           </p>
         </div>

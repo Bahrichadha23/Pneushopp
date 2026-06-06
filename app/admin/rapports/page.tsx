@@ -420,8 +420,8 @@ export default function RapportsPage() {
                       <p className="text-xl font-bold text-gray-800">{sav.total}</p>
                     </div>
                     <div>
-                      <p className="text-xs text-emerald-600">Taux de résolution</p>
-                      <p className="text-xl font-bold text-emerald-700">{resolutionRate}%</p>
+                      <p className="text-xs text-brand-gold">Taux de résolution</p>
+                      <p className="text-xl font-bold text-brand-gold-dark">{resolutionRate}%</p>
                     </div>
                     <div>
                       <p className="text-xs text-amber-500">En cours</p>

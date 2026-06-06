@@ -1,4 +1,4 @@
-"use client"
+﻿"use client"
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts'
@@ -33,7 +33,7 @@ export default function TopProductsChart({ data }: TopProductsChartProps) {
           <p className="text-sm text-blue-600">
             Ventes: {payload[0].payload.ventes} unités
           </p>
-          <p className="text-sm text-green-600">
+          <p className="text-sm text-brand-gold">
             Chiffre: {formatCurrency(payload[0].value)}
           </p>
         </div>

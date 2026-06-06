@@ -538,8 +538,8 @@ export default function OrdersTable({
       pending:    "bg-amber-50    text-amber-700   border border-amber-300",       // Jaune ambre — en attente
       confirmed:  "bg-brand-blue-light text-brand-blue border border-brand-blue", // Bleu — confirmée
       processing: "bg-orange-100 text-brand-orange border border-brand-orange",   // Orange — en préparation
-      shipped:    "bg-purple-100 text-purple-700   border border-purple-300",      // Violet — expédiée
-      delivered:  "bg-green-100  text-green-700    border border-green-300",       // Vert — livrée
+      shipped:    "bg-gray-100 text-gray-700   border border-gray-300",      // Violet — expédiée
+      delivered:  "bg-brand-gold-light  text-brand-gold-dark    border border-brand-gold",       // Vert — livrée
       cancelled:  "bg-brand-red-light text-brand-red border border-brand-red",    // Rouge — annulée
     };
 
@@ -562,9 +562,9 @@ export default function OrdersTable({
   const getPaymentStatusBadge = (status: Order["paymentStatus"]) => {
     const styles: Record<string, string> = {
       pending:  "bg-amber-50    text-amber-700   border border-amber-300",
-      paid:     "bg-green-100   text-green-700   border border-green-300",
+      paid:     "bg-brand-gold-light   text-brand-gold-dark   border border-brand-gold",
       failed:   "bg-brand-red-light text-brand-red border border-brand-red",
-      refunded: "bg-purple-100  text-purple-700  border border-purple-300",
+      refunded: "bg-gray-100  text-gray-700  border border-gray-300",
     };
     const labels: Record<string, string> = {
       pending:  "En attente",
@@ -837,7 +837,7 @@ export default function OrdersTable({
                       <Package
                         className={`h-4 w-4 ${
                           purchaseOrderCreated.has(order.id)
-                            ? "text-green-500"
+                            ? "text-brand-gold"
                             : ""
                         }`}
                       />

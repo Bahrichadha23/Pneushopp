@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { useAuth } from "@/contexts/auth-context";
@@ -188,7 +188,7 @@ const handleDownloadAchat = (order: any) => {
 const STATUS_CONFIG = {
   draft:     { label: "Brouillon",  cls: "bg-gray-100    text-gray-600    border border-gray-200"   },
   confirmed: { label: "Confirmée",  cls: "bg-blue-100    text-blue-800    border border-blue-300"   },
-  received:  { label: "Reçue",      cls: "bg-emerald-100 text-emerald-700 border border-emerald-300"},
+  received:  { label: "Reçue",      cls: "bg-brand-gold-light text-brand-gold-dark border border-brand-gold"},
   cancelled: { label: "Annulée",    cls: "bg-brand-red-light text-brand-red border border-brand-red"},
 };
 
@@ -731,7 +731,7 @@ export default function AchatsCommandesPage() {
                           onChange={(e) => handleStatusChange(order.id, e.target.value)}
                           className={`rounded-full px-3 py-0.5 text-xs font-medium border cursor-pointer focus:outline-none focus:ring-2 focus:ring-brand-orange ${
                             order.status === "confirmed" ? "bg-blue-100 text-blue-800 border-blue-300" :
-                            order.status === "received"  ? "bg-emerald-100 text-emerald-700 border-emerald-300" :
+                            order.status === "received"  ? "bg-brand-gold-light text-brand-gold-dark border-brand-gold" :
                             order.status === "cancelled" ? "bg-brand-red-light text-brand-red border-brand-red" :
                             "bg-gray-100 text-gray-600 border-gray-200"
                           }`}

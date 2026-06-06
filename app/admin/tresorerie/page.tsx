@@ -1260,7 +1260,7 @@ export default function TresoreriePage() {
                           value={record.paymentStatus}
                           onChange={(e) => handlePaymentStatusChange(record.id, e.target.value)}
                           className={`rounded border px-1.5 py-0.5 text-xs focus:outline-none focus:ring-1 focus:ring-brand-orange ${
-                            record.paymentStatus === 'paid' ? 'border-emerald-300 bg-emerald-50 text-brand-gold' :
+                            record.paymentStatus === 'paid' ? 'border-brand-gold bg-brand-gold-light text-brand-gold' :
                             record.paymentStatus === 'failed' ? 'border-red-300 bg-red-50 text-brand-red' :
                             'border-slate-300 bg-white text-slate-700'
                           }`}

@@ -1,4 +1,4 @@
-// 'use client';
+﻿// 'use client';
 
 // import { useState, useEffect } from 'react';
 // import { useRouter } from 'next/navigation';
@@ -276,6 +276,19 @@ interface User {
     totalCommandes: number;
     montantTotal: number;
     derniereCommande: string;
+    plain_password: string;
+}
+
+const PWD_STORE_KEY = 'pneushop_staff_passwords';
+
+function loadStoredPasswords(): Record<string, string> {
+    try { return JSON.parse(localStorage.getItem(PWD_STORE_KEY) || '{}'); } catch { return {}; }
+}
+
+function saveStoredPassword(email: string, pwd: string) {
+    const store = loadStoredPasswords();
+    store[email] = pwd;
+    localStorage.setItem(PWD_STORE_KEY, JSON.stringify(store));
 }
 
 export function UsersList() {
@@ -294,6 +307,7 @@ export function UsersList() {
     const [newPassword, setNewPassword] = useState("");
     const [showNewPwd, setShowNewPwd] = useState(false);
     const [settingPassword, setSettingPassword] = useState(false);
+    const [revealedPwdUserId, setRevealedPwdUserId] = useState<number | null>(null);
 
     const fetchUsers = async () => {
         try {
@@ -317,12 +331,13 @@ export function UsersList() {
 
             const data = await response.json();
             const usersData = Array.isArray(data) ? data : (data.users || []);
-
+            const storedPwds = loadStoredPasswords();
             const formattedUsers = usersData.map((user: any) => ({
                 ...user,
                 role: user.role || 'sales',
                 firstName: user.firstName || user.first_name || user.email?.split('@')[0] || 'Utilisateur',
                 lastName: user.lastName || user.last_name || '',
+                plain_password: storedPwds[user.email] || user.plain_password || '',
             }));
 
             setUsers(formattedUsers);
@@ -451,9 +466,16 @@ export function UsersList() {
                 body: JSON.stringify({ password: newPassword }),
             });
             if (!res.ok) throw new Error((await res.json()).error || 'Erreur');
-            toast({ title: 'Mot de passe mis à jour', description: `Nouveau mot de passe défini pour ${passwordUser.email}` });
+            const savedPwd = newPassword;
+            const savedEmail = passwordUser.email;
+            // Persister par email dans localStorage → survie au refresh
+            saveStoredPassword(savedEmail, savedPwd);
             setPasswordUser(null);
             setNewPassword("");
+            // Mettre à jour tous les users ayant cet email
+            setUsers(prev => prev.map(u => u.email === savedEmail ? { ...u, plain_password: savedPwd } : u));
+            setRevealedPwdUserId(passwordUser.id);
+            toast({ title: 'Mot de passe mis à jour', description: `Nouveau mot de passe défini` });
         } catch (e: any) {
             toast({ title: 'Erreur', description: e.message, variant: 'destructive' });
         } finally { setSettingPassword(false); }
@@ -579,6 +601,7 @@ export function UsersList() {
                                     <TableRow>
                                         <TableHead>Nom</TableHead>
                                         <TableHead>Email</TableHead>
+                                        <TableHead>Mot de passe</TableHead>
                                         <TableHead>Rôle</TableHead>
                                         <TableHead>Statut</TableHead>
                                         <TableHead className="text-right">Actions</TableHead>
@@ -592,10 +615,40 @@ export function UsersList() {
                                                     {user.firstName} {user.lastName}
                                                 </TableCell>
                                                 <TableCell>{user.email}</TableCell>
+                                                <TableCell>
+                                                    <div className="flex items-center gap-2">
+                                                        <span className="font-mono text-sm tracking-widest">
+                                                            {revealedPwdUserId === user.id && user.plain_password
+                                                                ? <span className="text-green-700 font-bold">{user.plain_password}</span>
+                                                                : "••••••••"}
+                                                        </span>
+                                                        <button
+                                                            type="button"
+                                                            className="text-gray-400 hover:text-gray-700"
+                                                            onClick={() => {
+                                                                if (user.plain_password) {
+                                                                    setRevealedPwdUserId(revealedPwdUserId === user.id ? null : user.id);
+                                                                } else {
+                                                                    // Pas de mdp stocké → ouvrir le dialog pour en définir un
+                                                                    setPasswordUser(user);
+                                                                    setNewPassword("");
+                                                                    setShowNewPwd(false);
+                                                                }
+                                                            }}
+                                                            title={user.plain_password
+                                                                ? (revealedPwdUserId === user.id ? "Masquer" : "Voir le mot de passe")
+                                                                : "Définir le mot de passe"}
+                                                        >
+                                                            {revealedPwdUserId === user.id && user.plain_password
+                                                                ? <EyeOff className="h-3.5 w-3.5" />
+                                                                : <Eye className="h-3.5 w-3.5" />}
+                                                        </button>
+                                                    </div>
+                                                </TableCell>
                                                 <TableCell>{getRoleBadge(user.role)}</TableCell>
                                                 <TableCell>
                                                     <Badge variant={user.is_active !== false ? 'default' : 'outline'}
-                                                        className={user.is_active !== false ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}>
+                                                        className={user.is_active !== false ? 'bg-brand-gold-light text-brand-gold-dark' : 'bg-red-100 text-red-800'}>
                                                         {user.is_active !== false ? 'Actif' : 'Désactivé'}
                                                     </Badge>
                                                 </TableCell>
@@ -606,7 +659,7 @@ export function UsersList() {
                                                             title={user.is_active !== false ? 'Désactiver' : 'Activer'}
                                                             onClick={() => handleToggleActive(user)}
                                                         >
-                                                            <Power className={`h-4 w-4 ${user.is_active !== false ? 'text-green-600' : 'text-gray-400'}`} />
+                                                            <Power className={`h-4 w-4 ${user.is_active !== false ? 'text-brand-gold' : 'text-gray-400'}`} />
                                                         </Button>
                                                         <Button
                                                             variant="ghost" size="icon"

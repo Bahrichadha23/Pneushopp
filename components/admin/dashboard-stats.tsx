@@ -239,13 +239,13 @@ export default function DashboardStatsComponent({ stats, analytics }: DashboardS
             </div>
             <div className="text-center p-4 bg-yellow-50 rounded-lg">
               <p className="text-sm text-gray-600">Prix minimum</p>
-              <p className="text-xl font-bold text-green-600">
+              <p className="text-xl font-bold text-brand-gold">
                 {formatCurrency(stats.price_stats?.min_price || 0)}
               </p>
             </div>
-            <div className="text-center p-4 bg-purple-50 rounded-lg">
+            <div className="text-center p-4 bg-gray-100 rounded-lg">
               <p className="text-sm text-gray-600">Prix maximum</p>
-              <p className="text-xl font-bold text-purple-600">
+              <p className="text-xl font-bold text-gray-600">
                 {formatCurrency(stats.price_stats?.max_price || 0)}
               </p>
             </div>
@@ -280,8 +280,8 @@ export default function DashboardStatsComponent({ stats, analytics }: DashboardS
                       <p className="text-base font-bold text-gray-800">{sav.total}</p>
                     </div>
                     <div>
-                      <p className="text-emerald-500">Résolution</p>
-                      <p className="text-base font-bold text-emerald-600">{resolutionRate}%</p>
+                      <p className="text-brand-gold">Résolution</p>
+                      <p className="text-base font-bold text-brand-gold">{resolutionRate}%</p>
                     </div>
                     <div>
                       <p className="text-amber-500">En cours</p>
