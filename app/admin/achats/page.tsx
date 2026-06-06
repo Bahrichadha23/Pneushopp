@@ -916,7 +916,22 @@ export default function AchatsPage() {
                     <div className="space-y-2">
                       {searchResults.map((product) => (
                         <div key={product.id} className="border-b pb-3">
-                          <div className="flex items-start justify-between">
+                          <div className="flex items-start justify-between gap-3">
+                            {/* Image produit */}
+                            <div className="flex-shrink-0">
+                              {product.image ? (
+                                <img
+                                  src={product.image}
+                                  alt={product.name}
+                                  className="h-16 w-16 object-cover rounded-lg border border-gray-200 bg-gray-50"
+                                  onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
+                                />
+                              ) : (
+                                <div className="h-16 w-16 rounded-lg border border-gray-200 bg-gray-100 flex items-center justify-center text-gray-300">
+                                  <Package className="h-6 w-6" />
+                                </div>
+                              )}
+                            </div>
                             <div className="flex-1">
                               <div className="flex items-center gap-2 mb-1">
                                 <span className="font-mono text-sm bg-gray-100 px-2 py-1 rounded">
@@ -989,6 +1004,8 @@ export default function AchatsPage() {
                               <Plus className="h-3 w-3 mr-1" />
                               Ajouter
                             </Button>
+                          </div>
+                            </div>
                           </div>
                         </div>
                       ))}

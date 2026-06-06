@@ -535,12 +535,12 @@ export default function OrdersTable({
 
   const getStatusBadge = (status: Order["status"]) => {
     const styles: Record<string, string> = {
-      pending:    "bg-yellow-100 text-brand-gold border border-yellow-200",
-      confirmed:  "bg-brand-orange text-black border border-brand-orange",
-      processing: "bg-brand-orange text-black font-semibold",
-      shipped:    "bg-gray-700 text-white border border-gray-700",
-      delivered:  "bg-black text-white border border-black",
-      cancelled:  "bg-gray-100 text-gray-600 border border-gray-300 line-through",
+      pending:    "bg-amber-50    text-amber-700   border border-amber-300",       // Jaune ambre — en attente
+      confirmed:  "bg-brand-blue-light text-brand-blue border border-brand-blue", // Bleu — confirmée
+      processing: "bg-orange-100 text-brand-orange border border-brand-orange",   // Orange — en préparation
+      shipped:    "bg-purple-100 text-purple-700   border border-purple-300",      // Violet — expédiée
+      delivered:  "bg-green-100  text-green-700    border border-green-300",       // Vert — livrée
+      cancelled:  "bg-brand-red-light text-brand-red border border-brand-red",    // Rouge — annulée
     };
 
     const labels: Record<string, string> = {
