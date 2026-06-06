@@ -505,7 +505,7 @@ export default function ProductsPage() {
         <DialogContent className="w-full max-w-4xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>
-              {editingProduct ? "Modifier le produit" : "Nouveau produit"}
+              {editingProduct ? "Fiche article" : "Nouveau produit"}
             </DialogTitle>
           </DialogHeader>
           <ProductForm

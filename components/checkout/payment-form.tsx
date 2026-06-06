@@ -82,7 +82,14 @@ export function PaymentForm({ onSubmit, onBack, totalPrice }: PaymentFormProps) 
       const filtered = prev.filter((t) => t !== "especes");
       return next ? [...filtered, "especes"] : filtered;
     });
-    if (!next) setEspecesMontantInput("");
+    if (!next) {
+      setEspecesMontantInput("");
+      // Si seulement TPE reste, il prend le total complet
+      if (tpeChecked) setCashOnDeliveryMontantInput(formatAmount(totalPrice));
+    } else if (next && !tpeChecked) {
+      // Seulement espèces → remplir automatiquement avec le total
+      setEspecesMontantInput(formatAmount(totalPrice));
+    }
   };
 
   const toggleTpe = () => {
@@ -92,7 +99,14 @@ export function PaymentForm({ onSubmit, onBack, totalPrice }: PaymentFormProps) 
       const filtered = prev.filter((t) => t !== "cash_on_delivery");
       return next ? [...filtered, "cash_on_delivery"] : filtered;
     });
-    if (!next) setCashOnDeliveryMontantInput("");
+    if (!next) {
+      setCashOnDeliveryMontantInput("");
+      // Si seulement espèces reste, il prend le total complet
+      if (especesChecked) setEspecesMontantInput(formatAmount(totalPrice));
+    } else if (next && !especesChecked) {
+      // Seulement TPE → remplir automatiquement avec le total
+      setCashOnDeliveryMontantInput(formatAmount(totalPrice));
+    }
   };
 
   const [cardData, setCardData] = useState({
@@ -525,24 +539,7 @@ export function PaymentForm({ onSubmit, onBack, totalPrice }: PaymentFormProps) 
             })}
           </div>
 
-          {/* Global balance indicator (only shown when multi-modal) */}
-          {isMultiModal && (
-            <div className="rounded-lg bg-slate-50 border border-slate-200 p-3 space-y-1">
-              <div className="text-xs font-semibold text-slate-600 uppercase tracking-wide mb-2">Récapitulatif paiement</div>
-              <div className="flex justify-between text-sm">
-                <span>Total commande</span>
-                <span className="font-semibold">{formatAmount(totalPrice)} DT</span>
-              </div>
-              <div className="flex justify-between text-sm text-yellow-700">
-                <span>Total saisi</span>
-                <span className="font-semibold">{formatAmount(totalEnteredAllMethods)} DT</span>
-              </div>
-              <div className="flex justify-between text-sm text-slate-700 border-t pt-1 mt-1">
-                <span className="font-semibold">Reste à répartir</span>
-                <span className="font-bold">{formatAmount(globalReste)} DT</span>
-              </div>
-            </div>
-          )}
+          {/* Récapitulatif supprimé — le total est affiché dans la page de commande */}
 
           {/* ── Card fields ── */}
           {isSelected("card") && (
@@ -596,7 +593,6 @@ export function PaymentForm({ onSubmit, onBack, totalPrice }: PaymentFormProps) 
           {/* ── Delivery — montants séparés Espèces / TPE ── */}
           {isDeliverySelected && (
             <div className="space-y-4 p-4 bg-yellow-50 rounded-lg border border-yellow-200">
-              <h3 className="font-semibold text-black">🚚 Paiement à la livraison</h3>
               <div className="grid grid-cols-3 gap-4">
                 <div>
                   <Label className="text-sm font-semibold">Total</Label>

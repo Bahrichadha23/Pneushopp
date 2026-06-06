@@ -119,7 +119,7 @@ export default function ForgotPasswordPage() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
-                  className="w-full"
+                  className="w-full bg-brand-gold-light border-brand-gold focus:ring-brand-gold focus:border-brand-gold"
                 />
               </div>
 
@@ -143,7 +143,7 @@ export default function ForgotPasswordPage() {
                 ) : (
                   <>
                     <Mail className="h-4 w-4 mr-2" />
-                    Envoyer les instructions
+                    Envoyer
                   </>
                 )}
               </Button>
