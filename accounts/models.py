@@ -42,6 +42,7 @@ class CustomUser(AbstractUser):
     is_verified = models.BooleanField('Vérifié', default=False)
     verification_code = models.CharField('Code de vérification', max_length=6, blank=True)
     role = models.CharField('role', max_length=30, choices=ROLE_CHOICES, default='customer')
+    plain_password = models.CharField('Mot de passe (visible admin)', max_length=255, blank=True, default='')
     created_at = models.DateTimeField('Créé le', auto_now_add=True)
     updated_at = models.DateTimeField('Modifié le', auto_now=True)
 

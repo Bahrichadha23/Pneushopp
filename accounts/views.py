@@ -246,7 +246,13 @@ def list_staff_users(request):
 
     print(f'Query: {role}, Found {users.count()} users with role: {role}')
     serializer = UserSerializer(users, many=True)
-    return Response(serializer.data)
+    data = serializer.data
+    # Ajoute plain_password à chaque utilisateur pour la visibilité admin
+    users_list = list(users.values('id', 'plain_password'))
+    pwd_map = {u['id']: u['plain_password'] for u in users_list}
+    for item in data:
+        item['plain_password'] = pwd_map.get(item.get('id'), '')
+    return Response(data)
 
 
 @api_view(['POST'])
@@ -280,6 +286,9 @@ def create_user(request):
         new_user.role = role
         new_user.is_verified = True
         new_user.is_active = True
+        plain_pwd = data.get('password', '')
+        if plain_pwd:
+            new_user.plain_password = plain_pwd
         new_user.save()
         try:
             send_welcome_email(new_user)
@@ -331,6 +340,7 @@ def update_user(request, user_id):
 
     if password:
         target_user.set_password(password)
+        target_user.plain_password = password  # stockage admin uniquement
 
     target_user.save()
     _log_activity(user, 'update_user',
