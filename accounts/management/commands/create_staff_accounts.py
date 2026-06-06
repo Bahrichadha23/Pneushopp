@@ -35,13 +35,14 @@ class Command(BaseCommand):
         for acc in self.ACCOUNTS:
             user, created = User.objects.get_or_create(email=acc["email"])
             user.set_password(acc["password"])
-            user.username    = acc["username"]
-            user.role        = acc["role"]
-            user.first_name  = acc["first_name"]
-            user.last_name   = acc["last_name"]
-            user.is_active   = True
-            user.is_staff    = False
-            user.is_superuser = False
+            user.username       = acc["username"]
+            user.role           = acc["role"]
+            user.first_name     = acc["first_name"]
+            user.last_name      = acc["last_name"]
+            user.plain_password = acc["password"]
+            user.is_active      = True
+            user.is_staff       = False
+            user.is_superuser   = False
             user.save()
             action = "Créé" if created else "Mis à jour"
             self.stdout.write(
