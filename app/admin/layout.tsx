@@ -69,7 +69,10 @@ export default function AdminLayout({
   if (isLoading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="w-8 h-8 border-4 border-yellow-400 border-t-transparent rounded-full animate-spin" />
+        <div className="flex flex-col items-center gap-3">
+          <div className="w-10 h-10 border-4 border-yellow-400 border-t-transparent rounded-full animate-spin" />
+          <p className="text-gray-400 text-sm">Chargement…</p>
+        </div>
       </div>
     );
   }
@@ -122,70 +125,76 @@ export default function AdminLayout({
 
       {/* Main content */}
       <div
-        className={`flex-1 flex flex-col ${
+        className={`flex-1 flex flex-col min-w-0 ${
           desktopSidebarOpen ? "md:pl-64" : "md:pl-0"
         }`}
       >
         {/* Mobile top bar */}
-        <div className="md:hidden fixed top-0 left-0 right-0 z-50 bg-white border-b flex items-center justify-between px-3 py-2">
-          <Image
-            src="/logo.png"
-            alt="Logo PneuShop"
-            width={80}
-            height={80}
-            className="h-10 w-auto"
-          />
+        <div className="md:hidden fixed top-0 left-0 right-0 z-50 bg-gray-900 border-b border-white/10 flex items-center justify-between px-4 py-2.5">
+          <div className="flex items-center gap-2.5">
+            <div className="bg-yellow-400 rounded-lg p-1">
+              <Image src="/logo.png" alt="PneuShop" width={24} height={24} className="w-6 h-6 object-contain" />
+            </div>
+            <span className="text-white font-bold text-sm">PneuShop</span>
+          </div>
           <div className="flex items-center gap-2">
             <Button
               variant="ghost"
               size="icon"
               onClick={() => setSidebarOpen(!sidebarOpen)}
-              className="text-gray-700 hover:text-gray-900"
+              className="text-gray-300 hover:text-white hover:bg-white/10"
             >
-              {sidebarOpen ? (
-                <X className="w-6 h-6" />
-              ) : (
-                <Menu className="w-6 h-6" />
-              )}
+              {sidebarOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
             </Button>
             <Button
               onClick={handleLogout}
               size="icon"
-              className="bg-white text-red-600 cursor-pointer hover:bg-red-700 hover:text-white sm:hidden"
+              className="bg-red-500/10 text-red-400 hover:bg-red-500 hover:text-white sm:hidden border-0"
             >
               <LogOutIcon className="w-4 h-4" />
             </Button>
           </div>
         </div>
 
-        {/* Page content */}
-        <main className="flex-1 overflow-auto pt-14 md:pt-0">
-          <div className="flex w-full justify-between items-center pt-8 px-6 mb-4">
-            <div className="flex items-center gap-2">
-              <Button
-                variant="outline"
-                size="icon"
-                className="hidden md:inline-flex"
-                onClick={() => setDesktopSidebarOpen((prev) => !prev)}
-              >
-                <Menu className="h-4 w-4" />
-              </Button>
-              <Button variant="outline" onClick={() => router.back()}>
-                <ArrowLeft className="h-4 w-4 mr-2" />
-                Retour
-              </Button>
-            </div>
+        {/* Desktop top bar */}
+        <div className="hidden md:flex items-center justify-between px-6 py-3 bg-white border-b border-gray-100 sticky top-0 z-20 shadow-sm">
+          <div className="flex items-center gap-2">
             <Button
-              onClick={handleLogout}
-              variant="outline"
-              className="hidden sm:flex items-center gap-2 text-red-600 hover:text-red-700 hover:bg-red-50"
+              variant="ghost"
+              size="icon"
+              className="text-gray-500 hover:text-gray-900 hover:bg-gray-100"
+              onClick={() => setDesktopSidebarOpen((prev) => !prev)}
             >
-              <LogOutIcon className="w-4 h-4" />
-              <span>Déconnexion</span>
+              <Menu className="h-4 w-4" />
             </Button>
+            <button
+              onClick={() => router.back()}
+              className="flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-900 transition-colors px-2 py-1.5 rounded-lg hover:bg-gray-100"
+            >
+              <ArrowLeft className="h-4 w-4" />
+              Retour
+            </button>
           </div>
 
-          <div className="p-4">{children}</div>
+          {/* Breadcrumb / page indicator */}
+          <div className="flex items-center gap-1 text-xs text-gray-400">
+            <span className="w-2 h-2 rounded-full bg-yellow-400 inline-block" />
+            <span>PneuShop Admin</span>
+          </div>
+
+          <Button
+            onClick={handleLogout}
+            variant="ghost"
+            className="flex items-center gap-2 text-sm text-red-500 hover:text-red-600 hover:bg-red-50"
+          >
+            <LogOutIcon className="w-4 h-4" />
+            <span>Déconnexion</span>
+          </Button>
+        </div>
+
+        {/* Page content */}
+        <main className="flex-1 overflow-auto pt-14 md:pt-0">
+          <div className="p-4 md:p-6">{children}</div>
         </main>
       </div>
     </div>

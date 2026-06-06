@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 import { useState, useEffect } from "react";
 import type React from "react";
 import Link from "next/link";
@@ -27,10 +27,7 @@ import {
   MessageSquare,
   Tag,
   RotateCcw,
-  Shield,
-  BookOpen,
 } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import {
   Collapsible,
   CollapsibleContent,
@@ -75,7 +72,6 @@ const MENU_ADMIN: MenuItem[] = [
       { title: "Mouvements stock",       href: "/admin/stock/mouvements",    icon: TrendingUp },
     ],
   },
-  { title: "SAV",                  href: "/admin/sav",          icon: Shield },
   {
     title: "Gestion des Produits",
     icon: Upload,
@@ -104,11 +100,9 @@ const MENU_ADMIN: MenuItem[] = [
   { title: "Rapports",              href: "/admin/rapports",     icon: BarChart3 },
   { title: "Paramètres",            href: "/admin/parametres",   icon: Settings },
   { title: "Personnel Utilisateurs",href: "/admin/Utilisateurs", icon: Users },
-  { title: "Journal d'activité",    href: "/admin/journal",      icon: BookOpen },
   { title: "Support",               href: "/admin/communication",icon: MessageSquare },
 ];
 
-/** Responsable Achat : tout ce qui concerne les achats et les produits */
 const MENU_PURCHASING: MenuItem[] = [
   { title: "Tableau de bord", href: "/admin", icon: LayoutDashboard },
   {
@@ -146,8 +140,6 @@ const MENU_PURCHASING: MenuItem[] = [
   { title: "Support", href: "/admin/communication", icon: MessageSquare },
 ];
 
-/** Responsable Vente : tout ce qui concerne les ventes */
-
 const MENU_SALES: MenuItem[] = [
   { title: "Tableau de bord", href: "/admin", icon: LayoutDashboard },
   {
@@ -165,13 +157,10 @@ const MENU_SALES: MenuItem[] = [
   },
   { title: "Avoirs / Retours",  href: "/admin/avoir",      icon: RotateCcw },
   { title: "Promotions",        href: "/admin/promotions", icon: Tag },
-  { title: "SAV",               href: "/admin/sav",        icon: Shield },
   { title: "Trésorerie Vente",  href: "/admin/tresorerie", icon: Wallet },
   { title: "Clients",           href: "/admin/clients",    icon: Users },
   { title: "Support",           href: "/admin/communication", icon: MessageSquare },
 ];
-
-// ─── Libellés de rôle ─────────────────────────────────────────────────────────
 
 const ROLE_LABELS: Record<string, string> = {
   admin: "Administrateur",
@@ -210,7 +199,6 @@ export default function AdminSidebar({
     );
   };
 
-  // Badge : commandes en attente (visible sales + admin)
   useEffect(() => {
     if (!user || !["admin", "sales"].includes(user.role ?? "")) return;
     const fetch = async () => {
@@ -224,7 +212,6 @@ export default function AdminSidebar({
     return () => clearInterval(id);
   }, [user]);
 
-  // Badge : bons de commande achat en attente (visible purchasing + admin)
   useEffect(() => {
     if (!user || !["admin", "purchasing"].includes(user.role ?? "")) return;
     const fetch = async () => {
@@ -243,7 +230,6 @@ export default function AdminSidebar({
 
   const filteredMenuItems = getMenuForRole(user?.role);
   const roleLabel = ROLE_LABELS[user?.role ?? ""] ?? "";
-
   const isActive = (href: string) => pathname === href;
 
   const renderMenuItem = (item: MenuItem, level = 0) => {
@@ -259,56 +245,55 @@ export default function AdminSidebar({
           onOpenChange={() => toggleMenu(item.title)}
         >
           <CollapsibleTrigger asChild>
-            <Button
-              variant="ghost"
-              className={`w-full justify-start px-3 py-2 h-auto text-left ${
-                level > 0 ? "pl-8" : ""
-              } hover:bg-gray-100`}
+            <button
+              className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-150
+                ${level > 0 ? "pl-8" : ""}
+                text-gray-400 hover:text-white hover:bg-white/8`}
             >
-              <Icon className="w-4 h-4 mr-3" />
-              <span className="flex-1">{item.title}</span>
-              {isOpen ? (
-                <ChevronDown className="w-4 h-4" />
-              ) : (
-                <ChevronRight className="w-4 h-4" />
-              )}
-            </Button>
+              <Icon className="w-4 h-4 flex-shrink-0" />
+              <span className="flex-1 text-left">{item.title}</span>
+              {isOpen
+                ? <ChevronDown className="w-3.5 h-3.5 opacity-50" />
+                : <ChevronRight className="w-3.5 h-3.5 opacity-50" />}
+            </button>
           </CollapsibleTrigger>
-          <CollapsibleContent className="space-y-1">
+          <CollapsibleContent className="mt-0.5 space-y-0.5">
             {item.children?.map((child) => renderMenuItem(child, level + 1))}
           </CollapsibleContent>
         </Collapsible>
       );
     }
 
+    const active = isActive(item.href || "");
+
     return (
       <Link key={item.href} href={item.href || "#"}>
-        <Button
-          variant="ghost"
-          className={`w-full justify-start px-2 h-auto ${
-            level > 0 ? "pl-6" : "pl-3"
-          } ${
-            isActive(item.href || "")
-              ? "bg-yellow-100 text-brand-gold hover:bg-yellow-200"
-              : "hover:bg-gray-100"
-          } flex items-center justify-between`}
+        <div
+          className={`flex items-center justify-between gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-150 cursor-pointer
+            ${level > 0 ? "pl-8" : ""}
+            ${active
+              ? "bg-yellow-400 text-gray-900 shadow-lg shadow-yellow-400/25"
+              : "text-gray-400 hover:text-white hover:bg-white/8"
+            }`}
         >
-          <div className="flex items-center">
-            <Icon className="w-4 h-4 mr-2" />
+          <div className="flex items-center gap-3">
+            <Icon className="w-4 h-4 flex-shrink-0" />
             <span>{item.title}</span>
           </div>
 
           {item.title === "Commandes en attente" && pendingCount > 0 && (
-            <span className="ml-1 inline-flex items-center justify-center px-2 py-0.5 text-xs font-bold leading-none text-red-100 bg-brand-red rounded-full">
+            <span className={`inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 text-xs font-bold rounded-full
+              ${active ? "bg-gray-900 text-yellow-400" : "bg-yellow-400 text-gray-900"}`}>
               {pendingCount}
             </span>
           )}
           {item.title === "Bons de commande achat" && bonsCount > 0 && (
-            <span className="ml-1 inline-flex items-center justify-center px-2 py-0.5 text-xs font-bold leading-none text-red-100 bg-brand-red rounded-full">
+            <span className={`inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 text-xs font-bold rounded-full
+              ${active ? "bg-gray-900 text-yellow-400" : "bg-yellow-400 text-gray-900"}`}>
               {bonsCount}
             </span>
           )}
-        </Button>
+        </div>
       </Link>
     );
   };
@@ -316,31 +301,64 @@ export default function AdminSidebar({
   return (
     <>
       <div
-        className={`fixed inset-y-0 left-0 z-40 w-64 bg-white border-r border-gray-200 transform transition-transform duration-200 ease-in-out overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]
-        ${sidebarOpen ? "translate-x-0" : "-translate-x-full"} ${
+        className={`fixed inset-y-0 left-0 z-40 w-64 bg-gray-900 flex flex-col transform transition-transform duration-200 ease-in-out overflow-hidden
+          ${sidebarOpen ? "translate-x-0" : "-translate-x-full"} ${
           desktopSidebarOpen ? "md:translate-x-0" : "md:-translate-x-full"
         }`}
       >
-        {/* Logo + rôle */}
-        <div className="p-3 sticky top-0 bg-white z-10 border-b border-gray-100">
-          <Image src="/logo.png" alt="Logo PneuShop" width={100} height={100} />
+        {/* ── Logo + rôle ── */}
+        <div className="flex-shrink-0 px-4 py-4 border-b border-white/10">
+          <div className="flex items-center gap-3">
+            <div className="bg-yellow-400 rounded-xl p-1.5 flex-shrink-0">
+              <Image
+                src="/logo.png"
+                alt="PneuShop"
+                width={32}
+                height={32}
+                className="w-8 h-8 object-contain"
+              />
+            </div>
+            <div>
+              <p className="text-white font-bold text-sm leading-tight">PneuShop</p>
+              <p className="text-gray-500 text-xs">Back-office</p>
+            </div>
+          </div>
           {roleLabel && (
-            <p className="pl-2 pt-0.5 text-xs font-medium text-brand-gold bg-yellow-50 rounded px-2 py-0.5 mt-1 inline-block">
-              {roleLabel}
-            </p>
+            <div className="mt-3 px-2.5 py-1.5 bg-yellow-400/10 border border-yellow-400/20 rounded-lg">
+              <p className="text-yellow-400 text-xs font-semibold">{roleLabel}</p>
+            </div>
           )}
         </div>
 
-        {/* Navigation */}
-        <nav className="p-4 space-y-1 pb-20">
+        {/* ── Navigation ── */}
+        <nav className="flex-1 overflow-y-auto px-3 py-3 space-y-0.5 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
           {filteredMenuItems.map((item) => renderMenuItem(item))}
         </nav>
+
+        {/* ── Footer utilisateur ── */}
+        <div className="flex-shrink-0 px-4 py-3 border-t border-white/10 bg-gray-950/50">
+          <div className="flex items-center gap-2.5">
+            <div className="w-8 h-8 rounded-full bg-yellow-400/15 border border-yellow-400/30 flex items-center justify-center flex-shrink-0">
+              <span className="text-yellow-400 text-xs font-bold uppercase">
+                {user?.first_name?.[0] ?? user?.email?.[0] ?? "?"}
+              </span>
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-white text-xs font-semibold truncate">
+                {user?.first_name
+                  ? `${user.first_name} ${user.last_name ?? ""}`.trim()
+                  : user?.email}
+              </p>
+              <p className="text-gray-500 text-xs truncate">{user?.email}</p>
+            </div>
+          </div>
+        </div>
       </div>
 
       {/* Overlay mobile */}
       {sidebarOpen && (
         <div
-          className="fixed inset-0 bg-black bg-opacity-40 z-30 md:hidden"
+          className="fixed inset-0 bg-black/60 backdrop-blur-sm z-30 md:hidden"
           onClick={() => setSidebarOpen(false)}
         />
       )}
