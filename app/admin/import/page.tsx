@@ -5,7 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Progress } from "@/components/ui/progress";
-import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import {
   Upload,
   Download,
@@ -489,17 +489,23 @@ export default function ImportPage() {
 
           <Alert className="border-yellow-300 bg-yellow-50">
             <AlertCircle className="h-4 w-4 text-yellow-600" />
+            <AlertTitle className="text-yellow-900 font-semibold">Important</AlertTitle>
             <AlertDescription className="text-yellow-800">
-              <strong>Important :</strong> L'import Excel met à jour uniquement le <strong>catalogue</strong> (descriptions, prix, images).
-              Il n'ajoute <strong>aucun stock</strong>. Le stock est géré exclusivement via la section <strong>Achats</strong>.
+              <p className="leading-relaxed">
+                L'import Excel met à jour uniquement le <strong className="font-semibold text-yellow-900">catalogue</strong> (descriptions,
+                prix, images). Il n'ajoute <strong className="font-semibold text-yellow-900">aucun stock</strong> — le stock est géré
+                exclusivement via la section <strong className="font-semibold text-yellow-900">Achats</strong>.
+              </p>
             </AlertDescription>
           </Alert>
 
-          <Alert>
-            <AlertCircle className="h-4 w-4" />
-            <AlertDescription>
-              Les noms de colonnes sont insensibles à la casse (majuscules/minuscules) et aux espaces supplémentaires.
-              La marque, la taille et la saison sont extraites automatiquement du nom du produit.
+          <Alert className="bg-gray-50 border-gray-200">
+            <AlertCircle className="h-4 w-4 text-gray-500" />
+            <AlertDescription className="text-gray-600">
+              <p className="leading-relaxed">
+                Les noms de colonnes sont insensibles à la casse (majuscules/minuscules) et aux espaces supplémentaires.
+                La marque, la taille et la saison sont extraites automatiquement du nom du produit.
+              </p>
             </AlertDescription>
           </Alert>
         </CardContent>
