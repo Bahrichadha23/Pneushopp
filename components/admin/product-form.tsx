@@ -56,7 +56,6 @@ export default function ProductForm({
     description: "",
     features: [] as string[],
     inStock: true,
-    isPromotion: false,
     images: [] as File[],
     // New manual fields
     reference: "",
@@ -98,7 +97,6 @@ export default function ProductForm({
         description: product.description || "",
         features: product.features || [],
         inStock: product.inStock ?? (product.stock > 0),
-        isPromotion: product.is_on_sale || false,
         images: (product.images || []).filter((img: any): img is File => img instanceof File),
         reference: raw.reference || product.reference || "",
         designation: raw.designation || product.designation || "",
@@ -556,18 +554,14 @@ export default function ProductForm({
               />
               <Label htmlFor="inStock">En stock</Label>
             </div>
-
-            <div className="flex items-center space-x-2">
-              <Checkbox
-                id="isPromotion"
-                checked={formData.isPromotion}
-                onCheckedChange={(checked) =>
-                  handleInputChange("isPromotion", checked)
-                }
-              />
-              <Label htmlFor="isPromotion">En promotion</Label>
-            </div>
           </div>
+
+          <p className="text-xs text-gray-500 bg-gray-50 border border-gray-200 rounded-lg px-3 py-2">
+            💡 Pour mettre cet article en promotion (prix barré + label affiché en boutique),
+            utilisez la page <span className="font-semibold text-gray-700">« Gestion des promotions »</span> dans
+            le menu admin : sélectionnez l'article puis appliquez une remise. La case « En promotion »
+            ne se gère pas depuis ce formulaire.
+          </p>
         </CardContent>
       </Card>
       <Card>
