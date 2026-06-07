@@ -214,8 +214,8 @@ export default function CommunicationPage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div className="flex items-center gap-3">
-          <div className="p-2 bg-yellow-100 rounded-lg">
-            <MessageSquare className="w-6 h-6 text-yellow-700" />
+          <div className="p-2 bg-yellow-400/20 rounded-lg">
+            <MessageSquare className="w-6 h-6 text-yellow-500" />
           </div>
           <div>
             <h1 className="text-xl font-bold text-gray-900">Communication</h1>
@@ -226,7 +226,7 @@ export default function CommunicationPage() {
         </div>
         <Button
           onClick={() => setShowForm(!showForm)}
-          className="bg-[#FF8C00] hover:bg-[#CC7000] text-white gap-2"
+          className="bg-yellow-400 hover:bg-yellow-500 text-white gap-2"
         >
           <Plus className="w-4 h-4" />
           Nouvelle demande
