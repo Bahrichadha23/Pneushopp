@@ -3,6 +3,7 @@
 import { useEffect, useState, useCallback } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { fetchDeliveries, updateDelivery } from "@/lib/services/deliveries";
@@ -15,8 +16,9 @@ import {
 import {
   Truck, Search, Package, CheckCircle2, Clock, Navigation,
   X, Edit3, Save, RotateCcw, MapPin, Hash, CalendarDays,
-  StickyNote, ChevronRight, Phone, ShoppingBag, DollarSign,
+  StickyNote, ChevronRight, Phone, ShoppingBag, DollarSign, FileDown,
 } from "lucide-react";
+import ExcelJS from "exceljs";
 
 // ── helpers ─────────────────────────────────────────────────────────────────
 const fmt = (d: string | null | undefined) => {
@@ -313,6 +315,62 @@ export default function DeliveriesPage() {
     { key: "livre"    as const, label: "Livrées",        count: nLivre   },
   ];
 
+  const STATUT_LABELS: Record<Livraison["statut"], string> = {
+    prepare: "En préparation",
+    en_route: "En route",
+    livre: "Livré",
+  };
+
+  const handleExportExcel = async () => {
+    const wb = new ExcelJS.Workbook();
+    const ws = wb.addWorksheet("Livraisons");
+    ws.columns = [
+      { header: "N° Commande", key: "commande", width: 16 },
+      { header: "Client", key: "client", width: 25 },
+      { header: "Téléphone", key: "phone", width: 16 },
+      { header: "Adresse", key: "adresse", width: 40 },
+      { header: "Transporteur", key: "transporteur", width: 20 },
+      { header: "Statut", key: "statut", width: 16 },
+      { header: "Date expédition", key: "dateExp", width: 16 },
+      { header: "Date livraison", key: "dateLiv", width: 16 },
+      { header: "Colis", key: "colis", width: 10 },
+      { header: "Articles", key: "articles", width: 10 },
+      { header: "N° Suivi", key: "tracking", width: 18 },
+      { header: "Montant total (DT)", key: "total", width: 18 },
+      { header: "Notes", key: "notes", width: 30 },
+    ];
+    ws.getRow(1).fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FF1E293B" } };
+    ws.getRow(1).font = { bold: true, color: { argb: "FFFFFFFF" } };
+
+    filtered.forEach((d) => {
+      ws.addRow({
+        commande: d.order_number || d.commande || "—",
+        client: d.client || "—",
+        phone: d.client_phone || "—",
+        adresse: d.adresse || "—",
+        transporteur: d.transporteur || "—",
+        statut: STATUT_LABELS[d.statut] || d.statut,
+        dateExp: fmt(d.dateExpedition),
+        dateLiv: fmt(d.dateLivraison),
+        colis: d.colis ?? "",
+        articles: d.articles_count ?? "",
+        tracking: d.numeroSuivi || "—",
+        total: d.total_amount != null ? Number(d.total_amount).toFixed(3) : "—",
+        notes: d.notes || "",
+      });
+    });
+
+    const date = new Date().toLocaleDateString("fr-FR").replace(/\//g, "-");
+    const buffer = await wb.xlsx.writeBuffer();
+    const blob = new Blob([buffer], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `Livraisons_${date}.xlsx`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
   return (
     <div className="space-y-6">
       {/* Toast */}
@@ -327,14 +385,20 @@ export default function DeliveriesPage() {
       )}
 
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Gestion des livraisons</h1>
           <p className="text-sm text-gray-500 mt-0.5">Suivi et mise à jour des expéditions clients</p>
         </div>
-        <Badge variant="secondary" className="text-sm px-3 py-1">
-          {total} livraison{total !== 1 ? "s" : ""}
-        </Badge>
+        <div className="flex items-center gap-2">
+          <Badge variant="secondary" className="text-sm px-3 py-1">
+            {total} livraison{total !== 1 ? "s" : ""}
+          </Badge>
+          <Button onClick={handleExportExcel} className="gap-2 bg-[#0066CC] hover:bg-[#004C99] text-white border-0">
+            <FileDown className="h-4 w-4" />
+            Exporter l'historique (Excel)
+          </Button>
+        </div>
       </div>
 
       {/* KPI Cards */}

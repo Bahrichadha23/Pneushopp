@@ -10,6 +10,7 @@ import { useAuth } from "@/contexts/auth-context";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import jsPDF from "jspdf";
+import ExcelJS from "exceljs";
 
 import {
   Table,
@@ -30,6 +31,7 @@ import {
   Navigation,
   Phone,
   X,
+  FileDown,
 } from "lucide-react";
 import { API_URL } from "@/lib/config";
 
@@ -389,12 +391,76 @@ export default function BonsCommandePage() {
   const commandesConfirmees = bonsCommande.filter((b) => b.statut === "confirmé").length;
   const commandesLivrees = bonsCommande.filter((b) => b.statut === "livré").length;
 
+  const STATUT_LABELS: Record<string, string> = {
+    en_attente: "En attente",
+    confirmé: "Confirmé",
+    livré: "Livré",
+  };
+
+  const handleExportExcel = async () => {
+    const wb = new ExcelJS.Workbook();
+    const ws = wb.addWorksheet("Bons de commande");
+    ws.columns = [
+      { header: "N° Bon", key: "id", width: 12 },
+      { header: "N° Commande", key: "order_number", width: 16 },
+      { header: "Client", key: "client", width: 25 },
+      { header: "Email", key: "email", width: 28 },
+      { header: "Fournisseur", key: "fournisseur", width: 22 },
+      { header: "Date commande", key: "date", width: 16 },
+      { header: "Livraison prévue", key: "delivery", width: 16 },
+      { header: "Total HT (DT)", key: "totalHT", width: 16 },
+      { header: "Total TTC (DT)", key: "totalTTC", width: 16 },
+      { header: "Frais livraison (DT)", key: "deliveryCost", width: 18 },
+      { header: "Total + Livraison (DT)", key: "totalDelivery", width: 20 },
+      { header: "Statut", key: "statut", width: 14 },
+      { header: "Priorité", key: "priorite", width: 12 },
+      { header: "N° Suivi", key: "tracking", width: 16 },
+    ];
+    ws.getRow(1).fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FF1E293B" } };
+    ws.getRow(1).font = { bold: true, color: { argb: "FFFFFFFF" } };
+
+    filteredBons.forEach((bon) => {
+      ws.addRow({
+        id: bon.id,
+        order_number: bon.order_number || "—",
+        client: bon.client_name || "—",
+        email: bon.client_email || "—",
+        fournisseur: bon.fournisseur || "—",
+        date: formatDate(bon.dateCommande),
+        delivery: formatDate(bon.dateLivraisonPrevue),
+        totalHT: Number(bon.totalHT || 0).toFixed(3),
+        totalTTC: Number(bon.totalTTC || 0).toFixed(3),
+        deliveryCost: Number(bon.delivery_cost || 0).toFixed(3),
+        totalDelivery: Number(bon.total_with_delivery || bon.totalTTC || 0).toFixed(3),
+        statut: STATUT_LABELS[bon.statut] || bon.statut,
+        priorite: bon.priorite === "urgent" ? "Urgent" : "Normale",
+        tracking: bon.tracking_number || "—",
+      });
+    });
+
+    const date = new Date().toLocaleDateString("fr-FR").replace(/\//g, "-");
+    const buffer = await wb.xlsx.writeBuffer();
+    const blob = new Blob([buffer], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `Bons_de_commande_${date}.xlsx`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-gray-900">Bons de commande</h1>
-        <Badge variant="secondary" className="text-sm">{filteredBons.length} bons</Badge>
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+        <div className="flex items-center gap-3">
+          <h1 className="text-2xl font-bold text-gray-900">Bons de commande</h1>
+          <Badge variant="secondary" className="text-sm">{filteredBons.length} bons</Badge>
+        </div>
+        <Button onClick={handleExportExcel} className="gap-2 bg-[#0066CC] hover:bg-[#004C99] text-white border-0">
+          <FileDown className="h-4 w-4" />
+          Exporter l'historique (Excel)
+        </Button>
       </div>
 
       {/* Stats */}
