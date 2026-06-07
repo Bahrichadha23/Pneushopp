@@ -501,16 +501,16 @@ export function UsersList() {
     };
 
     const getRoleBadge = (role: string) => {
-        const roleMap: Record<string, { label: string; variant: 'destructive' | 'secondary' | 'default' | 'outline' }> = {
-            admin: { label: 'Administrateur', variant: 'destructive' },
+        const roleMap: Record<string, { label: string; variant: 'destructive' | 'secondary' | 'default' | 'outline'; className?: string }> = {
+            admin: { label: 'Administrateur', variant: 'destructive', className: 'bg-[#9B2226] hover:bg-[#9B2226] border-[#9B2226]' },
             purchasing: { label: 'Resp. Achat', variant: 'secondary' },
             sales: { label: 'Resp. Vente', variant: 'default' },
         };
 
         const roleKey = role.toLowerCase() as keyof typeof roleMap;
-        const { label, variant } = roleMap[roleKey] || { label: role, variant: 'outline' as const };
+        const { label, variant, className } = roleMap[roleKey] || { label: role, variant: 'outline' as const };
 
-        return <Badge variant={variant}>{label}</Badge>;
+        return <Badge variant={variant} className={className}>{label}</Badge>;
     };
 
     const handleCreateUser = async (data: any) => {
@@ -648,7 +648,7 @@ export function UsersList() {
                                                 <TableCell>{getRoleBadge(user.role)}</TableCell>
                                                 <TableCell>
                                                     <Badge variant={user.is_active !== false ? 'default' : 'outline'}
-                                                        className={user.is_active !== false ? 'bg-brand-gold-light text-brand-gold-dark' : 'bg-red-100 text-red-800'}>
+                                                        className={user.is_active !== false ? 'bg-brand-gold-light text-brand-gold-dark' : 'bg-brand-red-light text-brand-red'}>
                                                         {user.is_active !== false ? 'Actif' : 'Désactivé'}
                                                     </Badge>
                                                 </TableCell>
@@ -750,7 +750,7 @@ export function UsersList() {
                         <AlertDialogAction
                             onClick={handleDeleteUser}
                             disabled={isSubmitting}
-                            className="bg-red-600 hover:bg-red-700"
+                            className="bg-[#9B2226] hover:bg-[#730019]"
                         >
                             {isSubmitting ? 'Suppression...' : 'Supprimer'}
                         </AlertDialogAction>
