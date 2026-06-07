@@ -88,7 +88,7 @@ export default function AddProductPage() {
   };
 
   return (
-    <div className="max-w-5xl mx-auto space-y-6">
+    <div className="max-w-5xl mx-auto space-y-3">
       {/* Fil d'Ariane */}
       <nav className="flex items-center gap-1.5 text-sm text-gray-500">
         <Link href="/admin/produits" className="text-blue-600 hover:underline">
@@ -100,10 +100,10 @@ export default function AddProductPage() {
 
       {/* En-tête */}
       <div>
-        <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">
+        <h1 className="text-xl sm:text-2xl font-bold text-gray-900">
           Ajouter un produit
         </h1>
-        <p className="text-gray-500 text-sm mt-1">
+        <p className="text-gray-500 text-sm mt-0.5">
           Remplissez les informations ci-dessous pour créer un nouveau produit.
         </p>
       </div>

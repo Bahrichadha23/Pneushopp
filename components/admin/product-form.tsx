@@ -215,7 +215,7 @@ export default function ProductForm({
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
+    <form onSubmit={handleSubmit} className="space-y-3">
       {submitError && (
         <Alert variant="destructive">
           <AlertDescription>{submitError}</AlertDescription>
@@ -223,15 +223,15 @@ export default function ProductForm({
       )}
 
       {/* Informations générales */}
-      <Card className="gap-4 py-4">
+      <Card className="gap-3 py-3">
         <CardHeader>
           <CardTitle className="flex items-center gap-1.5">
             Informations générales
             <Info className="h-3.5 w-3.5 text-blue-500" />
           </CardTitle>
         </CardHeader>
-        <CardContent className="space-y-3">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+        <CardContent className="space-y-2">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
             <div>
               <Label htmlFor="name" className="mb-1">
                 Nom du produit *
@@ -305,7 +305,7 @@ export default function ProductForm({
       </Card>
 
       {/* Description */}
-      <Card className="gap-4 py-4">
+      <Card className="gap-3 py-3">
         <CardHeader>
           <CardTitle className="flex items-center gap-1.5">
             Description
@@ -343,15 +343,15 @@ export default function ProductForm({
       </Card>
 
       {/* Spécifications techniques */}
-      <Card className="gap-4 py-4">
+      <Card className="gap-3 py-3">
         <CardHeader>
           <CardTitle className="flex items-center gap-1.5">
             Spécifications techniques
             <Info className="h-3.5 w-3.5 text-blue-500" />
           </CardTitle>
         </CardHeader>
-        <CardContent className="space-y-3">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+        <CardContent className="space-y-2">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
             <div>
               <Label htmlFor="width" className="mb-1">
                 Largeur *
@@ -437,7 +437,7 @@ export default function ProductForm({
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
             <div>
               <Label htmlFor="speedRating" className="mb-1">
                 Indice vitesse *
@@ -497,15 +497,15 @@ export default function ProductForm({
       </Card>
 
       {/* Prix */}
-      <Card className="gap-4 py-4">
+      <Card className="gap-3 py-3">
         <CardHeader>
           <CardTitle className="flex items-center gap-1.5">
             Prix
             <Info className="h-3.5 w-3.5 text-blue-500" />
           </CardTitle>
         </CardHeader>
-        <CardContent className="space-y-3">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+        <CardContent className="space-y-2">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
             <div>
               <Label htmlFor="purchase_price" className="mb-1">
                 Prix d'achat (DT)
@@ -624,19 +624,19 @@ export default function ProductForm({
           )}
         </CardContent>
       </Card>
-      <Card className="gap-4 py-4">
+      <Card className="gap-3 py-3">
         <CardHeader>
           <CardTitle className="flex items-center gap-1.5">
             Images
             <Info className="h-3.5 w-3.5 text-blue-500" />
           </CardTitle>
         </CardHeader>
-        <CardContent className="space-y-3">
+        <CardContent className="space-y-2">
           <label
             htmlFor="fileUpload"
-            className="inline-flex items-center gap-3 cursor-pointer border border-dashed border-gray-300 rounded-lg px-4 py-3 hover:border-gray-400 hover:bg-gray-50 transition-colors"
+            className="inline-flex items-center gap-2.5 cursor-pointer border border-dashed border-gray-300 rounded-lg px-3 py-2 hover:border-gray-400 hover:bg-gray-50 transition-colors"
           >
-            <span className="flex items-center justify-center h-9 w-9 rounded-full bg-blue-50 text-blue-500 shrink-0">
+            <span className="flex items-center justify-center h-8 w-8 rounded-full bg-blue-50 text-blue-500 shrink-0">
               <Upload className="h-4 w-4" />
             </span>
             <span className="flex flex-col">
@@ -659,7 +659,7 @@ export default function ProductForm({
             }}
           />
 
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
             {formData.images.map((file, index) => (
               <div key={index} className="relative">
                 <img
