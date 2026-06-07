@@ -634,36 +634,36 @@ export default function OrdersTable({
       </div>
 
       {/* Desktop Table */}
-      <div className="hidden md:block border rounded-lg overflow-hidden">
+      <div className="hidden md:block border border-gray-200 rounded-xl overflow-hidden shadow-sm">
         <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Numéro</TableHead>
-              <TableHead>Client</TableHead>
-              <TableHead>Date</TableHead>
-              <TableHead>Montant</TableHead>
-              <TableHead>Statut</TableHead>
-              <TableHead>Paiement</TableHead>
-              <TableHead>Actions</TableHead>
+          <TableHeader className="bg-gray-50">
+            <TableRow className="border-b border-gray-200">
+              <TableHead className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Numéro</TableHead>
+              <TableHead className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Client</TableHead>
+              <TableHead className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Date</TableHead>
+              <TableHead className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Montant</TableHead>
+              <TableHead className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Statut</TableHead>
+              <TableHead className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Paiement</TableHead>
+              <TableHead className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {filteredOrders.map((order) => (
               <React.Fragment key={order.id}>
                 <TableRow key={order.id}>
-                  <TableCell className="font-medium">
+                  <TableCell className="font-bold text-[#0066CC]">
                     #{fps(order.orderNumber)}
                   </TableCell>
                   <TableCell>
                     <div>
-                      <p className="font-medium">{order.customerName}</p>
-                      <p className="text-sm text-gray-500">
+                      <p className="font-semibold text-gray-900">{order.customerName}</p>
+                      <p className="text-xs text-gray-400">
                         {order.customerEmail}
                       </p>
                     </div>
                   </TableCell>
-                  <TableCell>{formatDate(order.createdAt)}</TableCell>
-                  <TableCell className="font-medium">
+                  <TableCell className="text-sm text-gray-500">{formatDate(order.createdAt)}</TableCell>
+                  <TableCell className="font-bold text-[#A68823]">
                     {formatCurrency(order.totalAmount + (order.deliveryCost || 0))}
                   </TableCell>
                   <TableCell>{getStatusBadge(order.status)}</TableCell>
@@ -677,17 +677,17 @@ export default function OrdersTable({
                         size="icon"
                         onClick={() => setSelectedOrder(order)}
                         title="Voir détails"
+                        className="text-[#0066CC] hover:text-[#004E9E] hover:bg-[#E3F0FF]"
                       >
                         <Eye className="h-4 w-4" />
                       </Button>
 
                       {["pending", "processing"].includes(order.status) && (
                         <Button
-                          variant="default"
                           size="sm"
-                          className="bg-black text-white hover:bg-gray-800 h-7 px-2 text-xs gap-1"
+                          className="bg-[#FF8C00] hover:bg-[#CC7000] text-white h-7 px-3 text-xs gap-1 border-0"
                           onClick={() => handleOpenDotConfirm(order)}
-                          title="Confirmer la commande (sélectionner les lots DOT)"
+                          title="Confirmer la commande"
                         >
                           <Check className="h-3 w-3" /> Confirmer
                         </Button>
@@ -697,7 +697,7 @@ export default function OrdersTable({
                         <Button
                           variant="outline"
                           size="sm"
-                          className="border-brand-red text-brand-red hover:bg-red-50 h-7 px-2 text-xs gap-1"
+                          className="border-[#9B2226] text-[#9B2226] hover:bg-[#F9E5E6] h-7 px-3 text-xs gap-1"
                           onClick={() => onUpdateStatus(order.id, "cancelled")}
                           title="Annuler la commande"
                         >
@@ -760,19 +760,19 @@ export default function OrdersTable({
           <React.Fragment key={order.id}>
             <div
               key={order.id}
-              className="border rounded-lg p-4 bg-white shadow-sm"
+              className="border border-gray-200 rounded-xl p-4 bg-white shadow-sm"
             >
               <div className="flex justify-between items-center mb-2">
-                <span className="font-bold">#{fps(order.orderNumber)}</span>
+                <span className="font-bold text-[#0066CC]">#{fps(order.orderNumber)}</span>
                 {getStatusBadge(order.status)}
               </div>
-              <div className="text-sm text-gray-700">
-                <p className="font-medium">{order.customerName}</p>
-                <p className="text-gray-500">{order.customerEmail}</p>
+              <div className="text-sm">
+                <p className="font-semibold text-gray-900">{order.customerName}</p>
+                <p className="text-xs text-gray-400">{order.customerEmail}</p>
               </div>
-              <div className="mt-2 text-sm text-gray-600">
+              <div className="mt-2 text-sm text-gray-500 space-y-0.5">
                 <p>Date: {formatDate(order.createdAt)}</p>
-                <p>Montant: {formatCurrency(order.totalAmount + (order.deliveryCost || 0))}</p>
+                <p>Montant: <span className="font-bold text-[#A68823]">{formatCurrency(order.totalAmount + (order.deliveryCost || 0))}</span></p>
                 <p>Paiement: {getPaymentStatusBadge(order.paymentStatus)}</p>
               </div>
               <div className="flex items-center gap-2 mt-3 flex-wrap">
@@ -780,15 +780,15 @@ export default function OrdersTable({
                   variant="ghost"
                   size="icon"
                   onClick={() => setSelectedOrder(order)}
+                  className="text-[#0066CC] hover:text-[#004E9E] hover:bg-[#E3F0FF]"
                 >
                   <Eye className="h-4 w-4" />
                 </Button>
 
                 {["pending", "processing"].includes(order.status) && (
                   <Button
-                    variant="default"
                     size="sm"
-                    className="bg-black text-white hover:bg-gray-800 h-7 px-2 text-xs gap-1"
+                    className="bg-[#FF8C00] hover:bg-[#CC7000] text-white h-7 px-3 text-xs gap-1 border-0"
                     onClick={() => onUpdateStatus(order.id, "confirmed")}
                   >
                     <Check className="h-3 w-3" /> Confirmer
@@ -799,7 +799,7 @@ export default function OrdersTable({
                   <Button
                     variant="outline"
                     size="sm"
-                    className="border-brand-red text-brand-red hover:bg-red-50 h-7 px-2 text-xs gap-1"
+                    className="border-[#9B2226] text-[#9B2226] hover:bg-[#F9E5E6] h-7 px-3 text-xs gap-1"
                     onClick={() => onUpdateStatus(order.id, "cancelled")}
                   >
                     <Ban className="h-3 w-3" /> Annuler

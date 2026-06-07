@@ -42,7 +42,14 @@ export default function OrdersPage() {
   }, []);
 
   if (loading) {
-    return <div>Chargement des commandes...</div>;
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="flex flex-col items-center gap-3">
+          <div className="w-10 h-10 border-4 border-[#FF8C00] border-t-transparent rounded-full animate-spin" />
+          <p className="text-gray-400 text-sm">Chargement des commandes…</p>
+        </div>
+      </div>
+    );
   }
 
   const handleViewOrder = (orderId: string) => {
@@ -257,8 +264,7 @@ export default function OrdersPage() {
         </div>
         <Button
           onClick={handleExportToExcel}
-          className="flex items-center gap-2"
-          variant="outline"
+          className="flex items-center gap-2 bg-[#FF8C00] hover:bg-[#CC7000] text-white border-0"
         >
           <FileDown className="h-4 w-4" />
           Exporter l'historique (Excel)
