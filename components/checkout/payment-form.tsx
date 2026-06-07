@@ -72,6 +72,10 @@ export function PaymentForm({ onSubmit, onBack, totalPrice }: PaymentFormProps) 
       setDeliveryExpanded(false);
     } else {
       setDeliveryExpanded(true);
+      // Espèces coché par défaut à l'ouverture, pour afficher directement le récapitulatif
+      setEspecesChecked(true);
+      setSelectedTypes((prev) => (prev.includes("especes") ? prev : [...prev, "especes"]));
+      setEspecesMontantInput(formatAmount(totalPrice));
     }
   };
 
@@ -584,15 +588,6 @@ export function PaymentForm({ onSubmit, onBack, totalPrice }: PaymentFormProps) 
                 </label>
               </div>
 
-              {/* Si rien n'est coché → alerte inline, montants masqués */}
-              {!especesChecked && !tpeChecked && (
-                <p className="text-xs text-amber-600 bg-amber-50 px-3 py-2 rounded border border-amber-100">
-                  Veuillez cocher Espèces et/ou TPE ci-dessus.
-                </p>
-              )}
-
-              {isDeliverySelected && (
-              <>
               <div className="grid grid-cols-3 gap-4">
                 <div>
                   <Label className="text-sm font-semibold">Total</Label>
@@ -648,8 +643,6 @@ export function PaymentForm({ onSubmit, onBack, totalPrice }: PaymentFormProps) 
                 <Label className="text-sm font-semibold">Remarque</Label>
                 <Textarea className="mt-1 resize-y" rows={2} placeholder="Ajouter une remarque..." value={deliveryRemarque} onChange={(e) => setDeliveryRemarque(e.target.value)} />
               </div>
-              </>
-              )}
             </div>
           )}
 
