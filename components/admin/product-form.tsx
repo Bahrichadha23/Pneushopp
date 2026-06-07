@@ -215,7 +215,7 @@ export default function ProductForm({
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
+    <form onSubmit={handleSubmit} className="space-y-4">
       {submitError && (
         <Alert variant="destructive">
           <AlertDescription>{submitError}</AlertDescription>
@@ -223,17 +223,17 @@ export default function ProductForm({
       )}
 
       {/* Informations générales */}
-      <Card>
+      <Card className="gap-4 py-4">
         <CardHeader>
           <CardTitle className="flex items-center gap-1.5">
             Informations générales
             <Info className="h-3.5 w-3.5 text-blue-500" />
           </CardTitle>
         </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <CardContent className="space-y-3">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             <div>
-              <Label htmlFor="name" className="mb-2">
+              <Label htmlFor="name" className="mb-1">
                 Nom du produit *
               </Label>
               <Input
@@ -248,7 +248,7 @@ export default function ProductForm({
             </div>
 
             <div>
-              <Label htmlFor="brand" className="mb-2">
+              <Label htmlFor="brand" className="mb-1">
                 Marque {!product && "*"}
               </Label>
               <Input
@@ -264,7 +264,7 @@ export default function ProductForm({
             </div>
 
             <div>
-              <Label htmlFor="model" className="mb-2">
+              <Label htmlFor="model" className="mb-1">
                 Modèle *
               </Label>
               <Input
@@ -279,7 +279,7 @@ export default function ProductForm({
             </div>
 
             <div>
-              <Label htmlFor="category" className="mb-2">
+              <Label htmlFor="category" className="mb-1">
                 Catégorie *
               </Label>
               <Select
@@ -305,7 +305,7 @@ export default function ProductForm({
       </Card>
 
       {/* Description */}
-      <Card>
+      <Card className="gap-4 py-4">
         <CardHeader>
           <CardTitle className="flex items-center gap-1.5">
             Description
@@ -314,7 +314,7 @@ export default function ProductForm({
         </CardHeader>
         <CardContent>
           <div>
-            <Label htmlFor="description" className="mb-2">
+            <Label htmlFor="description" className="mb-1">
               Description *
             </Label>
             <Textarea
@@ -343,17 +343,17 @@ export default function ProductForm({
       </Card>
 
       {/* Spécifications techniques */}
-      <Card>
+      <Card className="gap-4 py-4">
         <CardHeader>
           <CardTitle className="flex items-center gap-1.5">
             Spécifications techniques
             <Info className="h-3.5 w-3.5 text-blue-500" />
           </CardTitle>
         </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <CardContent className="space-y-3">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
             <div>
-              <Label htmlFor="width" className="mb-2">
+              <Label htmlFor="width" className="mb-1">
                 Largeur *
               </Label>
               <Input
@@ -374,7 +374,7 @@ export default function ProductForm({
             </div>
 
             <div>
-              <Label htmlFor="height" className="mb-2">
+              <Label htmlFor="height" className="mb-1">
                 Hauteur *
               </Label>
               <Input
@@ -395,7 +395,7 @@ export default function ProductForm({
             </div>
 
             <div>
-              <Label htmlFor="diameter" className="mb-2">
+              <Label htmlFor="diameter" className="mb-1">
                 Diamètre *
               </Label>
               <Input
@@ -416,7 +416,7 @@ export default function ProductForm({
             </div>
 
             <div>
-              <Label htmlFor="loadIndex" className="mb-2">
+              <Label htmlFor="loadIndex" className="mb-1">
                 Indice charge *
               </Label>
               <Input
@@ -437,9 +437,9 @@ export default function ProductForm({
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
             <div>
-              <Label htmlFor="speedRating" className="mb-2">
+              <Label htmlFor="speedRating" className="mb-1">
                 Indice vitesse *
               </Label>
               <Select
@@ -473,7 +473,7 @@ export default function ProductForm({
             {/* Saison supprimée */}
 
             <div>
-              <Label htmlFor="specialty" className="mb-2">
+              <Label htmlFor="specialty" className="mb-1">
                 Spécialité
               </Label>
               <Select
@@ -497,17 +497,17 @@ export default function ProductForm({
       </Card>
 
       {/* Prix */}
-      <Card>
+      <Card className="gap-4 py-4">
         <CardHeader>
           <CardTitle className="flex items-center gap-1.5">
             Prix
             <Info className="h-3.5 w-3.5 text-blue-500" />
           </CardTitle>
         </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <CardContent className="space-y-3">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
             <div>
-              <Label htmlFor="purchase_price" className="mb-2">
+              <Label htmlFor="purchase_price" className="mb-1">
                 Prix d'achat (DT)
               </Label>
               <Input
@@ -537,7 +537,7 @@ export default function ProductForm({
             </div>
 
             <div>
-              <Label htmlFor="price" className="mb-2">
+              <Label htmlFor="price" className="mb-1">
                 Prix de vente (DT) *
               </Label>
               <Input
@@ -553,7 +553,7 @@ export default function ProductForm({
             </div>
 
             <div>
-              <Label htmlFor="stock" className="mb-2">
+              <Label htmlFor="stock" className="mb-1">
                 Stock disponible *
               </Label>
               <Input
@@ -624,14 +624,14 @@ export default function ProductForm({
           )}
         </CardContent>
       </Card>
-      <Card>
+      <Card className="gap-4 py-4">
         <CardHeader>
           <CardTitle className="flex items-center gap-1.5">
             Images
             <Info className="h-3.5 w-3.5 text-blue-500" />
           </CardTitle>
         </CardHeader>
-        <CardContent className="space-y-4">
+        <CardContent className="space-y-3">
           <label
             htmlFor="fileUpload"
             className="inline-flex items-center gap-3 cursor-pointer border border-dashed border-gray-300 rounded-lg px-4 py-3 hover:border-gray-400 hover:bg-gray-50 transition-colors"
@@ -659,7 +659,7 @@ export default function ProductForm({
             }}
           />
 
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
             {formData.images.map((file, index) => (
               <div key={index} className="relative">
                 <img
