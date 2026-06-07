@@ -562,7 +562,7 @@ export default function OrdersTable({
   const getPaymentStatusBadge = (status: Order["paymentStatus"]) => {
     const styles: Record<string, string> = {
       pending:  "bg-amber-500  text-white",
-      paid:     "bg-[#A68823]  text-white",
+      paid:     "bg-[#003D7A]  text-white",
       failed:   "bg-[#9B2226]  text-white",
       refunded: "bg-gray-500   text-white",
     };
@@ -685,7 +685,7 @@ export default function OrdersTable({
                       {["pending", "processing"].includes(order.status) && (
                         <Button
                           size="sm"
-                          className="bg-[#FF8C00] hover:bg-[#CC7000] text-white h-7 px-3 text-xs gap-1 border-0"
+                          className="bg-[#0066CC] hover:bg-[#004C99] text-white h-7 px-3 text-xs gap-1 border-0"
                           onClick={() => handleOpenDotConfirm(order)}
                           title="Confirmer la commande"
                         >
@@ -787,7 +787,7 @@ export default function OrdersTable({
                 {["pending", "processing"].includes(order.status) && (
                   <Button
                     size="sm"
-                    className="bg-[#FF8C00] hover:bg-[#CC7000] text-white h-7 px-3 text-xs gap-1 border-0"
+                    className="bg-[#0066CC] hover:bg-[#004C99] text-white h-7 px-3 text-xs gap-1 border-0"
                     onClick={() => onUpdateStatus(order.id, "confirmed")}
                   >
                     <Check className="h-3 w-3" /> Confirmer
@@ -1016,7 +1016,7 @@ export default function OrdersTable({
                       loadingDotBatches ||
                       dotConfirmOrder.items.some((_, idx) => !dotSelections[idx])
                     }
-                    className="bg-[#FF8C00] hover:bg-[#CC7000] text-white border-0"
+                    className="bg-[#0066CC] hover:bg-[#004C99] text-white border-0"
                   >
                     {confirmingDot ? (
                       <>
