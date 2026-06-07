@@ -39,6 +39,14 @@ const fmtDate = (d: string | null | undefined) => {
 const fmtCurrency = (v: number) =>
   parseFloat(String(v ?? 0)).toFixed(3) + " DT";
 
+// Le fournisseur peut transmettre soit une Facture soit un Bon de Livraison (BL).
+// On affiche les infos correspondant au document réellement renseigné.
+const getDocInfo = (order: any): { label: string; value: string } => {
+  if (order?.invoice_number) return { label: "N° Facture", value: order.invoice_number };
+  if (order?.bl_number) return { label: "N° BL (Bon de Livraison)", value: order.bl_number };
+  return { label: "N° Facture / BL", value: "—" };
+};
+
 // ── PDF Generator ────────────────────────────────────────────────────────────
 const handleDownloadAchat = (order: any) => {
   const pdf = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
@@ -64,11 +72,12 @@ const handleDownloadAchat = (order: any) => {
   pdf.text("Informations de la commande", margin, y);
   y += 8;
 
-  const infoHeaders = ["Fournisseur", "Date d'achat", "N° Facture", "Statut"];
+  const docInfo = getDocInfo(order);
+  const infoHeaders = ["Fournisseur", "Date d'achat", docInfo.label, "Statut"];
   const infoValues = [
     order.supplier_name || `Fournisseur ${order.supplier}`,
     order.purchase_date ? fmtDate(order.purchase_date) : fmtDate(order.order_date),
-    order.invoice_number || "—",
+    docInfo.value,
     STATUS_CONFIG[order.status as keyof typeof STATUS_CONFIG]?.label || order.status || "Brouillon",
   ];
 
@@ -92,14 +101,14 @@ const handleDownloadAchat = (order: any) => {
   });
   y += 8;
 
-  // Afficher N° BL si présent
-  if (order.bl_number) {
+  // Si les deux références (Facture ET BL) sont renseignées, on affiche la seconde en complément
+  if (order.invoice_number && order.bl_number) {
     y += 5;
     pdf.setFont("helvetica", "bold");
     pdf.setFontSize(9);
-    pdf.text("N° BL : ", margin, y);
+    pdf.text("N° BL (Bon de Livraison) : ", margin, y);
     pdf.setFont("helvetica", "normal");
-    pdf.text(order.bl_number, margin + 18, y);
+    pdf.text(order.bl_number, margin + 48, y);
   }
   y += 14;
 
@@ -234,8 +243,8 @@ function DetailModal({ order, onClose }: { order: any; onClose: () => void }) {
             </p>
           </div>
           <div>
-            <p className="text-xs text-gray-500 uppercase">N° Facture</p>
-            <p className="font-semibold text-gray-900">{order.invoice_number || "—"}</p>
+            <p className="text-xs text-gray-500 uppercase">{getDocInfo(order).label}</p>
+            <p className="font-semibold text-gray-900">{getDocInfo(order).value}</p>
           </div>
           <div>
             <p className="text-xs text-gray-500 uppercase">DOT</p>
@@ -407,7 +416,8 @@ export default function AchatsCommandesPage() {
       const matchSearch =
         (o.order_number || "").toLowerCase().includes(term) ||
         (o.supplier_name || "").toLowerCase().includes(term) ||
-        (o.invoice_number || "").toLowerCase().includes(term);
+        (o.invoice_number || "").toLowerCase().includes(term) ||
+        (o.bl_number || "").toLowerCase().includes(term);
 
       const matchStatus = statusFilter === "tous" || o.status === statusFilter;
       const matchSupplier = !supplierFilter || o.supplier_name === supplierFilter;
@@ -442,7 +452,8 @@ export default function AchatsCommandesPage() {
       { header: "N° Commande",     key: "num",        width: 18 },
       { header: "Fournisseur",     key: "supplier",   width: 24 },
       { header: "Date d'achat",    key: "date",       width: 14 },
-      { header: "N° Facture",      key: "invoice",    width: 18 },
+      { header: "Type document",   key: "docType",    width: 18 },
+      { header: "N° Facture / BL", key: "invoice",    width: 18 },
       { header: "DOT",              key: "week",       width: 16 },
       { header: "Nb Articles",     key: "items",      width: 12 },
       { header: "Total HT (DT)",   key: "total",      width: 16 },
@@ -460,7 +471,8 @@ export default function AchatsCommandesPage() {
         num:      o.order_number,
         supplier: o.supplier_name || "",
         date:     o.purchase_date ? fmtDate(o.purchase_date) : fmtDate(o.order_date),
-        invoice:  o.invoice_number || "—",
+        docType:  getDocInfo(o).label,
+        invoice:  getDocInfo(o).value,
         week:     (o.items || []).map((it: any) => it.dot).filter(Boolean).length > 0
                     ? [...new Set((o.items || []).map((it: any) => it.dot).filter(Boolean))].join(" / ")
                     : "—",
@@ -647,8 +659,8 @@ export default function AchatsCommandesPage() {
                     <span>{order.purchase_date ? fmtDate(order.purchase_date) : fmtDate(order.order_date)}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-gray-500">Facture</span>
-                    <span className="font-mono text-xs">{order.invoice_number || "—"}</span>
+                    <span className="text-gray-500">{getDocInfo(order).label}</span>
+                    <span className="font-mono text-xs">{getDocInfo(order).value}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-gray-500">Total HT</span>
@@ -682,7 +694,7 @@ export default function AchatsCommandesPage() {
                     <TableHead className="font-semibold text-gray-600 text-xs uppercase pl-6">N° Commande</TableHead>
                     <TableHead className="font-semibold text-gray-600 text-xs uppercase">Fournisseur</TableHead>
                     <TableHead className="font-semibold text-gray-600 text-xs uppercase">Date d'achat</TableHead>
-                    <TableHead className="font-semibold text-gray-600 text-xs uppercase">N° Facture</TableHead>
+                    <TableHead className="font-semibold text-gray-600 text-xs uppercase">N° Facture / BL</TableHead>
                     <TableHead className="font-semibold text-gray-600 text-xs uppercase text-center">DOT</TableHead>
                     <TableHead className="font-semibold text-gray-600 text-xs uppercase text-center">Articles</TableHead>
                     <TableHead className="font-semibold text-gray-600 text-xs uppercase text-right">Total HT</TableHead>
@@ -706,8 +718,13 @@ export default function AchatsCommandesPage() {
                         {order.purchase_date ? fmtDate(order.purchase_date) : fmtDate(order.order_date)}
                       </TableCell>
                       <TableCell>
-                        {order.invoice_number
-                          ? <span className="font-mono text-xs bg-gray-100 rounded px-2 py-0.5">{order.invoice_number}</span>
+                        {getDocInfo(order).value !== "—"
+                          ? (
+                            <span className="inline-flex flex-col leading-tight">
+                              <span className="text-[10px] text-gray-400 uppercase">{getDocInfo(order).label}</span>
+                              <span className="font-mono text-xs bg-gray-100 rounded px-2 py-0.5 w-fit">{getDocInfo(order).value}</span>
+                            </span>
+                          )
                           : <span className="text-xs text-gray-300">—</span>
                         }
                       </TableCell>
