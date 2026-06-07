@@ -42,9 +42,9 @@ const STATUS_IDX: Record<Livraison["statut"], number> = { prepare: 0, en_route: 
 
 const statusBadge = (statut: Livraison["statut"]) => {
   const cfg = {
-    prepare:  { cls: "bg-amber-50   text-amber-700   border border-amber-300",       label: "En préparation" },
+    prepare:  { cls: "bg-yellow-50 text-yellow-700 border border-yellow-300",       label: "En préparation" },
     en_route: { cls: "bg-gray-100 text-gray-700  border border-gray-300",      label: "En route" },
-    livre:    { cls: "bg-brand-gold-light text-brand-gold-dark border border-brand-gold",    label: "Livré" },
+    livre:    { cls: "bg-red-50 text-red-700 border border-red-300",    label: "Livré" },
   } as const;
   const c = cfg[statut] ?? { cls: "bg-gray-100 text-gray-600", label: statut };
   return (
