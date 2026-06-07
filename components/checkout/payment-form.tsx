@@ -466,46 +466,6 @@ export function PaymentForm({ onSubmit, onBack, totalPrice }: PaymentFormProps) 
                         </span>
                       )}
                     </label>
-
-                    {/* Sous-options — checkboxes multi-sélection */}
-                    {deliveryExpanded && (
-                      <div className="bg-yellow-50 border-t border-yellow-100 px-4 py-3 flex gap-4">
-                        <p className="text-xs text-slate-500 mr-2 self-center">Mode :</p>
-                        {/* Espèces */}
-                        <label className={`flex items-center gap-2 px-4 py-2 rounded-lg border-2 cursor-pointer transition-all ${
-                          especesChecked ? "border-yellow-500 bg-yellow-50 text-black font-semibold" : "border-gray-200 bg-white hover:border-yellow-400 text-gray-600"
-                        }`}>
-                          <input
-                            type="checkbox"
-                            checked={especesChecked}
-                            onChange={toggleEspeces}
-                            className="h-4 w-4 rounded text-yellow-500"
-                          />
-                          <Banknote className="h-4 w-4" />
-                          <span className="text-sm font-semibold">Espèces</span>
-                        </label>
-                        {/* TPE */}
-                        <label className={`flex items-center gap-2 px-4 py-2 rounded-lg border-2 cursor-pointer transition-all ${
-                          tpeChecked ? "border-yellow-500 bg-yellow-50 text-black font-semibold" : "border-gray-200 bg-white hover:border-yellow-400 text-gray-600"
-                        }`}>
-                          <input
-                            type="checkbox"
-                            checked={tpeChecked}
-                            onChange={toggleTpe}
-                            className="h-4 w-4 rounded text-yellow-500"
-                          />
-                          <CreditCard className="h-4 w-4" />
-                          <span className="text-sm font-semibold">TPE</span>
-                        </label>
-                      </div>
-                    )}
-
-                    {/* Si coché mais aucun sous-type → alerte inline */}
-                    {deliveryExpanded && !especesChecked && !tpeChecked && (
-                      <p className="text-xs text-amber-600 bg-amber-50 px-4 py-2 border-t border-amber-100">
-                        Veuillez cocher Espèces et/ou TPE ci-dessus.
-                      </p>
-                    )}
                   </div>
                 );
               }
@@ -590,9 +550,49 @@ export function PaymentForm({ onSubmit, onBack, totalPrice }: PaymentFormProps) 
             </div>
           )}
 
-          {/* ── Delivery — montants séparés Espèces / TPE ── */}
-          {isDeliverySelected && (
+          {/* ── Delivery — sélection du mode + montants séparés Espèces / TPE ── */}
+          {deliveryExpanded && (
             <div className="space-y-4 p-4 bg-yellow-50 rounded-lg border border-yellow-200">
+              {/* Sélection du mode — en haut du rectangle, au-dessus du Total */}
+              <div className="flex items-center gap-4">
+                <p className="text-xs text-slate-500 mr-2">Mode :</p>
+                {/* Espèces */}
+                <label className={`flex items-center gap-2 px-4 py-2 rounded-lg border-2 cursor-pointer transition-all ${
+                  especesChecked ? "border-yellow-500 bg-yellow-50 text-black font-semibold" : "border-gray-200 bg-white hover:border-yellow-400 text-gray-600"
+                }`}>
+                  <input
+                    type="checkbox"
+                    checked={especesChecked}
+                    onChange={toggleEspeces}
+                    className="h-4 w-4 rounded text-yellow-500"
+                  />
+                  <Banknote className="h-4 w-4" />
+                  <span className="text-sm font-semibold">Espèces</span>
+                </label>
+                {/* TPE */}
+                <label className={`flex items-center gap-2 px-4 py-2 rounded-lg border-2 cursor-pointer transition-all ${
+                  tpeChecked ? "border-yellow-500 bg-yellow-50 text-black font-semibold" : "border-gray-200 bg-white hover:border-yellow-400 text-gray-600"
+                }`}>
+                  <input
+                    type="checkbox"
+                    checked={tpeChecked}
+                    onChange={toggleTpe}
+                    className="h-4 w-4 rounded text-yellow-500"
+                  />
+                  <CreditCard className="h-4 w-4" />
+                  <span className="text-sm font-semibold">TPE</span>
+                </label>
+              </div>
+
+              {/* Si rien n'est coché → alerte inline, montants masqués */}
+              {!especesChecked && !tpeChecked && (
+                <p className="text-xs text-amber-600 bg-amber-50 px-3 py-2 rounded border border-amber-100">
+                  Veuillez cocher Espèces et/ou TPE ci-dessus.
+                </p>
+              )}
+
+              {isDeliverySelected && (
+              <>
               <div className="grid grid-cols-3 gap-4">
                 <div>
                   <Label className="text-sm font-semibold">Total</Label>
@@ -648,6 +648,8 @@ export function PaymentForm({ onSubmit, onBack, totalPrice }: PaymentFormProps) 
                 <Label className="text-sm font-semibold">Remarque</Label>
                 <Textarea className="mt-1 resize-y" rows={2} placeholder="Ajouter une remarque..." value={deliveryRemarque} onChange={(e) => setDeliveryRemarque(e.target.value)} />
               </div>
+              </>
+              )}
             </div>
           )}
 
