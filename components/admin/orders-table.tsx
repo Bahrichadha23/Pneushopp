@@ -342,6 +342,8 @@ export default function OrdersTable({
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [yearFilter, setYearFilter] = useState<string>("all");
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
+  const [deliveryInfoOrder, setDeliveryInfoOrder] = useState<Order | null>(null);
+  const [updatingDeliveryStatus, setUpdatingDeliveryStatus] = useState(false);
 
   // DOT confirmation modal state
   const [dotConfirmOrder, setDotConfirmOrder] = useState<Order | null>(null);
@@ -700,12 +702,12 @@ export default function OrdersTable({
                         </Button>
                       )}
 
-                      {order.status === "confirmed" && (
+                      {["confirmed", "shipped", "delivered"].includes(order.status) && (
                         <Button
                           variant="ghost"
                           size="icon"
-                          onClick={() => onUpdateStatus(order.id, "shipped")}
-                          title="Marquer comme expédiée"
+                          onClick={() => setDeliveryInfoOrder(order)}
+                          title="Infos de livraison"
                         >
                           <Truck className="h-4 w-4" />
                         </Button>
@@ -800,11 +802,12 @@ export default function OrdersTable({
                   </Button>
                 )}
 
-                {order.status === "confirmed" && (
+                {["confirmed", "shipped", "delivered"].includes(order.status) && (
                   <Button
                     variant="ghost"
                     size="icon"
-                    onClick={() => onUpdateStatus(order.id, "shipped")}
+                    onClick={() => setDeliveryInfoOrder(order)}
+                    title="Infos de livraison"
                   >
                     <Truck className="h-4 w-4" />
                   </Button>
@@ -1255,6 +1258,152 @@ export default function OrdersTable({
                 >
                   Fermer
                 </Button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* Delivery Info Modal */}
+      <AnimatePresence>
+        {deliveryInfoOrder && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 overflow-y-auto">
+            {/* Backdrop */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setDeliveryInfoOrder(null)}
+              className="absolute inset-0 bg-black/50"
+            />
+
+            {/* Modal */}
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              className="relative bg-white rounded-lg shadow-xl max-w-lg w-full max-h-[90vh] overflow-y-auto"
+            >
+              {/* Modal Header */}
+              <div className="sticky top-0 bg-white border-b px-6 py-4 flex items-center justify-between z-10">
+                <div className="flex items-center gap-2">
+                  <Truck className="h-5 w-5 text-[#0066CC]" />
+                  <div>
+                    <h2 className="text-lg font-bold text-gray-900">
+                      Livraison — Commande #{fps(deliveryInfoOrder.orderNumber)}
+                    </h2>
+                    <p className="text-sm text-gray-500 mt-0.5">
+                      {deliveryInfoOrder.customerName}
+                    </p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setDeliveryInfoOrder(null)}
+                  className="text-gray-400 hover:text-gray-600 transition-colors"
+                >
+                  <X className="w-6 h-6" />
+                </button>
+              </div>
+
+              {/* Modal Content */}
+              <div className="p-6 space-y-5">
+                <div className="flex items-center gap-2">
+                  <span className="text-sm text-gray-600">Statut:</span>
+                  {getStatusBadge(deliveryInfoOrder.status)}
+                </div>
+
+                <div className="space-y-2">
+                  <h4 className="font-semibold text-sm border-b pb-2 text-gray-900">
+                    Adresse de livraison
+                  </h4>
+                  <p className="text-sm">
+                    <strong>Destinataire:</strong> {deliveryInfoOrder.customerName}
+                  </p>
+                  <p className="text-sm">
+                    <strong>Téléphone:</strong> {deliveryInfoOrder.customerPhone || "N/A"}
+                  </p>
+                  <p className="text-sm">
+                    <strong>Adresse:</strong> {deliveryInfoOrder.shippingAddress?.street || "N/A"}
+                  </p>
+                  <p className="text-sm">
+                    <strong>Ville:</strong> {deliveryInfoOrder.shippingAddress?.city || "N/A"}
+                    {deliveryInfoOrder.shippingAddress?.postalCode ? ` — ${deliveryInfoOrder.shippingAddress.postalCode}` : ""}
+                  </p>
+                  <p className="text-sm">
+                    <strong>Région:</strong> {deliveryInfoOrder.shippingAddress?.region || "N/A"}
+                  </p>
+                </div>
+
+                <div className="space-y-2">
+                  <h4 className="font-semibold text-sm border-b pb-2 text-gray-900">
+                    Informations d'expédition
+                  </h4>
+                  <p className="text-sm">
+                    <strong>Numéro de suivi:</strong> {deliveryInfoOrder.trackingNumber || "Non renseigné"}
+                  </p>
+                  <p className="text-sm">
+                    <strong>Date de livraison estimée:</strong>{" "}
+                    {deliveryInfoOrder.deliveryDate ? formatDate(deliveryInfoOrder.deliveryDate as any) : "Non renseignée"}
+                  </p>
+                  <p className="text-sm">
+                    <strong>Frais de livraison:</strong>{" "}
+                    {deliveryInfoOrder.deliveryCost ? formatCurrency(deliveryInfoOrder.deliveryCost) : "N/A"}
+                  </p>
+                </div>
+              </div>
+
+              {/* Modal Footer */}
+              <div className="sticky bottom-0 bg-gray-50 border-t px-6 py-4 flex justify-end gap-2">
+                <Button
+                  onClick={() => setDeliveryInfoOrder(null)}
+                  className="bg-gray-100 hover:bg-gray-200 text-gray-700 border-0"
+                >
+                  Fermer
+                </Button>
+                {deliveryInfoOrder.status === "confirmed" && (
+                  <Button
+                    disabled={updatingDeliveryStatus}
+                    onClick={async () => {
+                      setUpdatingDeliveryStatus(true);
+                      try {
+                        await onUpdateStatus(deliveryInfoOrder.id, "shipped");
+                        setDeliveryInfoOrder({ ...deliveryInfoOrder, status: "shipped" });
+                      } finally {
+                        setUpdatingDeliveryStatus(false);
+                      }
+                    }}
+                    className="bg-[#0066CC] hover:bg-[#004C99] text-white border-0 gap-2"
+                  >
+                    {updatingDeliveryStatus ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <Truck className="h-4 w-4" />
+                    )}
+                    Marquer comme expédiée
+                  </Button>
+                )}
+                {deliveryInfoOrder.status === "shipped" && (
+                  <Button
+                    disabled={updatingDeliveryStatus}
+                    onClick={async () => {
+                      setUpdatingDeliveryStatus(true);
+                      try {
+                        await onUpdateStatus(deliveryInfoOrder.id, "delivered");
+                        setDeliveryInfoOrder({ ...deliveryInfoOrder, status: "delivered" });
+                      } finally {
+                        setUpdatingDeliveryStatus(false);
+                      }
+                    }}
+                    className="bg-[#A68823] hover:bg-[#8a701d] text-white border-0 gap-2"
+                  >
+                    {updatingDeliveryStatus ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <Truck className="h-4 w-4" />
+                    )}
+                    Marquer comme livrée
+                  </Button>
+                )}
               </div>
             </motion.div>
           </div>
