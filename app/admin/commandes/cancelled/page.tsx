@@ -196,7 +196,7 @@ export default function CancelledOrdersPage() {
                   </TableCell>
                   <TableCell>{order.date}</TableCell>
                   <TableCell>
-                    <Badge className="bg-gray-700 text-white">
+                    <Badge className="bg-[#9B2226] text-white">
                       Annulée
                     </Badge>
                   </TableCell>
