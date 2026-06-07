@@ -535,12 +535,12 @@ export default function OrdersTable({
 
   const getStatusBadge = (status: Order["status"]) => {
     const styles: Record<string, string> = {
-      pending:    "bg-amber-50    text-amber-700   border border-amber-300",       // Jaune ambre — en attente
-      confirmed:  "bg-brand-blue-light text-brand-blue border border-brand-blue", // Bleu — confirmée
-      processing: "bg-orange-100 text-brand-orange border border-brand-orange",   // Orange — en préparation
-      shipped:    "bg-gray-100 text-gray-700   border border-gray-300",      // Violet — expédiée
-      delivered:  "bg-brand-gold-light  text-brand-gold-dark    border border-brand-gold",       // Vert — livrée
-      cancelled:  "bg-brand-red-light text-brand-red border border-brand-red",    // Rouge — annulée
+      pending:    "bg-amber-500    text-white",   // Ambre — en attente
+      confirmed:  "bg-[#0066CC]   text-white",   // Bleu  — confirmée
+      processing: "bg-[#FF8C00]   text-white",   // Orange — en cours
+      shipped:    "bg-gray-500    text-white",   // Gris  — expédiée
+      delivered:  "bg-[#A68823]   text-white",   // Or    — livrée
+      cancelled:  "bg-[#9B2226]   text-white",   // Rouge — annulée
     };
 
     const labels: Record<string, string> = {
@@ -553,18 +553,18 @@ export default function OrdersTable({
     };
 
     return (
-      <Badge className={`${styles[status] ?? "bg-gray-100 text-gray-700"} rounded-full px-3 py-0.5 text-xs`}>
+      <span className={`inline-flex items-center rounded-full px-3 py-0.5 text-xs font-semibold ${styles[status] ?? "bg-gray-500 text-white"}`}>
         {labels[status] ?? status}
-      </Badge>
+      </span>
     );
   };
 
   const getPaymentStatusBadge = (status: Order["paymentStatus"]) => {
     const styles: Record<string, string> = {
-      pending:  "bg-amber-50    text-amber-700   border border-amber-300",
-      paid:     "bg-brand-gold-light   text-brand-gold-dark   border border-brand-gold",
-      failed:   "bg-brand-red-light text-brand-red border border-brand-red",
-      refunded: "bg-gray-100  text-gray-700  border border-gray-300",
+      pending:  "bg-amber-500  text-white",
+      paid:     "bg-[#A68823]  text-white",
+      failed:   "bg-[#9B2226]  text-white",
+      refunded: "bg-gray-500   text-white",
     };
     const labels: Record<string, string> = {
       pending:  "En attente",
@@ -573,9 +573,9 @@ export default function OrdersTable({
       refunded: "Remboursé",
     };
     return (
-      <Badge className={`text-xs rounded-full ${styles[status] ?? "bg-gray-100 text-gray-600 border border-gray-200"}`}>
+      <span className={`inline-flex items-center rounded-full px-3 py-0.5 text-xs font-semibold ${styles[status] ?? "bg-gray-500 text-white"}`}>
         {labels[status] ?? status}
-      </Badge>
+      </span>
     );
   };
 
