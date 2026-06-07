@@ -231,7 +231,7 @@ export default function ProductForm({
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-2">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
             <div>
               <Label htmlFor="name" className="mb-1">
                 Nom du produit *
@@ -324,9 +324,9 @@ export default function ProductForm({
                 handleInputChange("description", e.target.value.slice(0, 1000))
               }
               maxLength={1000}
-              rows={3}
+              rows={2}
               placeholder="Décrivez le produit en détail..."
-              className={errors.description ? "border-red-500" : ""}
+              className={`min-h-0 ${errors.description ? "border-red-500" : ""}`}
             />
             <div className="flex items-center justify-between mt-1">
               {errors.description ? (
