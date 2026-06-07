@@ -205,7 +205,8 @@ export default function FournisseursPage() {
             <div className="flex justify-between items-center mb-2">
               <div className="font-medium">{f.name}</div>
               <Badge
-                variant={f.status === "active" ? "default" : "destructive"}
+                variant={f.status === "active" ? "default" : "outline"}
+                className={f.status !== "active" ? "bg-brand-red-light text-brand-red border-brand-red" : ""}
               >
                 {f.status}
               </Badge>
@@ -316,8 +317,8 @@ export default function FournisseursPage() {
 
                           <Button
                             size="sm"
-                            variant="destructive"
                             onClick={() => handleDelete(f.id)}
+                            className="bg-[#9B2226] hover:bg-[#730019] text-white border-0"
                           >
                             <Trash className="h-4 w-4" />
                           </Button>
