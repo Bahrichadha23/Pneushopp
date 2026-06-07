@@ -170,7 +170,7 @@ const productToCreateData = (
           ),
     description: product.description || "",
     price: product.price || 0,
-    old_price: product.old_price,
+    purchase_price: (product as any).purchase_price || undefined,
     category: categoryMap[product.category as keyof typeof categoryMap] || 1,
     brand: product.brand || "",
     size: product.model || "", // Utiliser model comme size
@@ -308,6 +308,38 @@ export default function ProductsPage() {
     }
   };
 
+  // Applique ou retire la promotion sur un produit fraîchement créé/modifié,
+  // en fonction de la case « En promotion » du formulaire (relié au backend
+  // via l'endpoint /products/set-promotion/, qui calcule old_price/price).
+  const applyPromotionFromForm = async (
+    productId: number,
+    productData: Partial<Product>,
+    wasOnSale: boolean
+  ) => {
+    const raw = productData as any;
+    const wantsPromotion = !!raw.in_promotion;
+    const discount = Number(raw.promotion_discount) || 0;
+
+    try {
+      if (wantsPromotion && discount > 0) {
+        await adminService.setProductPromotion({
+          product_ids: [productId],
+          discount_percentage: discount,
+          promotion_label: "PROMO",
+          remove: false,
+        });
+      } else if (!wantsPromotion && wasOnSale) {
+        await adminService.setProductPromotion({
+          product_ids: [productId],
+          discount_percentage: 0,
+          remove: true,
+        });
+      }
+    } catch (err) {
+      console.error("Erreur lors de l'application de la promotion:", err);
+    }
+  };
+
   const handleSubmitProduct = async (productData: Partial<Product>) => {
     setIsLoading(true);
 
@@ -328,9 +360,7 @@ export default function ProductsPage() {
         if (raw.reference !== undefined) patchData.reference = raw.reference;
         if (raw.emplacement !== undefined) patchData.emplacement = raw.emplacement;
         if (raw.type !== undefined) patchData.type = raw.type;
-        if (productData.old_price && productData.old_price > (productData.price || 0)) {
-          patchData.old_price = productData.old_price;
-        }
+        if (raw.purchase_price) patchData.purchase_price = raw.purchase_price;
 
         const response = await adminService.updateProduct(
           parseInt(editingProduct.id),
@@ -338,6 +368,11 @@ export default function ProductsPage() {
         );
 
         if (response.success) {
+          await applyPromotionFromForm(
+            parseInt(editingProduct.id),
+            productData,
+            !!editingProduct.is_on_sale
+          );
           await loadProducts(pagination.page);
           setIsFormOpen(false);
           setEditingProduct(undefined);
@@ -358,6 +393,9 @@ export default function ProductsPage() {
         const response = await adminService.createProduct(createData);
 
         if (response.success) {
+          if (response.data?.id) {
+            await applyPromotionFromForm(response.data.id, productData, false);
+          }
           await loadProducts(pagination.page);
           setIsFormOpen(false);
           setEditingProduct(undefined);
@@ -493,8 +531,15 @@ export default function ProductsPage() {
       <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
         <DialogContent className="w-full max-w-4xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
+            {!editingProduct && (
+              <p className="text-xs text-gray-400 flex items-center gap-1.5 -mb-1">
+                <span>Produits</span>
+                <span>›</span>
+                <span className="text-gray-600 font-medium">Ajouter un produit</span>
+              </p>
+            )}
             <DialogTitle>
-              {editingProduct ? "Fiche article" : "Nouveau produit"}
+              {editingProduct ? "Fiche article" : "Ajouter un produit"}
             </DialogTitle>
           </DialogHeader>
           <ProductForm

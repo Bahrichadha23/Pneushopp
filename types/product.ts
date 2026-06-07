@@ -12,6 +12,11 @@ export interface Product {
   old_price?: number
   is_on_sale?: boolean
   discount_percentage?: number
+  promotion_label?: string | null
+  promotion_end_date?: string | null
+
+  // Prix d'achat (coût d'acquisition — distinct de l'ancien prix promo)
+  purchase_price?: number
 
   image: string
   images: (string | File)[]

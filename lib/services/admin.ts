@@ -98,6 +98,7 @@ export interface AdminProduct {
   description: string
   price: string
   old_price?: string
+  purchase_price?: string
   category: number
   category_name: string
   image?: string
@@ -134,6 +135,7 @@ export interface ProductCreateData {
   description: string
   price: number
   old_price?: number
+  purchase_price?: number
   category: number
   brand: string
   size: string
@@ -294,6 +296,27 @@ export const adminService = {
       return {
         success: false,
         error: error.response?.data?.detail || 'Failed to delete product'
+      }
+    }
+  },
+
+  async setProductPromotion(params: {
+    product_ids: number[]
+    discount_percentage: number
+    promotion_label?: string
+    promotion_end_date?: string | null
+    remove?: boolean
+  }): Promise<ApiResponse<{ updated: number }>> {
+    try {
+      const response = await apiClient.post('/products/set-promotion/', params)
+      return {
+        success: true,
+        data: response.data
+      }
+    } catch (error: any) {
+      return {
+        success: false,
+        error: error.response?.data?.detail || error.response?.data?.error || 'Failed to apply promotion'
       }
     }
   },

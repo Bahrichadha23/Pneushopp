@@ -41,7 +41,7 @@ export default function ProductForm({
     brand: "",
     model: "",
     price: 0,
-    old_price: 0,
+    purchase_price: 0,
     category: "" as Product["category"],
     specifications: {
       width: 0,
@@ -56,6 +56,8 @@ export default function ProductForm({
     description: "",
     features: [] as string[],
     inStock: true,
+    inPromotion: false,
+    promotionDiscount: 20,
     images: [] as File[],
     // New manual fields
     reference: "",
@@ -81,7 +83,7 @@ export default function ProductForm({
         brand: product.brand || "",
         model: product.model || raw.size || "",
         price: product.price || 0,
-        old_price: product.old_price || 0,
+        purchase_price: raw.purchase_price || product.purchase_price || 0,
         category: product.category,
         specifications: {
           // These come from the size string (e.g. "235/60R16") — parse or use defaults
@@ -97,6 +99,8 @@ export default function ProductForm({
         description: product.description || "",
         features: product.features || [],
         inStock: product.inStock ?? (product.stock > 0),
+        inPromotion: !!product.is_on_sale,
+        promotionDiscount: product.discount_percentage || 20,
         images: (product.images || []).filter((img: any): img is File => img instanceof File),
         reference: raw.reference || product.reference || "",
         designation: raw.designation || product.designation || "",
@@ -139,17 +143,14 @@ export default function ProductForm({
     if (!validateForm()) return;
 
     try {
-      const discount =
-        formData.old_price > formData.price
-          ? Math.round(
-              ((formData.old_price - formData.price) / formData.old_price) * 100
-            )
-          : 0;
-
-      const productData: Partial<Product> = {
+      const productData: Partial<Product> & {
+        in_promotion?: boolean;
+        promotion_discount?: number;
+      } = {
         ...formData,
-        old_price: formData.old_price,
-        discount_percentage: discount > 0 ? discount : undefined,
+        purchase_price: formData.purchase_price || undefined,
+        in_promotion: formData.inPromotion,
+        promotion_discount: formData.promotionDiscount,
         image: "/placeholder.svg",
       };
 
@@ -297,7 +298,15 @@ export default function ProductForm({
               </Select>
             </div>
           </div>
+        </CardContent>
+      </Card>
 
+      {/* Description */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Description</CardTitle>
+        </CardHeader>
+        <CardContent>
           <div>
             <Label htmlFor="description" className="mb-2">
               Description *
@@ -315,8 +324,6 @@ export default function ProductForm({
           </div>
         </CardContent>
       </Card>
-
-      {/* Informations complémentaires supprimées */}
 
       {/* Spécifications techniques */}
       <Card>
@@ -477,18 +484,18 @@ export default function ProductForm({
         <CardContent className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
-              <Label htmlFor="old_price" className="mb-2">
+              <Label htmlFor="purchase_price" className="mb-2">
                 Prix d'achat (DT)
               </Label>
               <Input
-                id="old_price"
+                id="purchase_price"
                 type="number"
                 step="0.001"
                 placeholder="0.000"
-                value={formData.old_price || ""}
+                value={formData.purchase_price || ""}
                 onChange={(e) => {
                   const achat = Number.parseFloat(e.target.value) || 0;
-                  handleInputChange("old_price", achat);
+                  handleInputChange("purchase_price", achat);
                   // Calcul automatique prix vente :
                   // marque "amine" → +10%, tous les autres → +15%
                   if (achat > 0) {
@@ -543,7 +550,7 @@ export default function ProductForm({
             </div>
           </div>
 
-          <div className="flex items-center space-x-6">
+          <div className="flex flex-wrap items-center gap-6">
             <div className="flex items-center space-x-2">
               <Checkbox
                 id="inStock"
@@ -554,14 +561,43 @@ export default function ProductForm({
               />
               <Label htmlFor="inStock">En stock</Label>
             </div>
+
+            <div className="flex items-center space-x-2">
+              <Checkbox
+                id="inPromotion"
+                checked={formData.inPromotion}
+                onCheckedChange={(checked) =>
+                  handleInputChange("inPromotion", checked === true)
+                }
+              />
+              <Label htmlFor="inPromotion">En promotion</Label>
+            </div>
           </div>
 
-          <p className="text-xs text-gray-500 bg-gray-50 border border-gray-200 rounded-lg px-3 py-2">
-            💡 Pour mettre cet article en promotion (prix barré + label affiché en boutique),
-            utilisez la page <span className="font-semibold text-gray-700">« Gestion des promotions »</span> dans
-            le menu admin : sélectionnez l'article puis appliquez une remise. La case « En promotion »
-            ne se gère pas depuis ce formulaire.
-          </p>
+          {formData.inPromotion && (
+            <div className="flex items-center gap-3 bg-yellow-50 border border-yellow-200 rounded-lg px-3 py-3">
+              <Label htmlFor="promotionDiscount" className="text-sm text-gray-700 whitespace-nowrap mb-0">
+                Remise à appliquer (%)
+              </Label>
+              <Input
+                id="promotionDiscount"
+                type="number"
+                min={1}
+                max={99}
+                value={formData.promotionDiscount || ""}
+                onChange={(e) =>
+                  handleInputChange(
+                    "promotionDiscount",
+                    Number.parseInt(e.target.value) || 0
+                  )
+                }
+                className="w-28 bg-white"
+              />
+              <p className="text-xs text-gray-500">
+                Le prix barré et le label promo seront générés automatiquement après l'enregistrement.
+              </p>
+            </div>
+          )}
         </CardContent>
       </Card>
       <Card>
@@ -571,15 +607,16 @@ export default function ProductForm({
         <CardContent className="space-y-4">
           <label
             htmlFor="fileUpload"
-            className="flex items-center cursor-pointer border rounded p-2 w-fit text-gray-600 hover:text-black hover:border-black"
+            className="flex flex-col items-center justify-center gap-2 cursor-pointer border-2 border-dashed rounded-lg p-6 w-full text-gray-500 hover:text-black hover:border-gray-400 transition-colors"
           >
-            <Upload className="h-4 w-4 mr-2" />
-            Ajouter une image
+            <Upload className="h-6 w-6" />
+            <span className="text-sm font-medium text-gray-700">Ajouter une image</span>
+            <span className="text-xs text-gray-400">PNG, JPG ou WEBP (max. 5 Mo)</span>
           </label>
           <input
             id="fileUpload"
             type="file"
-            accept="image/*"
+            accept="image/png,image/jpeg,image/webp"
             className="hidden"
             onChange={(e) => {
               if (e.target.files && e.target.files[0]) {
@@ -634,7 +671,7 @@ export default function ProductForm({
         <Button
           type="submit"
           disabled={isLoading}
-          className="bg-yellow-500 hover:bg-yellow-600 text-white"
+          className="bg-[#FF8C00] hover:bg-[#CC7000] text-white disabled:opacity-100 disabled:bg-[#FF8C00]"
         >
           {isLoading ? (
             <>
