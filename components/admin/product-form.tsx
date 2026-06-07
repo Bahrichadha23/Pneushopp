@@ -634,11 +634,15 @@ export default function ProductForm({
         <CardContent className="space-y-4">
           <label
             htmlFor="fileUpload"
-            className="flex flex-col items-center justify-center gap-2 cursor-pointer border-2 border-dashed rounded-lg p-6 w-full text-gray-500 hover:text-black hover:border-gray-400 transition-colors"
+            className="inline-flex items-center gap-3 cursor-pointer border border-dashed border-gray-300 rounded-lg px-4 py-3 hover:border-gray-400 hover:bg-gray-50 transition-colors"
           >
-            <Upload className="h-6 w-6" />
-            <span className="text-sm font-medium text-gray-700">Ajouter une image</span>
-            <span className="text-xs text-gray-400">PNG, JPG ou WEBP (max. 5 Mo)</span>
+            <span className="flex items-center justify-center h-9 w-9 rounded-full bg-blue-50 text-blue-500 shrink-0">
+              <Upload className="h-4 w-4" />
+            </span>
+            <span className="flex flex-col">
+              <span className="text-sm font-semibold text-gray-900">Ajouter une image</span>
+              <span className="text-xs text-gray-400">PNG, JPG ou WEBP (max. 5 Mo)</span>
+            </span>
           </label>
           <input
             id="fileUpload"
