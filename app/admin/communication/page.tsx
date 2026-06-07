@@ -79,7 +79,7 @@ const PRIORITY_COLOR: Record<string, string> = {
   low: "bg-gray-100 text-gray-600",
   medium: "bg-yellow-100 text-yellow-700",
   high: "bg-orange-100 text-orange-700",
-  urgent: "bg-red-100 text-red-700",
+  urgent: "bg-[#9B2226] text-white",
 };
 
 const fmtDate = (iso: string) =>
