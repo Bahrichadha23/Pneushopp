@@ -1458,7 +1458,7 @@ export default function StockManagementPage() {
                       <div className="flex space-x-1">
                         <Button
                           size="sm"
-                          className="bg-[#9B2226] hover:bg-[#730019] text-white border-0"
+                          className="bg-yellow-500 hover:bg-yellow-600 text-black border-0"
                           onClick={() => setActionModal({ isOpen: true, product: item })}
                           disabled={item.stock <= 0}
                           title="Vendre ou diminuer le stock"
