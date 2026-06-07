@@ -508,7 +508,7 @@ export default function AvoirPage() {
             )}
 
             <Button
-              className="w-full bg-black text-white"
+              className="w-full bg-yellow-500 hover:bg-yellow-600 text-white disabled:opacity-100 disabled:bg-yellow-500"
               disabled={selectedItems.length === 0 || isSaving}
               onClick={handleCreateAvoir}
             >
