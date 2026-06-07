@@ -161,7 +161,7 @@ export default function AdminSAVPage() {
             {exporting
               ? <Loader2 className="h-4 w-4 mr-1 animate-spin" />
               : <FileDown className="h-4 w-4 mr-1" />}
-            Exporter (Excel)
+            Exporter l'historique (Excel)
           </Button>
           <Button size="sm" onClick={loadClaims} disabled={loading} className="bg-gray-100 hover:bg-gray-200 text-gray-700 border-0">
             <RefreshCw className={`h-4 w-4 mr-1 ${loading ? "animate-spin" : ""}`} />

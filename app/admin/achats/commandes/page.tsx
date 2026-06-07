@@ -508,7 +508,7 @@ export default function AchatsCommandesPage() {
             <RefreshCw className={`w-4 h-4 ${refreshing ? "animate-spin" : ""}`} /> Actualiser
           </Button>
           <Button size="sm" onClick={handleExportExcel} className="gap-2 bg-[#0066CC] hover:bg-[#004C99] text-white border-0">
-            <FileDown className="w-4 h-4" /> Excel
+            <FileDown className="w-4 h-4" /> Exporter l'historique (Excel)
           </Button>
         </div>
       </div>

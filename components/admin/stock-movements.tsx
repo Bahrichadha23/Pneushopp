@@ -304,7 +304,7 @@ export default function StockMovements({ movements, onAddMovement }: StockMoveme
 
         <div className="flex gap-2 ml-auto">
           <Button size="sm" variant="outline" onClick={handleExport} className="gap-2 bg-white text-gray-700 border-gray-300 hover:bg-gray-50">
-            <Download className="h-4 w-4" /> Excel
+            <Download className="h-4 w-4" /> Exporter l'historique (Excel)
           </Button>
           <Button
             size="sm"

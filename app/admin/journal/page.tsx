@@ -213,7 +213,7 @@ export default function JournalPage() {
         <div className="flex items-center gap-2">
           <Button size="sm" onClick={handleExportExcel} disabled={loading || filtered.length === 0} className="bg-[#0066CC] hover:bg-[#004C99] text-white border-0">
             <FileDown className="h-4 w-4 mr-1" />
-            Exporter (Excel)
+            Exporter l'historique (Excel)
           </Button>
           <Button size="sm" onClick={loadLogs} disabled={loading} className="bg-gray-100 hover:bg-gray-200 text-gray-700 border-0">
             <RefreshCw className={`h-4 w-4 mr-1 ${loading ? "animate-spin" : ""}`} />

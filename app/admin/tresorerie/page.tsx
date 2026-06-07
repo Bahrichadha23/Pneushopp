@@ -1085,7 +1085,7 @@ export default function TresoreriePage() {
                 onClick={handleExportXLSX}
               >
                 <FileDown className="h-4 w-4" />
-                Export Excel
+                Exporter l'historique (Excel)
               </Button>
             </div>
           </div>

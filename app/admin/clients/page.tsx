@@ -167,7 +167,7 @@ export default function ClientsPage() {
           </Badge>
           <Button size="sm" onClick={handleExportClients} className="gap-2 bg-[#0066CC] hover:bg-[#004C99] text-white border-0">
             <FileDown className="h-4 w-4" />
-            Exporter Excel
+            Exporter l'historique (Excel)
           </Button>
         </div>
       </div>
