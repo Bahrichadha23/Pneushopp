@@ -1224,7 +1224,7 @@ export default function AchatsPage() {
             <div className="flex gap-2 pt-4">
               <Button
                 onClick={handleSave}
-                className="bg-[#A68823] hover:bg-[#7D6318] text-white flex-1 border-0"
+                className="bg-[#8A701D] hover:bg-[#6B5716] text-white flex-1 border-0"
                 disabled={items.length === 0 || !supplier}
               >
                 <Save className="h-4 w-4 mr-2" />
