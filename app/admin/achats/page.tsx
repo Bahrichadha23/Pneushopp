@@ -1224,11 +1224,11 @@ export default function AchatsPage() {
             <div className="flex gap-2 pt-4">
               <Button
                 onClick={handleSave}
-                className="bg-black  text-white flex-1"
+                className="bg-[#A68823] hover:bg-[#7D6318] text-white flex-1 border-0"
                 disabled={items.length === 0 || !supplier}
               >
                 <Save className="h-4 w-4 mr-2" />
-                Confirmer l'Achat
+                Confirmer
               </Button>
               <Button 
                 variant="outline" 

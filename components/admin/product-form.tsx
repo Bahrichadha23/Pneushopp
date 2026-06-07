@@ -130,6 +130,7 @@ export default function ProductForm({
       if (formData.specifications.diameter <= 0) newErrors.diameter = "Le diamètre est requis";
       if (formData.specifications.loadIndex <= 0) newErrors.loadIndex = "L'indice de charge est requis";
       if (!formData.specifications.speedRating.trim()) newErrors.speedRating = "L'indice de vitesse est requis";
+      if (formData.images.length === 0) newErrors.images = "Au moins une image est requise";
     }
 
     setErrors(newErrors);
@@ -632,16 +633,19 @@ export default function ProductForm({
         <CardContent className="space-y-1.5">
           <label
             htmlFor="fileUpload"
-            className="inline-flex items-center gap-2.5 cursor-pointer border border-dashed border-gray-300 rounded-lg px-3 py-2 hover:border-gray-400 hover:bg-gray-50 transition-colors"
+            className={`inline-flex items-center gap-2.5 cursor-pointer border border-dashed rounded-lg px-3 py-2 hover:border-gray-400 hover:bg-gray-50 transition-colors ${errors.images ? "border-red-500" : "border-gray-300"}`}
           >
             <span className="flex items-center justify-center h-8 w-8 rounded-full bg-blue-50 text-blue-500 shrink-0">
               <Upload className="h-4 w-4" />
             </span>
             <span className="flex flex-col">
-              <span className="text-sm font-semibold text-gray-900">Ajouter une image</span>
+              <span className="text-sm font-semibold text-gray-900">Ajouter une image *</span>
               <span className="text-xs text-gray-400">PNG, JPG ou WEBP (max. 5 Mo)</span>
             </span>
           </label>
+          {errors.images && (
+            <p className="text-red-500 text-xs mt-1">{errors.images}</p>
+          )}
           <input
             id="fileUpload"
             type="file"
@@ -653,6 +657,7 @@ export default function ProductForm({
                   ...prev,
                   images: [...prev.images, e.target.files![0]],
                 }));
+                setErrors((prev) => ({ ...prev, images: "" }));
               }
             }}
           />
