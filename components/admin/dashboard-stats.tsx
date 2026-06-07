@@ -305,8 +305,8 @@ export default function DashboardStatsComponent({ stats, analytics }: DashboardS
                         </div>
                       </div>
                       <div className="relative h-1.5 w-full rounded-full bg-gray-100 overflow-hidden">
-                        <div className="absolute inset-y-0 left-0 rounded-full bg-red-300" style={{ width: `${pct}%` }} />
-                        <div className="absolute inset-y-0 left-0 rounded-full bg-emerald-400" style={{ width: `${pct * resolvePct / 100}%` }} />
+                        <div className="absolute inset-y-0 left-0 rounded-full bg-[#0066CC]" style={{ width: `${pct}%` }} />
+                        <div className="absolute inset-y-0 left-0 rounded-full bg-[#9B2226]" style={{ width: `${pct * resolvePct / 100}%` }} />
                       </div>
                     </div>
                   );
@@ -314,8 +314,8 @@ export default function DashboardStatsComponent({ stats, analytics }: DashboardS
               </div>
 
               <div className="mt-3 flex items-center gap-3 text-[10px] text-gray-400">
-                <div className="flex items-center gap-1"><span className="h-1.5 w-3 rounded-full bg-red-300" />Total</div>
-                <div className="flex items-center gap-1"><span className="h-1.5 w-3 rounded-full bg-emerald-400" />Résolues</div>
+                <div className="flex items-center gap-1"><span className="h-1.5 w-3 rounded-full bg-[#0066CC]" />Total</div>
+                <div className="flex items-center gap-1"><span className="h-1.5 w-3 rounded-full bg-[#9B2226]" />Résolues</div>
               </div>
             </CardContent>
           </Card>
