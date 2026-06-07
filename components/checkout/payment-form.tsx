@@ -558,8 +558,7 @@ export function PaymentForm({ onSubmit, onBack, totalPrice }: PaymentFormProps) 
           {deliveryExpanded && (
             <div className="space-y-4 p-4 bg-yellow-50 rounded-lg border border-yellow-200">
               {/* Sélection du mode — en haut du rectangle, au-dessus du Total */}
-              <div className="flex items-center gap-4">
-                <p className="text-xs text-slate-500 mr-2">Mode :</p>
+              <div className="flex items-center justify-center gap-4">
                 {/* Espèces */}
                 <label className={`flex items-center gap-2 px-4 py-2 rounded-lg border-2 cursor-pointer transition-all ${
                   especesChecked ? "border-yellow-500 bg-yellow-50 text-black font-semibold" : "border-gray-200 bg-white hover:border-yellow-400 text-gray-600"
