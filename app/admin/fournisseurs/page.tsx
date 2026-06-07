@@ -276,15 +276,15 @@ export default function FournisseursPage() {
               <div className="flex gap-2">
                 <Button
                   size="sm"
-                  variant="outline"
                   onClick={() => handleEdit(f)}
+                  className="bg-[#0066CC] hover:bg-[#004E9E] text-white border-0"
                 >
                   <Pencil className="h-4 w-4" />
                 </Button>
                 <Button
                   size="sm"
-                  variant="destructive"
                   onClick={() => handleDelete(f.id)}
+                  className="bg-[#9B2226] hover:bg-[#730019] text-white border-0"
                 >
                   <Trash className="h-4 w-4" />
                 </Button>
@@ -506,7 +506,7 @@ export default function FournisseursPage() {
             />
 
             <div className="flex justify-end">
-              <Button type="submit">
+              <Button type="submit" className="bg-[#FF8C00] hover:bg-[#CC7000] text-white border-0">
                 {editingSupplier ? "Mettre à jour" : "Créer"}
               </Button>
             </div>

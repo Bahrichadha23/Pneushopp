@@ -1254,9 +1254,8 @@ export default function StockManagementPage() {
         <div className="flex items-center gap-2 flex-wrap">
           <Badge variant="secondary" className="text-sm">{pagination.total} produits</Badge>
           <Button
-            variant="outline"
             size="sm"
-            className="gap-2 text-gray-600 hover:bg-gray-100"
+            className="gap-2 bg-gray-100 hover:bg-gray-200 text-gray-600 border-0"
             onClick={() => setRefreshKey((k) => k + 1)}
             title="Actualiser le stock"
           >
@@ -1271,7 +1270,7 @@ export default function StockManagementPage() {
             <ClipboardList className="h-4 w-4" />
             Préparer une commande
           </Button>
-          <Button variant="outline" size="sm" className="gap-2" onClick={handleExportStock}>
+          <Button size="sm" className="gap-2 bg-[#FF8C00] hover:bg-[#CC7000] text-white border-0" onClick={handleExportStock}>
             <FileDown className="h-4 w-4" />
             Exporter (Excel)
           </Button>
@@ -1458,14 +1457,15 @@ export default function StockManagementPage() {
                     <td className="px-2 py-2">
                       <div className="flex space-x-1">
                         <Button
-                          size="sm" variant="outline"
+                          size="sm"
+                          className="bg-[#9B2226] hover:bg-[#730019] text-white border-0"
                           onClick={() => setActionModal({ isOpen: true, product: item })}
                           disabled={item.stock <= 0}
                           title="Vendre ou diminuer le stock"
                         >
                           <Minus className="h-3 w-3" />
                         </Button>
-                        <Button size="sm" variant="outline" onClick={() => openConfirmation(item.id, 1)} disabled={item.stock >= item.stockMax}>
+                        <Button size="sm" className="bg-[#0066CC] hover:bg-[#004E9E] text-white border-0" onClick={() => openConfirmation(item.id, 1)} disabled={item.stock >= item.stockMax}>
                           <Plus className="h-3 w-3" />
                         </Button>
                       </div>
@@ -1593,8 +1593,8 @@ export default function StockManagementPage() {
                   </div>
                 </div>
                 <div className="flex gap-3 justify-end">
-                  <Button variant="outline" onClick={closeStatusPanel}>Annuler</Button>
-                  <Button onClick={handleStatusPanelConfirm} className="bg-black text-white">Confirmer</Button>
+                  <Button onClick={closeStatusPanel} className="bg-gray-100 hover:bg-gray-200 text-gray-700 border-0">Annuler</Button>
+                  <Button onClick={handleStatusPanelConfirm} className="bg-[#FF8C00] hover:bg-[#CC7000] text-white border-0">Confirmer</Button>
                 </div>
               </motion.div>
             </motion.div>
@@ -1618,9 +1618,9 @@ export default function StockManagementPage() {
                   {confirmation.change > 0 ? "Augmenter" : "Diminuer"} le stock de <strong>{confirmation.productName}</strong> de <strong>{Math.abs(confirmation.change)}</strong> unité(s) ?
                 </p>
                 <div className="flex gap-3 justify-end">
-                  <Button variant="outline" onClick={() => setConfirmation({ isOpen: false, productId: null, change: 0, productName: "" })}>Non</Button>
+                  <Button onClick={() => setConfirmation({ isOpen: false, productId: null, change: 0, productName: "" })} className="bg-gray-100 hover:bg-gray-200 text-gray-700 border-0">Non</Button>
                   <Button onClick={async () => { await updateStock(confirmation.productId!, confirmation.change); setConfirmation({ isOpen: false, productId: null, change: 0, productName: "" }); }}
-                    className="bg-brand-orange hover:bg-brand-orange-dark text-black">Oui</Button>
+                    className="bg-[#FF8C00] hover:bg-[#CC7000] text-white border-0">Oui</Button>
                 </div>
               </motion.div>
             </motion.div>
@@ -1629,9 +1629,9 @@ export default function StockManagementPage() {
 
         {/* Pagination */}
         <div className="flex justify-center items-center gap-3 mt-4">
-          <Button variant="outline" disabled={pagination.page === 1} onClick={() => setPagination((p) => ({ ...p, page: p.page - 1 }))}>Précédent</Button>
+          <Button className="bg-gray-100 hover:bg-gray-200 text-gray-700 border-0 disabled:opacity-40" disabled={pagination.page === 1} onClick={() => setPagination((p) => ({ ...p, page: p.page - 1 }))}>Précédent</Button>
           <span className="text-gray-700 text-sm">Page {pagination.page} / {Math.max(1, Math.ceil(pagination.total / pagination.limit))}</span>
-          <Button variant="outline" disabled={pagination.page >= Math.ceil(pagination.total / pagination.limit)} onClick={() => setPagination((p) => ({ ...p, page: p.page + 1 }))}>Suivant</Button>
+          <Button className="bg-gray-100 hover:bg-gray-200 text-gray-700 border-0 disabled:opacity-40" disabled={pagination.page >= Math.ceil(pagination.total / pagination.limit)} onClick={() => setPagination((p) => ({ ...p, page: p.page + 1 }))}>Suivant</Button>
         </div>
       </div>
     </div>

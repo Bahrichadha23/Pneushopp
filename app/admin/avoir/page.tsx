@@ -313,18 +313,18 @@ export default function AvoirPage() {
             Avoir créé
           </h1>
           <div className="flex gap-2">
-            <Button onClick={generatePDF} className="bg-black text-white">
+            <Button onClick={generatePDF} className="bg-[#0066CC] hover:bg-[#004E9E] text-white border-0">
               <Printer className="h-4 w-4 mr-2" />
               Télécharger PDF
             </Button>
-            <Button variant="outline" onClick={() => {
+            <Button onClick={() => {
               setSavedAvoir(null);
               setFoundOrder(null);
               setSearchInvoice("");
               setReason("");
               setNotes("");
               setReturnQuantities({});
-            }}>
+            }} className="bg-[#FF8C00] hover:bg-[#CC7000] text-white border-0">
               Nouvel avoir
             </Button>
           </div>
@@ -384,7 +384,7 @@ export default function AvoirPage() {
           <RotateCcw className="h-7 w-7 text-brand-gold" />
           Avoir / Retour
         </h1>
-        <Button variant="outline" className="gap-2" onClick={handleExportAvoirs} disabled={avoirHistory.length === 0}>
+        <Button className="gap-2 bg-[#FF8C00] hover:bg-[#CC7000] text-white border-0" onClick={handleExportAvoirs} disabled={avoirHistory.length === 0}>
           <FileDown className="h-4 w-4" />
           Exporter historique (Excel)
         </Button>

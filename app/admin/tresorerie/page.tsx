@@ -1067,24 +1067,21 @@ export default function TresoreriePage() {
 
             <div className="mt-3 flex flex-wrap items-center justify-end gap-2">
               <Button
-                variant="outline"
-                className="h-9 gap-2"
+                className="h-9 gap-2 bg-gray-100 hover:bg-gray-200 text-gray-700 border-0"
                 onClick={() => window.print()}
               >
                 <Printer className="h-4 w-4" />
                 Imprimer
               </Button>
               <Button
-                variant="outline"
-                className="h-9 gap-2"
+                className="h-9 gap-2 bg-[#FF8C00] hover:bg-[#CC7000] text-white border-0"
                 onClick={handleExportCSV}
               >
                 <FileDown className="h-4 w-4" />
                 Export CSV
               </Button>
               <Button
-                variant="outline"
-                className="h-9 gap-2"
+                className="h-9 gap-2 bg-[#FF8C00] hover:bg-[#CC7000] text-white border-0"
                 onClick={handleExportXLSX}
               >
                 <FileDown className="h-4 w-4" />
@@ -1284,8 +1281,8 @@ export default function TresoreriePage() {
                       <td className="px-2 py-2 align-top whitespace-nowrap">
                         <Button
                           size="sm"
-                          variant="outline"
                           onClick={() => setSelectedRecord(record)}
+                          className="bg-[#0066CC] hover:bg-[#004E9E] text-white border-0"
                         >
                           Voir facture
                         </Button>
@@ -1490,13 +1487,13 @@ export default function TresoreriePage() {
 
               {/* Actions */}
               <div className="flex justify-end gap-2 border-t pt-2">
-                <Button size="sm" variant="outline" onClick={() => setSelectedRecord(null)}>Fermer</Button>
+                <Button size="sm" onClick={() => setSelectedRecord(null)} className="bg-gray-100 hover:bg-gray-200 text-gray-700 border-0">Fermer</Button>
                 {selectedRecord.orderStatus !== 'pending' && selectedRecord.orderStatus !== 'cancelled' ? (
-                  <Button size="sm" onClick={() => printFacture(selectedRecord!)}>
+                  <Button size="sm" onClick={() => printFacture(selectedRecord!)} className="bg-[#0066CC] hover:bg-[#004E9E] text-white border-0">
                     <Printer className="h-3.5 w-3.5 mr-1" />Imprimer facture
                   </Button>
                 ) : (
-                  <Button size="sm" disabled title="Facture disponible après confirmation de la commande" className="opacity-50 cursor-not-allowed">
+                  <Button size="sm" disabled title="Facture disponible après confirmation de la commande" className="bg-gray-100 text-gray-400 border-0 cursor-not-allowed opacity-50">
                     <Printer className="h-3.5 w-3.5 mr-1" />Imprimer facture
                   </Button>
                 )}

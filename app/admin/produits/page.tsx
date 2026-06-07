@@ -473,10 +473,9 @@ export default function ProductsPage() {
       {/* Pagination */}
       <div className="flex flex-wrap justify-center gap-2 mt-6 text-sm sm:text-base">
         <Button
-          variant="outline"
           disabled={pagination.page === 1}
           onClick={() => loadProducts(pagination.page - 1)}
-          className="w-full sm:w-auto"
+          className="w-full sm:w-auto bg-gray-100 hover:bg-gray-200 text-gray-700 border-0 disabled:opacity-40"
         >
           Précédent
         </Button>
@@ -487,12 +486,11 @@ export default function ProductsPage() {
         </span>
 
         <Button
-          variant="outline"
           disabled={
             pagination.page >= Math.ceil(pagination.total / pagination.limit)
           }
           onClick={() => loadProducts(pagination.page + 1)}
-          className="w-full sm:w-auto"
+          className="w-full sm:w-auto bg-gray-100 hover:bg-gray-200 text-gray-700 border-0 disabled:opacity-40"
         >
           Suivant
         </Button>
@@ -737,8 +735,8 @@ export default function ProductsPage() {
               {/* Close Button */}
               <div className="flex justify-end pt-4 border-t">
                 <Button
-                  variant="outline"
                   onClick={() => setIsViewDialogOpen(false)}
+                  className="bg-gray-100 hover:bg-gray-200 text-gray-700 border-0"
                 >
                   Fermer
                 </Button>

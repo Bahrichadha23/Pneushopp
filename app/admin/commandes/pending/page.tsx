@@ -324,23 +324,23 @@ export default function PendingOrdersPage() {
                 <div className="flex space-x-2">
                   <Button
                     size="sm"
-                    variant="outline"
                     onClick={() => setSelectedOrder(order)}
+                    className="bg-[#0066CC] hover:bg-[#004E9E] text-white border-0"
                   >
                     <Eye className="h-4 w-4" />
                   </Button>
                   <Button
                     size="sm"
-                    variant="outline"
                     onClick={() => handleApprove(order.numericId, order.id)}
+                    className="bg-[#FF8C00] hover:bg-[#CC7000] text-white border-0"
                   >
                     <CheckCircle className="h-4 w-4 mr-1" />
                     Approuver
                   </Button>
                   <Button
                     size="sm"
-                    variant="outline"
                     onClick={() => handleReject(order.numericId, order.id)}
+                    className="bg-[#9B2226] hover:bg-[#730019] text-white border-0"
                   >
                     <XCircle className="h-4 w-4 mr-1" />
                     Rejeter
@@ -388,26 +388,24 @@ export default function PendingOrdersPage() {
                       <div className="flex space-x-2">
                         <Button
                           size="sm"
-                          variant="outline"
                           onClick={() => setSelectedOrder(order)}
                           title="Voir les détails"
+                          className="bg-[#0066CC] hover:bg-[#004E9E] text-white border-0"
                         >
                           <Eye className="h-4 w-4" />
                         </Button>
                         <Button
                           size="sm"
-                          variant="outline"
                           onClick={() => handleApprove(order.numericId, order.id)}
-                          className="text-brand-gold hover:text-brand-gold"
+                          className="bg-[#FF8C00] hover:bg-[#CC7000] text-white border-0"
                         >
                           <CheckCircle className="h-4 w-4 mr-1" />
                           Approuver
                         </Button>
                         <Button
                           size="sm"
-                          variant="outline"
                           onClick={() => handleReject(order.numericId, order.id)}
-                          className="text-brand-red hover:text-brand-red"
+                          className="bg-[#9B2226] hover:bg-[#730019] text-white border-0"
                         >
                           <XCircle className="h-4 w-4 mr-1" />
                           Rejeter
@@ -488,14 +486,14 @@ export default function PendingOrdersPage() {
 
               {/* Actions rapides depuis le modal */}
               <div className="flex gap-2 justify-end border-t pt-3">
-                <Button size="sm" variant="outline" onClick={() => setSelectedOrder(null)}>Fermer</Button>
-                <Button size="sm" variant="outline"
-                  className="text-brand-gold hover:text-brand-gold"
+                <Button size="sm" onClick={() => setSelectedOrder(null)} className="bg-gray-100 hover:bg-gray-200 text-gray-700 border-0">Fermer</Button>
+                <Button size="sm"
+                  className="bg-[#FF8C00] hover:bg-[#CC7000] text-white border-0"
                   onClick={() => { setSelectedOrder(null); handleApprove(selectedOrder.numericId, selectedOrder.id); }}>
                   <CheckCircle className="h-3.5 w-3.5 mr-1" /> Approuver
                 </Button>
-                <Button size="sm" variant="outline"
-                  className="text-brand-red hover:text-brand-red"
+                <Button size="sm"
+                  className="bg-[#9B2226] hover:bg-[#730019] text-white border-0"
                   onClick={() => { setSelectedOrder(null); handleReject(selectedOrder.numericId, selectedOrder.id); }}>
                   <XCircle className="h-3.5 w-3.5 mr-1" /> Rejeter
                 </Button>
@@ -562,9 +560,8 @@ export default function PendingOrdersPage() {
 
               <div className="flex gap-3 justify-end">
                 <Button
-                  variant="outline"
                   onClick={handleCancel}
-                  className="text-gray-600"
+                  className="bg-gray-100 hover:bg-gray-200 text-gray-700 border-0"
                 >
                   Non
                 </Button>

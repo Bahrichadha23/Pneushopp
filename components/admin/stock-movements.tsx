@@ -303,7 +303,7 @@ export default function StockMovements({ movements, onAddMovement }: StockMoveme
         )}
 
         <div className="flex gap-2 ml-auto">
-          <Button variant="outline" size="sm" onClick={handleExport} className="gap-2">
+          <Button size="sm" onClick={handleExport} className="gap-2 bg-[#FF8C00] hover:bg-[#CC7000] text-white border-0">
             <Download className="h-4 w-4" /> Excel
           </Button>
           <Button
@@ -444,11 +444,11 @@ export default function StockMovements({ movements, onAddMovement }: StockMoveme
             </div>
 
             <div className="flex justify-end gap-3 pt-2 border-t">
-              <Button variant="outline" onClick={() => setShowForm(false)}>Annuler</Button>
+              <Button onClick={() => setShowForm(false)} className="bg-gray-100 hover:bg-gray-200 text-gray-700 border-0">Annuler</Button>
               <Button
                 onClick={handleSubmit}
                 disabled={saving}
-                className="bg-gray-900 text-white hover:bg-gray-800 gap-2"
+                className="bg-[#FF8C00] hover:bg-[#CC7000] text-white border-0 gap-2"
               >
                 {saving
                   ? <><div className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" /> Enregistrement…</>

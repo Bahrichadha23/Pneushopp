@@ -165,7 +165,7 @@ export default function ClientsPage() {
           <Badge variant="secondary" className="text-sm">
             {filteredClients.length} clients
           </Badge>
-          <Button variant="outline" size="sm" onClick={handleExportClients} className="gap-2">
+          <Button size="sm" onClick={handleExportClients} className="gap-2 bg-[#FF8C00] hover:bg-[#CC7000] text-white border-0">
             <FileDown className="h-4 w-4" />
             Exporter Excel
           </Button>
@@ -278,8 +278,8 @@ export default function ClientsPage() {
             <div className="mt-2 flex justify-end">
               <Button
                 size="sm"
-                variant="outline"
                 onClick={() => handleViewClient(client)}
+                className="bg-[#0066CC] hover:bg-[#004E9E] text-white border-0"
               >
                 Voir détails
               </Button>
@@ -334,7 +334,7 @@ export default function ClientsPage() {
                     </TableCell>
                     <TableCell>{client.dateInscription}</TableCell>
                     <TableCell className="text-center">
-                      <Badge variant="outline">{client.totalCommandes}</Badge>
+                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-[#E3F0FF] text-[#0066CC]">{client.totalCommandes}</span>
                     </TableCell>
                     <TableCell className="font-medium text-brand-gold">
                       {formatCurrency(client.montantTotal)}
@@ -365,9 +365,9 @@ export default function ClientsPage() {
                 Détails du client
               </h2>
               <Button
-                variant="outline"
                 size="sm"
                 onClick={handleCloseClientDetails}
+                className="bg-gray-100 hover:bg-gray-200 text-gray-700 border-0"
               >
                 ✕
               </Button>
@@ -495,7 +495,7 @@ export default function ClientsPage() {
 
             {/* Action Buttons */}
             <div className="flex justify-end gap-3 mt-6">
-              <Button variant="outline" onClick={handleCloseClientDetails}>
+              <Button onClick={handleCloseClientDetails} className="bg-gray-100 hover:bg-gray-200 text-gray-700 border-0">
                 Fermer
               </Button>
             </div>

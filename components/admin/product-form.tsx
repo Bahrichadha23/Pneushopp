@@ -631,9 +631,9 @@ export default function ProductForm({
       <div className="flex justify-end space-x-4">
         <Button
           type="button"
-          variant="outline"
           onClick={onCancel}
           disabled={isLoading}
+          className="bg-gray-100 hover:bg-gray-200 text-gray-700 border-0"
         >
           Annuler
         </Button>

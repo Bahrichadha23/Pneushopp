@@ -491,10 +491,10 @@ export default function BonsCommandePage() {
             </div>
 
             <div className="px-4 pb-4 flex gap-2">
-              <Button size="sm" variant="outline" className="flex-1" onClick={() => handleViewBon(bon)}>
+              <Button size="sm" className="flex-1 bg-[#0066CC] hover:bg-[#004E9E] text-white border-0" onClick={() => handleViewBon(bon)}>
                 Voir
               </Button>
-              <Button size="sm" variant="outline" onClick={() => handleDownloadPurchaseOrder(bon)}>
+              <Button size="sm" className="bg-gray-100 hover:bg-gray-200 text-gray-700 border-0" onClick={() => handleDownloadPurchaseOrder(bon)}>
                 <Download className="h-4 w-4" />
               </Button>
               {bon.statut === "en_attente" && (
@@ -581,12 +581,12 @@ export default function BonsCommandePage() {
                       <TableCell>{getStatutBadge(bon.statut)}</TableCell>
                       <TableCell>
                         <div className="flex items-center gap-1.5">
-                          <Button size="sm" variant="outline" onClick={() => handleViewBon(bon)}>
+                          <Button size="sm" className="bg-[#0066CC] hover:bg-[#004E9E] text-white border-0" onClick={() => handleViewBon(bon)}>
                             Voir
                           </Button>
                           <Button
                             size="sm"
-                            variant="outline"
+                            className="bg-gray-100 hover:bg-gray-200 text-gray-700 border-0"
                             onClick={() => handleDownloadPurchaseOrder(bon)}
                             title="Télécharger PDF"
                           >
@@ -595,7 +595,7 @@ export default function BonsCommandePage() {
                           {bon.statut === "en_attente" && (
                             <Button
                               size="sm"
-                              className="bg-brand-orange hover:bg-brand-orange text-black font-semibold"
+                              className="bg-[#FF8C00] hover:bg-[#CC7000] text-white border-0"
                               onClick={() =>
                                 handleConfirmBon(
                                   Number(bon.id),
@@ -748,14 +748,13 @@ export default function BonsCommandePage() {
               {/* Footer */}
               <div className="px-6 py-4 border-t flex justify-end gap-2">
                 <Button
-                  variant="outline"
                   onClick={() => handleDownloadPurchaseOrder(selectedBon)}
-                  className="flex items-center gap-2"
+                  className="flex items-center gap-2 bg-gray-100 hover:bg-gray-200 text-gray-700 border-0"
                 >
                   <Download className="h-4 w-4" />
                   Télécharger PDF
                 </Button>
-                <Button onClick={() => setShowForm(false)}>Fermer</Button>
+                <Button onClick={() => setShowForm(false)} className="bg-[#FF8C00] hover:bg-[#CC7000] text-white border-0">Fermer</Button>
               </div>
             </motion.div>
           </motion.div>
@@ -786,12 +785,12 @@ export default function BonsCommandePage() {
                 Confirmer le bon <strong>{confirmation.bonNumber}</strong> ? Une livraison sera automatiquement créée.
               </p>
               <div className="flex gap-3 justify-end">
-                <Button variant="outline" onClick={handleCancelDialog}>
+                <Button onClick={handleCancelDialog} className="bg-gray-100 hover:bg-gray-200 text-gray-700 border-0">
                   Annuler
                 </Button>
                 <Button
                   onClick={handleConfirmDialogAction}
-                  className="bg-brand-orange hover:bg-brand-orange text-black font-semibold"
+                  className="bg-[#FF8C00] hover:bg-[#CC7000] text-white border-0"
                 >
                   Confirmer
                 </Button>

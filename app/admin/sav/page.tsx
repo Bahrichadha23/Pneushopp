@@ -157,13 +157,13 @@ export default function AdminSAVPage() {
           </div>
         </div>
         <div className="flex items-center gap-2">
-          <Button variant="outline" size="sm" onClick={handleExportExcel} disabled={exporting || loading}>
+          <Button size="sm" onClick={handleExportExcel} disabled={exporting || loading} className="bg-[#FF8C00] hover:bg-[#CC7000] text-white border-0">
             {exporting
               ? <Loader2 className="h-4 w-4 mr-1 animate-spin" />
               : <FileDown className="h-4 w-4 mr-1" />}
             Exporter (Excel)
           </Button>
-          <Button variant="outline" size="sm" onClick={loadClaims} disabled={loading}>
+          <Button size="sm" onClick={loadClaims} disabled={loading} className="bg-gray-100 hover:bg-gray-200 text-gray-700 border-0">
             <RefreshCw className={`h-4 w-4 mr-1 ${loading ? "animate-spin" : ""}`} />
             Actualiser
           </Button>
@@ -205,7 +205,7 @@ export default function AdminSAVPage() {
         <div className="bg-gray-100 border border-gray-300 text-gray-700 rounded-lg px-4 py-3 mb-4 flex items-center gap-2">
           <AlertTriangle className="h-4 w-4 flex-shrink-0" />
           <span>Erreur : {fetchError}</span>
-          <Button size="sm" variant="outline" onClick={loadClaims} className="ml-auto">Réessayer</Button>
+          <Button size="sm" onClick={loadClaims} className="ml-auto bg-[#0066CC] hover:bg-[#004E9E] text-white border-0">Réessayer</Button>
         </div>
       )}
 
@@ -357,19 +357,19 @@ export default function AdminSAVPage() {
                         {saveError && <p className="text-xs text-brand-red">{saveError}</p>}
                         <div className="flex gap-2">
                           <Button size="sm" onClick={() => handleSaveStatus(claim.id)} disabled={saving}
-                            className="bg-brand-orange hover:bg-brand-orange-dark text-black">
+                            className="bg-[#FF8C00] hover:bg-[#CC7000] text-white border-0">
                             {saving ? <Loader2 className="h-3 w-3 animate-spin mr-1" /> : <Check className="h-3 w-3 mr-1" />}
                             Enregistrer
                           </Button>
-                          <Button size="sm" variant="outline" onClick={() => setEditingId(null)}>Annuler</Button>
+                          <Button size="sm" onClick={() => setEditingId(null)} className="bg-gray-100 hover:bg-gray-200 text-gray-700 border-0">Annuler</Button>
                         </div>
                       </div>
                     ) : (
                       <div className="pt-2 border-t">
-                        <Button size="sm" variant="outline" onClick={() => {
+                        <Button size="sm" onClick={() => {
                           setEditingId(claim.id); setEditStatus(claim.status);
                           setEditNotes(claim.admin_notes || ""); setSaveError("");
-                        }}>
+                        }} className="bg-[#0066CC] hover:bg-[#004E9E] text-white border-0">
                           Modifier le statut / répondre
                         </Button>
                       </div>

@@ -695,9 +695,8 @@ export default function OrdersTable({
 
                       {["pending", "confirmed", "processing"].includes(order.status) && (
                         <Button
-                          variant="outline"
                           size="sm"
-                          className="border-[#9B2226] text-[#9B2226] hover:bg-[#F9E5E6] h-7 px-3 text-xs gap-1"
+                          className="bg-[#9B2226] hover:bg-[#730019] text-white h-7 px-3 text-xs gap-1 border-0"
                           onClick={() => onUpdateStatus(order.id, "cancelled")}
                           title="Annuler la commande"
                         >
@@ -797,9 +796,8 @@ export default function OrdersTable({
 
                 {["pending", "confirmed", "processing"].includes(order.status) && (
                   <Button
-                    variant="outline"
                     size="sm"
-                    className="border-[#9B2226] text-[#9B2226] hover:bg-[#F9E5E6] h-7 px-3 text-xs gap-1"
+                    className="bg-[#9B2226] hover:bg-[#730019] text-white h-7 px-3 text-xs gap-1 border-0"
                     onClick={() => onUpdateStatus(order.id, "cancelled")}
                   >
                     <Ban className="h-3 w-3" /> Annuler
@@ -1004,8 +1002,12 @@ export default function OrdersTable({
                   {Object.keys(dotSelections).length} / {dotConfirmOrder.items.length} article(s) assigné(s)
                 </span>
                 <div className="flex gap-3">
-                  <Button variant="outline" onClick={() => setDotConfirmOrder(null)} disabled={confirmingDot}>
-                    Annuler
+                  <Button
+                    className="bg-gray-100 hover:bg-gray-200 text-gray-700 border-0"
+                    onClick={() => setDotConfirmOrder(null)}
+                    disabled={confirmingDot}
+                  >
+                    Fermer
                   </Button>
                   <Button
                     onClick={handleDotConfirm}
@@ -1014,7 +1016,7 @@ export default function OrdersTable({
                       loadingDotBatches ||
                       dotConfirmOrder.items.some((_, idx) => !dotSelections[idx])
                     }
-                    className="bg-black text-white hover:bg-gray-800"
+                    className="bg-[#FF8C00] hover:bg-[#CC7000] text-white border-0"
                   >
                     {confirmingDot ? (
                       <>
@@ -1253,7 +1255,7 @@ export default function OrdersTable({
               <div className="sticky bottom-0 bg-gray-50 border-t px-6 py-4 flex justify-end">
                 <Button
                   onClick={() => setSelectedOrder(null)}
-                  variant="outline"
+                  className="bg-gray-100 hover:bg-gray-200 text-gray-700 border-0"
                 >
                   Fermer
                 </Button>

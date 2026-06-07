@@ -247,7 +247,7 @@ export default function RapportsPage() {
         <h1 className="text-2xl font-bold text-gray-900">
           Rapports & Analyses
         </h1>
-        <Button variant="outline" className="gap-2" onClick={handleExportRapports}>
+        <Button className="gap-2 bg-[#FF8C00] hover:bg-[#CC7000] text-white border-0" onClick={handleExportRapports}>
           <FileDown className="h-4 w-4" />
           Exporter Excel
         </Button>

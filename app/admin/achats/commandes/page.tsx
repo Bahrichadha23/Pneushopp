@@ -504,10 +504,10 @@ export default function AchatsCommandesPage() {
           <p className="text-sm text-gray-500 mt-0.5">Suivi des achats fournisseurs</p>
         </div>
         <div className="flex gap-2">
-          <Button variant="outline" size="sm" onClick={() => fetchOrders(true)} disabled={refreshing} className="gap-2">
+          <Button size="sm" onClick={() => fetchOrders(true)} disabled={refreshing} className="gap-2 bg-gray-100 hover:bg-gray-200 text-gray-700 border-0">
             <RefreshCw className={`w-4 h-4 ${refreshing ? "animate-spin" : ""}`} /> Actualiser
           </Button>
-          <Button variant="outline" size="sm" onClick={handleExportExcel} className="gap-2">
+          <Button size="sm" onClick={handleExportExcel} className="gap-2 bg-[#FF8C00] hover:bg-[#CC7000] text-white border-0">
             <FileDown className="w-4 h-4" /> Excel
           </Button>
         </div>

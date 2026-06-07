@@ -211,11 +211,11 @@ export default function JournalPage() {
           </div>
         </div>
         <div className="flex items-center gap-2">
-          <Button variant="outline" size="sm" onClick={handleExportExcel} disabled={loading || filtered.length === 0}>
+          <Button size="sm" onClick={handleExportExcel} disabled={loading || filtered.length === 0} className="bg-[#FF8C00] hover:bg-[#CC7000] text-white border-0">
             <FileDown className="h-4 w-4 mr-1" />
             Exporter (Excel)
           </Button>
-          <Button variant="outline" size="sm" onClick={loadLogs} disabled={loading}>
+          <Button size="sm" onClick={loadLogs} disabled={loading} className="bg-gray-100 hover:bg-gray-200 text-gray-700 border-0">
             <RefreshCw className={`h-4 w-4 mr-1 ${loading ? "animate-spin" : ""}`} />
             Actualiser
           </Button>
@@ -243,7 +243,7 @@ export default function JournalPage() {
         <div className="bg-red-50 border border-red-200 text-brand-red rounded-lg px-4 py-3 mb-4 flex items-center gap-2">
           <AlertTriangle className="h-4 w-4" />
           <span>Erreur : {error}</span>
-          <Button size="sm" variant="outline" onClick={loadLogs} className="ml-auto">
+          <Button size="sm" onClick={loadLogs} className="ml-auto bg-[#0066CC] hover:bg-[#004E9E] text-white border-0">
             Réessayer
           </Button>
         </div>

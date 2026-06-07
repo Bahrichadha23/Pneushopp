@@ -243,8 +243,8 @@ export default function ProductsTable({
           </Select>
 
           <Button
-            variant="outline"
             onClick={() => setSortOrder(sortOrder === "asc" ? "desc" : "asc")}
+            className="bg-gray-100 hover:bg-gray-200 text-gray-700 border-0"
           >
             {sortOrder === "asc" ? "↑" : "↓"}
           </Button>
