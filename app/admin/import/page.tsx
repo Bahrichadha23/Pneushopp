@@ -14,6 +14,7 @@ import {
   AlertCircle,
   Info,
   X,
+  History,
 } from "lucide-react";
 import { useAuth } from "@/contexts/auth-context";
 import { useRouter } from "next/navigation";
@@ -60,6 +61,12 @@ interface LiveSummary {
 
 type NoticeType = "success" | "info" | "error";
 
+interface ImportedFileEntry {
+  name: string;
+  size: number;
+  date: string; // ISO
+}
+
 export default function ImportPage() {
   const [file, setFile] = useState<File | null>(null);
   const [isUploading, setIsUploading] = useState(false);
@@ -79,12 +86,20 @@ export default function ImportPage() {
     } catch { return null; }
   });
   const [error, setError] = useState<string | null>(null);
+  const [importHistory, setImportHistory] = useState<ImportedFileEntry[]>(() => {
+    if (typeof window === "undefined") return [];
+    try {
+      const saved = localStorage.getItem("importHistory");
+      return saved ? JSON.parse(saved) : [];
+    } catch { return []; }
+  });
   const [notice, setNotice] = useState<{ type: NoticeType; text: string } | null>(
     null
   );
   const isMountedRef = useRef(true);
   const processingNotifiedRef = useRef(false);
   const currentFileKeyRef = useRef<string | null>(null);
+  const currentImportedFileRef = useRef<{ name: string; size: number } | null>(null);
   const { user } = useAuth();
   const router = useRouter();
 
@@ -129,23 +144,30 @@ export default function ImportPage() {
   }
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = event.target.files?.[0];
-    if (selectedFile) {
-      setFile(selectedFile);
-      // Ne pas effacer importResult ici — il reste visible jusqu'au prochain import
-      setJobStatus(null);
-      setJobMessage(null);
-      setLiveSummary(null);
-      // Vérifier si ce fichier a déjà été importé
-      try {
-        const imported: string[] = JSON.parse(localStorage.getItem("importedFilenames") || "[]");
-        const fileKey = `${selectedFile.name}__${selectedFile.size}`;
-        if (imported.includes(fileKey)) {
-          setError("Ce fichier a déjà été importé. Veuillez utiliser un fichier différent.");
-        } else {
-          setError(null);
-        }
-      } catch { setError(null); }
-    }
+    if (!selectedFile) return;
+
+    const input = event.target;
+
+    // Vérifier si ce fichier a déjà été importé — dans ce cas, on le refuse
+    // immédiatement (mesure de sécurité contre les doublons et les erreurs de fichier)
+    try {
+      const imported: string[] = JSON.parse(localStorage.getItem("importedFilenames") || "[]");
+      const fileKey = `${selectedFile.name}__${selectedFile.size}`;
+      if (imported.includes(fileKey)) {
+        setFile(null);
+        setError(`Le fichier "${selectedFile.name}" a déjà été importé précédemment. Il a été refusé pour éviter un doublon — veuillez sélectionner un fichier différent.`);
+        showNotice("error", "Fichier refusé : ce fichier a déjà été importé.");
+        if (input) input.value = "";
+        return;
+      }
+    } catch {}
+
+    setFile(selectedFile);
+    setError(null);
+    // Ne pas effacer importResult ici — il reste visible jusqu'au prochain import
+    setJobStatus(null);
+    setJobMessage(null);
+    setLiveSummary(null);
   };
 
   const sleep = (ms: number) =>
@@ -240,6 +262,21 @@ export default function ImportPage() {
             }
           }
         } catch {}
+        // Ajouter le fichier à l'historique des imports (visible à l'écran)
+        try {
+          if (currentImportedFileRef.current) {
+            const entry: ImportedFileEntry = {
+              name: currentImportedFileRef.current.name,
+              size: currentImportedFileRef.current.size,
+              date: new Date().toISOString(),
+            };
+            setImportHistory((prev) => {
+              const updated = [entry, ...prev].slice(0, 50);
+              try { localStorage.setItem("importHistory", JSON.stringify(updated)); } catch {}
+              return updated;
+            });
+          }
+        } catch {}
         setIsPolling(false);
         setFile(null);
         // Reset the file input so the same file can be re-imported if needed
@@ -284,6 +321,7 @@ export default function ImportPage() {
     setNotice(null);
     processingNotifiedRef.current = false;
     currentFileKeyRef.current = `${file.name}__${file.size}`;
+    currentImportedFileRef.current = { name: file.name, size: file.size };
 
     let progressInterval: ReturnType<typeof setInterval> | null = null;
 
@@ -604,6 +642,68 @@ export default function ImportPage() {
         </Card>
       )}
 
+      {/* Historique des fichiers importés — mesure de sécurité pour vérifier qu'on ne réimporte pas le même fichier par erreur */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center justify-between">
+            <span className="flex items-center">
+              <History className="h-5 w-5 mr-2" />
+              Fichiers déjà importés ({importHistory.length})
+            </span>
+            {importHistory.length > 0 && (
+              <button
+                onClick={() => {
+                  setImportHistory([]);
+                  try {
+                    localStorage.removeItem("importHistory");
+                    localStorage.removeItem("importedFilenames");
+                  } catch {}
+                }}
+                className="text-xs text-gray-400 hover:text-gray-600 underline"
+              >
+                Vider l'historique
+              </button>
+            )}
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          {importHistory.length === 0 ? (
+            <p className="text-sm text-gray-400">Aucun fichier importé pour le moment.</p>
+          ) : (
+            <div className="border rounded-lg overflow-hidden max-h-64 overflow-y-auto">
+              <table className="w-full text-sm">
+                <thead className="bg-gray-50 sticky top-0">
+                  <tr>
+                    <th className="text-left px-4 py-2 text-gray-600 font-medium w-10">#</th>
+                    <th className="text-left px-4 py-2 text-gray-600 font-medium">Nom du fichier</th>
+                    <th className="text-left px-4 py-2 text-gray-600 font-medium">Taille</th>
+                    <th className="text-left px-4 py-2 text-gray-600 font-medium">Date d'import</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {importHistory.map((entry, i) => (
+                    <tr key={`${entry.name}-${entry.size}-${entry.date}`} className={i % 2 === 0 ? "bg-white" : "bg-gray-50"}>
+                      <td className="px-4 py-2 text-gray-400">{i + 1}</td>
+                      <td className="px-4 py-2 text-gray-800 flex items-center gap-2">
+                        <FileSpreadsheet className="h-4 w-4 text-yellow-600 flex-shrink-0" />
+                        {entry.name}
+                      </td>
+                      <td className="px-4 py-2 text-gray-600">{(entry.size / 1024 / 1024).toFixed(2)} MB</td>
+                      <td className="px-4 py-2 text-gray-600">
+                        {new Date(entry.date).toLocaleString("fr-FR", {
+                          day: "2-digit", month: "2-digit", year: "numeric",
+                          hour: "2-digit", minute: "2-digit",
+                        })}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
       {/* File Upload */}
       <Card>
         <CardHeader>
@@ -638,38 +738,59 @@ export default function ImportPage() {
           </div>
 
           {file && (
-            <div className="flex items-center justify-between p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
-              <div className="flex items-center space-x-3">
-                <FileSpreadsheet className="h-8 w-8 text-yellow-600 flex-shrink-0" />
-                <div>
-                  <p className="font-semibold text-yellow-800">{file.name}</p>
-                  <p className="text-sm text-yellow-600">
-                    {(file.size / 1024 / 1024).toFixed(2)} MB — Prêt à importer
-                  </p>
-                </div>
+            <div className="space-y-3">
+              <p className="text-xs text-gray-500">
+                Vérifiez bien qu'il s'agit du bon fichier avant de confirmer — cette étape est une mesure de sécurité pour éviter toute erreur d'import.
+              </p>
+              <div className="border rounded-lg overflow-hidden">
+                <table className="w-full text-sm">
+                  <thead className="bg-gray-50">
+                    <tr>
+                      <th className="text-left px-4 py-2 text-gray-600 font-medium">Fichier sélectionné</th>
+                      <th className="text-left px-4 py-2 text-gray-600 font-medium">Taille</th>
+                      <th className="text-right px-4 py-2 text-gray-600 font-medium">Action</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr className="bg-yellow-50">
+                      <td className="px-4 py-3">
+                        <div className="flex items-center gap-3">
+                          <FileSpreadsheet className="h-6 w-6 text-yellow-600 flex-shrink-0" />
+                          <span className="font-semibold text-yellow-800">{file.name}</span>
+                        </div>
+                      </td>
+                      <td className="px-4 py-3 text-yellow-700">
+                        {(file.size / 1024 / 1024).toFixed(2)} MB
+                      </td>
+                      <td className="px-4 py-3 text-right">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          disabled={isUploading || isPolling}
+                          onClick={() => {
+                            setFile(null);
+                            // reset the file input
+                            const input = document.getElementById("file-upload") as HTMLInputElement;
+                            if (input) input.value = "";
+                          }}
+                          title="Retirer ce fichier"
+                          className="text-red-500 hover:text-red-700 hover:bg-red-50"
+                        >
+                          <X className="h-4 w-4" />
+                        </Button>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
               </div>
-              <div className="flex items-center gap-2 ml-4">
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  disabled={isUploading || isPolling}
-                  onClick={() => {
-                    setFile(null);
-                    // reset the file input
-                    const input = document.getElementById("file-upload") as HTMLInputElement;
-                    if (input) input.value = "";
-                  }}
-                  title="Supprimer le fichier sélectionné"
-                  className="text-red-500 hover:text-red-700 hover:bg-red-50"
-                >
-                  <X className="h-4 w-4" />
-                </Button>
+              <div className="flex justify-end">
                 <Button
                   onClick={handleImport}
                   disabled={isUploading || isPolling}
-                  className="bg-yellow-500 hover:bg-yellow-600 text-black"
+                  className="bg-yellow-500 hover:bg-yellow-600 text-black gap-2"
                 >
-                  {isUploading || isPolling ? "Import en cours..." : "Importer"}
+                  <CheckCircle className="h-4 w-4" />
+                  {isUploading || isPolling ? "Import en cours..." : "Confirmer et importer"}
                 </Button>
               </div>
             </div>
