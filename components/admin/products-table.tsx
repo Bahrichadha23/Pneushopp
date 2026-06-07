@@ -316,9 +316,9 @@ export default function ProductsTable({
           </div>
         </div>
 
-        <div className="bg-white p-4 rounded-lg border border-l-4 border-l-[#FF8C00]">
+        <div className="bg-white p-4 rounded-lg border border-l-4 border-l-yellow-500">
           <div className="flex items-center">
-            <Package className="h-8 w-8 text-[#FF8C00]" />
+            <Package className="h-8 w-8 text-yellow-600" />
             <div className="ml-3">
               <p className="text-sm font-medium text-gray-500">
                 Produits en promo
@@ -395,7 +395,7 @@ export default function ProductsTable({
                     <div>
                       {product.is_on_sale ? (
                         <>
-                          <p className="text-[#FF8C00] font-bold">
+                          <p className="text-yellow-600 font-bold">
                             {formatCurrency(product.price)}
                           </p>
                           <p className="text-sm text-gray-500 line-through">

@@ -348,7 +348,7 @@ function DotPanel({
                   key={batch.id}
                   className={`rounded-xl border-2 overflow-hidden transition-all ${
                     isSelling
-                      ? "border-brand-orange shadow-md"
+                      ? "border-yellow-500 shadow-md"
                       : isFirst
                       ? "border-yellow-300 bg-yellow-50"
                       : "border-gray-200 bg-white"
@@ -363,7 +363,7 @@ function DotPanel({
                           DOT {batch.dot || "—"}
                         </span>
                         {isFirst && (
-                          <span className="text-[10px] font-bold bg-brand-orange text-white px-2 py-0.5 rounded-full">
+                          <span className="text-[10px] font-bold bg-yellow-500 text-white px-2 py-0.5 rounded-full">
                             PRIORITÉ DOT
                           </span>
                         )}
@@ -391,7 +391,7 @@ function DotPanel({
                     {!isSelling ? (
                       <button
                         onClick={() => openSell(batch)}
-                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold bg-brand-orange hover:bg-brand-orange-dark text-white transition-colors shadow-sm"
+                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold bg-yellow-500 hover:bg-yellow-600 text-white transition-colors shadow-sm"
                       >
                         <Minus className="h-3 w-3" /> Vendre
                       </button>
@@ -424,7 +424,7 @@ function DotPanel({
                           <input
                             type="number" min={1} max={batch.quantity} value={sellQty}
                             onChange={(e) => { const v = parseInt(e.target.value); if (!isNaN(v)) setSellQty(Math.min(batch.quantity, Math.max(1, v))); }}
-                            className="w-14 text-center border border-gray-300 rounded px-1 py-1 text-sm font-bold focus:outline-none focus:ring-2 focus:ring-brand-orange"
+                            className="w-14 text-center border border-gray-300 rounded px-1 py-1 text-sm font-bold focus:outline-none focus:ring-2 focus:ring-yellow-500"
                           />
                           <button
                             onClick={() => setSellQty((q) => Math.min(batch.quantity, q + 1))}
@@ -449,7 +449,7 @@ function DotPanel({
                           onFocus={() => setShowSugg(true)}
                           onBlur={() => setTimeout(() => setShowSugg(false), 200)}
                           placeholder="Nom, email ou téléphone…"
-                          className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-orange"
+                          className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-yellow-500"
                         />
                         {selectedClient && (
                           <div className="mt-1 flex items-center gap-2 text-xs bg-yellow-100 border border-yellow-300 rounded-lg px-3 py-1.5">
@@ -490,7 +490,7 @@ function DotPanel({
                           <input
                             type="number" min={0} max={100} value={sellDiscount}
                             onChange={(e) => { const v = parseInt(e.target.value); if (!isNaN(v)) setSellDiscount(Math.min(100, Math.max(0, v))); else setSellDiscount(0); }}
-                            className="w-14 text-center border border-gray-300 rounded px-1 py-1 text-sm font-bold focus:outline-none focus:ring-2 focus:ring-brand-orange"
+                            className="w-14 text-center border border-gray-300 rounded px-1 py-1 text-sm font-bold focus:outline-none focus:ring-2 focus:ring-yellow-500"
                             placeholder="0"
                           />
                           <span className="text-xs text-gray-400">%</span>
@@ -509,7 +509,7 @@ function DotPanel({
                           <input
                             type="number" min={0} step={0.001} value={sellDeliveryCost}
                             onChange={(e) => { const v = parseFloat(e.target.value); setSellDeliveryCost(isNaN(v) ? 0 : Math.max(0, v)); }}
-                            className="w-20 text-center border border-gray-300 rounded px-1 py-1 text-sm font-bold focus:outline-none focus:ring-2 focus:ring-brand-orange"
+                            className="w-20 text-center border border-gray-300 rounded px-1 py-1 text-sm font-bold focus:outline-none focus:ring-2 focus:ring-yellow-500"
                             placeholder="0.000"
                           />
                           <span className="text-xs text-gray-400">DT</span>
@@ -530,7 +530,7 @@ function DotPanel({
                       {sellMsg?.ok && lastSale && (
                         <Button
                           onClick={generateDotSaleInvoice}
-                          className="w-full bg-brand-orange hover:bg-brand-orange-dark text-black font-bold shadow-sm"
+                          className="w-full bg-yellow-500 hover:bg-yellow-600 text-black font-bold shadow-sm"
                         >
                           <Printer className="h-4 w-4 mr-2" /> Imprimer et Valider
                         </Button>
@@ -539,7 +539,7 @@ function DotPanel({
                         <Button
                           onClick={() => handleSell(batch)}
                           disabled={selling || sellQty > batch.quantity}
-                          className="w-full bg-brand-orange hover:bg-brand-orange-dark text-white font-bold shadow-sm"
+                          className="w-full bg-yellow-500 hover:bg-yellow-600 text-white font-bold shadow-sm"
                         >
                           {selling
                             ? <><Loader2 className="h-4 w-4 animate-spin mr-2" />Traitement…</>
@@ -568,7 +568,7 @@ function DotPanel({
         {sellMsg?.ok && lastSale ? (
           <Button
             onClick={generateDotSaleInvoice}
-            className="bg-brand-orange hover:bg-brand-orange-dark text-black font-bold shadow-sm px-6"
+            className="bg-yellow-500 hover:bg-yellow-600 text-black font-bold shadow-sm px-6"
           >
             <Printer className="h-4 w-4 mr-2" /> Imprimer et Valider
           </Button>
@@ -582,7 +582,7 @@ function DotPanel({
               const b = batches.find(x => x.id === sellBatchId);
               return b ? sellQty > b.quantity : false;
             })()}
-            className="bg-brand-orange hover:bg-brand-orange-dark text-white font-bold shadow-sm px-6 disabled:opacity-40"
+            className="bg-yellow-500 hover:bg-yellow-600 text-white font-bold shadow-sm px-6 disabled:opacity-40"
           >
             {selling
               ? <><Loader2 className="h-4 w-4 animate-spin mr-2" />Traitement…</>
@@ -814,7 +814,7 @@ function OrderPrepPanel({ onClose }: { onClose: () => void }) {
                       const v = parseFloat(e.target.value);
                       setDeliveryCostInput(isNaN(v) ? 0 : Math.max(0, v));
                     }}
-                    className="w-24 text-right border border-yellow-300 rounded px-2 py-0.5 text-sm font-bold bg-white focus:outline-none focus:ring-2 focus:ring-brand-orange"
+                    className="w-24 text-right border border-yellow-300 rounded px-2 py-0.5 text-sm font-bold bg-white focus:outline-none focus:ring-2 focus:ring-yellow-500"
                   />
                   <span className="text-xs text-gray-400">DT</span>
                 </div>
@@ -830,7 +830,7 @@ function OrderPrepPanel({ onClose }: { onClose: () => void }) {
               <div className="flex items-center justify-between mb-2">
                 <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Produits à préparer</p>
                 <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${
-                  allDone ? "bg-yellow-100 text-brand-gold" : "bg-orange-100 text-orange-700"
+                  allDone ? "bg-yellow-100 text-brand-gold" : "bg-yellow-200 text-yellow-800"
                 }`}>
                   {doneCount}/{assignments.length} prêts
                 </span>
@@ -849,13 +849,13 @@ function OrderPrepPanel({ onClose }: { onClose: () => void }) {
                       <div
                         key={asgn.itemIndex}
                         className={`rounded-xl border-2 overflow-hidden transition-all ${
-                          asgn.confirmed ? "border-brand-orange bg-yellow-50" : "border-gray-200 bg-white"
+                          asgn.confirmed ? "border-yellow-500 bg-yellow-50" : "border-gray-200 bg-white"
                         }`}
                       >
                         {/* Item header */}
                         <div className="flex items-start gap-3 px-4 py-3">
                           <div className={`mt-0.5 w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 ${
-                            asgn.confirmed ? "border-brand-orange bg-brand-orange" : "border-gray-300"
+                            asgn.confirmed ? "border-yellow-500 bg-yellow-500" : "border-gray-300"
                           }`}>
                             {asgn.confirmed && <Check className="h-3 w-3 text-white" />}
                           </div>
@@ -956,7 +956,7 @@ function OrderPrepPanel({ onClose }: { onClose: () => void }) {
                                 updateItem(asgn.itemIndex, { confirmed: true });
                               }}
                               disabled={!asgn.batchId || (!!selBatch && asgn.qty > selBatch.quantity)}
-                              className="w-full py-1.5 rounded-lg text-sm font-bold bg-brand-orange hover:bg-brand-orange-dark text-black disabled:opacity-40 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
+                              className="w-full py-1.5 rounded-lg text-sm font-bold bg-yellow-500 hover:bg-yellow-600 text-black disabled:opacity-40 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
                             >
                               <Check className="h-3.5 w-3.5" /> Valider ce produit
                             </button>
@@ -1002,7 +1002,7 @@ function OrderPrepPanel({ onClose }: { onClose: () => void }) {
               onClose();
             }}
             disabled={!allDone}
-            className="bg-brand-orange hover:bg-brand-orange-dark text-black font-bold shadow-sm disabled:opacity-40 whitespace-nowrap"
+            className="bg-yellow-500 hover:bg-yellow-600 text-black font-bold shadow-sm disabled:opacity-40 whitespace-nowrap"
           >
             Confirmer dans Commandes →
           </Button>
@@ -1264,7 +1264,7 @@ export default function StockManagementPage() {
           </Button>
           <Button
             size="sm"
-            className="gap-2 bg-[#FF8C00] hover:bg-[#CC7000] text-white border-0"
+            className="gap-2 bg-yellow-500 hover:bg-yellow-600 text-white border-0"
             onClick={() => setShowOrderPrep(true)}
           >
             <ClipboardList className="h-4 w-4" />
@@ -1502,11 +1502,11 @@ export default function StockManagementPage() {
                       setActionModal({ isOpen: false, product: null });
                       setDotPanel(p);
                     }}
-                    className="flex flex-col items-center gap-2 p-4 rounded-xl border-2 border-[#FF8C00] bg-[#FFF3E0] hover:bg-[#FFE0B2] transition-colors text-center"
+                    className="flex flex-col items-center gap-2 p-4 rounded-xl border-2 border-yellow-500 bg-yellow-50 hover:bg-yellow-100 transition-colors text-center"
                   >
                     <span className="text-2xl">🛒</span>
-                    <span className="font-bold text-[#FF8C00] text-sm">Vendre</span>
-                    <span className="text-[11px] text-[#CC7000]">Choisir le lot DOT et le client</span>
+                    <span className="font-bold text-yellow-600 text-sm">Vendre</span>
+                    <span className="text-[11px] text-yellow-700">Choisir le lot DOT et le client</span>
                   </button>
 
                   {/* Diminuer stock */}
@@ -1583,7 +1583,7 @@ export default function StockManagementPage() {
                     <label className="block text-sm font-medium text-gray-700 mb-1">Minimum</label>
                     <input type="number" min={0} value={statusPanel.minStock}
                       onChange={(e) => setStatusPanel((p) => ({ ...p, minStock: Math.max(0, parseInt(e.target.value) || 0) }))}
-                      className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-400" />
+                      className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-yellow-400" />
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Maximum</label>
@@ -1594,7 +1594,7 @@ export default function StockManagementPage() {
                 </div>
                 <div className="flex gap-3 justify-end">
                   <Button onClick={closeStatusPanel} className="bg-gray-100 hover:bg-gray-200 text-gray-700 border-0">Annuler</Button>
-                  <Button onClick={handleStatusPanelConfirm} className="bg-[#FF8C00] hover:bg-[#CC7000] text-white border-0">Confirmer</Button>
+                  <Button onClick={handleStatusPanelConfirm} className="bg-yellow-500 hover:bg-yellow-600 text-white border-0">Confirmer</Button>
                 </div>
               </motion.div>
             </motion.div>
@@ -1620,7 +1620,7 @@ export default function StockManagementPage() {
                 <div className="flex gap-3 justify-end">
                   <Button onClick={() => setConfirmation({ isOpen: false, productId: null, change: 0, productName: "" })} className="bg-gray-100 hover:bg-gray-200 text-gray-700 border-0">Non</Button>
                   <Button onClick={async () => { await updateStock(confirmation.productId!, confirmation.change); setConfirmation({ isOpen: false, productId: null, change: 0, productName: "" }); }}
-                    className="bg-[#FF8C00] hover:bg-[#CC7000] text-white border-0">Oui</Button>
+                    className="bg-yellow-500 hover:bg-yellow-600 text-white border-0">Oui</Button>
                 </div>
               </motion.div>
             </motion.div>

@@ -1,4 +1,4 @@
-// Formulaire d'ajout/modification de produits
+﻿// Formulaire d'ajout/modification de produits
 "use client";
 import { useState, useEffect } from "react";
 import type React from "react";
@@ -634,7 +634,7 @@ export default function ProductForm({
         <Button
           type="submit"
           disabled={isLoading}
-          className="bg-[#FF8C00] hover:bg-[#CC7000] text-white"
+          className="bg-yellow-500 hover:bg-yellow-600 text-white"
         >
           {isLoading ? (
             <>
