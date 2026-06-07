@@ -456,8 +456,8 @@ export default function RapportsPage() {
                       </div>
                       {/* Barre double : réclamations totales + résolues */}
                       <div className="relative h-2 w-full rounded-full bg-gray-100 overflow-hidden">
-                        <div className="absolute inset-y-0 left-0 rounded-full bg-blue-300" style={{ width: `${pct}%` }} />
-                        <div className="absolute inset-y-0 left-0 rounded-full bg-red-400" style={{ width: `${pct * resolvePct / 100}%` }} />
+                        <div className="absolute inset-y-0 left-0 rounded-full bg-[#0066CC]" style={{ width: `${pct}%` }} />
+                        <div className="absolute inset-y-0 left-0 rounded-full bg-[#9B2226]" style={{ width: `${pct * resolvePct / 100}%` }} />
                       </div>
                     </div>
                   );
@@ -466,8 +466,8 @@ export default function RapportsPage() {
 
               {/* Légende */}
               <div className="mt-4 flex items-center gap-4 text-xs text-gray-500">
-                <div className="flex items-center gap-1.5"><span className="h-2 w-3 rounded-full bg-blue-300" />Réclamations totales</div>
-                <div className="flex items-center gap-1.5"><span className="h-2 w-3 rounded-full bg-red-400" />Résolues</div>
+                <div className="flex items-center gap-1.5"><span className="h-2 w-3 rounded-full bg-[#0066CC]" />Réclamations totales</div>
+                <div className="flex items-center gap-1.5"><span className="h-2 w-3 rounded-full bg-[#9B2226]" />Résolues</div>
               </div>
             </CardContent>
           </Card>
