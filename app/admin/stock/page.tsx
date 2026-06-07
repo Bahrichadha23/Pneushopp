@@ -1286,12 +1286,12 @@ export default function StockManagementPage() {
           </CardHeader>
           <CardContent><div className="text-2xl font-bold text-gray-900">{stock.length}</div><p className="text-xs text-gray-400">produits</p></CardContent>
         </Card>
-        <Card className="border-l-4 border-l-amber-500">
+        <Card className="border-l-4 border-l-yellow-500">
           <CardHeader className="flex justify-between items-center pb-1">
             <CardTitle className="text-sm font-medium text-gray-500">Stock faible</CardTitle>
-            <div className="p-2 bg-amber-50 rounded-lg"><AlertTriangle className="h-4 w-4 text-amber-500" /></div>
+            <div className="p-2 bg-yellow-50 rounded-lg"><AlertTriangle className="h-4 w-4 text-yellow-500" /></div>
           </CardHeader>
-          <CardContent><div className="text-2xl font-bold text-amber-600">{lowStockItems.length}</div><p className="text-xs text-gray-400">produits</p></CardContent>
+          <CardContent><div className="text-2xl font-bold text-yellow-700">{lowStockItems.length}</div><p className="text-xs text-gray-400">produits</p></CardContent>
         </Card>
         <Card className="border-l-4 border-l-[#A68823]">
           <CardHeader className="flex justify-between items-center pb-1">
@@ -1344,11 +1344,11 @@ export default function StockManagementPage() {
             const count = value ? stock.filter(i => getStockStatus(i.stock, i.stockMin, i.stockMax).status === value).length : null;
             const activeColor = value === null ? "bg-gray-800 text-white border-gray-800"
               : value === "En stock" ? "bg-[#0066CC] text-white border-[#0066CC]"
-              : value === "Stock faible" ? "bg-amber-500 text-white border-amber-500"
+              : value === "Stock faible" ? "bg-yellow-500 text-white border-yellow-500"
               : "bg-[#9B2226] text-white border-[#9B2226]";
             const idleColor = value === null ? "border-gray-300 bg-white text-gray-700 hover:bg-gray-100"
               : value === "En stock" ? "border-[#0066CC]/30 bg-white text-[#0066CC] hover:bg-[#E3F0FF]"
-              : value === "Stock faible" ? "border-amber-300 bg-white text-amber-700 hover:bg-amber-50"
+              : value === "Stock faible" ? "border-yellow-300 bg-white text-yellow-800 hover:bg-yellow-50"
               : "border-[#9B2226]/30 bg-white text-[#9B2226] hover:bg-red-50";
             return (
               <button key={label} onClick={() => setStatusFilter(value)}
@@ -1437,7 +1437,7 @@ export default function StockManagementPage() {
                         onClick={() => openStatusPanel(item)}
                         className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold cursor-pointer hover:opacity-80 transition-opacity
                           ${stockStatus.status === "Rupture de stock" ? "bg-[#9B2226] text-white" :
-                            stockStatus.status === "Stock faible" ? "bg-amber-500 text-white" :
+                            stockStatus.status === "Stock faible" ? "bg-yellow-500 text-white" :
                             stockStatus.status === "En stock" ? "bg-emerald-600 text-white" :
                             "bg-[#0066CC] text-white"}`}
                       >

@@ -71,7 +71,7 @@ export default function ProductsTable({
       return {
         status: "low",
         label: "Stock faible",
-        className: "bg-amber-500 text-white border-amber-500",
+        className: "bg-yellow-500 text-white border-yellow-500",
       };
     } else if (product.stock <= 10) {
       return {
@@ -267,9 +267,9 @@ export default function ProductsTable({
           </div>
         </div>
 
-        <div className="bg-white p-4 rounded-lg border border-l-4 border-l-amber-500">
+        <div className="bg-white p-4 rounded-lg border border-l-4 border-l-yellow-500">
           <div className="flex items-center">
-            <AlertTriangle className="h-8 w-8 text-amber-500" />
+            <AlertTriangle className="h-8 w-8 text-yellow-500" />
             <div className="ml-3">
               <p className="text-sm font-medium text-gray-500">Stock faible</p>
               <p className="text-2xl font-bold text-gray-900">
