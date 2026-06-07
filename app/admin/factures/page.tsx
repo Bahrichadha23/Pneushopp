@@ -193,7 +193,7 @@ export default function FacturesPage() {
             </p>
           </div>
         </div>
-        <Button onClick={handleExportExcel} className="gap-2 bg-[#FF8C00] hover:bg-[#CC7000] text-white border-0">
+        <Button onClick={handleExportExcel} className="gap-2 bg-[#0066CC] hover:bg-[#004C99] text-white border-0">
           <FileDown className="h-4 w-4" />
           Exporter Excel
         </Button>

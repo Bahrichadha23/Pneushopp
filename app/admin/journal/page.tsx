@@ -211,7 +211,7 @@ export default function JournalPage() {
           </div>
         </div>
         <div className="flex items-center gap-2">
-          <Button size="sm" onClick={handleExportExcel} disabled={loading || filtered.length === 0} className="bg-[#FF8C00] hover:bg-[#CC7000] text-white border-0">
+          <Button size="sm" onClick={handleExportExcel} disabled={loading || filtered.length === 0} className="bg-[#0066CC] hover:bg-[#004C99] text-white border-0">
             <FileDown className="h-4 w-4 mr-1" />
             Exporter (Excel)
           </Button>

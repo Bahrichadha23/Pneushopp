@@ -10,7 +10,7 @@ import {
 } from "@/components/ui/dialog";
 import ProductsTable from "@/components/admin/products-table";
 import ProductForm from "@/components/admin/product-form";
-import { Plus, Download, Upload, Loader2, AlertCircle, FileSpreadsheet } from "lucide-react";
+import { Plus, Download, Loader2, AlertCircle, FileSpreadsheet } from "lucide-react";
 import { adminService } from "@/lib/services/admin";
 import type { AdminProduct, ProductCreateData } from "@/lib/services/admin";
 import type { Product } from "@/types/product";
@@ -443,15 +443,8 @@ export default function ProductsPage() {
 
         <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
           <Button
-            onClick={() => router.push("/admin/import")}
-            className="w-full sm:w-auto bg-[#FF8C00] hover:bg-[#CC7000] text-white border-0"
-          >
-            <Upload className="h-4 w-4 mr-2" />
-            Importer Excel
-          </Button>
-          <Button
             onClick={handleExportProducts}
-            className="w-full sm:w-auto bg-[#FF8C00] hover:bg-[#CC7000] text-white border-0"
+            className="w-full sm:w-auto bg-[#0066CC] hover:bg-[#004C99] text-white border-0"
           >
             <FileSpreadsheet className="h-4 w-4 mr-2" />
             Exporter Excel

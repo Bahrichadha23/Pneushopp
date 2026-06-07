@@ -1270,7 +1270,7 @@ export default function StockManagementPage() {
             <ClipboardList className="h-4 w-4" />
             Préparer une commande
           </Button>
-          <Button size="sm" className="gap-2 bg-[#FF8C00] hover:bg-[#CC7000] text-white border-0" onClick={handleExportStock}>
+          <Button size="sm" className="gap-2 bg-[#0066CC] hover:bg-[#004C99] text-white border-0" onClick={handleExportStock}>
             <FileDown className="h-4 w-4" />
             Exporter (Excel)
           </Button>

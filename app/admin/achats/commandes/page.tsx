@@ -507,7 +507,7 @@ export default function AchatsCommandesPage() {
           <Button size="sm" onClick={() => fetchOrders(true)} disabled={refreshing} className="gap-2 bg-gray-100 hover:bg-gray-200 text-gray-700 border-0">
             <RefreshCw className={`w-4 h-4 ${refreshing ? "animate-spin" : ""}`} /> Actualiser
           </Button>
-          <Button size="sm" onClick={handleExportExcel} className="gap-2 bg-[#FF8C00] hover:bg-[#CC7000] text-white border-0">
+          <Button size="sm" onClick={handleExportExcel} className="gap-2 bg-[#0066CC] hover:bg-[#004C99] text-white border-0">
             <FileDown className="w-4 h-4" /> Excel
           </Button>
         </div>

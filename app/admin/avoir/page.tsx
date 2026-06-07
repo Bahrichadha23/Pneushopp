@@ -384,7 +384,7 @@ export default function AvoirPage() {
           <RotateCcw className="h-7 w-7 text-brand-gold" />
           Avoir / Retour
         </h1>
-        <Button className="gap-2 bg-[#FF8C00] hover:bg-[#CC7000] text-white border-0" onClick={handleExportAvoirs} disabled={avoirHistory.length === 0}>
+        <Button className="gap-2 bg-[#0066CC] hover:bg-[#004C99] text-white border-0" onClick={handleExportAvoirs} disabled={avoirHistory.length === 0}>
           <FileDown className="h-4 w-4" />
           Exporter historique (Excel)
         </Button>

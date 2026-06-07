@@ -157,7 +157,7 @@ export default function AdminSAVPage() {
           </div>
         </div>
         <div className="flex items-center gap-2">
-          <Button size="sm" onClick={handleExportExcel} disabled={exporting || loading} className="bg-[#FF8C00] hover:bg-[#CC7000] text-white border-0">
+          <Button size="sm" onClick={handleExportExcel} disabled={exporting || loading} className="bg-[#0066CC] hover:bg-[#004C99] text-white border-0">
             {exporting
               ? <Loader2 className="h-4 w-4 mr-1 animate-spin" />
               : <FileDown className="h-4 w-4 mr-1" />}
