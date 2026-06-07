@@ -220,7 +220,7 @@ export default function AdminSidebar({
       try {
         const { data } = await apiClient.get("/purchase-orders/");
         const pending = (data.results ?? data).filter(
-          (b: any) => b.statut === "en_attente" || b.status === "draft"
+          (b: any) => b.status === "draft"
         );
         setBonsCount(pending.length);
       } catch {}

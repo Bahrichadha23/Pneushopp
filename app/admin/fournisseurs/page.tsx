@@ -36,7 +36,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { API_URL } from "@/lib/config";
 import { useAuth } from "@/contexts/auth-context";
 import { useRouter } from "next/navigation";
 
@@ -124,47 +123,6 @@ export default function FournisseursPage() {
     fournisseurs.length > 0
       ? fournisseurs.reduce((sum, f) => sum + f.rating, 0) / fournisseurs.length
       : 0;
-  function formatDate(date: { toISOString: () => string }) {
-    return date.toISOString().split("T")[0]; // gives YYYY-MM-DD
-  }
-  // const handleCreatePurchaseOrder = async (supplierId: number) => {
-  //   try {
-  //     const token = localStorage.getItem("access_token");
-  //     console.log("Token:", token);
-  //     const res = await fetch(`${API_URL}/purchase-orders/`, {
-  //       method: "POST",
-  //       headers: {
-  //         "Content-Type": "application/json",
-  //         Authorization: `Bearer ${token}`,
-  //       },
-
-  //       body: JSON.stringify({
-  //         fournisseur: supplierId,
-  //         statut: "en_attente",
-  //         priorite: "normale",
-  //         articles: [
-  //           { id: 1, nom: "Article par défaut", quantite: 1, prix_unitaire: 0 },
-  //         ],
-  //         total_ht: 0,
-  //         total_ttc: 0,
-  //         date_commande: formatDate(new Date()), // current date
-  //         date_livraison_prevue: formatDate(
-  //           new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
-  //         ), // +7 days
-  //       }),
-  //     });
-  //     console.log("Response status:", res.status);
-  //     if (!res.ok) throw new Error("Erreur création commande");
-  //     const newBon = await res.json();
-  //     console.log("Bon créé:", newBon);
-
-  //     // optional: redirect to bons page
-  //     window.location.href = "/admin/bons-commande";
-  //   } catch (err) {
-  //     console.error(err);
-  //   }
-  // };
-
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -288,13 +246,6 @@ export default function FournisseursPage() {
                 >
                   <Trash className="h-4 w-4" />
                 </Button>
-                {/* <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={() => handleCreatePurchaseOrder(f.id)}
-                >
-                  Commander
-                </Button> */}
               </div>
             </div>
           </Card>
@@ -371,15 +322,6 @@ export default function FournisseursPage() {
                             <Trash className="h-4 w-4" />
                           </Button>
                         </div>
-
-                        {/* <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => handleCreatePurchaseOrder(f.id)}
-                          className="w-full"
-                        >
-                          Commander
-                        </Button> */}
                       </div>
                     </TableCell>
                   </TableRow>

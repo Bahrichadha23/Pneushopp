@@ -52,51 +52,6 @@ export default function OrdersPage() {
     );
   }
 
-  const handleViewOrder = (orderId: string) => {
-    const order = orders.find((o) => o.id === orderId);
-    if (order) {
-      const details = `
-  Commande: ${order.orderNumber}
-  Client: ${order.customerName}
-  Email: ${order.customerEmail}
-  Total: ${order.totalAmount}
-  Statut: ${order.status}
-  Date: ${order.createdAt.toLocaleDateString()}
-  Articles: ${order.items.length} produit(s)
-      `;
-      alert(details);
-    }
-  };
-  const createPurchaseOrder = async (orderId: string) => {
-    try {
-      const token = localStorage.getItem("access_token");
-      const response = await fetch(`${API_URL}/purchase-orders/`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          order: parseInt(orderId),
-          date_commande: new Date().toISOString().split("T")[0],
-          total_ht: 0,
-          total_ttc: 0,
-          statut: "en_attente",
-          priorite: "normale",
-        }),
-      });
-
-      if (response.ok) {
-        alert("Bon de commande créé avec succès!");
-      }
-    } catch (error) {
-      console.error("Erreur:", error);
-    }
-  };
-  const handleEditOrder = (orderId: string) => {
-    console.log("Modifier commande:", orderId);
-  };
-
   const handleUpdateStatus = async (
     orderId: string,
     status: Order["status"]
@@ -280,8 +235,6 @@ export default function OrdersPage() {
 
       <OrdersTable
         orders={orders}
-        onViewOrder={handleViewOrder}
-        onEditOrder={handleEditOrder}
         onUpdateStatus={handleUpdateStatus}
       />
     </div>

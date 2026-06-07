@@ -45,9 +45,10 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Search, Plus, Trash2, Printer, Save, X, List, Loader2, Eye, Edit, FileDown } from "lucide-react";
+import { Search, Plus, Trash2, Printer, Save, X, List, Loader2, Eye, Edit, FileDown, Package } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { API_URL } from "@/lib/config";
+import { adminService } from "@/lib/services/admin";
 import type { Supplier } from "@/types/supplier";
 import ExcelJS from "exceljs";
 
@@ -92,6 +93,7 @@ interface Product {
   emplacement?: string;
   barcode?: string;
   fabrication_date?: string;
+  image?: string;
 }
 
 export default function AchatsPage() {
@@ -119,25 +121,30 @@ export default function AchatsPage() {
     let createdProductId: number | undefined;
     let imageUrl = "";
 
-    // Try to create the product in DB (with image if provided)
+    // Crée réellement le produit en base via le endpoint admin (le endpoint
+    // public /products/ est en lecture seule — POST y renvoie 405).
+    // NB : le champ "image" du modèle est une URL (pas un fichier), donc
+    // l'image choisie ici reste pour l'instant un aperçu local uniquement —
+    // aucun endpoint générique d'upload d'image n'existe côté backend.
     try {
-      const token = localStorage.getItem("access_token");
-      const formData = new FormData();
-      formData.append("name", manualDesignation.trim());
-      if (manualReference.trim()) formData.append("reference", manualReference.trim());
-      formData.append("price", String(manualPrice));
-      formData.append("stock", "0");
-      if (manualImageFile) formData.append("image", manualImageFile);
-
-      const res = await fetch(`${API_URL}/products/`, {
-        method: "POST",
-        headers: { Authorization: `Bearer ${token}` },
-        body: formData,
-      });
-      if (res.ok) {
-        const data = await res.json();
-        createdProductId = data.id;
-        imageUrl = data.image || "";
+      const slug = `manuel-${manualDesignation.trim().toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 40) || "produit"}-${Date.now()}`;
+      const response = await adminService.createProduct({
+        name: manualDesignation.trim(),
+        slug,
+        description: "",
+        price: manualPrice,
+        category: 1,
+        brand: "",
+        size: "",
+        season: "all_season",
+        stock: 0,
+        is_featured: false,
+        is_active: true,
+        ...(manualReference.trim() ? { reference: manualReference.trim() } : {}),
+      } as any);
+      if (response.success && response.data) {
+        createdProductId = response.data.id;
+        imageUrl = response.data.image || "";
       }
     } catch {}
 

@@ -27,8 +27,6 @@ import { createPurchaseOrder } from "@/lib/services/purchase-order";
 import { motion, AnimatePresence } from "framer-motion";
 interface OrdersTableProps {
   orders: Order[];
-  onViewOrder: (orderId: string) => void;
-  onEditOrder: (orderId: string) => void;
   onUpdateStatus: (orderId: string, status: Order["status"]) => void;
 }
 import jsPDF from "jspdf";
@@ -338,8 +336,6 @@ const fps = (n: string) => (n || "").replace(/^CPS/i, "FPS");
 
 export default function OrdersTable({
   orders,
-  onViewOrder,
-  onEditOrder,
   onUpdateStatus,
 }: OrdersTableProps) {
   const [searchTerm, setSearchTerm] = useState("");
