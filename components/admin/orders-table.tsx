@@ -535,7 +535,7 @@ export default function OrdersTable({
 
   const getStatusBadge = (status: Order["status"]) => {
     const styles: Record<string, string> = {
-      pending:    "bg-[#A68823]    text-white",   // Or — en attente
+      pending:    "bg-[#FF8C00]    text-white",   // Orange — en attente
       confirmed:  "bg-[#0066CC]   text-white",   // Bleu  — confirmée
       processing: "bg-yellow-500  text-white",   // Jaune — en cours
       shipped:    "bg-gray-500    text-white",   // Gris  — expédiée
@@ -561,7 +561,7 @@ export default function OrdersTable({
 
   const getPaymentStatusBadge = (status: Order["paymentStatus"]) => {
     const styles: Record<string, string> = {
-      pending:  "bg-[#A68823]  text-white",
+      pending:  "bg-[#FF8C00]  text-white",
       paid:     "bg-[#003D7A]  text-white",
       failed:   "bg-[#9B2226]  text-white",
       refunded: "bg-gray-500   text-white",
