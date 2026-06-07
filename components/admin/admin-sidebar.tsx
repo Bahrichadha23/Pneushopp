@@ -92,7 +92,7 @@ const MENU_ADMIN: MenuItem[] = [
     icon: ShoppingCart,
     children: [
       { title: "Achat",                   href: "/admin/achats",           icon: ShoppingCart },
-      { title: "Bons de commande achat",  href: "/admin/achats/commandes", icon: ClipboardList },
+      { title: "Bons de livraison achat/facture",  href: "/admin/achats/commandes", icon: ClipboardList },
     ],
   },
   { title: "Trésorerie Vente",      href: "/admin/tresorerie",   icon: Wallet },
@@ -134,7 +134,7 @@ const MENU_PURCHASING: MenuItem[] = [
     icon: ShoppingCart,
     children: [
       { title: "Achat", href: "/admin/achats", icon: ShoppingCart },
-      { title: "Bons de commande achat", href: "/admin/achats/commandes", icon: ClipboardList },
+      { title: "Bons de livraison achat/facture", href: "/admin/achats/commandes", icon: ClipboardList },
     ],
   },
   { title: "Support", href: "/admin/communication", icon: MessageSquare },
@@ -286,7 +286,7 @@ export default function AdminSidebar({
               {pendingCount}
             </span>
           )}
-          {item.title === "Bons de commande achat" && bonsCount > 0 && (
+          {item.title === "Bons de livraison achat/facture" && bonsCount > 0 && (
             <span className="inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 text-xs font-bold rounded-full bg-[#FF8C00] text-white">
               {bonsCount}
             </span>

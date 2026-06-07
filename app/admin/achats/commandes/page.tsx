@@ -49,7 +49,7 @@ const handleDownloadAchat = (order: any) => {
 
   pdf.setFont("helvetica", "bold");
   pdf.setFontSize(18);
-  pdf.text("COMMANDE D'ACHAT", pageWidth / 2, y, { align: "center" });
+  pdf.text("BON DE LIVRAISON ACHAT/FACTURE", pageWidth / 2, y, { align: "center" });
   y += 8;
   pdf.setFontSize(11);
   pdf.text(`N° ${order.order_number}`, pageWidth / 2, y, { align: "center" });
@@ -178,7 +178,7 @@ const handleDownloadAchat = (order: any) => {
 
   pdf.setFont("helvetica", "italic");
   pdf.setFontSize(8);
-  pdf.text("PNEU SHOP - Commande d'achat fournisseur", pageWidth / 2, pageHeight - 15, { align: "center" });
+  pdf.text("PNEU SHOP - Bon de livraison achat/facture fournisseur", pageWidth / 2, pageHeight - 15, { align: "center" });
   pdf.text(`Généré le ${new Date().toLocaleDateString("fr-FR")} à ${new Date().toLocaleTimeString("fr-FR")}`, pageWidth / 2, pageHeight - 10, { align: "center" });
 
   pdf.save(`achat-${order.order_number}.pdf`);
@@ -212,7 +212,7 @@ function DetailModal({ order, onClose }: { order: any; onClose: () => void }) {
         {/* Header */}
         <div className="flex items-center justify-between bg-gray-900 px-6 py-4 shrink-0">
           <div>
-            <p className="text-xs text-gray-400 uppercase tracking-widest">Commande d'achat</p>
+            <p className="text-xs text-gray-400 uppercase tracking-widest">Bon de livraison achat/facture</p>
             <h2 className="text-white font-semibold text-lg">{order.order_number}</h2>
             <p className="text-gray-400 text-sm">{order.supplier_name}</p>
           </div>
@@ -500,7 +500,7 @@ export default function AchatsCommandesPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Commandes d'Achat</h1>
+          <h1 className="text-2xl font-bold text-gray-900">Bons de Livraison Achat/Facture</h1>
           <p className="text-sm text-gray-500 mt-0.5">Suivi des achats fournisseurs</p>
         </div>
         <div className="flex gap-2">
