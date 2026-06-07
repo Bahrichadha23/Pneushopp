@@ -42,13 +42,13 @@ const STATUS_IDX: Record<Livraison["statut"], number> = { prepare: 0, en_route: 
 
 const statusBadge = (statut: Livraison["statut"]) => {
   const cfg = {
-    prepare:  { cls: "bg-yellow-50 text-yellow-700 border border-yellow-300",       label: "En préparation" },
-    en_route: { cls: "bg-gray-100 text-gray-700  border border-gray-300",      label: "En route" },
-    livre:    { cls: "bg-red-50 text-red-700 border border-red-300",    label: "Livré" },
+    prepare:  { cls: "bg-yellow-500 text-white",       label: "En préparation" },
+    en_route: { cls: "bg-gray-500 text-white",      label: "En route" },
+    livre:    { cls: "bg-[#9B2226] text-white",    label: "Livré" },
   } as const;
-  const c = cfg[statut] ?? { cls: "bg-gray-100 text-gray-600", label: statut };
+  const c = cfg[statut] ?? { cls: "bg-gray-500 text-white", label: statut };
   return (
-    <span className={`inline-flex items-center gap-1.5 rounded-full px-3 py-0.5 text-xs font-medium ${c.cls}`}>
+    <span className={`inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold ${c.cls}`}>
       {c.label}
     </span>
   );
