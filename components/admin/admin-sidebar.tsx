@@ -301,7 +301,7 @@ export default function AdminSidebar({
   return (
     <>
       <div
-        className={`fixed inset-y-0 left-0 z-40 w-64 bg-[#0D1117] flex flex-col transform transition-transform duration-200 ease-in-out overflow-hidden
+        className={`fixed inset-y-0 left-0 z-40 w-64 bg-[#0F1729] flex flex-col transform transition-transform duration-200 ease-in-out overflow-hidden
           ${sidebarOpen ? "translate-x-0" : "-translate-x-full"} ${
           desktopSidebarOpen ? "md:translate-x-0" : "md:-translate-x-full"
         }`}
