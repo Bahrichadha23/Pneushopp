@@ -141,7 +141,7 @@ export default function ConfirmedOrdersPage() {
             <CardTitle className="text-sm font-medium">
               Total commandes
             </CardTitle>
-            <CheckCircle className="h-4 w-4 text-yellow-500" />
+            <CheckCircle className="h-4 w-4 text-[#FF8C00]" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{filteredOrders.length}</div>
@@ -210,8 +210,8 @@ export default function ConfirmedOrdersPage() {
                   <TableCell>{order.date}</TableCell>
                   <TableCell>
                     <Badge className={{
-                      confirmed: "bg-yellow-400 text-black",
-                      processing: "bg-yellow-500 text-black",
+                      confirmed: "bg-[#0066CC] text-white",
+                      processing: "bg-[#FF8C00] text-white",
                       shipped: "bg-gray-700 text-white",
                       delivered: "bg-black text-white",
                     }[order.status] || "bg-gray-500 text-white"}>

@@ -1321,13 +1321,13 @@ export default function StockManagementPage() {
             const isActive = value === null ? statusFilter === null : statusFilter === value;
             const count = value ? stock.filter(i => getStockStatus(i.stock, i.stockMin, i.stockMax).status === value).length : null;
             const activeColor = value === null ? "bg-gray-800 text-white border-gray-800"
-              : value === "En stock" ? "bg-brand-orange text-black border-brand-orange"
-              : value === "Stock faible" ? "bg-brand-orange text-white border-brand-orange"
-              : "bg-brand-red text-white border-red-500";
+              : value === "En stock" ? "bg-[#0066CC] text-white border-[#0066CC]"
+              : value === "Stock faible" ? "bg-amber-500 text-white border-amber-500"
+              : "bg-[#9B2226] text-white border-[#9B2226]";
             const idleColor = value === null ? "border-gray-300 bg-white text-gray-700 hover:bg-gray-100"
-              : value === "En stock" ? "border-yellow-300 bg-white text-brand-gold hover:bg-yellow-50"
-              : value === "Stock faible" ? "border-yellow-300 bg-white text-brand-gold hover:bg-yellow-50"
-              : "border-red-300 bg-white text-brand-red hover:bg-red-50";
+              : value === "En stock" ? "border-[#0066CC]/30 bg-white text-[#0066CC] hover:bg-[#E3F0FF]"
+              : value === "Stock faible" ? "border-amber-300 bg-white text-amber-700 hover:bg-amber-50"
+              : "border-[#9B2226]/30 bg-white text-[#9B2226] hover:bg-red-50";
             return (
               <button key={label} onClick={() => setStatusFilter(value)}
                 className={`px-2.5 py-1 rounded-full text-xs font-medium border transition-all ${isActive ? activeColor : idleColor}`}>

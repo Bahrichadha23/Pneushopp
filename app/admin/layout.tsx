@@ -70,7 +70,7 @@ export default function AdminLayout({
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="flex flex-col items-center gap-3">
-          <div className="w-10 h-10 border-4 border-yellow-400 border-t-transparent rounded-full animate-spin" />
+          <div className="w-10 h-10 border-4 border-[#FF8C00] border-t-transparent rounded-full animate-spin" />
           <p className="text-gray-400 text-sm">Chargement…</p>
         </div>
       </div>
@@ -98,7 +98,7 @@ export default function AdminLayout({
           </p>
           <Button
             onClick={() => router.push("/admin")}
-            className="bg-yellow-500 hover:bg-yellow-600 text-white w-full"
+            className="bg-[#FF8C00] hover:bg-[#CC7000] text-white w-full"
           >
             Retour au tableau de bord
           </Button>

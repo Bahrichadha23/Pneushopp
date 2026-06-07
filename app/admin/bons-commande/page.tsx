@@ -402,7 +402,7 @@ export default function BonsCommandePage() {
         <Card>
           <CardHeader className="flex flex-row justify-between items-center pb-2">
             <CardTitle className="text-sm font-medium">Total</CardTitle>
-            <Package className="h-4 w-4 text-yellow-500" />
+            <Package className="h-4 w-4 text-[#FF8C00]" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{totalCommandes}</div>
@@ -411,7 +411,7 @@ export default function BonsCommandePage() {
         <Card>
           <CardHeader className="flex flex-row justify-between items-center pb-2">
             <CardTitle className="text-sm font-medium">En attente</CardTitle>
-            <Calendar className="h-4 w-4 text-yellow-500" />
+            <Calendar className="h-4 w-4 text-[#FF8C00]" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-brand-gold">{commandesEnAttente}</div>
@@ -420,7 +420,7 @@ export default function BonsCommandePage() {
         <Card>
           <CardHeader className="flex flex-row justify-between items-center pb-2">
             <CardTitle className="text-sm font-medium">Confirmées</CardTitle>
-            <Check className="h-4 w-4 text-yellow-500" />
+            <Check className="h-4 w-4 text-[#FF8C00]" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-brand-gold">{commandesConfirmees}</div>
@@ -429,7 +429,7 @@ export default function BonsCommandePage() {
         <Card>
           <CardHeader className="flex flex-row justify-between items-center pb-2">
             <CardTitle className="text-sm font-medium">Livrées</CardTitle>
-            <Truck className="h-4 w-4 text-yellow-500" />
+            <Truck className="h-4 w-4 text-[#FF8C00]" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-black font-bold">{commandesLivrees}</div>
@@ -647,7 +647,7 @@ export default function BonsCommandePage() {
                   )}
                 </div>
                 <div className="text-right">
-                  <div className="text-lg font-bold text-yellow-400">
+                  <div className="text-lg font-bold text-[#A68823]">
                     {fmtMoney(selectedBon.total_with_delivery || selectedBon.totalTTC)}
                   </div>
                   {selectedBon.tracking_number && (

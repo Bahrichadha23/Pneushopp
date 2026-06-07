@@ -65,22 +65,22 @@ export default function ProductsTable({
       return {
         status: "out",
         label: "Rupture",
-        variant: "destructive" as const,
+        className: "bg-[#9B2226] text-white border-[#9B2226]",
       };
     } else if (product.stock <= 5) {
       return {
         status: "low",
         label: "Stock faible",
-        variant: "destructive" as const,
+        className: "bg-amber-500 text-white border-amber-500",
       };
     } else if (product.stock <= 10) {
       return {
         status: "medium",
         label: "Stock moyen",
-        variant: "secondary" as const,
+        className: "bg-[#0066CC] text-white border-[#0066CC]",
       };
     } else {
-      return { status: "good", label: "En stock", variant: "default" as const };
+      return { status: "good", label: "En stock", className: "bg-emerald-600 text-white border-emerald-600" };
     }
   };
 
@@ -253,9 +253,9 @@ export default function ProductsTable({
 
       {/* Statistiques rapides */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <div className="bg-white p-4 rounded-lg border">
+        <div className="bg-white p-4 rounded-lg border border-l-4 border-l-[#0066CC]">
           <div className="flex items-center">
-            <Package className="h-8 w-8 text-blue-500" />
+            <Package className="h-8 w-8 text-[#0066CC]" />
             <div className="ml-3">
               <p className="text-sm font-medium text-gray-500">
                 Produits par page
@@ -267,9 +267,9 @@ export default function ProductsTable({
           </div>
         </div>
 
-        <div className="bg-white p-4 rounded-lg border">
+        <div className="bg-white p-4 rounded-lg border border-l-4 border-l-amber-500">
           <div className="flex items-center">
-            <AlertTriangle className="h-8 w-8 text-orange-500" />
+            <AlertTriangle className="h-8 w-8 text-amber-500" />
             <div className="ml-3">
               <p className="text-sm font-medium text-gray-500">Stock faible</p>
               <p className="text-2xl font-bold text-gray-900">
@@ -283,9 +283,9 @@ export default function ProductsTable({
           </div>
         </div>
 
-        <div className="bg-white p-4 rounded-lg border">
+        <div className="bg-white p-4 rounded-lg border border-l-4 border-l-[#9B2226]">
           <div className="flex items-center">
-            <AlertTriangle className="h-8 w-8 text-red-500" />
+            <AlertTriangle className="h-8 w-8 text-[#9B2226]" />
             <div className="ml-3">
               <p className="text-sm font-medium text-gray-500">Ruptures</p>
               <p className="text-2xl font-bold text-gray-900">
@@ -299,12 +299,12 @@ export default function ProductsTable({
           </div>
         </div>
 
-        <div className="bg-white p-4 rounded-lg border">
+        <div className="bg-white p-4 rounded-lg border border-l-4 border-l-[#A68823]">
           <div className="flex items-center">
-            <Package className="h-8 w-8 text-brand-gold" />
+            <Package className="h-8 w-8 text-[#A68823]" />
             <div className="ml-3">
               <p className="text-sm font-medium text-gray-500">Valeur stock</p>
-              <p className="text-2xl font-bold text-gray-900">
+              <p className="text-2xl font-bold text-[#A68823]">
                 {formatCurrency(
                   filteredAndSortedProducts.reduce(
                     (sum, p) => sum + p.price * p.stock,
@@ -316,9 +316,9 @@ export default function ProductsTable({
           </div>
         </div>
 
-        <div className="bg-white p-4 rounded-lg border">
+        <div className="bg-white p-4 rounded-lg border border-l-4 border-l-[#FF8C00]">
           <div className="flex items-center">
-            <Package className="h-8 w-8 text-purple-500" />
+            <Package className="h-8 w-8 text-[#FF8C00]" />
             <div className="ml-3">
               <p className="text-sm font-medium text-gray-500">
                 Produits en promo
@@ -395,7 +395,7 @@ export default function ProductsTable({
                     <div>
                       {product.is_on_sale ? (
                         <>
-                          <p className="text-red-600 font-bold">
+                          <p className="text-[#FF8C00] font-bold">
                             {formatCurrency(product.price)}
                           </p>
                           <p className="text-sm text-gray-500 line-through">
@@ -416,9 +416,9 @@ export default function ProductsTable({
                     <span className="font-medium text-sm">{product.stock}</span>
                   </td>
                   <td className="w-[120px] px-4 py-4">
-                    <Badge variant={stockStatus.variant}>
+                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold border ${(stockStatus as any).className}`}>
                       {stockStatus.label}
-                    </Badge>
+                    </span>
                   </td>
                   <td className="w-[140px] px-4 py-4">
                     <div className="flex items-center space-x-1">

@@ -125,26 +125,26 @@ export default function DashboardStatsComponent({ stats, analytics }: DashboardS
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="border-l-4 border-l-amber-500">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Stock faible</CardTitle>
-            <AlertTriangle className="h-4 w-4 text-orange-500" />
+            <AlertTriangle className="h-4 w-4 text-amber-500" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-orange-600">{stats.low_stock_products}</div>
+            <div className="text-2xl font-bold text-amber-600">{stats.low_stock_products}</div>
             <p className="text-xs text-muted-foreground">
               Produits nécessitant un réapprovisionnement
             </p>
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="border-l-4 border-l-[#FF8C00]">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Produits vedettes</CardTitle>
-            <Star className="h-4 w-4 text-yellow-500" />
+            <Star className="h-4 w-4 text-[#FF8C00]" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats.featured_products}</div>
+            <div className="text-2xl font-bold text-[#FF8C00]">{stats.featured_products}</div>
             <p className="text-xs text-muted-foreground">
               Produits mis en avant
             </p>
@@ -201,14 +201,14 @@ export default function DashboardStatsComponent({ stats, analytics }: DashboardS
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center">
-              <AlertTriangle className="h-5 w-5 text-orange-500 mr-2" />
+              <AlertTriangle className="h-5 w-5 text-amber-500 mr-2" />
               Produits à réapprovisionner
             </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {(stats.low_stock_details || []).map((product) => (
-                <div key={product.id} className="p-3 border rounded-lg bg-orange-50">
+                <div key={product.id} className="p-3 border rounded-lg bg-amber-50 border-amber-200">
                   <div className="flex items-center justify-between mb-2">
                     <h4 className="font-medium text-sm">{getBrandName(product.brand)}</h4>
                     <Badge variant="destructive" className="text-xs">
@@ -231,21 +231,21 @@ export default function DashboardStatsComponent({ stats, analytics }: DashboardS
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="text-center p-4 bg-blue-50 rounded-lg">
+            <div className="text-center p-4 bg-[#E3F0FF] rounded-lg border border-[#0066CC]/20">
               <p className="text-sm text-gray-600">Prix moyen</p>
-              <p className="text-xl font-bold text-brand-blue">
+              <p className="text-xl font-bold text-[#0066CC]">
                 {formatCurrency(stats.price_stats?.avg_price || 0)}
               </p>
             </div>
-            <div className="text-center p-4 bg-yellow-50 rounded-lg">
+            <div className="text-center p-4 bg-[#FBF5E0] rounded-lg border border-[#A68823]/20">
               <p className="text-sm text-gray-600">Prix minimum</p>
-              <p className="text-xl font-bold text-brand-gold">
+              <p className="text-xl font-bold text-[#A68823]">
                 {formatCurrency(stats.price_stats?.min_price || 0)}
               </p>
             </div>
-            <div className="text-center p-4 bg-gray-100 rounded-lg">
+            <div className="text-center p-4 bg-[#FFF3E0] rounded-lg border border-[#FF8C00]/20">
               <p className="text-sm text-gray-600">Prix maximum</p>
-              <p className="text-xl font-bold text-gray-600">
+              <p className="text-xl font-bold text-[#FF8C00]">
                 {formatCurrency(stats.price_stats?.max_price || 0)}
               </p>
             </div>
@@ -265,8 +265,8 @@ export default function DashboardStatsComponent({ stats, analytics }: DashboardS
               {/* Header + KPIs */}
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-2">
-                  <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-yellow-100">
-                    <Shield className="h-4 w-4 text-brand-gold" />
+                  <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#FBF5E0]">
+                    <Shield className="h-4 w-4 text-[#A68823]" />
                   </div>
                   <div>
                     <p className="text-sm font-semibold text-gray-800">SAV — Top produits réclamés</p>

@@ -226,7 +226,7 @@ export default function CommunicationPage() {
         </div>
         <Button
           onClick={() => setShowForm(!showForm)}
-          className="bg-yellow-500 hover:bg-yellow-600 text-white gap-2"
+          className="bg-[#FF8C00] hover:bg-[#CC7000] text-white gap-2"
         >
           <Plus className="w-4 h-4" />
           Nouvelle demande
@@ -291,7 +291,7 @@ export default function CommunicationPage() {
                 <Button
                   type="submit"
                   disabled={submitting}
-                  className="bg-yellow-500 hover:bg-yellow-600 text-white"
+                  className="bg-[#FF8C00] hover:bg-[#CC7000] text-white"
                 >
                   {submitting ? (
                     <Loader2 className="w-4 h-4 animate-spin" />
@@ -338,7 +338,7 @@ export default function CommunicationPage() {
       {/* Messages list */}
       {loading ? (
         <div className="flex justify-center py-16">
-          <Loader2 className="w-7 h-7 animate-spin text-yellow-500" />
+          <Loader2 className="w-7 h-7 animate-spin text-[#FF8C00]" />
         </div>
       ) : messages.length === 0 ? (
         <div className="text-center py-16 text-gray-400">
@@ -499,7 +499,7 @@ function MessageCard({
                 <Button
                   size="sm"
                   onClick={() => onMarkDone(msg.id)}
-                  className="bg-yellow-500 hover:bg-yellow-600 text-black gap-1 text-xs"
+                  className="bg-[#FF8C00] hover:bg-[#CC7000] text-white gap-1 text-xs"
                 >
                   <CheckCircle className="w-3.5 h-3.5" />
                   Marquer terminé
@@ -510,7 +510,7 @@ function MessageCard({
                   size="sm"
                   variant="outline"
                   onClick={() => onMarkInProgress(msg.id)}
-                  className="gap-1 text-xs border-yellow-300 text-yellow-700 hover:bg-yellow-50"
+                  className="gap-1 text-xs border-[#FF8C00]/40 text-[#FF8C00] hover:bg-[#FFF3E0]"
                 >
                   <Clock className="w-3.5 h-3.5" />
                   En cours
@@ -543,7 +543,7 @@ function MessageCard({
                     key={c.id}
                     className={`rounded-lg p-3 text-sm ${
                       c.is_developer
-                        ? "bg-yellow-50 border border-yellow-200"
+                        ? "bg-[#FFF3E0] border border-[#FF8C00]/20"
                         : "bg-gray-50 border border-gray-100"
                     }`}
                   >
@@ -552,7 +552,7 @@ function MessageCard({
                         {c.author_name}
                       </span>
                       {c.is_developer && (
-                        <Badge className="text-[10px] px-1.5 py-0 bg-yellow-500 text-white">
+                        <Badge className="text-[10px] px-1.5 py-0 bg-[#FF8C00] text-white">
                           Développeur
                         </Badge>
                       )}
@@ -581,7 +581,7 @@ function MessageCard({
                 size="sm"
                 disabled={sendingComment || !commentDraft.trim()}
                 onClick={() => onSendComment(msg.id)}
-                className="self-end bg-yellow-500 hover:bg-yellow-600 text-white"
+                className="self-end bg-[#FF8C00] hover:bg-[#CC7000] text-white"
               >
                 {sendingComment ? (
                   <Loader2 className="w-4 h-4 animate-spin" />

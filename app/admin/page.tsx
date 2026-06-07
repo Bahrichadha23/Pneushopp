@@ -50,7 +50,7 @@ export default function AdminDashboard() {
     return (
       <div className="flex items-center justify-center h-full">
         <div className="text-center">
-          <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4 text-yellow-500" />
+          <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4 text-[#FF8C00]" />
           <p className="text-gray-600">Chargement des statistiques...</p>
         </div>
       </div>
@@ -66,7 +66,7 @@ export default function AdminDashboard() {
         </Alert>
         <button
           onClick={fetchStats}
-          className="bg-yellow-500 text-black px-4 py-2 rounded hover:bg-yellow-600"
+          className="bg-[#FF8C00] text-white px-4 py-2 rounded hover:bg-[#CC7000]"
         >
           Réessayer
         </button>

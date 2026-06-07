@@ -303,7 +303,7 @@ function DetailModal({ order, onClose }: { order: any; onClose: () => void }) {
           </button>
           <button
             onClick={() => handleDownloadAchat(order)}
-            className="flex items-center gap-2 px-4 py-2 text-sm font-semibold rounded-lg bg-yellow-400 hover:bg-yellow-500 text-black transition"
+            className="flex items-center gap-2 px-4 py-2 text-sm font-semibold rounded-lg bg-[#FF8C00] hover:bg-[#CC7000] text-white transition"
           >
             <Download className="h-4 w-4" /> PDF
           </button>
@@ -489,7 +489,7 @@ export default function AchatsCommandesPage() {
     <div className="space-y-6">
       {/* Toast */}
       {toast && (
-        <div className="fixed top-4 right-4 z-50 bg-yellow-500 text-black px-5 py-3 rounded-lg shadow-lg text-sm font-medium animate-in fade-in slide-in-from-top-2">
+        <div className="fixed top-4 right-4 z-50 bg-[#FF8C00] text-white px-5 py-3 rounded-lg shadow-lg text-sm font-medium animate-in fade-in slide-in-from-top-2">
           {toast}
         </div>
       )}
@@ -607,7 +607,7 @@ export default function AchatsCommandesPage() {
           >
             {tab.label}
             <span className={`ml-1.5 text-[10px] px-1.5 py-0.5 rounded-full ${
-              statusFilter === tab.key ? "bg-yellow-400 text-black" : "bg-gray-200 text-gray-600"
+              statusFilter === tab.key ? "bg-[#FF8C00] text-white" : "bg-gray-200 text-gray-600"
             }`}>{tab.count}</span>
           </button>
         ))}
@@ -659,7 +659,7 @@ export default function AchatsCommandesPage() {
                       <Eye className="h-4 w-4" /> Détail
                     </button>
                     <button onClick={() => { setDownloading(order.id); handleDownloadAchat(order); setDownloading(null); }}
-                      className="flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-lg bg-yellow-400 hover:bg-yellow-500 text-black text-sm font-semibold transition">
+                      className="flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-lg bg-[#FF8C00] hover:bg-[#CC7000] text-white text-sm font-semibold transition">
                       <Download className="h-4 w-4" /> PDF
                     </button>
                   </div>
@@ -753,7 +753,7 @@ export default function AchatsCommandesPage() {
                           <button
                             onClick={() => { setDownloading(order.id); handleDownloadAchat(order); setDownloading(null); }}
                             disabled={downloading === order.id}
-                            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg bg-yellow-400 hover:bg-yellow-500 text-black transition disabled:opacity-60"
+                            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg bg-[#FF8C00] hover:bg-[#CC7000] text-white transition disabled:opacity-60"
                           >
                             {downloading === order.id
                               ? <div className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-black/30 border-t-black" />

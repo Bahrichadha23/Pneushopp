@@ -23,7 +23,7 @@ const TYPE_CONFIG = {
   in:         { label: "Entrée",      color: "bg-brand-gold-light text-brand-gold-dark border-brand-gold", dot: "bg-brand-gold-light0",  sign: "+", textColor: "text-brand-gold-dark" },
   out:        { label: "Sortie",       color: "bg-red-100 text-brand-red border-red-200",      dot: "bg-brand-red",    sign: "−", textColor: "text-brand-red"   },
   adjustment: { label: "Ajustement",  color: "bg-blue-100 text-brand-blue border-blue-200",   dot: "bg-brand-blue",   sign: "±", textColor: "text-brand-blue"  },
-  return:     { label: "Avoir/Retour",color: "bg-gray-100 text-gray-700 border-purple-200", dot: "bg-gray-1000", sign: "+", textColor: "text-gray-700" },
+  return:     { label: "Avoir/Retour",color: "bg-[#E3F0FF] text-[#0066CC] border-[#0066CC]/30", dot: "bg-[#0066CC]", sign: "+", textColor: "text-[#0066CC]" },
 } as const;
 
 type MvtType = keyof typeof TYPE_CONFIG;
@@ -210,48 +210,48 @@ export default function StockMovements({ movements, onAddMovement }: StockMoveme
           </CardContent>
         </Card>
 
-        <Card className="border-l-4 border-l-red-500">
+        <Card className="border-l-4 border-l-[#9B2226]">
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">Sorties</p>
-                <p className="text-3xl font-black text-brand-red">−{kpis.sorties}</p>
+                <p className="text-3xl font-black text-[#9B2226]">−{kpis.sorties}</p>
                 <p className="text-xs text-gray-400 mt-0.5">unités sorties</p>
               </div>
-              <div className="rounded-xl bg-red-50 p-3">
-                <TrendingDown className="h-6 w-6 text-brand-red" />
+              <div className="rounded-xl bg-[#F9E5E6] p-3">
+                <TrendingDown className="h-6 w-6 text-[#9B2226]" />
               </div>
             </div>
           </CardContent>
         </Card>
 
-        <Card className="border-l-4 border-l-purple-500">
+        <Card className="border-l-4 border-l-[#0066CC]">
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">Avoirs/Retours</p>
-                <p className="text-3xl font-black text-gray-600">+{kpis.retours}</p>
+                <p className="text-3xl font-black text-[#0066CC]">+{kpis.retours}</p>
                 <p className="text-xs text-gray-400 mt-0.5">remis en stock</p>
               </div>
-              <div className="rounded-xl bg-gray-100 p-3">
-                <RotateCcw className="h-6 w-6 text-gray-600" />
+              <div className="rounded-xl bg-[#E3F0FF] p-3">
+                <RotateCcw className="h-6 w-6 text-[#0066CC]" />
               </div>
             </div>
           </CardContent>
         </Card>
 
-        <Card className="border-l-4 border-l-yellow-500">
+        <Card className="border-l-4 border-l-gray-300">
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">Stock net</p>
-                <p className={`text-3xl font-black ${kpis.net >= 0 ? "text-gray-900" : "text-brand-red"}`}>
+                <p className={`text-3xl font-black ${kpis.net >= 0 ? "text-gray-900" : "text-[#9B2226]"}`}>
                   {kpis.net >= 0 ? "+" : ""}{kpis.net}
                 </p>
                 <p className="text-xs text-gray-400 mt-0.5">entrées − sorties</p>
               </div>
-              <div className="rounded-xl bg-yellow-50 p-3">
-                <Package className="h-6 w-6 text-brand-gold" />
+              <div className="rounded-xl bg-[#FBF5E0] p-3">
+                <Package className="h-6 w-6 text-[#A68823]" />
               </div>
             </div>
           </CardContent>
@@ -309,7 +309,7 @@ export default function StockMovements({ movements, onAddMovement }: StockMoveme
           <Button
             size="sm"
             onClick={() => setShowForm(!showForm)}
-            className="bg-gray-900 text-white hover:bg-gray-800 gap-2"
+            className="bg-[#FF8C00] text-white hover:bg-[#CC7000] gap-2"
           >
             <Plus className="h-4 w-4" /> Nouveau mouvement
           </Button>
@@ -318,7 +318,7 @@ export default function StockMovements({ movements, onAddMovement }: StockMoveme
 
       {/* ── Add movement form ──────────────────────────────────────────────── */}
       {showForm && (
-        <Card className="border-2 border-yellow-300 shadow-md">
+        <Card className="border-2 border-[#FF8C00]/50 shadow-md">
           <CardContent className="p-6 space-y-4">
             <div className="flex items-center justify-between mb-2">
               <h3 className="font-semibold text-gray-900 text-lg">Nouveau mouvement de stock</h3>
@@ -361,7 +361,7 @@ export default function StockMovements({ movements, onAddMovement }: StockMoveme
                     {productOptions.map(p => (
                       <button
                         key={p.id}
-                        className="w-full text-left px-4 py-2.5 hover:bg-yellow-50 flex items-center justify-between text-sm border-b border-gray-50 last:border-0"
+                        className="w-full text-left px-4 py-2.5 hover:bg-[#FFF3E0] flex items-center justify-between text-sm border-b border-gray-50 last:border-0"
                         onClick={() => {
                           setForm(f => ({ ...f, productId: p.id, product_name: p.name }));
                           setProductSearch(p.name);

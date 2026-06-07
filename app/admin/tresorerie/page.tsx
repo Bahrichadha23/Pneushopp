@@ -825,7 +825,7 @@ export default function TresoreriePage() {
           <p className="mt-1 text-2xl font-bold text-slate-800">{formatCurrency(records.reduce((s, r) => s + r.totalAmount, 0))}</p>
           <p className="text-xs text-slate-400 mt-0.5">{records.length} commandes</p>
         </div>
-        <div className="rounded-lg border border-yellow-200 bg-yellow-50 p-4 shadow-sm">
+        <div className="rounded-lg border border-[#A68823]/30 bg-[#FBF5E0] p-4 shadow-sm">
           <p className="text-xs font-semibold uppercase tracking-wide text-brand-gold">Encaissé</p>
           <p className="mt-1 text-2xl font-bold text-brand-gold">{formatCurrency(records.reduce((s, r) => s + getPaidAmount(r), 0))}</p>
           <p className="text-xs text-brand-gold mt-0.5">{records.filter(r => getRemainingAmount(r) === 0).length} soldées</p>
@@ -1046,7 +1046,7 @@ export default function TresoreriePage() {
                 </div>
               </div>
 
-              <div className="rounded border border-yellow-200 bg-yellow-50 px-3 py-2">
+              <div className="rounded border border-[#A68823]/30 bg-[#FBF5E0] px-3 py-2">
                 <div className="text-[11px] font-semibold uppercase tracking-wide text-brand-gold">
                   Paye
                 </div>
