@@ -818,6 +818,24 @@ export default function TresoreriePage() {
 
   return (
     <div className="w-full max-w-none space-y-4">
+      {/* En-tête avec actions d'export */}
+      <div className="flex flex-wrap items-center justify-end gap-2">
+        <Button
+          className="h-9 gap-2 bg-[#FF8C00] hover:bg-[#CC7000] text-white border-0"
+          onClick={handleExportCSV}
+        >
+          <FileDown className="h-4 w-4" />
+          Export CSV
+        </Button>
+        <Button
+          className="h-9 gap-2 bg-[#0066CC] hover:bg-[#004C99] text-white border-0"
+          onClick={handleExportXLSX}
+        >
+          <FileDown className="h-4 w-4" />
+          Exporter l'historique (Excel)
+        </Button>
+      </div>
+
       {/* KPI cards */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
         <div className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
@@ -848,24 +866,8 @@ export default function TresoreriePage() {
       </div>
 
       <div className="overflow-hidden rounded-md border border-slate-300 bg-white shadow-sm">
-        <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-300 bg-[#f4f6f8] px-4 py-3">
+        <div className="border-b border-slate-300 bg-[#f4f6f8] px-4 py-3">
           <h1 className="text-xl font-semibold text-slate-800">Trésorerie Vente</h1>
-          <div className="flex flex-wrap items-center gap-2">
-            <Button
-              className="h-9 gap-2 bg-[#FF8C00] hover:bg-[#CC7000] text-white border-0"
-              onClick={handleExportCSV}
-            >
-              <FileDown className="h-4 w-4" />
-              Export CSV
-            </Button>
-            <Button
-              className="h-9 gap-2 bg-[#0066CC] hover:bg-[#004C99] text-white border-0"
-              onClick={handleExportXLSX}
-            >
-              <FileDown className="h-4 w-4" />
-              Exporter l'historique (Excel)
-            </Button>
-          </div>
         </div>
 
         <div className="space-y-4 p-4">
