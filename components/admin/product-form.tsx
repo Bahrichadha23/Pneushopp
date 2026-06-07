@@ -21,6 +21,20 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Loader2, Upload, X, Plus, Info } from "lucide-react";
 import type { Product } from "@/types/product";
 
+// Extrait largeur / hauteur (rapport) / diamètre depuis une chaîne de taille
+// pneu type "225/45R17", "235/60 R 16", etc. — utilisé pour pré-remplir
+// les Spécifications techniques des produits importés via Excel
+// (ceux-ci n'ont qu'un champ "size" texte, pas de specifications structurées).
+function parseTireSize(size: string): { width: number; height: number; diameter: number } {
+  const match = (size || "").match(/(\d{3})\s*\/\s*(\d{2})\s*[Rr]\s*(\d{2,3})/);
+  if (!match) return { width: 0, height: 0, diameter: 0 };
+  return {
+    width: parseInt(match[1], 10) || 0,
+    height: parseInt(match[2], 10) || 0,
+    diameter: parseInt(match[3], 10) || 0,
+  };
+}
+
 interface ProductFormProps {
   product?: Product;
   onSubmit: (
@@ -77,6 +91,11 @@ export default function ProductForm({
       // The backend returns all fields via AdminProductSerializer (fields='__all__')
       // Cast to any to access fields not declared in the Product TS type
       const raw = product as any;
+      // Les produits importés via Excel n'ont qu'un champ "size" texte
+      // (ex: "235/60R16") — le backend ne renvoie pas de specifications
+      // structurées pour eux. On parse cette chaîne pour pré-remplir
+      // largeur/hauteur/diamètre automatiquement.
+      const parsedSize = parseTireSize(raw.size || product.model || "");
       setFormData({
         // Use designation as primary name (fuller), fallback to name
         name: raw.designation || raw.name || product.name || "",
@@ -86,10 +105,11 @@ export default function ProductForm({
         purchase_price: raw.purchase_price || product.purchase_price || 0,
         category: product.category,
         specifications: {
-          // These come from the size string (e.g. "235/60R16") — parse or use defaults
-          width: product.specifications?.width || 0,
-          height: product.specifications?.height || 0,
-          diameter: product.specifications?.diameter || 0,
+          // Utilise les valeurs structurées si présentes, sinon celles
+          // extraites de la chaîne "size" (cas des imports Excel)
+          width: product.specifications?.width || parsedSize.width || 0,
+          height: product.specifications?.height || parsedSize.height || 0,
+          diameter: product.specifications?.diameter || parsedSize.diameter || 0,
           loadIndex: product.specifications?.loadIndex || 0,
           speedRating: product.specifications?.speedRating || "",
           season: product.specifications?.season || "ete",
@@ -123,7 +143,7 @@ export default function ProductForm({
     // Only required when creating (not editing — product may have been imported without these)
     if (!isEditing) {
       if (!formData.brand.trim()) newErrors.brand = "La marque est requise";
-      if (!formData.model.trim()) newErrors.model = "Le modèle est requis";
+      if (!formData.model.trim()) newErrors.model = "La référence est requise";
       if (!formData.description.trim()) newErrors.description = "La description est requise";
       if (formData.specifications.width <= 0) newErrors.width = "La largeur est requise";
       if (formData.specifications.height <= 0) newErrors.height = "La hauteur est requise";
@@ -266,7 +286,7 @@ export default function ProductForm({
 
             <div>
               <Label htmlFor="model" className="mb-1">
-                Modèle *
+                Référence *
               </Label>
               <Input
                 id="model"
