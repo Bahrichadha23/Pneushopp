@@ -372,12 +372,12 @@ export default function ProductsTable({
                         className="w-12 h-12 object-cover rounded flex-shrink-0"
                       />
                       <div className="flex-1 min-w-0 overflow-hidden">
-                        <p className="font-medium text-sm leading-tight break-words whitespace-normal">
+                        <p className="font-semibold text-sm leading-tight break-words whitespace-normal text-gray-900">
                           {product.name}
                         </p>
-                        <p className="text-sm text-gray-500 mt-1 truncate">
+                        <span className="inline-flex mt-1 items-center px-2 py-0.5 rounded text-[11px] font-semibold bg-[#E3F0FF] text-[#0066CC]">
                           {product.brand}
-                        </p>
+                        </span>
                       </div>
                     </div>
                   </td>
@@ -427,6 +427,7 @@ export default function ProductsTable({
                         size="icon"
                         onClick={() => onViewProduct(product.id)}
                         title="Voir détails"
+                        className="text-[#0066CC] hover:text-[#004E9E] hover:bg-[#E3F0FF]"
                       >
                         <Eye className="h-4 w-4" />
                       </Button>
@@ -435,6 +436,7 @@ export default function ProductsTable({
                         size="icon"
                         onClick={() => onEditProduct(product.id)}
                         title="Modifier"
+                        className="text-[#0066CC] hover:text-[#004E9E] hover:bg-[#E3F0FF]"
                       >
                         <Edit className="h-4 w-4" />
                       </Button>
@@ -443,7 +445,7 @@ export default function ProductsTable({
                         size="icon"
                         onClick={() => onDeleteProduct(product.id)}
                         title="Supprimer"
-                        className="text-red-500 hover:text-red-700"
+                        className="text-[#9B2226] hover:text-[#730019] hover:bg-[#F9E5E6]"
                       >
                         <Trash2 className="h-4 w-4" />
                       </Button>

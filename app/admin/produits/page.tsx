@@ -443,17 +443,15 @@ export default function ProductsPage() {
 
         <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
           <Button
-            variant="outline"
             onClick={() => router.push("/admin/import")}
-            className="w-full sm:w-auto"
+            className="w-full sm:w-auto bg-[#FF8C00] hover:bg-[#CC7000] text-white border-0"
           >
             <Upload className="h-4 w-4 mr-2" />
             Importer Excel
           </Button>
           <Button
-            variant="outline"
             onClick={handleExportProducts}
-            className="w-full sm:w-auto"
+            className="w-full sm:w-auto bg-[#FF8C00] hover:bg-[#CC7000] text-white border-0"
           >
             <FileSpreadsheet className="h-4 w-4 mr-2" />
             Exporter Excel

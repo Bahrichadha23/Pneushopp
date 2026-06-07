@@ -1264,9 +1264,8 @@ export default function StockManagementPage() {
             Actualiser
           </Button>
           <Button
-            variant="outline"
             size="sm"
-            className="gap-2 border-brand-orange text-brand-gold hover:bg-yellow-50"
+            className="gap-2 bg-[#FF8C00] hover:bg-[#CC7000] text-white border-0"
             onClick={() => setShowOrderPrep(true)}
           >
             <ClipboardList className="h-4 w-4" />
@@ -1281,10 +1280,34 @@ export default function StockManagementPage() {
 
       {/* Stats */}
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
-        <Card><CardHeader className="flex justify-between items-center"><CardTitle className="text-sm font-medium">Produits en stock</CardTitle><Package className="h-4 w-4 text-gray-500" /></CardHeader><CardContent><div className="text-2xl font-bold">{stock.length}</div></CardContent></Card>
-        <Card><CardHeader className="flex justify-between items-center"><CardTitle className="text-sm font-medium">Stock faible</CardTitle><AlertTriangle className="h-4 w-4 text-gray-500" /></CardHeader><CardContent><div className="text-2xl font-bold text-gray-700">{lowStockItems.length}</div></CardContent></Card>
-        <Card><CardHeader className="flex justify-between items-center"><CardTitle className="text-sm font-medium">Valeur stock</CardTitle><TrendingUp className="h-4 w-4 text-yellow-500" /></CardHeader><CardContent><div className="text-2xl font-bold text-brand-gold">{formatCurrency(totalValue)}</div></CardContent></Card>
-        <Card><CardHeader className="flex justify-between items-center"><CardTitle className="text-sm font-medium">Unités totales</CardTitle><Package className="h-4 w-4 text-gray-500" /></CardHeader><CardContent><div className="text-2xl font-bold">{stock.reduce((s, i) => s + i.stock, 0)}</div></CardContent></Card>
+        <Card className="border-l-4 border-l-[#0066CC]">
+          <CardHeader className="flex justify-between items-center pb-1">
+            <CardTitle className="text-sm font-medium text-gray-500">Produits en stock</CardTitle>
+            <div className="p-2 bg-[#E3F0FF] rounded-lg"><Package className="h-4 w-4 text-[#0066CC]" /></div>
+          </CardHeader>
+          <CardContent><div className="text-2xl font-bold text-gray-900">{stock.length}</div><p className="text-xs text-gray-400">produits</p></CardContent>
+        </Card>
+        <Card className="border-l-4 border-l-amber-500">
+          <CardHeader className="flex justify-between items-center pb-1">
+            <CardTitle className="text-sm font-medium text-gray-500">Stock faible</CardTitle>
+            <div className="p-2 bg-amber-50 rounded-lg"><AlertTriangle className="h-4 w-4 text-amber-500" /></div>
+          </CardHeader>
+          <CardContent><div className="text-2xl font-bold text-amber-600">{lowStockItems.length}</div><p className="text-xs text-gray-400">produits</p></CardContent>
+        </Card>
+        <Card className="border-l-4 border-l-[#A68823]">
+          <CardHeader className="flex justify-between items-center pb-1">
+            <CardTitle className="text-sm font-medium text-gray-500">Valeur stock</CardTitle>
+            <div className="p-2 bg-[#FBF5E0] rounded-lg"><TrendingUp className="h-4 w-4 text-[#A68823]" /></div>
+          </CardHeader>
+          <CardContent><div className="text-2xl font-bold text-[#A68823]">{formatCurrency(totalValue)}</div><p className="text-xs text-gray-400">valeur totale</p></CardContent>
+        </Card>
+        <Card className="border-l-4 border-l-[#0066CC]">
+          <CardHeader className="flex justify-between items-center pb-1">
+            <CardTitle className="text-sm font-medium text-gray-500">Unités totales</CardTitle>
+            <div className="p-2 bg-[#E3F0FF] rounded-lg"><Package className="h-4 w-4 text-[#0066CC]" /></div>
+          </CardHeader>
+          <CardContent><div className="text-2xl font-bold text-gray-900">{stock.reduce((s, i) => s + i.stock, 0)}</div><p className="text-xs text-gray-400">unités</p></CardContent>
+        </Card>
       </div>
 
       {/* Search bar — full width, prominent */}
@@ -1411,17 +1434,23 @@ export default function StockManagementPage() {
                     <td className="px-2 py-2 text-sm whitespace-nowrap">{item.size}</td>
                     <td className="px-2 py-2 text-center font-bold text-sm">{item.stock}</td>
                     <td className="px-2 py-2 whitespace-nowrap">
-                      <Badge variant={stockStatus.variant} className="cursor-pointer hover:opacity-75"
-                        onClick={() => openStatusPanel(item)}>
+                      <span
+                        onClick={() => openStatusPanel(item)}
+                        className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold cursor-pointer hover:opacity-80 transition-opacity
+                          ${stockStatus.status === "Rupture de stock" ? "bg-[#9B2226] text-white" :
+                            stockStatus.status === "Stock faible" ? "bg-amber-500 text-white" :
+                            stockStatus.status === "En stock" ? "bg-emerald-600 text-white" :
+                            "bg-[#0066CC] text-white"}`}
+                      >
                         {stockStatus.status}
-                      </Badge>
+                      </span>
                     </td>
                     <td className="px-2 py-2 text-sm text-gray-500 whitespace-nowrap">{item.stockMin}/{item.stockMax}</td>
-                    <td className="px-2 py-2 text-sm whitespace-nowrap">{formatCurrency(item.prixVente)}</td>
+                    <td className="px-2 py-2 text-sm font-semibold text-[#A68823] whitespace-nowrap">{formatCurrency(item.prixVente)}</td>
                     <td className="px-2 py-2 text-center">
                       <button
                         onClick={() => setDotPanel(item)}
-                        className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-xs font-bold bg-yellow-100 text-brand-gold border border-yellow-300 hover:bg-yellow-200 transition-colors"
+                        className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-xs font-semibold bg-white text-[#0066CC] border border-[#0066CC]/40 hover:bg-[#E3F0FF] transition-colors"
                       >
                         <Calendar className="h-3 w-3" /> DOT
                       </button>
@@ -1473,11 +1502,11 @@ export default function StockManagementPage() {
                       setActionModal({ isOpen: false, product: null });
                       setDotPanel(p);
                     }}
-                    className="flex flex-col items-center gap-2 p-4 rounded-xl border-2 border-brand-orange bg-yellow-50 hover:bg-yellow-100 transition-colors text-center"
+                    className="flex flex-col items-center gap-2 p-4 rounded-xl border-2 border-[#FF8C00] bg-[#FFF3E0] hover:bg-[#FFE0B2] transition-colors text-center"
                   >
                     <span className="text-2xl">🛒</span>
-                    <span className="font-bold text-brand-gold text-sm">Vendre</span>
-                    <span className="text-[11px] text-brand-gold">Choisir le lot DOT et le client</span>
+                    <span className="font-bold text-[#FF8C00] text-sm">Vendre</span>
+                    <span className="text-[11px] text-[#CC7000]">Choisir le lot DOT et le client</span>
                   </button>
 
                   {/* Diminuer stock */}

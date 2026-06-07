@@ -640,7 +640,7 @@ export default function ProductForm({
         <Button
           type="submit"
           disabled={isLoading}
-          className="bg-yellow-500 hover:bg-yellow-600 text-black"
+          className="bg-[#FF8C00] hover:bg-[#CC7000] text-white"
         >
           {isLoading ? (
             <>

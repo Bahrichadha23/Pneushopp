@@ -99,29 +99,25 @@ export default function DashboardStatsComponent({ stats, analytics }: DashboardS
 
       {/* Statistiques principales */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <Card>
+        <Card className="border-l-4 border-l-[#0066CC]">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Produits</CardTitle>
-            <Package className="h-4 w-4 text-muted-foreground" />
+            <CardTitle className="text-sm font-medium text-gray-500">Produits en stock</CardTitle>
+            <div className="p-2 bg-[#E3F0FF] rounded-lg"><Package className="h-4 w-4 text-[#0066CC]" /></div>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats.total_products}</div>
-            <p className="text-xs text-muted-foreground">
-              {stats.active_products} actifs
-            </p>
+            <div className="text-2xl font-bold text-gray-900">{stats.total_products}</div>
+            <p className="text-xs text-gray-400">Références disponibles</p>
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="border-l-4 border-l-[#A68823]">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Clients</CardTitle>
-            <Users className="h-4 w-4 text-muted-foreground" />
+            <CardTitle className="text-sm font-medium text-gray-500">Valeur stock</CardTitle>
+            <div className="p-2 bg-[#FBF5E0] rounded-lg"><TrendingUp className="h-4 w-4 text-[#A68823]" /></div>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats.total_customers}</div>
-            <p className="text-xs text-muted-foreground">
-              Total des clients enregistrés
-            </p>
+            <div className="text-2xl font-bold text-[#A68823]">{stats.total_customers}</div>
+            <p className="text-xs text-gray-400">Clients enregistrés</p>
           </CardContent>
         </Card>
 
@@ -211,9 +207,9 @@ export default function DashboardStatsComponent({ stats, analytics }: DashboardS
                 <div key={product.id} className="p-3 border rounded-lg bg-amber-50 border-amber-200">
                   <div className="flex items-center justify-between mb-2">
                     <h4 className="font-medium text-sm">{getBrandName(product.brand)}</h4>
-                    <Badge variant="destructive" className="text-xs">
+                    <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-[#9B2226] text-white">
                       {product.stock} restant
-                    </Badge>
+                    </span>
                   </div>
                   <p className="text-sm text-gray-600 mb-1">{product.name}</p>
                   <p className="text-sm font-medium">{formatCurrency(product.price)}</p>

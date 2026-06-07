@@ -14,7 +14,8 @@ interface TopClientsChartProps {
   data: TopClient[]
 }
 
-const COLORS = ['#0ea5e9', '#06b6d4', '#14b8a6', '#10b981', '#22c55e']
+// Brand color palette: shades of brand blue
+const COLORS = ['#0066CC', '#004E9E', '#1D8CF8', '#FF8C00', '#A68823']
 
 export default function TopClientsChart({ data }: TopClientsChartProps) {
   const formatCurrency = (value: number) => {

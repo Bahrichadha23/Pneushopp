@@ -150,8 +150,8 @@ export default function AddProductPage() {
       )}
 
       {success && (
-        <Alert className="mb-6 bg-yellow-50 border-yellow-200">
-          <AlertDescription className="text-yellow-800">
+        <Alert className="mb-6 bg-emerald-50 border-emerald-200">
+          <AlertDescription className="text-emerald-800">
             ✅ Produit créé avec succès! Redirection en cours...
           </AlertDescription>
         </Alert>

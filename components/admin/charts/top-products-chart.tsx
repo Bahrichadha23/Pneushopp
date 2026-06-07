@@ -14,7 +14,8 @@ interface TopProductsChartProps {
   data: TopProduct[]
 }
 
-const COLORS = ['#3b82f6', '#8b5cf6', '#ec4899', '#f59e0b', '#10b981']
+// Brand color palette: shades of brand blue + gold accent
+const COLORS = ['#0066CC', '#004E9E', '#1D8CF8', '#FF8C00', '#A68823']
 
 export default function TopProductsChart({ data }: TopProductsChartProps) {
   const formatCurrency = (value: number) => {
@@ -46,7 +47,7 @@ export default function TopProductsChart({ data }: TopProductsChartProps) {
     <Card>
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
-          <Package className="h-5 w-5 text-blue-600" />
+          <Package className="h-5 w-5 text-[#0066CC]" />
           Top Produits
         </CardTitle>
       </CardHeader>

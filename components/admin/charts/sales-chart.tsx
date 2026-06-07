@@ -1,4 +1,4 @@
-﻿"use client"
+"use client"
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts'
@@ -15,6 +15,10 @@ interface SalesChartProps {
   title: string
 }
 
+// Brand colors: Ventes → Orange (#FF8C00), Commandes → Blue (#0066CC)
+const VENTES_COLOR = "#FF8C00"
+const COMMANDES_COLOR = "#0066CC"
+
 export default function SalesChart({ data, title }: SalesChartProps) {
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat("fr-FR", {
@@ -28,13 +32,17 @@ export default function SalesChart({ data, title }: SalesChartProps) {
     if (active && payload && payload.length) {
       return (
         <div className="bg-white p-3 border border-gray-200 rounded-lg shadow-lg">
-          <p className="font-semibold text-gray-900">{payload[0].payload.mois}</p>
-          <p className="text-sm text-blue-600">
-            Ventes: {formatCurrency(payload[0].value)}
-          </p>
-          <p className="text-sm text-brand-gold">
-            Commandes: {payload[1].value}
-          </p>
+          <p className="font-semibold text-gray-900 mb-1">{payload[0].payload.mois}</p>
+          {payload[0] && (
+            <p className="text-sm" style={{ color: VENTES_COLOR }}>
+              Ventes: {formatCurrency(payload[0].value)}
+            </p>
+          )}
+          {payload[1] && (
+            <p className="text-sm" style={{ color: COMMANDES_COLOR }}>
+              Commandes: {payload[1].value}
+            </p>
+          )}
         </div>
       )
     }
@@ -45,7 +53,7 @@ export default function SalesChart({ data, title }: SalesChartProps) {
     <Card className="col-span-full">
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
-          <TrendingUp className="h-5 w-5 text-blue-600" />
+          <TrendingUp className="h-5 w-5 text-[#FF8C00]" />
           {title}
         </CardTitle>
       </CardHeader>
@@ -54,56 +62,63 @@ export default function SalesChart({ data, title }: SalesChartProps) {
           <AreaChart data={data} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
             <defs>
               <linearGradient id="colorVentes" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.8}/>
-                <stop offset="95%" stopColor="#3b82f6" stopOpacity={0.1}/>
+                <stop offset="5%" stopColor={VENTES_COLOR} stopOpacity={0.25}/>
+                <stop offset="95%" stopColor={VENTES_COLOR} stopOpacity={0.02}/>
               </linearGradient>
               <linearGradient id="colorCommandes" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor="#10b981" stopOpacity={0.8}/>
-                <stop offset="95%" stopColor="#10b981" stopOpacity={0.1}/>
+                <stop offset="5%" stopColor={COMMANDES_COLOR} stopOpacity={0.2}/>
+                <stop offset="95%" stopColor={COMMANDES_COLOR} stopOpacity={0.02}/>
               </linearGradient>
             </defs>
-            <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-            <XAxis 
-              dataKey="mois" 
-              stroke="#6b7280"
+            <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+            <XAxis
+              dataKey="mois"
+              stroke="#9ca3af"
               style={{ fontSize: '12px' }}
+              tick={{ fill: '#6b7280' }}
             />
-            <YAxis 
+            <YAxis
               yAxisId="left"
-              stroke="#6b7280"
+              stroke="#9ca3af"
               style={{ fontSize: '12px' }}
+              tick={{ fill: '#6b7280' }}
               tickFormatter={formatCurrency}
             />
-            <YAxis 
+            <YAxis
               yAxisId="right"
               orientation="right"
-              stroke="#6b7280"
+              stroke="#9ca3af"
               style={{ fontSize: '12px' }}
+              tick={{ fill: '#6b7280' }}
             />
             <Tooltip content={<CustomTooltip />} />
-            <Legend 
-              wrapperStyle={{ fontSize: '14px', paddingTop: '10px' }}
+            <Legend
+              wrapperStyle={{ fontSize: '13px', paddingTop: '12px' }}
               iconType="circle"
             />
-            <Area 
+            <Area
               yAxisId="left"
-              type="monotone" 
-              dataKey="ventes" 
-              stroke="#3b82f6" 
-              strokeWidth={2}
-              fillOpacity={1} 
+              type="monotone"
+              dataKey="ventes"
+              stroke={VENTES_COLOR}
+              strokeWidth={2.5}
+              fillOpacity={1}
               fill="url(#colorVentes)"
               name="Ventes (DT)"
+              dot={{ fill: VENTES_COLOR, r: 4, strokeWidth: 0 }}
+              activeDot={{ r: 6, fill: VENTES_COLOR }}
             />
-            <Area 
+            <Area
               yAxisId="right"
-              type="monotone" 
-              dataKey="commandes" 
-              stroke="#10b981" 
-              strokeWidth={2}
-              fillOpacity={1} 
+              type="monotone"
+              dataKey="commandes"
+              stroke={COMMANDES_COLOR}
+              strokeWidth={2.5}
+              fillOpacity={1}
               fill="url(#colorCommandes)"
               name="Commandes"
+              dot={{ fill: COMMANDES_COLOR, r: 4, strokeWidth: 0 }}
+              activeDot={{ r: 6, fill: COMMANDES_COLOR }}
             />
           </AreaChart>
         </ResponsiveContainer>
