@@ -225,7 +225,10 @@ export default function ProductForm({
       {/* Informations générales */}
       <Card>
         <CardHeader>
-          <CardTitle>Informations générales</CardTitle>
+          <CardTitle className="flex items-center gap-1.5">
+            Informations générales
+            <Info className="h-3.5 w-3.5 text-blue-500" />
+          </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -306,7 +309,7 @@ export default function ProductForm({
         <CardHeader>
           <CardTitle className="flex items-center gap-1.5">
             Description
-            <Info className="h-3.5 w-3.5 text-gray-400" />
+            <Info className="h-3.5 w-3.5 text-blue-500" />
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -344,7 +347,7 @@ export default function ProductForm({
         <CardHeader>
           <CardTitle className="flex items-center gap-1.5">
             Spécifications techniques
-            <Info className="h-3.5 w-3.5 text-gray-400" />
+            <Info className="h-3.5 w-3.5 text-blue-500" />
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -498,7 +501,7 @@ export default function ProductForm({
         <CardHeader>
           <CardTitle className="flex items-center gap-1.5">
             Prix
-            <Info className="h-3.5 w-3.5 text-gray-400" />
+            <Info className="h-3.5 w-3.5 text-blue-500" />
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -529,7 +532,7 @@ export default function ProductForm({
               />
               <p className="text-xs text-gray-400 mt-1 flex items-center gap-1">
                 Prix vente = prix achat × {((formData.brand || "").toLowerCase().includes("amine") ? "110%" : "115%")}
-                <Info className="h-3 w-3 text-gray-300" />
+                <Info className="h-3 w-3 text-blue-400" />
               </p>
             </div>
 
@@ -625,7 +628,7 @@ export default function ProductForm({
         <CardHeader>
           <CardTitle className="flex items-center gap-1.5">
             Images
-            <Info className="h-3.5 w-3.5 text-gray-400" />
+            <Info className="h-3.5 w-3.5 text-blue-500" />
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
