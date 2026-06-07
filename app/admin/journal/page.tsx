@@ -68,7 +68,7 @@ const ACTION_COLORS: Record<string, string> = {
   create_purchase: "bg-gray-100 text-gray-700",
   sav_update:      "bg-yellow-50 text-brand-gold",
   add_product:     "bg-yellow-300 text-black",
-  update_product:  "bg-yellow-100 text-yellow-900",
+  update_product:  "bg-blue-100 text-blue-700",
   delete_product:  "bg-black text-white",
   update_price:    "bg-brand-orange text-black",
   dot_sale:        "bg-yellow-200 text-yellow-900",
