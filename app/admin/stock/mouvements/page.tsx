@@ -78,14 +78,6 @@ export default function StockMovementsPage() {
 
   return (
     <div className="space-y-6 p-4">
-      {/* Page header */}
-      <div className="mb-6">
-        <h1 className="text-3xl font-bold text-gray-900">
-          Mouvements de stock
-        </h1>
-        <p className="text-gray-600">Suivez tous les mouvements d'inventaire</p>
-      </div>
-
       {/* Stock movements table or cards */}
       <StockMovements movements={movements} onAddMovement={handleAddMovement} />
       {loading && <p>Chargement des mouvements...</p>}

@@ -184,6 +184,17 @@ export default function StockMovements({ movements, onAddMovement }: StockMoveme
 
   return (
     <div className="space-y-6">
+      {/* ── Header ─────────────────────────────────────────────────────────── */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900">Mouvements de stock</h1>
+          <p className="text-gray-600">Suivez tous les mouvements d'inventaire</p>
+        </div>
+        <Button onClick={handleExport} className="gap-2 bg-yellow-500 hover:bg-yellow-600 text-white border-0">
+          <Download className="h-4 w-4" /> Exporter un état en Excel
+        </Button>
+      </div>
+
       {/* Toast */}
       {toast && (
         <div className={`fixed top-4 right-4 z-50 flex items-center gap-2 rounded-lg px-5 py-3 text-sm font-medium shadow-lg text-white
@@ -275,7 +286,7 @@ export default function StockMovements({ movements, onAddMovement }: StockMoveme
         <select
           value={typeFilter}
           onChange={e => setTypeFilter(e.target.value)}
-          className="rounded-lg border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-orange"
+          className="rounded-lg border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-yellow-500"
         >
           <option value="all">Tous les types</option>
           <option value="in">Entrées</option>
@@ -287,12 +298,12 @@ export default function StockMovements({ movements, onAddMovement }: StockMoveme
         {/* Date range */}
         <input
           type="date" value={dateFrom} onChange={e => setDateFrom(e.target.value)}
-          className="rounded-lg border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-orange"
+          className="rounded-lg border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-yellow-500"
         />
         <span className="text-gray-400 text-sm">→</span>
         <input
           type="date" value={dateTo} onChange={e => setDateTo(e.target.value)}
-          className="rounded-lg border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-orange"
+          className="rounded-lg border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-yellow-500"
         />
 
         {(search || typeFilter !== "all" || dateFrom || dateTo) && (
@@ -303,13 +314,10 @@ export default function StockMovements({ movements, onAddMovement }: StockMoveme
         )}
 
         <div className="flex gap-2 ml-auto">
-          <Button size="sm" onClick={handleExport} className="gap-2 bg-[#FF8C00] hover:bg-[#CC7000] text-white border-0">
-            <Download className="h-4 w-4" /> Excel
-          </Button>
           <Button
             size="sm"
             onClick={() => setShowForm(!showForm)}
-            className="bg-[#FF8C00] text-white hover:bg-[#CC7000] gap-2"
+            className="bg-yellow-500 text-white hover:bg-yellow-600 gap-2"
           >
             <Plus className="h-4 w-4" /> Nouveau mouvement
           </Button>
@@ -318,7 +326,7 @@ export default function StockMovements({ movements, onAddMovement }: StockMoveme
 
       {/* ── Add movement form ──────────────────────────────────────────────── */}
       {showForm && (
-        <Card className="border-2 border-[#FF8C00]/50 shadow-md">
+        <Card className="border-2 border-yellow-500/50 shadow-md">
           <CardContent className="p-6 space-y-4">
             <div className="flex items-center justify-between mb-2">
               <h3 className="font-semibold text-gray-900 text-lg">Nouveau mouvement de stock</h3>
@@ -337,7 +345,7 @@ export default function StockMovements({ movements, onAddMovement }: StockMoveme
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
                   <input
                     type="text"
-                    className="w-full pl-9 pr-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-orange"
+                    className="w-full pl-9 pr-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-yellow-500"
                     placeholder="Rechercher un produit par nom ou référence…"
                     value={form.productId ? form.product_name : productSearch}
                     onChange={e => {
@@ -448,7 +456,7 @@ export default function StockMovements({ movements, onAddMovement }: StockMoveme
               <Button
                 onClick={handleSubmit}
                 disabled={saving}
-                className="bg-[#FF8C00] hover:bg-[#CC7000] text-white border-0 gap-2"
+                className="bg-yellow-500 hover:bg-yellow-600 text-white border-0 gap-2"
               >
                 {saving
                   ? <><div className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" /> Enregistrement…</>
