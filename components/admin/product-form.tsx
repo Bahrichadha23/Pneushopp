@@ -530,7 +530,7 @@ export default function ProductForm({
                 }}
               />
               <p className="text-xs text-gray-400 mt-1 flex items-center gap-1">
-                Prix vente = prix achat × {((formData.brand || "").toLowerCase().includes("amine") ? "110%" : "115%")}
+                Prix vente = prix achat × {((formData.brand || "").toLowerCase().includes("amine") ? "1.10" : "1.15")}
                 <Info className="h-3 w-3 text-blue-400" />
               </p>
             </div>
