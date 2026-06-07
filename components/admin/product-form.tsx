@@ -18,7 +18,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Loader2, Upload, X, Plus } from "lucide-react";
+import { Loader2, Upload, X, Plus, Info } from "lucide-react";
 import type { Product } from "@/types/product";
 
 interface ProductFormProps {
@@ -304,7 +304,10 @@ export default function ProductForm({
       {/* Description */}
       <Card>
         <CardHeader>
-          <CardTitle>Description</CardTitle>
+          <CardTitle className="flex items-center gap-1.5">
+            Description
+            <Info className="h-3.5 w-3.5 text-gray-400" />
+          </CardTitle>
         </CardHeader>
         <CardContent>
           <div>
@@ -314,13 +317,24 @@ export default function ProductForm({
             <Textarea
               id="description"
               value={formData.description}
-              onChange={(e) => handleInputChange("description", e.target.value)}
+              onChange={(e) =>
+                handleInputChange("description", e.target.value.slice(0, 1000))
+              }
+              maxLength={1000}
               rows={3}
+              placeholder="Décrivez le produit en détail..."
               className={errors.description ? "border-red-500" : ""}
             />
-            {errors.description && (
-              <p className="text-red-500 text-xs mt-1">{errors.description}</p>
-            )}
+            <div className="flex items-center justify-between mt-1">
+              {errors.description ? (
+                <p className="text-red-500 text-xs">{errors.description}</p>
+              ) : (
+                <span />
+              )}
+              <span className="text-xs text-gray-400">
+                {formData.description.length} / 1000
+              </span>
+            </div>
           </div>
         </CardContent>
       </Card>
@@ -328,7 +342,10 @@ export default function ProductForm({
       {/* Spécifications techniques */}
       <Card>
         <CardHeader>
-          <CardTitle>Spécifications techniques</CardTitle>
+          <CardTitle className="flex items-center gap-1.5">
+            Spécifications techniques
+            <Info className="h-3.5 w-3.5 text-gray-400" />
+          </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -479,7 +496,10 @@ export default function ProductForm({
       {/* Prix */}
       <Card>
         <CardHeader>
-          <CardTitle>Prix</CardTitle>
+          <CardTitle className="flex items-center gap-1.5">
+            Prix
+            <Info className="h-3.5 w-3.5 text-gray-400" />
+          </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -507,8 +527,9 @@ export default function ProductForm({
                   }
                 }}
               />
-              <p className="text-xs text-gray-400 mt-1">
+              <p className="text-xs text-gray-400 mt-1 flex items-center gap-1">
                 Prix vente = prix achat × {((formData.brand || "").toLowerCase().includes("amine") ? "110%" : "115%")}
+                <Info className="h-3 w-3 text-gray-300" />
               </p>
             </div>
 
@@ -602,7 +623,10 @@ export default function ProductForm({
       </Card>
       <Card>
         <CardHeader>
-          <CardTitle>Images</CardTitle>
+          <CardTitle className="flex items-center gap-1.5">
+            Images
+            <Info className="h-3.5 w-3.5 text-gray-400" />
+          </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <label

@@ -12,8 +12,9 @@ import ProductsTable from "@/components/admin/products-table";
 import ProductForm from "@/components/admin/product-form";
 import { Plus, Download, Loader2, AlertCircle, FileSpreadsheet } from "lucide-react";
 import { adminService } from "@/lib/services/admin";
-import type { AdminProduct, ProductCreateData } from "@/lib/services/admin";
+import type { AdminProduct } from "@/lib/services/admin";
 import type { Product } from "@/types/product";
+import { productToCreateData } from "@/lib/utils/product-mapper";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/contexts/auth-context";
@@ -71,117 +72,6 @@ const adminProductToProduct = (adminProduct: AdminProduct): Product => {
   } as any;
 };
 
-// Fonction pour convertir Product vers ProductCreateData pour l'API
-const productToCreateData = (
-  product: Partial<Product>,
-  keepSlug: boolean = false
-): ProductCreateData => {
-  // Mapper les saisons vers l'API
-  const seasonMap = {
-    ete: "summer",
-    hiver: "winter",
-    "toutes-saisons": "all_season",
-  } as const;
-
-  // Générer un slug unique à partir du brand, name et model (max 50 caractères)
-  const generateSlug = (brand: string, name: string, model: string) => {
-    // Nettoyer et normaliser les chaînes
-    const cleanString = (str: string) =>
-      str
-        .toLowerCase()
-        .replace(/[àáâãäå]/g, "a")
-        .replace(/[èéêë]/g, "e")
-        .replace(/[ìíîï]/g, "i")
-        .replace(/[òóôõö]/g, "o")
-        .replace(/[ùúûü]/g, "u")
-        .replace(/[ýÿ]/g, "y")
-        .replace(/[ñ]/g, "n")
-        .replace(/[ç]/g, "c")
-        .replace(/[^a-z0-9\s-]/g, "") // Supprimer les caractères spéciaux
-        .replace(/\s+/g, "-") // Remplacer les espaces par des tirets
-        .replace(/-+/g, "-") // Remplacer les tirets multiples par un seul
-        .replace(/^-|-$/g, ""); // Supprimer les tirets en début et fin
-
-    const cleanBrand = cleanString(brand);
-    const cleanName = cleanString(name);
-    const cleanModel = cleanString(model);
-
-    // Stratégie intelligente pour rester sous 50 caractères
-    let slug = "";
-
-    // Essayer brand-name-model
-    if (cleanBrand && cleanName && cleanModel) {
-      slug = `${cleanBrand}-${cleanName}-${cleanModel}`;
-    }
-    // Si trop long, essayer brand-name
-    else if (cleanBrand && cleanName) {
-      slug = `${cleanBrand}-${cleanName}`;
-    }
-    // Sinon juste le nom
-    else {
-      slug = cleanName || cleanBrand || "produit";
-    }
-
-    // Si encore trop long, tronquer intelligemment
-    if (slug.length > 50) {
-      // Essayer brand-name seulement
-      if (cleanBrand && cleanName) {
-        slug = `${cleanBrand}-${cleanName}`;
-      }
-
-      // Si encore trop long, tronquer à 50 caractères en gardant les mots entiers
-      if (slug.length > 50) {
-        const words = slug.split("-");
-        slug = "";
-        for (const word of words) {
-          if ((slug + "-" + word).length <= 50) {
-            slug = slug ? slug + "-" + word : word;
-          } else {
-            break;
-          }
-        }
-      }
-    }
-
-    // Garantir que le slug n'est jamais vide et fait maximum 50 caractères
-    return slug.slice(0, 50).replace(/-$/, "") || "produit";
-  };
-
-  // Mapper les catégories frontend vers les IDs Django
-  const categoryMap = {
-    auto: 1, // Pneus Voiture
-    suv: 1, // Pneus Voiture
-    camionnette: 2, // Pneus Camionnette
-    utilitaire: 2, // Pneus Camionnette
-    "poids-lourd": 3, // Pneus Camion
-    agricole: 4, // Pneus Agricole
-    "4x4": 1, // Pneus Voiture
-  } as const;
-
-  return {
-    name: product.name || "",
-    slug:
-      keepSlug && product.slug
-        ? product.slug // Keep existing slug on update
-        : generateSlug(
-            product.brand || "",
-            product.name || "",
-            product.model || ""
-          ),
-    description: product.description || "",
-    price: product.price || 0,
-    purchase_price: (product as any).purchase_price || undefined,
-    category: categoryMap[product.category as keyof typeof categoryMap] || 1,
-    brand: product.brand || "",
-    size: product.model || "", // Utiliser model comme size
-    season:
-      seasonMap[product.specifications?.season as keyof typeof seasonMap] ||
-      "all_season",
-    stock: product.stock || 0,
-    is_featured: product.is_on_sale || false,
-    is_active: true,
-  };
-};
 
 export default function ProductsPage() {
   const { user } = useAuth();
@@ -531,15 +421,8 @@ export default function ProductsPage() {
       <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
         <DialogContent className="w-full max-w-4xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            {!editingProduct && (
-              <p className="text-xs text-gray-400 flex items-center gap-1.5 -mb-1">
-                <span>Produits</span>
-                <span>›</span>
-                <span className="text-gray-600 font-medium">Ajouter un produit</span>
-              </p>
-            )}
             <DialogTitle>
-              {editingProduct ? "Fiche article" : "Ajouter un produit"}
+              {editingProduct ? "Fiche article" : "Nouveau produit"}
             </DialogTitle>
           </DialogHeader>
           <ProductForm

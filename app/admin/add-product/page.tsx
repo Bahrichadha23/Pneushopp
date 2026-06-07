@@ -2,14 +2,13 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import Link from "next/link";
 import ProductForm from "@/components/admin/product-form";
 import { Product } from "@/types/product";
-import { API_URL } from "@/lib/config";
 import { useAuth } from "@/contexts/auth-context";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { ArrowLeft } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { adminService } from "@/lib/services/admin";
+import { productToCreateData } from "@/lib/utils/product-mapper";
 
 export default function AddProductPage() {
   const router = useRouter();
@@ -24,94 +23,49 @@ export default function AddProductPage() {
     return null;
   }
 
+  // Applique (ou retire) la promotion sur le produit fraîchement créé,
+  // selon la case « En promotion » du formulaire — relié au vrai mécanisme
+  // backend via /products/set-promotion/ (qui calcule old_price/price).
+  const applyPromotionFromForm = async (
+    productId: number,
+    productData: Partial<Product>
+  ) => {
+    const raw = productData as any;
+    const wantsPromotion = !!raw.in_promotion;
+    const discount = Number(raw.promotion_discount) || 0;
+    if (!wantsPromotion || discount <= 0) return;
+
+    try {
+      await adminService.setProductPromotion({
+        product_ids: [productId],
+        discount_percentage: discount,
+        promotion_label: "PROMO",
+        remove: false,
+      });
+    } catch (err) {
+      console.error("Erreur lors de l'application de la promotion:", err);
+    }
+  };
+
   const handleSubmit = async (productData: Partial<Product>) => {
     setIsLoading(true);
     setError("");
 
     try {
-      // Create FormData to send files and data to backend
-      // Backend will: 1) Upload images to Cloudinary 2) Save Cloudinary URLs to Django DB
-      const formData = new FormData();
+      const createData = productToCreateData(
+        { ...productData, slug: undefined },
+        false
+      );
 
-      // Add basic fields
-      formData.append("name", productData.name || "");
-      formData.append("brand", productData.brand || "");
-      formData.append("model", productData.model || "");
-      formData.append("price", String(productData.price || 0));
-      formData.append("old_price", String(productData.old_price || 0));
-      formData.append("category", productData.category || "");
-      formData.append("stock", String(productData.stock || 0));
-      formData.append("description", productData.description || "");
-      formData.append("inStock", String(productData.inStock || true));
-      formData.append("isPromotion", String(productData.isPromotion || false));
+      const response = await adminService.createProduct(createData);
 
-      // Add new manual fields
-      if (productData.reference)
-        formData.append("reference", productData.reference);
-      if (productData.designation)
-        formData.append("designation", productData.designation);
-      if (productData.type) formData.append("type", productData.type);
-      if (productData.emplacement)
-        formData.append("emplacement", productData.emplacement);
-      if (productData.fabrication_date)
-        formData.append("fabrication_date", productData.fabrication_date);
-
-      // Add specifications
-      if (productData.specifications) {
-        formData.append(
-          "specifications",
-          JSON.stringify(productData.specifications)
-        );
+      if (!response.success || !response.data) {
+        throw new Error(response.error || "Erreur lors de la création du produit");
       }
 
-      // Add features
-      if (productData.features && productData.features.length > 0) {
-        formData.append("features", JSON.stringify(productData.features));
-      }
+      await applyPromotionFromForm(response.data.id, productData);
 
-      // Add images - send each image file
-      if (productData.images && productData.images.length > 0) {
-        productData.images.forEach((image) => {
-          if (image instanceof File) {
-            // Append each image with the name 'images' (multiple files with same key)
-            formData.append("images", image);
-          }
-        });
-      }
-
-      const response = await fetch(`${API_URL}/admin/products/manual/`, {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem("access_token")}`,
-          // Don't set Content-Type - let browser set it with boundary for FormData
-        },
-        body: formData,
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-
-        // Handle specific error cases
-        if (errorData.error?.includes("duplicate key")) {
-          throw new Error(
-            "Un produit avec ce nom existe déjà. Veuillez utiliser un nom différent."
-          );
-        }
-
-        if (errorData.error?.includes("slug")) {
-          throw new Error(
-            "Ce nom de produit est déjà utilisé. Veuillez en choisir un autre."
-          );
-        }
-
-        throw new Error(
-          errorData.message ||
-            errorData.error ||
-            "Erreur lors de la création du produit"
-        );
-      }
-
-      // Success - show message and redirect
+      // Succès — affiche le message et redirige
       setSuccess(true);
       setTimeout(() => {
         router.push("/admin/produits");
@@ -134,41 +88,41 @@ export default function AddProductPage() {
   };
 
   return (
-    <div className="container mx-auto p-2 max-w-6xl">
-      <div className="mb-6">
-        <h1 className="text-3xl font-bold">Ajouter un Article</h1>
-        <p className="text-muted-foreground mt-2">
-          Remplissez les informations pour ajouter un nouvel article au
-          catalogue
+    <div className="max-w-5xl mx-auto space-y-6">
+      {/* Fil d'Ariane */}
+      <nav className="flex items-center gap-1.5 text-sm text-gray-500">
+        <Link href="/admin/produits" className="text-blue-600 hover:underline">
+          Produits
+        </Link>
+        <span>›</span>
+        <span className="text-gray-700">Ajouter un produit</span>
+      </nav>
+
+      {/* En-tête */}
+      <div>
+        <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">
+          Ajouter un produit
+        </h1>
+        <p className="text-gray-500 text-sm mt-1">
+          Remplissez les informations ci-dessous pour créer un nouveau produit.
         </p>
       </div>
 
       {error && (
-        <Alert variant="destructive" className="mb-6">
+        <Alert variant="destructive">
           <AlertDescription>{error}</AlertDescription>
         </Alert>
       )}
 
       {success && (
-        <Alert className="mb-6 bg-emerald-50 border-emerald-200">
+        <Alert className="bg-emerald-50 border-emerald-200">
           <AlertDescription className="text-emerald-800">
-            ✅ Produit créé avec succès! Redirection en cours...
+            Produit créé avec succès ! Redirection en cours...
           </AlertDescription>
         </Alert>
       )}
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Informations du Produit</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <ProductForm
-            onSubmit={handleSubmit}
-            onCancel={handleCancel}
-            isLoading={isLoading}
-          />
-        </CardContent>
-      </Card>
+      <ProductForm onSubmit={handleSubmit} onCancel={handleCancel} isLoading={isLoading} />
     </div>
   );
 }
