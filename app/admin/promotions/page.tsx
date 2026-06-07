@@ -187,11 +187,11 @@ export default function PromotionsPage() {
       <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center justify-between">
         <div className="flex gap-2">
           {[
-            { key: "actives", label: `✅ Promotions actives (${activePromos.length})` },
+            { key: "actives", label: `Promotions actives (${activePromos.length})` },
             { key: "gestion", label: `🛒 Ajouter des produits` },
           ].map(t => (
             <button key={t.key} onClick={() => { setTab(t.key as any); setSelected(new Set()); }}
-              className={`px-4 py-2 rounded-lg text-sm font-medium transition ${tab === t.key ? "bg-gray-900 text-white" : "bg-gray-100 text-gray-600 hover:bg-gray-200"}`}>
+              className={`px-4 py-2 rounded-lg text-sm font-medium transition ${tab === t.key ? (t.key === "actives" ? "bg-[#9B2226] text-white" : "bg-gray-900 text-white") : "bg-gray-100 text-gray-600 hover:bg-gray-200"}`}>
               {t.label}
             </button>
           ))}
