@@ -1455,17 +1455,24 @@ export default function StockManagementPage() {
                       </button>
                     </td>
                     <td className="px-2 py-2">
-                      <div className="flex space-x-1">
+                      <div className="flex items-center gap-1.5">
                         <Button
                           size="sm"
-                          className="bg-yellow-500 hover:bg-yellow-600 text-white border-0 disabled:opacity-100 disabled:bg-yellow-500"
+                          variant="outline"
+                          className="h-7 w-7 p-0 rounded-full bg-white text-gray-600 border-gray-200 shadow-sm hover:bg-gray-50 disabled:opacity-50"
                           onClick={() => setActionModal({ isOpen: true, product: item })}
                           disabled={item.stock <= 0}
                           title="Vendre ou diminuer le stock"
                         >
                           <Minus className="h-3 w-3" />
                         </Button>
-                        <Button size="sm" className="bg-[#0066CC] hover:bg-[#004E9E] text-white border-0" onClick={() => openConfirmation(item.id, 1)} disabled={item.stock >= item.stockMax}>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="h-7 w-7 p-0 rounded-full bg-white text-gray-600 border-gray-200 shadow-sm hover:bg-gray-50 disabled:opacity-50"
+                          onClick={() => openConfirmation(item.id, 1)}
+                          disabled={item.stock >= item.stockMax}
+                        >
                           <Plus className="h-3 w-3" />
                         </Button>
                       </div>
