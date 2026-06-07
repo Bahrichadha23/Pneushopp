@@ -530,7 +530,7 @@ function DotPanel({
                       {sellMsg?.ok && lastSale && (
                         <Button
                           onClick={generateDotSaleInvoice}
-                          className="w-full bg-yellow-500 hover:bg-yellow-600 text-black font-bold shadow-sm"
+                          className="w-full bg-yellow-500 hover:bg-yellow-600 text-white font-bold shadow-sm"
                         >
                           <Printer className="h-4 w-4 mr-2" /> Imprimer et Valider
                         </Button>
@@ -568,7 +568,7 @@ function DotPanel({
         {sellMsg?.ok && lastSale ? (
           <Button
             onClick={generateDotSaleInvoice}
-            className="bg-yellow-500 hover:bg-yellow-600 text-black font-bold shadow-sm px-6"
+            className="bg-yellow-500 hover:bg-yellow-600 text-white font-bold shadow-sm px-6"
           >
             <Printer className="h-4 w-4 mr-2" /> Imprimer et Valider
           </Button>
@@ -956,7 +956,7 @@ function OrderPrepPanel({ onClose }: { onClose: () => void }) {
                                 updateItem(asgn.itemIndex, { confirmed: true });
                               }}
                               disabled={!asgn.batchId || (!!selBatch && asgn.qty > selBatch.quantity)}
-                              className="w-full py-1.5 rounded-lg text-sm font-bold bg-yellow-500 hover:bg-yellow-600 text-black disabled:opacity-40 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
+                              className="w-full py-1.5 rounded-lg text-sm font-bold bg-yellow-500 hover:bg-yellow-600 text-white disabled:opacity-40 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
                             >
                               <Check className="h-3.5 w-3.5" /> Valider ce produit
                             </button>
@@ -1002,7 +1002,7 @@ function OrderPrepPanel({ onClose }: { onClose: () => void }) {
               onClose();
             }}
             disabled={!allDone}
-            className="bg-yellow-500 hover:bg-yellow-600 text-black font-bold shadow-sm disabled:opacity-40 whitespace-nowrap"
+            className="bg-yellow-500 hover:bg-yellow-600 text-white font-bold shadow-sm disabled:opacity-40 whitespace-nowrap"
           >
             Confirmer dans Commandes →
           </Button>
@@ -1458,7 +1458,7 @@ export default function StockManagementPage() {
                       <div className="flex space-x-1">
                         <Button
                           size="sm"
-                          className="bg-yellow-500 hover:bg-yellow-600 text-black border-0"
+                          className="bg-yellow-500 hover:bg-yellow-600 text-white border-0"
                           onClick={() => setActionModal({ isOpen: true, product: item })}
                           disabled={item.stock <= 0}
                           title="Vendre ou diminuer le stock"
