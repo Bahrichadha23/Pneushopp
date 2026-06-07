@@ -215,7 +215,7 @@ export default function ProductForm({
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-3">
+    <form onSubmit={handleSubmit} className="space-y-2">
       {submitError && (
         <Alert variant="destructive">
           <AlertDescription>{submitError}</AlertDescription>
@@ -223,14 +223,14 @@ export default function ProductForm({
       )}
 
       {/* Informations générales */}
-      <Card className="gap-3 py-3">
+      <Card className="gap-2 py-2.5">
         <CardHeader>
           <CardTitle className="flex items-center gap-1.5">
             Informations générales
             <Info className="h-3.5 w-3.5 text-blue-500" />
           </CardTitle>
         </CardHeader>
-        <CardContent className="space-y-2">
+        <CardContent className="space-y-1.5">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
             <div>
               <Label htmlFor="name" className="mb-1">
@@ -305,7 +305,7 @@ export default function ProductForm({
       </Card>
 
       {/* Description */}
-      <Card className="gap-3 py-3">
+      <Card className="gap-2 py-2.5">
         <CardHeader>
           <CardTitle className="flex items-center gap-1.5">
             Description
@@ -343,14 +343,14 @@ export default function ProductForm({
       </Card>
 
       {/* Spécifications techniques */}
-      <Card className="gap-3 py-3">
+      <Card className="gap-2 py-2.5">
         <CardHeader>
           <CardTitle className="flex items-center gap-1.5">
             Spécifications techniques
             <Info className="h-3.5 w-3.5 text-blue-500" />
           </CardTitle>
         </CardHeader>
-        <CardContent className="space-y-2">
+        <CardContent className="space-y-1.5">
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-2">
             <div>
               <Label htmlFor="width" className="mb-1">
@@ -495,14 +495,14 @@ export default function ProductForm({
       </Card>
 
       {/* Prix */}
-      <Card className="gap-3 py-3">
+      <Card className="gap-2 py-2.5">
         <CardHeader>
           <CardTitle className="flex items-center gap-1.5">
             Prix
             <Info className="h-3.5 w-3.5 text-blue-500" />
           </CardTitle>
         </CardHeader>
-        <CardContent className="space-y-2">
+        <CardContent className="space-y-1.5">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
             <div>
               <Label htmlFor="purchase_price" className="mb-1">
@@ -597,7 +597,7 @@ export default function ProductForm({
           </div>
 
           {formData.inPromotion && (
-            <div className="flex items-center gap-3 bg-yellow-50 border border-yellow-200 rounded-lg px-3 py-3">
+            <div className="flex items-center gap-3 bg-yellow-50 border border-yellow-200 rounded-lg px-3 py-2">
               <Label htmlFor="promotionDiscount" className="text-sm text-gray-700 whitespace-nowrap mb-0">
                 Remise à appliquer (%)
               </Label>
@@ -622,14 +622,14 @@ export default function ProductForm({
           )}
         </CardContent>
       </Card>
-      <Card className="gap-3 py-3">
+      <Card className="gap-2 py-2.5">
         <CardHeader>
           <CardTitle className="flex items-center gap-1.5">
             Images
             <Info className="h-3.5 w-3.5 text-blue-500" />
           </CardTitle>
         </CardHeader>
-        <CardContent className="space-y-2">
+        <CardContent className="space-y-1.5">
           <label
             htmlFor="fileUpload"
             className="inline-flex items-center gap-2.5 cursor-pointer border border-dashed border-gray-300 rounded-lg px-3 py-2 hover:border-gray-400 hover:bg-gray-50 transition-colors"
