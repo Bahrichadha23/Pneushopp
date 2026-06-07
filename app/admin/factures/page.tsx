@@ -38,6 +38,10 @@ const STATUS_VARIANTS: Record<Order["status"], "default" | "secondary" | "outlin
   cancelled: "destructive",
 };
 
+const STATUS_CLASSES: Partial<Record<Order["status"], string>> = {
+  confirmed: "bg-blue-50 text-blue-600 border border-blue-200 hover:bg-blue-50",
+};
+
 const fps = (n: string) => (n || "").replace(/^CPS/i, "FPS");
 
 export default function FacturesPage() {
@@ -270,7 +274,7 @@ export default function FacturesPage() {
                       {formatCurrency(order.totalAmount + (order.deliveryCost || 0))}
                     </TableCell>
                     <TableCell>
-                      <Badge variant={STATUS_VARIANTS[order.status]}>
+                      <Badge variant={STATUS_VARIANTS[order.status]} className={STATUS_CLASSES[order.status]}>
                         {STATUS_LABELS[order.status]}
                       </Badge>
                     </TableCell>
@@ -301,7 +305,7 @@ export default function FacturesPage() {
               <div key={order.id} className="border rounded-lg p-4 bg-white shadow-sm space-y-2">
                 <div className="flex justify-between items-center">
                   <span className="font-bold text-sm">#{fps(order.orderNumber)}</span>
-                  <Badge variant={STATUS_VARIANTS[order.status]}>
+                  <Badge variant={STATUS_VARIANTS[order.status]} className={STATUS_CLASSES[order.status]}>
                     {STATUS_LABELS[order.status]}
                   </Badge>
                 </div>
