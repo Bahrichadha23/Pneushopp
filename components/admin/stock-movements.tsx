@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import {
   TrendingUp, TrendingDown, RotateCcw, Search, Plus, X,
-  Download, Package, ArrowUpDown, Filter, Check, AlertTriangle,
+  Download, Upload, Package, ArrowUpDown, Filter, Check, AlertTriangle,
 } from "lucide-react";
 import type { StockMovement } from "@/types/admin";
 import { API_URL } from "@/lib/config";
@@ -184,17 +184,6 @@ export default function StockMovements({ movements, onAddMovement }: StockMoveme
 
   return (
     <div className="space-y-6">
-      {/* ── Header ─────────────────────────────────────────────────────────── */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900">Mouvements de stock</h1>
-          <p className="text-gray-600">Suivez tous les mouvements d'inventaire</p>
-        </div>
-        <Button onClick={handleExport} className="gap-2 bg-yellow-500 hover:bg-yellow-600 text-white border-0">
-          <Download className="h-4 w-4" /> Exporter un état en Excel
-        </Button>
-      </div>
-
       {/* Toast */}
       {toast && (
         <div className={`fixed top-4 right-4 z-50 flex items-center gap-2 rounded-lg px-5 py-3 text-sm font-medium shadow-lg text-white
@@ -206,63 +195,63 @@ export default function StockMovements({ movements, onAddMovement }: StockMoveme
 
       {/* ── KPI Cards ──────────────────────────────────────────────────────── */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <Card className="border-l-4 border-l-brand-gold">
+        <Card>
           <CardContent className="p-4">
-            <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="rounded-xl bg-blue-50 p-3">
+                <Download className="h-6 w-6 text-blue-700" />
+              </div>
               <div>
                 <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">Entrées</p>
-                <p className="text-3xl font-black text-brand-gold">+{kpis.entrées}</p>
+                <p className="text-3xl font-black text-blue-700">+{kpis.entrées}</p>
                 <p className="text-xs text-gray-400 mt-0.5">unités reçues</p>
               </div>
-              <div className="rounded-xl bg-brand-gold-light p-3">
-                <TrendingUp className="h-6 w-6 text-brand-gold" />
-              </div>
             </div>
           </CardContent>
         </Card>
 
-        <Card className="border-l-4 border-l-[#9B2226]">
+        <Card>
           <CardContent className="p-4">
-            <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="rounded-xl bg-red-50 p-3">
+                <Upload className="h-6 w-6 text-red-600" />
+              </div>
               <div>
                 <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">Sorties</p>
-                <p className="text-3xl font-black text-[#9B2226]">−{kpis.sorties}</p>
+                <p className="text-3xl font-black text-red-600">−{kpis.sorties}</p>
                 <p className="text-xs text-gray-400 mt-0.5">unités sorties</p>
               </div>
-              <div className="rounded-xl bg-[#F9E5E6] p-3">
-                <TrendingDown className="h-6 w-6 text-[#9B2226]" />
-              </div>
             </div>
           </CardContent>
         </Card>
 
-        <Card className="border-l-4 border-l-[#0066CC]">
+        <Card>
           <CardContent className="p-4">
-            <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="rounded-xl bg-blue-50 p-3">
+                <RotateCcw className="h-6 w-6 text-blue-500" />
+              </div>
               <div>
                 <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">Avoirs/Retours</p>
-                <p className="text-3xl font-black text-[#0066CC]">+{kpis.retours}</p>
+                <p className="text-3xl font-black text-blue-500">+{kpis.retours}</p>
                 <p className="text-xs text-gray-400 mt-0.5">remis en stock</p>
-              </div>
-              <div className="rounded-xl bg-[#E3F0FF] p-3">
-                <RotateCcw className="h-6 w-6 text-[#0066CC]" />
               </div>
             </div>
           </CardContent>
         </Card>
 
-        <Card className="border-l-4 border-l-gray-300">
+        <Card>
           <CardContent className="p-4">
-            <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="rounded-xl bg-amber-50 p-3">
+                <Package className="h-6 w-6 text-amber-600" />
+              </div>
               <div>
                 <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">Stock net</p>
                 <p className={`text-3xl font-black ${kpis.net >= 0 ? "text-gray-900" : "text-[#9B2226]"}`}>
                   {kpis.net >= 0 ? "+" : ""}{kpis.net}
                 </p>
                 <p className="text-xs text-gray-400 mt-0.5">entrées − sorties</p>
-              </div>
-              <div className="rounded-xl bg-[#FBF5E0] p-3">
-                <Package className="h-6 w-6 text-[#A68823]" />
               </div>
             </div>
           </CardContent>
@@ -286,7 +275,7 @@ export default function StockMovements({ movements, onAddMovement }: StockMoveme
         <select
           value={typeFilter}
           onChange={e => setTypeFilter(e.target.value)}
-          className="rounded-lg border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-yellow-500"
+          className="rounded-lg border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-orange"
         >
           <option value="all">Tous les types</option>
           <option value="in">Entrées</option>
@@ -298,12 +287,12 @@ export default function StockMovements({ movements, onAddMovement }: StockMoveme
         {/* Date range */}
         <input
           type="date" value={dateFrom} onChange={e => setDateFrom(e.target.value)}
-          className="rounded-lg border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-yellow-500"
+          className="rounded-lg border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-orange"
         />
         <span className="text-gray-400 text-sm">→</span>
         <input
           type="date" value={dateTo} onChange={e => setDateTo(e.target.value)}
-          className="rounded-lg border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-yellow-500"
+          className="rounded-lg border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-orange"
         />
 
         {(search || typeFilter !== "all" || dateFrom || dateTo) && (
@@ -314,10 +303,13 @@ export default function StockMovements({ movements, onAddMovement }: StockMoveme
         )}
 
         <div className="flex gap-2 ml-auto">
+          <Button size="sm" variant="outline" onClick={handleExport} className="gap-2 bg-white text-gray-700 border-gray-300 hover:bg-gray-50">
+            <Download className="h-4 w-4" /> Excel
+          </Button>
           <Button
             size="sm"
             onClick={() => setShowForm(!showForm)}
-            className="bg-yellow-500 text-white hover:bg-yellow-600 gap-2"
+            className="bg-[#FF8C00] text-white hover:bg-[#CC7000] gap-2"
           >
             <Plus className="h-4 w-4" /> Nouveau mouvement
           </Button>
@@ -326,7 +318,7 @@ export default function StockMovements({ movements, onAddMovement }: StockMoveme
 
       {/* ── Add movement form ──────────────────────────────────────────────── */}
       {showForm && (
-        <Card className="border-2 border-yellow-500/50 shadow-md">
+        <Card className="border-2 border-[#FF8C00]/50 shadow-md">
           <CardContent className="p-6 space-y-4">
             <div className="flex items-center justify-between mb-2">
               <h3 className="font-semibold text-gray-900 text-lg">Nouveau mouvement de stock</h3>
@@ -345,7 +337,7 @@ export default function StockMovements({ movements, onAddMovement }: StockMoveme
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
                   <input
                     type="text"
-                    className="w-full pl-9 pr-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-yellow-500"
+                    className="w-full pl-9 pr-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-orange"
                     placeholder="Rechercher un produit par nom ou référence…"
                     value={form.productId ? form.product_name : productSearch}
                     onChange={e => {
@@ -456,7 +448,7 @@ export default function StockMovements({ movements, onAddMovement }: StockMoveme
               <Button
                 onClick={handleSubmit}
                 disabled={saving}
-                className="bg-yellow-500 hover:bg-yellow-600 text-white border-0 gap-2"
+                className="bg-[#FF8C00] hover:bg-[#CC7000] text-white border-0 gap-2"
               >
                 {saving
                   ? <><div className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" /> Enregistrement…</>
