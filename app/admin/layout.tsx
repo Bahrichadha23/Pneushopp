@@ -130,7 +130,7 @@ export default function AdminLayout({
         }`}
       >
         {/* Mobile top bar */}
-        <div className="md:hidden fixed top-0 left-0 right-0 z-50 bg-gray-900 border-b border-white/10 flex items-center justify-between px-4 py-2.5">
+        <div className="md:hidden fixed top-0 left-0 right-0 z-50 bg-[#0D1117] border-b border-white/10 flex items-center justify-between px-4 py-2.5">
           <div className="flex items-center gap-2.5">
             <div className="bg-yellow-400 rounded-lg p-1">
               <Image src="/logo.png" alt="PneuShop" width={24} height={24} className="w-6 h-6 object-contain" />

@@ -274,7 +274,7 @@ export default function AdminSidebar({
           className={`flex items-center justify-between gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-150 cursor-pointer
             ${level > 0 ? "pl-8" : ""}
             ${active
-              ? "bg-yellow-400 text-gray-900 shadow-lg shadow-yellow-400/25"
+              ? "bg-yellow-400 text-white shadow-lg shadow-yellow-400/20"
               : "text-gray-400 hover:text-white hover:bg-white/8"
             }`}
         >
@@ -284,14 +284,12 @@ export default function AdminSidebar({
           </div>
 
           {item.title === "Commandes en attente" && pendingCount > 0 && (
-            <span className={`inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 text-xs font-bold rounded-full
-              ${active ? "bg-gray-900 text-yellow-400" : "bg-yellow-400 text-gray-900"}`}>
+            <span className="inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 text-xs font-bold rounded-full bg-[#FF8C00] text-white">
               {pendingCount}
             </span>
           )}
           {item.title === "Bons de commande achat" && bonsCount > 0 && (
-            <span className={`inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 text-xs font-bold rounded-full
-              ${active ? "bg-gray-900 text-yellow-400" : "bg-yellow-400 text-gray-900"}`}>
+            <span className="inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 text-xs font-bold rounded-full bg-[#FF8C00] text-white">
               {bonsCount}
             </span>
           )}
@@ -303,13 +301,13 @@ export default function AdminSidebar({
   return (
     <>
       <div
-        className={`fixed inset-y-0 left-0 z-40 w-64 bg-gray-900 flex flex-col transform transition-transform duration-200 ease-in-out overflow-hidden
+        className={`fixed inset-y-0 left-0 z-40 w-64 bg-[#0D1117] flex flex-col transform transition-transform duration-200 ease-in-out overflow-hidden
           ${sidebarOpen ? "translate-x-0" : "-translate-x-full"} ${
           desktopSidebarOpen ? "md:translate-x-0" : "md:-translate-x-full"
         }`}
       >
-        {/* ── Logo + rôle ── */}
-        <div className="flex-shrink-0 px-4 py-4 border-b border-white/10">
+        {/* ── Logo ── */}
+        <div className="flex-shrink-0 px-4 pt-4 pb-3 border-b border-white/8">
           <div className="flex items-center gap-3">
             <div className="bg-white rounded-xl p-1.5 flex-shrink-0">
               <Image
@@ -325,36 +323,32 @@ export default function AdminSidebar({
               <p className="text-gray-500 text-xs">Back-office</p>
             </div>
           </div>
-          {roleLabel && (
-            <div className="mt-3 px-2.5 py-1.5 bg-white/10 border border-white/20 rounded-lg">
-              <p className="text-white text-xs font-semibold">{roleLabel}</p>
+        </div>
+
+        {/* ── Profil utilisateur (sous le logo) ── */}
+        <div className="flex-shrink-0 px-4 py-3 border-b border-white/8">
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 rounded-full bg-yellow-400/20 border border-yellow-400/40 flex items-center justify-center flex-shrink-0">
+              <span className="text-yellow-400 text-sm font-bold uppercase">
+                {user?.first_name?.[0] ?? user?.email?.[0] ?? "?"}
+              </span>
             </div>
-          )}
+            <div className="flex-1 min-w-0">
+              <p className="text-white text-sm font-semibold truncate">
+                {user?.first_name
+                  ? `${user.first_name} ${user.last_name ?? ""}`.trim()
+                  : roleLabel || "Administrateur"}
+              </p>
+              <p className="text-gray-500 text-xs truncate">{user?.email}</p>
+            </div>
+            <ChevronDown className="w-4 h-4 text-gray-500 flex-shrink-0" />
+          </div>
         </div>
 
         {/* ── Navigation ── */}
         <nav className="flex-1 overflow-y-auto px-3 py-3 space-y-0.5 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
           {filteredMenuItems.map((item) => renderMenuItem(item))}
         </nav>
-
-        {/* ── Footer utilisateur ── */}
-        <div className="flex-shrink-0 px-4 py-3 border-t border-white/10 bg-gray-950/50">
-          <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-full bg-yellow-400/15 border border-yellow-400/30 flex items-center justify-center flex-shrink-0">
-              <span className="text-yellow-400 text-xs font-bold uppercase">
-                {user?.first_name?.[0] ?? user?.email?.[0] ?? "?"}
-              </span>
-            </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-white text-xs font-semibold truncate">
-                {user?.first_name
-                  ? `${user.first_name} ${user.last_name ?? ""}`.trim()
-                  : user?.email}
-              </p>
-              <p className="text-gray-500 text-xs truncate">{user?.email}</p>
-            </div>
-          </div>
-        </div>
       </div>
 
       {/* Overlay mobile */}
