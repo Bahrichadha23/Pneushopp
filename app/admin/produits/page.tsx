@@ -33,6 +33,21 @@ const adminProductToProduct = (adminProduct: AdminProduct): Product => {
   // Use designation as the full display name (designation = full product name from import)
   const displayName = adminProduct.designation || adminProduct.name || "";
 
+  // L'API admin (AdminProductSerializer, fields = '__all__') ne sérialise pas
+  // les @property "is_on_sale"/"discount_percentage" du modèle (ce ne sont pas
+  // de vraies colonnes BDD) — elle renvoie en revanche bien old_price et price.
+  // On recalcule donc nous-mêmes le statut de promotion à partir de ces deux
+  // valeurs réelles, pour que la case "En promotion" reflète fidèlement l'état
+  // enregistré en base (sinon elle réapparaît décochée à chaque réouverture).
+  const oldPriceNum = adminProduct.old_price
+    ? parseFloat(adminProduct.old_price.toString())
+    : undefined;
+  const currentPriceNum = parseFloat(adminProduct.price.toString());
+  const computedIsOnSale = !!(oldPriceNum && oldPriceNum > currentPriceNum);
+  const computedDiscount = computedIsOnSale && oldPriceNum
+    ? Math.round((1 - currentPriceNum / oldPriceNum) * 100)
+    : 0;
+
   return {
     id: adminProduct.id.toString(),
     slug: adminProduct.slug || displayName.toLowerCase().replace(/\s+/g, "-"),
@@ -43,7 +58,7 @@ const adminProductToProduct = (adminProduct: AdminProduct): Product => {
     old_price: adminProduct.old_price
       ? parseFloat(adminProduct.old_price.toString())
       : undefined,
-    discount_percentage: adminProduct.discount_percentage,
+    discount_percentage: computedDiscount,
     image: adminProduct.image || "/placeholder.jpg",
     images: [],
     category: adminProduct.category || ("" as any),
@@ -60,7 +75,7 @@ const adminProductToProduct = (adminProduct: AdminProduct): Product => {
     description: adminProduct.description || "",
     features: [],
     inStock: adminProduct.stock > 0,
-    is_on_sale: adminProduct.is_on_sale || adminProduct.is_featured,
+    is_on_sale: computedIsOnSale || adminProduct.is_featured,
     rating: undefined,
     reviewCount: 0,
     // Pass through all extra fields
@@ -205,28 +220,36 @@ export default function ProductsPage() {
     productId: number,
     productData: Partial<Product>,
     wasOnSale: boolean
-  ) => {
+  ): Promise<{ success: boolean; error?: string }> => {
     const raw = productData as any;
     const wantsPromotion = !!raw.in_promotion;
     const discount = Number(raw.promotion_discount) || 0;
 
     try {
       if (wantsPromotion && discount > 0) {
-        await adminService.setProductPromotion({
+        const res = await adminService.setProductPromotion({
           product_ids: [productId],
           discount_percentage: discount,
           promotion_label: "PROMO",
           remove: false,
         });
+        if (!res.success) {
+          return { success: false, error: res.error || "Échec de l'application de la promotion" };
+        }
       } else if (!wantsPromotion && wasOnSale) {
-        await adminService.setProductPromotion({
+        const res = await adminService.setProductPromotion({
           product_ids: [productId],
           discount_percentage: 0,
           remove: true,
         });
+        if (!res.success) {
+          return { success: false, error: res.error || "Échec du retrait de la promotion" };
+        }
       }
-    } catch (err) {
+      return { success: true };
+    } catch (err: any) {
       console.error("Erreur lors de l'application de la promotion:", err);
+      return { success: false, error: err?.message || "Erreur lors de l'application de la promotion" };
     }
   };
 
@@ -258,7 +281,7 @@ export default function ProductsPage() {
         );
 
         if (response.success) {
-          await applyPromotionFromForm(
+          const promoResult = await applyPromotionFromForm(
             parseInt(editingProduct.id),
             productData,
             !!editingProduct.is_on_sale
@@ -268,6 +291,10 @@ export default function ProductsPage() {
           setEditingProduct(undefined);
           // Signal the stock management page to refresh (handles cross-tab updates)
           localStorage.setItem("stock_updated_at", Date.now().toString());
+          if (!promoResult.success) {
+            setError(`Produit mis à jour, mais la promotion n'a pas pu être appliquée : ${promoResult.error}`);
+            return { success: true, error: promoResult.error };
+          }
           return { success: true };
         } else {
           setError(response.error || "Erreur lors de la mise à jour");
@@ -283,12 +310,17 @@ export default function ProductsPage() {
         const response = await adminService.createProduct(createData);
 
         if (response.success) {
+          let promoResult: { success: boolean; error?: string } = { success: true };
           if (response.data?.id) {
-            await applyPromotionFromForm(response.data.id, productData, false);
+            promoResult = await applyPromotionFromForm(response.data.id, productData, false);
           }
           await loadProducts(pagination.page);
           setIsFormOpen(false);
           setEditingProduct(undefined);
+          if (!promoResult.success) {
+            setError(`Produit créé, mais la promotion n'a pas pu être appliquée : ${promoResult.error}`);
+            return { success: true, error: promoResult.error };
+          }
           return { success: true };
         } else {
           setError(response.error || "Erreur lors de la création");
