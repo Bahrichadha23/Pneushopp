@@ -211,7 +211,7 @@ export default function ConfirmedOrdersPage() {
                   <TableCell>
                     <Badge className={{
                       confirmed: "bg-[#0066CC] text-white",
-                      processing: "bg-[#FF8C00] text-white",
+                      processing: "bg-yellow-500 text-white",
                       shipped: "bg-gray-700 text-white",
                       delivered: "bg-black text-white",
                     }[order.status] || "bg-gray-500 text-white"}>
