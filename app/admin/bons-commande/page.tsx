@@ -468,7 +468,7 @@ export default function BonsCommandePage() {
         <Card>
           <CardHeader className="flex flex-row justify-between items-center pb-2">
             <CardTitle className="text-sm font-medium">Total</CardTitle>
-            <Package className="h-4 w-4 text-[#FF8C00]" />
+            <Package className="h-4 w-4 text-gray-500" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{totalCommandes}</div>
@@ -480,25 +480,25 @@ export default function BonsCommandePage() {
             <Calendar className="h-4 w-4 text-[#FF8C00]" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-brand-gold">{commandesEnAttente}</div>
+            <div className="text-2xl font-bold text-[#FF8C00]">{commandesEnAttente}</div>
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="flex flex-row justify-between items-center pb-2">
             <CardTitle className="text-sm font-medium">Confirmées</CardTitle>
-            <Check className="h-4 w-4 text-[#FF8C00]" />
+            <Check className="h-4 w-4 text-blue-600" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-brand-gold">{commandesConfirmees}</div>
+            <div className="text-2xl font-bold text-blue-600">{commandesConfirmees}</div>
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="flex flex-row justify-between items-center pb-2">
             <CardTitle className="text-sm font-medium">Livrées</CardTitle>
-            <Truck className="h-4 w-4 text-[#FF8C00]" />
+            <Truck className="h-4 w-4 text-gray-500" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-black font-bold">{commandesLivrees}</div>
+            <div className="text-2xl font-bold">{commandesLivrees}</div>
           </CardContent>
         </Card>
       </div>

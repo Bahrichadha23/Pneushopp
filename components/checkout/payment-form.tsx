@@ -432,6 +432,10 @@ export function PaymentForm({ onSubmit, onBack, totalPrice }: PaymentFormProps) 
             Paiement multi-modalités activé ({selectedTypes.length} méthodes sélectionnées)
           </p>
         )}
+        <div className="mt-2 text-sm text-slate-600 space-y-0.5">
+          <p>-Tarif : Dès 10 DT (ajustable selon les dimensions).</p>
+          <p>-Validation : Notre service commercial vous contactera pour confirmer les frais.</p>
+        </div>
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-6">
