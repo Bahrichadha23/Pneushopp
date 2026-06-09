@@ -314,16 +314,6 @@ export default function ProductDetailsPage() {
                     </span>
                   )}
                 </div>
-
-                {product.inStock ? (
-                  <p className="text-black text-sm font-medium">
-                    En stock ({product.stock} disponibles)
-                  </p>
-                ) : (
-                  <p className="text-black text-sm font-medium">
-                    Rupture de stock
-                  </p>
-                )}
               </div>
 
               {/* Quantity selector + Add to Cart */}
@@ -343,11 +333,10 @@ export default function ProductDetailsPage() {
                       className="px-3 py-2 text-lg font-bold bg-gray-50 hover:bg-yellow-50 hover:text-yellow-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
                     >+</button>
                   </div>
-                  {product.stock > 0 && <span className="text-xs text-gray-400">{product.stock} disponibles</span>}
                 </div>
                 <Button
                   onClick={handleAddToCart}
-                  disabled={!product.inStock || isAdding}
+                  disabled={isAdding}
                   size="lg"
                   className={`w-full text-black font-semibold text-lg py-6
                     transition-all duration-500 ease-out
@@ -361,9 +350,7 @@ export default function ProductDetailsPage() {
                   <span className="inline-block transition-all duration-300">
                     {isAdding
                       ? `✓ ${quantity > 1 ? `${quantity}x ` : ""}Ajouté au panier!`
-                      : product.inStock
-                      ? `Ajouter ${quantity > 1 ? `${quantity}x ` : ""}au panier`
-                      : "Rupture de stock"
+                      : `Ajouter ${quantity > 1 ? `${quantity}x ` : ""}au panier`
                     }
                   </span>
                 </Button>

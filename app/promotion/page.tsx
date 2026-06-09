@@ -141,11 +141,6 @@ function PromoCard({ p }: { p: PromoProduct }) {
             className="max-h-44 max-w-full object-contain group-hover:scale-105 transition-transform duration-300"
             onError={() => setImgErr(true)}
           />
-          {!inStock && (
-            <div className="absolute inset-0 bg-white/70 flex items-center justify-center">
-              <span className="text-sm font-bold text-red-600 border border-red-300 bg-white px-3 py-1 rounded-full">Rupture de stock</span>
-            </div>
-          )}
         </div>
 
         {/* Info */}
@@ -195,17 +190,15 @@ function PromoCard({ p }: { p: PromoProduct }) {
           {/* CTA */}
           <button
             onClick={handleCart}
-            disabled={!inStock || adding}
+            disabled={adding}
             className={`mt-2 w-full flex items-center justify-center gap-2 py-2 rounded-xl text-sm font-semibold transition-all duration-300
               ${adding
                 ? "bg-green-500 text-white scale-105"
-                : inStock
-                  ? "bg-yellow-400 hover:bg-yellow-500 text-black hover:-translate-y-0.5 hover:shadow-md"
-                  : "bg-gray-100 text-gray-400 cursor-not-allowed"
+                : "bg-yellow-400 hover:bg-yellow-500 text-black hover:-translate-y-0.5 hover:shadow-md"
               }`}
           >
             <ShoppingCart className={`h-4 w-4 ${adding ? "rotate-12" : ""} transition-transform`} />
-            {adding ? "Ajouté !" : inStock ? "Ajouter au panier" : "Indisponible"}
+            {adding ? "Ajouté !" : "Ajouter au panier"}
           </button>
         </div>
       </div>

@@ -42,6 +42,7 @@ interface OrderApi {
   order_number: string;
   created_at: string;
   total_amount: string;
+  status?: string;
   warranty_accepted: boolean;
   warranty_vehicle_mileage?: string;
   items: OrderItemApi[];
@@ -400,7 +401,8 @@ export default function SAVPage() {
       .then((r) => r.json())
       .then((data) => {
         const list: OrderApi[] = Array.isArray(data) ? data : data.results || [];
-        setOrders(list.filter((o) => o.warranty_accepted));
+        // Une réclamation ne peut être faite que pour une commande déjà livrée
+        setOrders(list.filter((o) => o.warranty_accepted && o.status === "delivered"));
       })
       .catch(() => setFetchError("Impossible de charger vos commandes."))
       .finally(() => setLoading(false));

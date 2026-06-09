@@ -138,12 +138,6 @@ export default function ShoppingCart({
                   </div>
                 </div>
 
-                {/* Avertissement stock */}
-                {item.quantity >= item.product.stock && (
-                  <p className="text-xs text-orange-600 mt-2">
-                    Stock maximum atteint ({item.product.stock} disponibles)
-                  </p>
-                )}
               </div>
             </div>
           </div>

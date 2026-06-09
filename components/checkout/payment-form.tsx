@@ -452,7 +452,7 @@ export function PaymentForm({ onSubmit, onBack, totalPrice }: PaymentFormProps) 
                     <label
                       className={`flex items-center space-x-3 p-3 transition-colors cursor-pointer ${
                         deliveryExpanded
-                          ? "border-yellow-400 bg-yellow-50"
+                          ? "border-2 border-yellow-400"
                           : "hover:bg-gray-50"
                       }`}
                     >
@@ -482,7 +482,7 @@ export function PaymentForm({ onSubmit, onBack, totalPrice }: PaymentFormProps) 
                     isItemDisabled
                       ? "opacity-40 cursor-not-allowed pointer-events-none border-gray-200 bg-gray-50"
                       : isSelected(id)
-                      ? "border-yellow-400 bg-yellow-50 cursor-pointer"
+                      ? "border-2 border-yellow-400 cursor-pointer"
                       : "border-gray-200 hover:bg-gray-50 cursor-pointer"
                   }`}
                 >
@@ -556,12 +556,12 @@ export function PaymentForm({ onSubmit, onBack, totalPrice }: PaymentFormProps) 
 
           {/* ── Delivery — sélection du mode + montants séparés Espèces / TPE ── */}
           {deliveryExpanded && (
-            <div className="space-y-4 p-4 bg-yellow-50 rounded-lg border border-yellow-200">
+            <div className="space-y-4 p-4 bg-white rounded-lg border-2 border-yellow-400">
               {/* Sélection du mode — en haut du rectangle, au-dessus du Total */}
               <div className="flex items-center justify-center gap-4">
                 {/* Espèces */}
                 <label className={`flex items-center gap-2 px-4 py-2 rounded-lg border-2 cursor-pointer transition-all ${
-                  especesChecked ? "border-yellow-500 bg-yellow-50 text-black font-semibold" : "border-gray-200 bg-white hover:border-yellow-400 text-gray-600"
+                  especesChecked ? "border-yellow-500 bg-white text-black font-semibold" : "border-gray-200 bg-white hover:border-yellow-400 text-gray-600"
                 }`}>
                   <input
                     type="checkbox"
@@ -574,7 +574,7 @@ export function PaymentForm({ onSubmit, onBack, totalPrice }: PaymentFormProps) 
                 </label>
                 {/* TPE */}
                 <label className={`flex items-center gap-2 px-4 py-2 rounded-lg border-2 cursor-pointer transition-all ${
-                  tpeChecked ? "border-yellow-500 bg-yellow-50 text-black font-semibold" : "border-gray-200 bg-white hover:border-yellow-400 text-gray-600"
+                  tpeChecked ? "border-yellow-500 bg-white text-black font-semibold" : "border-gray-200 bg-white hover:border-yellow-400 text-gray-600"
                 }`}>
                   <input
                     type="checkbox"

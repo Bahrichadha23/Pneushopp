@@ -77,8 +77,8 @@ export default function RegisterForm({
 
     if (
       formData.phone &&
-      !/^(\+216|216)?\s?[0-9]{2}\s?[0-9]{3}\s?[0-9]{3}$/.test(
-        formData.phone.replace(/\s/g, "")
+      !/^(\+216|216)?[0-9]{8}$/.test(
+        formData.phone.replace(/[\s ]/g, "")
       )
     ) {
       newErrors.phone = "Format de téléphone invalide (ex: +216 )";

@@ -69,9 +69,6 @@ export default function ProductCard({
                 -{product.discount_percentage}%
               </Badge>
             )}
-            {!product.inStock && (
-              <Badge variant="destructive">Rupture de stock</Badge>
-            )}
           </div>
 
           {/* Badge populaire */}
@@ -146,7 +143,7 @@ export default function ProductCard({
           </div>
 
           {/* Sélecteur de quantité */}
-          {product.inStock && (
+          {(
             <div
               className="flex items-center justify-center gap-2 mb-3"
               onClick={(e) => e.preventDefault()}
@@ -178,27 +175,20 @@ export default function ProductCard({
           {/* Bouton d'ajout au panier */}
           <Button
             onClick={handleAddToCart}
-            disabled={!product.inStock || isAdding}
+            disabled={isAdding}
             className={`w-full text-black font-medium
               transition-all duration-500 ease-out
-              ${isAdding 
-                ? 'bg-yellow-500 hover:bg-yellow-500 scale-110 shadow-2xl shadow-yellow-500/50 -translate-y-2' 
+              ${isAdding
+                ? 'bg-yellow-500 hover:bg-yellow-500 scale-110 shadow-2xl shadow-yellow-500/50 -translate-y-2'
                 : 'bg-yellow-500 hover:bg-yellow-600 hover:-translate-y-1 hover:shadow-lg active:translate-y-0 active:shadow-md'
               }
             `}
           >
             <ShoppingCart className={`w-4 h-4 mr-2 inline-block transition-all duration-700 ease-out ${isAdding ? 'rotate-[720deg] scale-150' : ''}`} />
             <span className="inline-block transition-all duration-300">
-              {isAdding ? "✓ Ajouté!" : product.inStock ? "Ajouter au panier" : "Indisponible"}
+              {isAdding ? "✓ Ajouté!" : "Ajouter au panier"}
             </span>
           </Button>
-
-          {/* Stock restant si faible */}
-          {product.inStock && product.stock <= 5 && (
-            <p className="text-xs text-orange-600 mt-2 text-center">
-              Plus que {product.stock} en stock !
-            </p>
-          )}
         </div>
       </div>
     </Link>
