@@ -21,17 +21,33 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Loader2, Upload, X, Plus, Info } from "lucide-react";
 import type { Product } from "@/types/product";
 
-// Extrait largeur / hauteur (rapport) / diamètre depuis une chaîne de taille
-// pneu type "225/45R17", "235/60 R 16", etc. — utilisé pour pré-remplir
-// les Spécifications techniques des produits importés via Excel
-// (ceux-ci n'ont qu'un champ "size" texte, pas de specifications structurées).
-function parseTireSize(size: string): { width: number; height: number; diameter: number } {
-  const match = (size || "").match(/(\d{3})\s*\/\s*(\d{2})\s*[Rr]\s*(\d{2,3})/);
-  if (!match) return { width: 0, height: 0, diameter: 0 };
+// Extrait largeur / hauteur (rapport) / diamètre / indice de charge / indice
+// de vitesse depuis une chaîne de taille pneu type "225/45R17 91W",
+// "235/60 R 16 100H", etc. — utilisé pour pré-remplir les Spécifications
+// techniques des produits importés via Excel (ceux-ci n'ont qu'un champ
+// "size" texte, pas de specifications structurées).
+function parseTireSize(size: string): {
+  width: number;
+  height: number;
+  diameter: number;
+  loadIndex: number;
+  speedRating: string;
+} {
+  const str = size || "";
+  const match = str.match(/(\d{3})\s*\/\s*(\d{2})\s*[Rr]\s*(\d{2,3})/);
+  if (!match) return { width: 0, height: 0, diameter: 0, loadIndex: 0, speedRating: "" };
+
+  // Cherche un indice de charge + indice de vitesse après la dimension
+  // (ex: "91W", "100H", "104/102Q") dans le reste de la chaîne.
+  const rest = str.slice((match.index || 0) + match[0].length);
+  const liMatch = rest.match(/(\d{2,3})\s*([A-Za-z]{1,2})\b/);
+
   return {
     width: parseInt(match[1], 10) || 0,
     height: parseInt(match[2], 10) || 0,
     diameter: parseInt(match[3], 10) || 0,
+    loadIndex: liMatch ? parseInt(liMatch[1], 10) || 0 : 0,
+    speedRating: liMatch ? liMatch[2].toUpperCase() : "",
   };
 }
 
@@ -110,8 +126,8 @@ export default function ProductForm({
           width: product.specifications?.width || parsedSize.width || 0,
           height: product.specifications?.height || parsedSize.height || 0,
           diameter: product.specifications?.diameter || parsedSize.diameter || 0,
-          loadIndex: product.specifications?.loadIndex || 0,
-          speedRating: product.specifications?.speedRating || "",
+          loadIndex: product.specifications?.loadIndex || parsedSize.loadIndex || 0,
+          speedRating: product.specifications?.speedRating || parsedSize.speedRating || "",
           season: product.specifications?.season || "ete",
           specialty: product.specifications?.specialty ?? "tourisme",
         },

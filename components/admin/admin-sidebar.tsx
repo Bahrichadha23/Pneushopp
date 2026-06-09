@@ -307,9 +307,9 @@ export default function AdminSidebar({
         {/* ── Logo ── */}
         <div className="flex-shrink-0 px-4 pt-4 pb-3 border-b border-white/8">
           <div className="flex items-center gap-3">
-            <div className="bg-white rounded-xl p-1.5 flex-shrink-0">
+            <div className="flex-shrink-0">
               <Image
-                src="/logo.png"
+                src="/mobile-logo.png"
                 alt="PneuShop"
                 width={32}
                 height={32}
@@ -317,7 +317,10 @@ export default function AdminSidebar({
               />
             </div>
             <div>
-              <p className="text-white font-bold text-sm leading-tight">PneuShop</p>
+              <p className="text-sm leading-tight font-bold">
+                <span className="text-white">Pneu</span>
+                <span className="text-yellow-400">Shop</span>
+              </p>
               <p className="text-gray-500 text-xs">Back-office</p>
             </div>
           </div>
