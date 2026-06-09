@@ -15,15 +15,18 @@ from .models import Product, Category, ImportJob
 
 # Column name aliases (case-insensitive, stripped)
 # Primary name fields (checked first)
-NAME_PRIMARY = {'nom', 'name', 'product name', 'designation', 'libelle', 'article', 'produit', 'description article'}
+NAME_PRIMARY = {'nom', 'name', 'product name', 'designation', 'libelle', 'article', 'produit', 'description article',
+                'nom produit', 'nom article', 'intitule', 'intitule article', 'label', 'titre', 'modele'}
 # Fallback name fields (used only if no primary name found)
-NAME_FALLBACK = {'reference', 'ref', 'code article'}
+NAME_FALLBACK = {'reference', 'ref', 'code article', 'ref article'}
 PRICE_ALIASES = {'prix ttc', 'prix', 'prix vente', 'tarif', 'price', 'prix de vente', 'p.v.ttc', 'pvttc',
-                 'pric ttc', 'prix ttc.', 'ttc', 'montant ttc', 'cout ttc', 'prix unitaire', 'pu ttc'}
-DESCRIPTION_ALIASES = {'description', 'desc', 'details', 'detail'}
-STOCK_ALIASES = {'stock', 'quantite', 'qty', 'qte', 'quantity'}
-REFERENCE_ALIASES = {'ref', 'reference', 'code', 'code article', 'code produit'}
-CATEG_ALIASES = {'categorie', 'category', 'type', 'famille', 'segment', 'cat'}
+                 'pric ttc', 'prix ttc.', 'ttc', 'montant ttc', 'cout ttc', 'prix unitaire', 'pu ttc',
+                 'prix public', 'p.v', 'pv', 'prix catalogue', 'tarif ttc', 'tarif public', 'prix client'}
+DESCRIPTION_ALIASES = {'description', 'desc', 'details', 'detail', 'observations', 'obs', 'note', 'notes', 'remarque'}
+STOCK_ALIASES = {'stock', 'quantite', 'qty', 'qte', 'quantity', 'quantite stock', 'stock disponible', 'dispo'}
+REFERENCE_ALIASES = {'ref', 'reference', 'code', 'code article', 'code produit', 'ref article', 'ref produit',
+                     'numero article', 'n article', 'n°article', 'no article'}
+CATEG_ALIASES = {'categorie', 'category', 'type', 'famille', 'segment', 'cat', 'groupe', 'gamme', 'rayon'}
 BRAND_ALIASES = {'marque', 'brand', 'fabricant'}
 SIZE_ALIASES = {'taille', 'dimension', 'size', 'dimension pneu', 'dimensions'}
 IMAGE_ALIASES = {'image', 'photo', 'img', 'image url', 'photo url', 'lien image', 'url image', 'image principale'}
@@ -44,10 +47,10 @@ BRAND_CANONICAL: dict[str, str] = {
     'pirelli': 'Pirelli',
     'continental': 'Continental',
     'bridgestone': 'Bridgestone',
-    'goodyear': 'Goodyear',
+    'goodyear': 'Goodyear', 'good year': 'Goodyear', 'good-year': 'Goodyear',
     'dunlop': 'Dunlop',
     'hankook': 'Hankook',
-    'kleber': 'Kleber',
+    'kleber': 'Kleber', 'kléber': 'Kleber',
     'nexen': 'Nexen',
     'maxxis': 'Maxxis',
     'firestone': 'Firestone',
@@ -58,7 +61,7 @@ BRAND_CANONICAL: dict[str, str] = {
     'laufenn': 'Laufenn',
     'lassa': 'Lassa',
     'fulda': 'Fulda',
-    'bfgoodrich': 'BFGoodrich', 'bf goodrich': 'BFGoodrich',
+    'bfgoodrich': 'BFGoodrich', 'bf goodrich': 'BFGoodrich', 'b.f. goodrich': 'BFGoodrich',
     'westlake': 'Westlake',
     'waterfall': 'Waterfall',
     'alliance': 'Alliance',
@@ -72,6 +75,14 @@ BRAND_CANONICAL: dict[str, str] = {
     'falken': 'Falken',
     'kumho': 'Kumho',
     'nokian': 'Nokian',
+    'general tire': 'General Tire', 'generaltire': 'General Tire',
+    'cooper': 'Cooper',
+    'nankang': 'Nankang',
+    'triangle': 'Triangle',
+    'sailun': 'Sailun',
+    'accelera': 'Accelera',
+    'austone': 'Austone',
+    'doublestar': 'Doublestar', 'double star': 'Doublestar',
     'unknown': '',
 }
 
@@ -86,21 +97,33 @@ def extract_brand_size_from_name(name: str):
     if size_match:
         size = size_match.group(0).replace(' ', '')
 
-    # Find brand: first word that is a known brand, or first non-skip uppercase word
     parts = name.strip().split()
-    for part in parts:
-        p_lower = part.lower().rstrip('.,')
-        if p_lower in SKIP_WORDS:
-            continue
-        # Skip parts that look like size components (digit-starts or single-letter+digits like R17)
-        if part[0].isdigit() or (len(part) <= 4 and part[0].isalpha() and any(c.isdigit() for c in part)):
-            continue
-        if p_lower in KNOWN_BRANDS:
-            brand = part.rstrip('.,')
+
+    # Pass 1: try 2-word combinations to catch multi-word brands (e.g. "Good Year", "BF Goodrich", "Central Tire")
+    for i in range(len(parts) - 1):
+        two_word = f"{parts[i].rstrip('.,')} {parts[i + 1].rstrip('.,')}"
+        two_lower = two_word.lower()
+        if two_lower in KNOWN_BRANDS:
+            brand = BRAND_CANONICAL.get(two_lower, two_word)
             break
-        if part[0].isupper() and len(part) > 2:
-            brand = part.rstrip('.,')
-            break
+
+    # Pass 2: single-word match
+    if not brand:
+        for part in parts:
+            p_lower = part.lower().rstrip('.,')
+            if p_lower in SKIP_WORDS:
+                continue
+            # Skip size-like parts (digit-starts or short alpha+digits like R17)
+            if not part:
+                continue
+            if part[0].isdigit() or (len(part) <= 4 and part[0].isalpha() and any(c.isdigit() for c in part)):
+                continue
+            if p_lower in KNOWN_BRANDS:
+                brand = part.rstrip('.,')
+                break
+            if part[0].isupper() and len(part) > 2:
+                brand = part.rstrip('.,')
+                break
 
     return brand, size
 
