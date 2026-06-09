@@ -105,7 +105,7 @@ export default function CancelledOrdersPage() {
         <h1 className="text-2xl font-bold text-gray-900">
           Commandes annulées
         </h1>
-        <Badge variant="secondary" className="bg-gray-100 text-gray-700 text-sm">
+        <Badge variant="secondary" className="bg-red-100 text-red-800 text-sm">
           {filteredOrders.length} commandes
         </Badge>
       </div>
@@ -128,7 +128,7 @@ export default function CancelledOrdersPage() {
             <CardTitle className="text-sm font-medium">
               Total commandes annulées
             </CardTitle>
-            <XCircle className="h-4 w-4 text-gray-500" />
+            <XCircle className="h-4 w-4 text-[#9B2226]" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{filteredOrders.length}</div>
@@ -142,7 +142,7 @@ export default function CancelledOrdersPage() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">
+            <div className="text-2xl font-bold text-[#9B2226]">
               {formatCurrency(
                 filteredOrders.reduce((sum, order) => sum + order.total, 0)
               )}
@@ -191,7 +191,7 @@ export default function CancelledOrdersPage() {
                     {order.email}
                   </TableCell>
                   <TableCell>{order.items}</TableCell>
-                  <TableCell className="font-medium">
+                  <TableCell className="font-medium text-[#9B2226]">
                     {formatCurrency(order.total)}
                   </TableCell>
                   <TableCell>{order.date}</TableCell>

@@ -270,7 +270,7 @@ export default function ProductForm({
         <CardContent className="space-y-1.5">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
             <div>
-              <Label htmlFor="name" className="mb-1">
+              <Label htmlFor="name" className="mb-1 text-base">
                 Nom du produit *
               </Label>
               <Input
@@ -285,7 +285,7 @@ export default function ProductForm({
             </div>
 
             <div>
-              <Label htmlFor="brand" className="mb-1">
+              <Label htmlFor="brand" className="mb-1 text-base">
                 Marque {!product && "*"}
               </Label>
               <Input
@@ -301,7 +301,7 @@ export default function ProductForm({
             </div>
 
             <div>
-              <Label htmlFor="model" className="mb-1">
+              <Label htmlFor="model" className="mb-1 text-base">
                 Référence *
               </Label>
               <Input
@@ -316,7 +316,7 @@ export default function ProductForm({
             </div>
 
             <div>
-              <Label htmlFor="category" className="mb-1">
+              <Label htmlFor="category" className="mb-1 text-base">
                 Catégorie *
               </Label>
               <Select
@@ -351,7 +351,7 @@ export default function ProductForm({
         </CardHeader>
         <CardContent>
           <div>
-            <Label htmlFor="description" className="mb-1">
+            <Label htmlFor="description" className="mb-1 text-base">
               Description *
             </Label>
             <Textarea
@@ -390,7 +390,7 @@ export default function ProductForm({
         <CardContent className="space-y-1.5">
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-2">
             <div>
-              <Label htmlFor="width" className="mb-1">
+              <Label htmlFor="width" className="mb-1 text-base">
                 Largeur *
               </Label>
               <Input
@@ -411,7 +411,7 @@ export default function ProductForm({
             </div>
 
             <div>
-              <Label htmlFor="height" className="mb-1">
+              <Label htmlFor="height" className="mb-1 text-base">
                 Hauteur *
               </Label>
               <Input
@@ -432,7 +432,7 @@ export default function ProductForm({
             </div>
 
             <div>
-              <Label htmlFor="diameter" className="mb-1">
+              <Label htmlFor="diameter" className="mb-1 text-base">
                 Diamètre *
               </Label>
               <Input
@@ -453,7 +453,7 @@ export default function ProductForm({
             </div>
 
             <div>
-              <Label htmlFor="loadIndex" className="mb-1">
+              <Label htmlFor="loadIndex" className="mb-1 text-base">
                 Indice charge *
               </Label>
               <Input
@@ -474,7 +474,7 @@ export default function ProductForm({
             </div>
 
             <div>
-              <Label htmlFor="speedRating" className="mb-1">
+              <Label htmlFor="speedRating" className="mb-1 text-base">
                 Indice vitesse *
               </Label>
               <Select
@@ -508,7 +508,7 @@ export default function ProductForm({
             {/* Saison supprimée */}
 
             <div>
-              <Label htmlFor="specialty" className="mb-1">
+              <Label htmlFor="specialty" className="mb-1 text-base">
                 Spécialité
               </Label>
               <Select
@@ -542,7 +542,7 @@ export default function ProductForm({
         <CardContent className="space-y-1.5">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
             <div>
-              <Label htmlFor="purchase_price" className="mb-1">
+              <Label htmlFor="purchase_price" className="mb-1 text-base">
                 Prix d'achat (DT)
               </Label>
               <Input
@@ -572,7 +572,7 @@ export default function ProductForm({
             </div>
 
             <div>
-              <Label htmlFor="price" className="mb-1">
+              <Label htmlFor="price" className="mb-1 text-base">
                 Prix de vente (DT) *
               </Label>
               <Input
@@ -588,7 +588,7 @@ export default function ProductForm({
             </div>
 
             <div>
-              <Label htmlFor="stock" className="mb-1">
+              <Label htmlFor="stock" className="mb-1 text-base">
                 Stock disponible *
               </Label>
               <Input

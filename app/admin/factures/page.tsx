@@ -283,7 +283,7 @@ export default function FacturesPage() {
                         size="sm"
                         onClick={() => handleDownload(order)}
                         disabled={downloading === order.id}
-                        className="gap-2 bg-[#0066CC] hover:bg-[#004E9E] text-white border-0"
+                        className="gap-2 bg-[#FF8C00] hover:bg-[#E67E00] text-white border-0"
                       >
                         {downloading === order.id ? (
                           <div className="h-4 w-4 animate-spin rounded-full border-2 border-gray-300 border-t-gray-600" />

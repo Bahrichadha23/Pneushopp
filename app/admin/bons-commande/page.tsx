@@ -566,7 +566,7 @@ export default function BonsCommandePage() {
               {bon.statut === "en_attente" && (
                 <Button
                   size="sm"
-                  className="flex-1 bg-[#0066CC] hover:bg-[#004C99] text-white font-semibold"
+                  className="flex-1 bg-[#FF8C00] hover:bg-[#E67E00] text-white font-semibold"
                   onClick={() => handleConfirmBon(Number(bon.id), bon.order_number || bon.id.toString(), bon.order_id)}
                 >
                   Confirmer
@@ -661,7 +661,7 @@ export default function BonsCommandePage() {
                           {bon.statut === "en_attente" && (
                             <Button
                               size="sm"
-                              className="bg-[#0066CC] hover:bg-[#004C99] text-white border-0"
+                              className="bg-[#FF8C00] hover:bg-[#E67E00] text-white border-0"
                               onClick={() =>
                                 handleConfirmBon(
                                   Number(bon.id),
@@ -851,12 +851,12 @@ export default function BonsCommandePage() {
                 Confirmer le bon <strong>{confirmation.bonNumber}</strong> ? Une livraison sera automatiquement créée.
               </p>
               <div className="flex gap-3 justify-end">
-                <Button onClick={handleCancelDialog} className="bg-gray-100 hover:bg-gray-200 text-gray-700 border-0">
+                <Button onClick={handleCancelDialog} className="bg-red-600 hover:bg-red-700 text-white border-0">
                   Annuler
                 </Button>
                 <Button
                   onClick={handleConfirmDialogAction}
-                  className="bg-[#0066CC] hover:bg-[#004C99] text-white border-0"
+                  className="bg-[#FF8C00] hover:bg-[#E67E00] text-white border-0"
                 >
                   Confirmer
                 </Button>
