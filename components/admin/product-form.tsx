@@ -555,18 +555,18 @@ export default function ProductForm({
                   const achat = Number.parseFloat(e.target.value) || 0;
                   handleInputChange("purchase_price", achat);
                   // Calcul automatique prix vente :
-                  // marque "amine" → +10%, tous les autres → +15%
+                  // marque "amine" → +10%, tous les autres → +15% × 1.19 (TVA)
                   if (achat > 0) {
                     const brandLower = (formData.brand || "").toLowerCase().trim();
                     const isAmine = brandLower.includes("amine");
-                    const margin = isAmine ? 1.10 : 1.15;
+                    const margin = isAmine ? 1.10 : 1.15 * 1.19;
                     const sellPrice = Math.round(achat * margin * 1000) / 1000;
                     handleInputChange("price", sellPrice);
                   }
                 }}
               />
               <p className="text-xs text-gray-400 mt-1 flex items-center gap-1">
-                Prix vente = prix achat × {((formData.brand || "").toLowerCase().includes("amine") ? "1.10" : "1.15")}
+                Prix vente = prix achat × {((formData.brand || "").toLowerCase().includes("amine") ? "1.10" : "1.15 × 1.19")}
                 <Info className="h-3 w-3 text-blue-400" />
               </p>
             </div>

@@ -290,6 +290,11 @@ export function CheckoutForm() {
 
   const handleShippingSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    if (!/^[0-9]{8}$/.test(shippingAddress.phone)) {
+      setOrderError("Le numéro de téléphone doit contenir exactement 8 chiffres.");
+      return;
+    }
+    setOrderError("");
     setStep("payment");
   };
 
@@ -464,12 +469,22 @@ export function CheckoutForm() {
               <Input
                 id="phone"
                 type="tel"
-                placeholder="+216 XX XXX XXX"
+                placeholder="XX XXX XXX"
                 value={shippingAddress.phone}
-                onChange={(e) => setShippingAddress((prev) => ({ ...prev, phone: e.target.value }))}
+                onChange={(e) =>
+                  setShippingAddress((prev) => ({
+                    ...prev,
+                    phone: e.target.value.replace(/[^0-9]/g, ""),
+                  }))
+                }
+                inputMode="numeric"
                 required
               />
             </div>
+
+            {orderError && (
+              <p className="text-sm text-red-600">{orderError}</p>
+            )}
 
             <div className="flex gap-4">
               <Button

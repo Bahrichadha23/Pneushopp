@@ -75,13 +75,14 @@ export default function RegisterForm({
         "Vous devez accepter les conditions d'utilisation";
     }
 
-    if (
-      formData.phone &&
+    if (!formData.phone.trim()) {
+      newErrors.phone = "Le numéro de téléphone est obligatoire";
+    } else if (
       !/^(\+216|216)?[0-9]{8}$/.test(
         formData.phone.replace(/[\s ]/g, "")
       )
     ) {
-      newErrors.phone = "Format de téléphone invalide (ex: +216 )";
+      newErrors.phone = "Format de téléphone invalide (8 chiffres)";
     }
 
     setErrors(newErrors);
@@ -277,14 +278,22 @@ export default function RegisterForm({
           )}
         </div>
         <div>
-          <Label htmlFor="phone">Téléphone</Label>
+          <Label htmlFor="phone">Téléphone *</Label>
           <Input
             id="phone"
             name="phone"
             type="tel"
             value={formData.phone}
-            onChange={handleInputChange}
-            placeholder="+216 "
+            onChange={(e) => {
+              setFormData((prev) => ({
+                ...prev,
+                phone: e.target.value.replace(/[^0-9]/g, ""),
+              }));
+              setErrors((prev) => ({ ...prev, phone: "" }));
+            }}
+            placeholder="XX XXX XXX"
+            inputMode="numeric"
+            required
             disabled={isLoading}
             className={errors.phone ? "border-red-500" : ""}
           />

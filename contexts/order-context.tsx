@@ -88,6 +88,7 @@ export function OrderProvider({ children }: { children: React.ReactNode }) {
             shipping_address: {
               first_name: orderData.shippingAddress.first_name,
               last_name: orderData.shippingAddress.last_name,
+              email: orderData.shippingAddress.email,
               address: orderData.shippingAddress.address,
               city: orderData.shippingAddress.city,
               postal_code: orderData.shippingAddress.postal_code,
@@ -97,6 +98,7 @@ export function OrderProvider({ children }: { children: React.ReactNode }) {
             billing_address: {
               first_name: orderData.shippingAddress.first_name,
               last_name: orderData.shippingAddress.last_name,
+              email: orderData.shippingAddress.email,
               address: orderData.shippingAddress.address,
               city: orderData.shippingAddress.city,
               postal_code: orderData.shippingAddress.postal_code,
