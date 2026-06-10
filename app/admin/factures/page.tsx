@@ -9,8 +9,9 @@ import type { Order } from "@/types/admin";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Download, Search, FileText, FileDown } from "lucide-react";
+import { Download, Search, FileText, FileDown, CreditCard, Printer } from "lucide-react";
 import ExcelJS from "exceljs";
+import PayerFactureModal, { PAYMENT_LABELS } from "@/components/admin/payer-facture-modal";
 import {
   Table,
   TableBody,
@@ -42,6 +43,9 @@ const STATUS_CLASSES: Partial<Record<Order["status"], string>> = {
   confirmed: "bg-blue-50 text-blue-600 border border-blue-200 hover:bg-blue-50",
 };
 
+// Statut de paiement affiché : Payée / Non payée
+const isPaid = (order: Order) => order.paymentStatus === "paid";
+
 const fps = (n: string) => (n || "").replace(/^CPS/i, "FPS");
 
 export default function FacturesPage() {
@@ -52,7 +56,10 @@ export default function FacturesPage() {
   const [loading, setLoading] = useState(true);
   const [searchClient, setSearchClient] = useState("");
   const [searchDate, setSearchDate] = useState("");
+  const [searchInvoice, setSearchInvoice] = useState("");
+  const [searchPaymentStatus, setSearchPaymentStatus] = useState("");
   const [downloading, setDownloading] = useState<string | null>(null);
+  const [payingOrder, setPayingOrder] = useState<Order | null>(null);
 
   // Role guard
   useEffect(() => {
@@ -89,9 +96,17 @@ export default function FacturesPage() {
           return local === searchDate;
         })();
 
-      return matchesClient && matchesDate;
+      const matchesInvoice =
+        searchInvoice === "" ||
+        fps(o.orderNumber).toLowerCase().includes(searchInvoice.toLowerCase());
+
+      const matchesPaymentStatus =
+        searchPaymentStatus === "" ||
+        (searchPaymentStatus === "paid" ? isPaid(o) : !isPaid(o));
+
+      return matchesClient && matchesDate && matchesInvoice && matchesPaymentStatus;
     });
-  }, [orders, searchClient, searchDate]);
+  }, [orders, searchClient, searchDate, searchInvoice, searchPaymentStatus]);
 
   const formatCurrency = (amount: number) =>
     new Intl.NumberFormat("fr-FR", {
@@ -116,6 +131,17 @@ export default function FacturesPage() {
     }
   };
 
+  const [printing, setPrinting] = useState<string | null>(null);
+
+  const handlePrint = async (order: Order) => {
+    setPrinting(order.id);
+    try {
+      await handleDownloadInvoice(order, "print");
+    } finally {
+      setPrinting(null);
+    }
+  };
+
   const handleExportExcel = async () => {
     const wb = new ExcelJS.Workbook();
     const ws = wb.addWorksheet("Factures");
@@ -132,6 +158,7 @@ export default function FacturesPage() {
       { header: "Total Commande TTC (DT)", key: "total", width: 22 },
       { header: "Statut", key: "status", width: 14 },
       { header: "Paiement", key: "payment", width: 14 },
+      { header: "Mode de paiement", key: "payment_method", width: 20 },
     ];
     ws.getRow(1).font = { bold: true };
     ws.getRow(1).fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FF1E293B" } };
@@ -153,7 +180,8 @@ export default function FacturesPage() {
           total_product: "",
           total: orderTotal,
           status: STATUS_LABELS[order.status] || order.status,
-          payment: order.paymentStatus,
+          payment: isPaid(order) ? "Payée" : "Non payée",
+          payment_method: PAYMENT_LABELS[order.paymentMethod] || order.paymentMethod || "",
         });
       } else {
         items.forEach((item, idx) => {
@@ -169,7 +197,8 @@ export default function FacturesPage() {
             total_product: Number(item.totalPrice || 0).toFixed(3),
             total: idx === 0 ? orderTotal : "",
             status: idx === 0 ? (STATUS_LABELS[order.status] || order.status) : "",
-            payment: idx === 0 ? order.paymentStatus : "",
+            payment: idx === 0 ? (isPaid(order) ? "Payée" : "Non payée") : "",
+            payment_method: idx === 0 ? (PAYMENT_LABELS[order.paymentMethod] || order.paymentMethod || "") : "",
           });
         });
       }
@@ -204,8 +233,8 @@ export default function FacturesPage() {
       </div>
 
       {/* Search filters */}
-      <div className="flex flex-col sm:flex-row gap-3">
-        <div className="relative flex-1">
+      <div className="flex flex-col sm:flex-row gap-3 flex-wrap">
+        <div className="relative flex-1 min-w-[200px]">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 h-4 w-4" />
           <Input
             placeholder="Rechercher par client ou email..."
@@ -216,16 +245,35 @@ export default function FacturesPage() {
         </div>
         <div>
           <Input
+            placeholder="N° facture..."
+            value={searchInvoice}
+            onChange={(e) => setSearchInvoice(e.target.value)}
+            className="w-full sm:w-40"
+          />
+        </div>
+        <div>
+          <Input
             type="date"
             value={searchDate}
             onChange={(e) => setSearchDate(e.target.value)}
             className="w-full sm:w-48"
           />
         </div>
-        {(searchClient || searchDate) && (
+        <div>
+          <select
+            value={searchPaymentStatus}
+            onChange={(e) => setSearchPaymentStatus(e.target.value)}
+            className="w-full sm:w-44 h-10 rounded-md border border-input bg-background px-3 text-sm"
+          >
+            <option value="">Tous les statuts</option>
+            <option value="paid">Payée</option>
+            <option value="unpaid">Non payée</option>
+          </select>
+        </div>
+        {(searchClient || searchDate || searchInvoice || searchPaymentStatus) && (
           <Button
             variant="ghost"
-            onClick={() => { setSearchClient(""); setSearchDate(""); }}
+            onClick={() => { setSearchClient(""); setSearchDate(""); setSearchInvoice(""); setSearchPaymentStatus(""); }}
           >
             Effacer
           </Button>
@@ -255,8 +303,9 @@ export default function FacturesPage() {
                   <TableHead>Client</TableHead>
                   <TableHead>Date</TableHead>
                   <TableHead>Montant TTC</TableHead>
+                  <TableHead>Mode de paiement</TableHead>
                   <TableHead>Statut</TableHead>
-                  <TableHead className="text-right">Télécharger</TableHead>
+                  <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -274,24 +323,59 @@ export default function FacturesPage() {
                       {formatCurrency(order.totalAmount + (order.deliveryCost || 0))}
                     </TableCell>
                     <TableCell>
-                      <Badge variant={STATUS_VARIANTS[order.status]} className={STATUS_CLASSES[order.status]}>
-                        {STATUS_LABELS[order.status]}
-                      </Badge>
+                      {PAYMENT_LABELS[order.paymentMethod] || order.paymentMethod || "—"}
+                    </TableCell>
+                    <TableCell>
+                      {isPaid(order) ? (
+                        <Badge className="bg-green-50 text-green-700 border border-green-200 hover:bg-green-50">
+                          Payée
+                        </Badge>
+                      ) : (
+                        <Badge className="bg-orange-50 text-[#FF8C00] border border-orange-200 hover:bg-orange-50">
+                          Non payée
+                        </Badge>
+                      )}
                     </TableCell>
                     <TableCell className="text-right">
-                      <Button
-                        size="sm"
-                        onClick={() => handleDownload(order)}
-                        disabled={downloading === order.id}
-                        className="gap-2 bg-[#FF8C00] hover:bg-[#E67E00] text-white border-0"
-                      >
-                        {downloading === order.id ? (
-                          <div className="h-4 w-4 animate-spin rounded-full border-2 border-gray-300 border-t-gray-600" />
-                        ) : (
-                          <Download className="w-4 h-4" />
+                      <div className="flex justify-end gap-2">
+                        <Button
+                          size="sm"
+                          onClick={() => handleDownload(order)}
+                          disabled={downloading === order.id}
+                          className="gap-2 bg-[#FF8C00] hover:bg-[#E67E00] text-white border-0"
+                        >
+                          {downloading === order.id ? (
+                            <div className="h-4 w-4 animate-spin rounded-full border-2 border-gray-300 border-t-gray-600" />
+                          ) : (
+                            <Download className="w-4 h-4" />
+                          )}
+                          PDF
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => handlePrint(order)}
+                          disabled={printing === order.id}
+                          className="gap-2"
+                        >
+                          {printing === order.id ? (
+                            <div className="h-4 w-4 animate-spin rounded-full border-2 border-gray-300 border-t-gray-600" />
+                          ) : (
+                            <Printer className="w-4 h-4" />
+                          )}
+                          Imprimer
+                        </Button>
+                        {!isPaid(order) && (
+                          <Button
+                            size="sm"
+                            onClick={() => setPayingOrder(order)}
+                            className="gap-2 bg-[#0066CC] hover:bg-[#004C99] text-white border-0"
+                          >
+                            <CreditCard className="w-4 h-4" />
+                            Payer
+                          </Button>
                         )}
-                        PDF
-                      </Button>
+                      </div>
                     </TableCell>
                   </TableRow>
                 ))}
@@ -305,12 +389,21 @@ export default function FacturesPage() {
               <div key={order.id} className="border rounded-lg p-4 bg-white shadow-sm space-y-2">
                 <div className="flex justify-between items-center">
                   <span className="font-bold text-sm">#{fps(order.orderNumber)}</span>
-                  <Badge variant={STATUS_VARIANTS[order.status]} className={STATUS_CLASSES[order.status]}>
-                    {STATUS_LABELS[order.status]}
-                  </Badge>
+                  {isPaid(order) ? (
+                    <Badge className="bg-green-50 text-green-700 border border-green-200 hover:bg-green-50">
+                      Payée
+                    </Badge>
+                  ) : (
+                    <Badge className="bg-orange-50 text-[#FF8C00] border border-orange-200 hover:bg-orange-50">
+                      Non payée
+                    </Badge>
+                  )}
                 </div>
                 <p className="font-medium text-sm">{order.customerName}</p>
                 <p className="text-xs text-gray-500">{order.customerEmail}</p>
+                <p className="text-xs text-gray-500">
+                  Mode : {PAYMENT_LABELS[order.paymentMethod] || order.paymentMethod || "—"}
+                </p>
                 <div className="flex justify-between items-center pt-1">
                   <div>
                     <p className="text-xs text-gray-500">{formatDate(order.createdAt)}</p>
@@ -318,25 +411,66 @@ export default function FacturesPage() {
                       {formatCurrency(order.totalAmount + (order.deliveryCost || 0))}
                     </p>
                   </div>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => handleDownload(order)}
-                    disabled={downloading === order.id}
-                    className="gap-2"
-                  >
-                    {downloading === order.id ? (
-                      <div className="h-4 w-4 animate-spin rounded-full border-2 border-gray-300 border-t-gray-600" />
-                    ) : (
-                      <Download className="w-4 h-4" />
+                  <div className="flex gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleDownload(order)}
+                      disabled={downloading === order.id}
+                      className="gap-2"
+                    >
+                      {downloading === order.id ? (
+                        <div className="h-4 w-4 animate-spin rounded-full border-2 border-gray-300 border-t-gray-600" />
+                      ) : (
+                        <Download className="w-4 h-4" />
+                      )}
+                      PDF
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handlePrint(order)}
+                      disabled={printing === order.id}
+                      className="gap-2"
+                    >
+                      {printing === order.id ? (
+                        <div className="h-4 w-4 animate-spin rounded-full border-2 border-gray-300 border-t-gray-600" />
+                      ) : (
+                        <Printer className="w-4 h-4" />
+                      )}
+                      Imprimer
+                    </Button>
+                    {!isPaid(order) && (
+                      <Button
+                        size="sm"
+                        onClick={() => setPayingOrder(order)}
+                        className="gap-2 bg-[#0066CC] hover:bg-[#004C99] text-white border-0"
+                      >
+                        <CreditCard className="w-4 h-4" />
+                        Payer
+                      </Button>
                     )}
-                    PDF
-                  </Button>
+                  </div>
                 </div>
               </div>
             ))}
           </div>
         </>
+      )}
+
+      {payingOrder && (
+        <PayerFactureModal
+          order={payingOrder}
+          onClose={() => setPayingOrder(null)}
+          onPaid={() => {
+            setOrders((prev) =>
+              prev.map((o) =>
+                o.id === payingOrder.id ? { ...o, paymentStatus: "paid" } : o
+              )
+            );
+            setPayingOrder(null);
+          }}
+        />
       )}
     </div>
   );

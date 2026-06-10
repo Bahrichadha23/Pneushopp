@@ -657,11 +657,31 @@ class AvoirListCreateView(generics.ListCreateAPIView):
         serializer.save(created_by=self.request.user)
 
 
-class AvoirDetailView(generics.RetrieveAPIView):
-    """GET /api/orders/avoirs/<id>/"""
+class AvoirDetailView(generics.RetrieveUpdateDestroyAPIView):
+    """
+    GET    /api/orders/avoirs/<id>/  → détail
+    PATCH  /api/orders/avoirs/<id>/  → modifier le motif / les notes
+    DELETE /api/orders/avoirs/<id>/  → supprimer l'avoir (annule la remise en stock)
+    """
     queryset = Avoir.objects.prefetch_related('items').select_related('created_by', 'original_order')
     serializer_class = AvoirSerializer
     permission_classes = [IsAdminOrSales]
+
+    def perform_destroy(self, instance):
+        from products.models import Product
+        from django.db import transaction
+
+        with transaction.atomic():
+            # Annuler la remise en stock effectuée à la création de l'avoir
+            for item in instance.items.all():
+                if item.product_id:
+                    try:
+                        product = Product.objects.select_for_update().get(pk=item.product_id)
+                        product.stock = max((product.stock or 0) - item.quantity, 0)
+                        product.save()
+                    except Product.DoesNotExist:
+                        pass
+            instance.delete()
 
 
 @api_view(['GET'])

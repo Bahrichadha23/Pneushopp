@@ -34,7 +34,7 @@ import html2canvas from "html2canvas";
 import InvoiceTemplate from "@/components/invoice/InvoiceTemplate";
 import ReactDOMServer from "react-dom/server";
 
-export async function handleDownloadInvoice(order: any) {
+export async function handleDownloadInvoice(order: any, mode: "download" | "print" = "download") {
   const pdf = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
   const pageWidth = pdf.internal.pageSize.width;
   const pageHeight = pdf.internal.pageSize.height;
@@ -319,6 +319,19 @@ export async function handleDownloadInvoice(order: any) {
   pdf.text("Cachet et Signature", margin + 5, pageHeight - 20);
 
   const invoiceFileName = `fps${(order.orderNumber || "").replace(/^CPS/i, "")}.pdf`;
+
+  if (mode === "print") {
+    const blobUrl = pdf.output("bloburl");
+    const printWindow = window.open(blobUrl as unknown as string, "_blank");
+    if (printWindow) {
+      printWindow.addEventListener("load", () => {
+        printWindow.focus();
+        printWindow.print();
+      });
+    }
+    return;
+  }
+
   pdf.save(invoiceFileName);
 }
 
@@ -650,7 +663,7 @@ export default function OrdersTable({
               <React.Fragment key={order.id}>
                 <TableRow key={order.id}>
                   <TableCell className="font-bold text-[#0066CC]">
-                    #{fps(order.orderNumber)}
+                    #{order.orderNumber}
                   </TableCell>
                   <TableCell>
                     <div>
@@ -760,7 +773,7 @@ export default function OrdersTable({
               className="border border-gray-200 rounded-xl p-4 bg-white shadow-sm"
             >
               <div className="flex justify-between items-center mb-2">
-                <span className="font-bold text-[#0066CC]">#{fps(order.orderNumber)}</span>
+                <span className="font-bold text-[#0066CC]">#{order.orderNumber}</span>
                 {getStatusBadge(order.status)}
               </div>
               <div className="text-sm">
@@ -875,7 +888,7 @@ export default function OrdersTable({
                     Assignation DOT — Confirmer la commande
                   </h2>
                   <p className="text-sm text-gray-500 mt-0.5">
-                    #{fps(dotConfirmOrder.orderNumber)} · {dotConfirmOrder.customerName}
+                    #{dotConfirmOrder.orderNumber} · {dotConfirmOrder.customerName}
                   </p>
                 </div>
                 <button
@@ -1060,7 +1073,7 @@ export default function OrdersTable({
               <div className="sticky top-0 bg-white border-b px-6 py-4 flex items-center justify-between z-10">
                 <div>
                   <h2 className="text-xl font-bold text-gray-900">
-                    Détails de la commande #{fps(selectedOrder.orderNumber)}
+                    Détails de la commande #{selectedOrder.orderNumber}
                   </h2>
                   <p className="text-sm text-gray-500 mt-1">
                     {formatDate(selectedOrder.createdAt)}
@@ -1112,7 +1125,7 @@ export default function OrdersTable({
                       Détails commande
                     </h4>
                     <p className="text-sm">
-                      <strong>Numéro:</strong> {fps(selectedOrder.orderNumber)}
+                      <strong>Numéro:</strong> {selectedOrder.orderNumber}
                     </p>
                     <p className="text-sm">
                       <strong>Date:</strong> {formatDate(selectedOrder.createdAt)}
@@ -1290,7 +1303,7 @@ export default function OrdersTable({
                   <Truck className="h-5 w-5 text-[#0066CC]" />
                   <div>
                     <h2 className="text-lg font-bold text-gray-900">
-                      Livraison — Commande #{fps(deliveryInfoOrder.orderNumber)}
+                      Livraison — Commande #{deliveryInfoOrder.orderNumber}
                     </h2>
                     <p className="text-sm text-gray-500 mt-0.5">
                       {deliveryInfoOrder.customerName}

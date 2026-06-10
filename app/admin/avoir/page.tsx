@@ -9,7 +9,17 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Search, Trash2, FileText, Loader2, RotateCcw, Printer, FileDown } from "lucide-react";
+import { Search, Trash2, FileText, Loader2, RotateCcw, Printer, FileDown, Pencil, Download, X } from "lucide-react";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { API_URL } from "@/lib/config";
 import jsPDF from "jspdf";
 import ExcelJS from "exceljs";
@@ -51,6 +61,7 @@ interface SavedAvoir {
   created_at: string;
   items: AvoirItem[];
   reason: string;
+  notes?: string;
 }
 
 const fps = (n: string) => (n || "").replace(/^CPS/i, "FPS");
@@ -77,6 +88,12 @@ export default function AvoirPage() {
   // Historique des avoirs
   const [avoirHistory, setAvoirHistory] = useState<SavedAvoir[]>([]);
   const [loadingHistory, setLoadingHistory] = useState(true);
+  const [avoirToDelete, setAvoirToDelete] = useState<SavedAvoir | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [editingAvoir, setEditingAvoir] = useState<SavedAvoir | null>(null);
+  const [editReason, setEditReason] = useState("");
+  const [editNotes, setEditNotes] = useState("");
+  const [isSavingEdit, setIsSavingEdit] = useState(false);
 
   useEffect(() => {
     const fetchHistory = async () => {
@@ -155,6 +172,64 @@ export default function AvoirPage() {
     link.download = `Historique_Avoirs_${date}.xlsx`;
     link.click();
     URL.revokeObjectURL(url);
+  };
+
+  const handleDeleteAvoir = async () => {
+    if (!avoirToDelete) return;
+    setIsDeleting(true);
+    try {
+      const token = localStorage.getItem("access_token");
+      const res = await fetch(`${API_URL}/orders/avoirs/${avoirToDelete.id}/`, {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!res.ok) {
+        alert("Erreur lors de la suppression de l'avoir.");
+        return;
+      }
+      setAvoirHistory((prev) => prev.filter((a) => a.id !== avoirToDelete.id));
+      setAvoirToDelete(null);
+    } catch {
+      alert("Erreur de connexion.");
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
+  const openEditAvoir = (avoir: SavedAvoir) => {
+    setEditingAvoir(avoir);
+    setEditReason(avoir.reason || "");
+    setEditNotes((avoir as any).notes || "");
+  };
+
+  const handleSaveEditAvoir = async () => {
+    if (!editingAvoir) return;
+    setIsSavingEdit(true);
+    try {
+      const token = localStorage.getItem("access_token");
+      const res = await fetch(`${API_URL}/orders/avoirs/${editingAvoir.id}/`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ reason: editReason, notes: editNotes }),
+      });
+      if (!res.ok) {
+        alert("Erreur lors de la modification de l'avoir.");
+        return;
+      }
+      setAvoirHistory((prev) =>
+        prev.map((a) =>
+          a.id === editingAvoir.id ? { ...a, reason: editReason, notes: editNotes } as SavedAvoir : a
+        )
+      );
+      setEditingAvoir(null);
+    } catch {
+      alert("Erreur de connexion.");
+    } finally {
+      setIsSavingEdit(false);
+    }
   };
 
   const handleSearch = async () => {
@@ -239,7 +314,8 @@ export default function AvoirPage() {
     }
   };
 
-  const generatePDF = () => {
+  const generatePDF = (avoirToPrint?: SavedAvoir | null) => {
+    const savedAvoir = avoirToPrint || undefined;
     if (!savedAvoir) return;
     const doc = new jsPDF();
     const pageW = doc.internal.pageSize.getWidth();
@@ -313,7 +389,7 @@ export default function AvoirPage() {
             Avoir créé
           </h1>
           <div className="flex gap-2">
-            <Button onClick={generatePDF} className="bg-[#0066CC] hover:bg-[#004E9E] text-white border-0">
+            <Button onClick={() => generatePDF(savedAvoir)} className="bg-[#0066CC] hover:bg-[#004E9E] text-white border-0">
               <Printer className="h-4 w-4 mr-2" />
               Télécharger PDF
             </Button>
@@ -397,7 +473,7 @@ export default function AvoirPage() {
           <CardContent className="space-y-4">
             <div className="flex gap-2">
               <Input
-                placeholder="N° facture (ex: CPS26000001)"
+                placeholder="N° facture (ex: FPS26000001)"
                 value={searchInvoice}
                 onChange={(e) => setSearchInvoice(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && handleSearch()}
@@ -418,16 +494,16 @@ export default function AvoirPage() {
                   <div><span className="font-bold">Total :</span> {parseFloat(foundOrder.total_amount).toFixed(3)} DT</div>
                 </div>
 
-                <Label className="font-bold">Articles à retourner</Label>
-                <div className="space-y-2">
+                <Label className="font-bold text-base">Articles à retourner</Label>
+                <div className="space-y-3">
                   {foundOrder.items.map((item) => (
-                    <div key={item.id} className="border rounded-lg p-3">
-                      <div className="flex items-center justify-between mb-2">
-                        <span className="text-sm font-medium">{item.product_name}</span>
-                        <span className="text-xs text-gray-500">{parseFloat(item.unit_price).toFixed(3)} DT × {item.quantity}</span>
+                    <div key={item.id} className="border rounded-lg p-4">
+                      <div className="flex items-center justify-between mb-3">
+                        <span className="text-base font-medium">{item.product_name}</span>
+                        <span className="text-sm text-gray-500">{parseFloat(item.unit_price).toFixed(3)} DT × {item.quantity}</span>
                       </div>
-                      <div className="flex items-center gap-2">
-                        <Label className="text-xs text-gray-500 w-24">Qté retour :</Label>
+                      <div className="flex items-center gap-3">
+                        <Label className="text-sm text-gray-500 w-28">Qté retour :</Label>
                         <Input
                           type="number"
                           min={0}
@@ -437,9 +513,9 @@ export default function AvoirPage() {
                             ...prev,
                             [item.id]: Math.min(parseInt(e.target.value) || 0, item.quantity),
                           }))}
-                          className="w-20 text-center"
+                          className="w-24 h-11 text-center text-base"
                         />
-                        <span className="text-xs text-gray-400">/ {item.quantity}</span>
+                        <span className="text-sm text-gray-400">/ {item.quantity}</span>
                       </div>
                     </div>
                   ))}
@@ -553,6 +629,7 @@ export default function AvoirPage() {
                     <TableHead>Motif</TableHead>
                     <TableHead>Articles</TableHead>
                     <TableHead className="text-right">Total (DT)</TableHead>
+                    <TableHead className="text-right">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -570,6 +647,28 @@ export default function AvoirPage() {
                       <TableCell className="text-right font-bold text-brand-red">
                         {parseFloat(avoir.total_amount).toFixed(3)} DT
                       </TableCell>
+                      <TableCell className="text-right">
+                        <div className="flex justify-end gap-1">
+                          <Button
+                            variant="ghost" size="icon" title="Télécharger PDF"
+                            onClick={() => generatePDF(avoir)}
+                          >
+                            <Download className="h-4 w-4 text-[#0066CC]" />
+                          </Button>
+                          <Button
+                            variant="ghost" size="icon" title="Modifier"
+                            onClick={() => openEditAvoir(avoir)}
+                          >
+                            <Pencil className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="ghost" size="icon" title="Supprimer"
+                            onClick={() => setAvoirToDelete(avoir)}
+                          >
+                            <Trash2 className="h-4 w-4 text-brand-red" />
+                          </Button>
+                        </div>
+                      </TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
@@ -578,6 +677,77 @@ export default function AvoirPage() {
           )}
         </CardContent>
       </Card>
+
+      {/* Dialog : modifier l'avoir (motif / notes) */}
+      {editingAvoir && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-3">
+          <div className="w-full max-w-md rounded-lg bg-white shadow-2xl">
+            <div className="flex items-center justify-between border-b bg-slate-800 px-4 py-3 rounded-t-lg">
+              <h2 className="text-sm font-semibold text-white">
+                Modifier l'avoir #{editingAvoir.avoir_number}
+              </h2>
+              <button onClick={() => setEditingAvoir(null)} className="text-slate-300 hover:text-white">
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+            <div className="p-4 space-y-4">
+              <div>
+                <Label>Motif du retour</Label>
+                <Input
+                  value={editReason}
+                  onChange={(e) => setEditReason(e.target.value)}
+                  className="mt-1"
+                />
+              </div>
+              <div>
+                <Label>Notes</Label>
+                <Textarea
+                  value={editNotes}
+                  onChange={(e) => setEditNotes(e.target.value)}
+                  className="mt-1"
+                  rows={3}
+                />
+              </div>
+              <div className="flex justify-end gap-2 pt-2">
+                <Button variant="outline" onClick={() => setEditingAvoir(null)} disabled={isSavingEdit}>
+                  Annuler
+                </Button>
+                <Button
+                  onClick={handleSaveEditAvoir}
+                  disabled={isSavingEdit}
+                  className="bg-[#0066CC] hover:bg-[#004E9E] text-white border-0"
+                >
+                  {isSavingEdit ? "Enregistrement..." : "Enregistrer"}
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Confirmation : supprimer l'avoir */}
+      <AlertDialog open={!!avoirToDelete} onOpenChange={(open) => !open && setAvoirToDelete(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Supprimer cet avoir ?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Cette action supprimera définitivement l'avoir{" "}
+              <strong>{avoirToDelete?.avoir_number}</strong> et annulera la remise en stock
+              associée. Cette action est irréversible.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isDeleting}>Annuler</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDeleteAvoir}
+              disabled={isDeleting}
+              className="bg-[#9B2226] hover:bg-[#730019]"
+            >
+              {isDeleting ? "Suppression..." : "Supprimer"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

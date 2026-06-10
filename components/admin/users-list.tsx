@@ -251,8 +251,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
 import { UserForm } from './user-form';
-import { Plus, Pencil, Trash2, Power, KeyRound, Eye, EyeOff, Copy } from 'lucide-react';
-import { Input } from '@/components/ui/input';
+import { Plus, Pencil, Trash2, Power } from 'lucide-react';
 import { API_URL } from '@/lib/config';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 
@@ -276,19 +275,6 @@ interface User {
     totalCommandes: number;
     montantTotal: number;
     derniereCommande: string;
-    plain_password: string;
-}
-
-const PWD_STORE_KEY = 'pneushop_staff_passwords';
-
-function loadStoredPasswords(): Record<string, string> {
-    try { return JSON.parse(localStorage.getItem(PWD_STORE_KEY) || '{}'); } catch { return {}; }
-}
-
-function saveStoredPassword(email: string, pwd: string) {
-    const store = loadStoredPasswords();
-    store[email] = pwd;
-    localStorage.setItem(PWD_STORE_KEY, JSON.stringify(store));
 }
 
 export function UsersList() {
@@ -303,11 +289,6 @@ export function UsersList() {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [editingUser, setEditingUser] = useState<User | null>(null);
     const [userToDelete, setUserToDelete] = useState<User | null>(null);
-    const [passwordUser, setPasswordUser] = useState<User | null>(null);
-    const [newPassword, setNewPassword] = useState("");
-    const [showNewPwd, setShowNewPwd] = useState(false);
-    const [settingPassword, setSettingPassword] = useState(false);
-    const [revealedPwdUserId, setRevealedPwdUserId] = useState<number | null>(null);
 
     const fetchUsers = async () => {
         try {
@@ -331,13 +312,11 @@ export function UsersList() {
 
             const data = await response.json();
             const usersData = Array.isArray(data) ? data : (data.users || []);
-            const storedPwds = loadStoredPasswords();
             const formattedUsers = usersData.map((user: any) => ({
                 ...user,
                 role: user.role || 'sales',
                 firstName: user.firstName || user.first_name || user.email?.split('@')[0] || 'Utilisateur',
                 lastName: user.lastName || user.last_name || '',
-                plain_password: storedPwds[user.email] || user.plain_password || '',
             }));
 
             setUsers(formattedUsers);
@@ -381,16 +360,22 @@ export function UsersList() {
         try {
             setIsSubmitting(true);
             const token = localStorage.getItem('access_token');
+            const payload: any = {
+                ...userData,
+                role: userData.role || editingUser?.role,
+            };
+            // Ne pas envoyer le mot de passe si le champ a été laissé vide
+            if (!payload.password) {
+                delete payload.password;
+                delete payload.password_confirm;
+            }
             const response = await fetch(`${API_URL}/accounts/admin/update-user/${editingUser?.id}/`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${token}`,
                 },
-                body: JSON.stringify({
-                    ...userData,
-                    role: userData.role || editingUser?.role,
-                }),
+                body: JSON.stringify(payload),
             });
 
             if (!response.ok) {
@@ -453,32 +438,6 @@ export function UsersList() {
         } finally {
             setIsSubmitting(false);
         }
-    };
-
-    const handleSetPassword = async () => {
-        if (!passwordUser || !newPassword) return;
-        setSettingPassword(true);
-        try {
-            const token = localStorage.getItem('access_token');
-            const res = await fetch(`${API_URL}/accounts/admin/update-user/${passwordUser.id}/`, {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-                body: JSON.stringify({ password: newPassword }),
-            });
-            if (!res.ok) throw new Error((await res.json()).error || 'Erreur');
-            const savedPwd = newPassword;
-            const savedEmail = passwordUser.email;
-            // Persister par email dans localStorage → survie au refresh
-            saveStoredPassword(savedEmail, savedPwd);
-            setPasswordUser(null);
-            setNewPassword("");
-            // Mettre à jour tous les users ayant cet email
-            setUsers(prev => prev.map(u => u.email === savedEmail ? { ...u, plain_password: savedPwd } : u));
-            setRevealedPwdUserId(passwordUser.id);
-            toast({ title: 'Mot de passe mis à jour', description: `Nouveau mot de passe défini` });
-        } catch (e: any) {
-            toast({ title: 'Erreur', description: e.message, variant: 'destructive' });
-        } finally { setSettingPassword(false); }
     };
 
     const handleToggleActive = async (user: User) => {
@@ -601,7 +560,6 @@ export function UsersList() {
                                     <TableRow>
                                         <TableHead>Nom</TableHead>
                                         <TableHead>Email</TableHead>
-                                        <TableHead>Mot de passe</TableHead>
                                         <TableHead>Rôle</TableHead>
                                         <TableHead>Statut</TableHead>
                                         <TableHead className="text-right">Actions</TableHead>
@@ -615,36 +573,6 @@ export function UsersList() {
                                                     {user.firstName} {user.lastName}
                                                 </TableCell>
                                                 <TableCell>{user.email}</TableCell>
-                                                <TableCell>
-                                                    <div className="flex items-center gap-2">
-                                                        <span className="font-mono text-sm tracking-widest">
-                                                            {revealedPwdUserId === user.id && user.plain_password
-                                                                ? <span className="text-green-700 font-bold">{user.plain_password}</span>
-                                                                : "••••••••"}
-                                                        </span>
-                                                        <button
-                                                            type="button"
-                                                            className="text-gray-400 hover:text-gray-700"
-                                                            onClick={() => {
-                                                                if (user.plain_password) {
-                                                                    setRevealedPwdUserId(revealedPwdUserId === user.id ? null : user.id);
-                                                                } else {
-                                                                    // Pas de mdp stocké → ouvrir le dialog pour en définir un
-                                                                    setPasswordUser(user);
-                                                                    setNewPassword("");
-                                                                    setShowNewPwd(false);
-                                                                }
-                                                            }}
-                                                            title={user.plain_password
-                                                                ? (revealedPwdUserId === user.id ? "Masquer" : "Voir le mot de passe")
-                                                                : "Définir le mot de passe"}
-                                                        >
-                                                            {revealedPwdUserId === user.id && user.plain_password
-                                                                ? <EyeOff className="h-3.5 w-3.5" />
-                                                                : <Eye className="h-3.5 w-3.5" />}
-                                                        </button>
-                                                    </div>
-                                                </TableCell>
                                                 <TableCell>{getRoleBadge(user.role)}</TableCell>
                                                 <TableCell>
                                                     <Badge variant={user.is_active !== false ? 'default' : 'outline'}
@@ -653,7 +581,7 @@ export function UsersList() {
                                                     </Badge>
                                                 </TableCell>
                                                 <TableCell className="text-right">
-                                                    <div className="flex justify-end space-x-1">
+                                                    <div className="flex justify-end items-center gap-1">
                                                         <Button
                                                             variant="ghost" size="icon"
                                                             title={user.is_active !== false ? 'Désactiver' : 'Activer'}
@@ -662,14 +590,12 @@ export function UsersList() {
                                                             <Power className={`h-4 w-4 ${user.is_active !== false ? 'text-brand-gold' : 'text-gray-400'}`} />
                                                         </Button>
                                                         <Button
-                                                            variant="ghost" size="icon"
-                                                            title="Définir un nouveau mot de passe"
-                                                            onClick={() => { setPasswordUser(user); setNewPassword(""); setShowNewPwd(false); }}
+                                                            variant="outline" size="sm"
+                                                            className="gap-1"
+                                                            onClick={() => handleEdit(user)}
                                                         >
-                                                            <KeyRound className="h-4 w-4 text-brand-blue" />
-                                                        </Button>
-                                                        <Button variant="ghost" size="icon" onClick={() => handleEdit(user)}>
-                                                            <Pencil className="h-4 w-4" />
+                                                            <Pencil className="h-3.5 w-3.5" />
+                                                            Modifier
                                                         </Button>
                                                         <Button variant="ghost" size="icon" onClick={() => setUserToDelete(user)}>
                                                             <Trash2 className="h-4 w-4 text-brand-red" />
@@ -691,48 +617,6 @@ export function UsersList() {
                     </TabsContent>
                 </Tabs>
             </CardContent>
-
-            {/* Dialog : définir nouveau mot de passe */}
-            <AlertDialog open={!!passwordUser} onOpenChange={(open) => !open && setPasswordUser(null)}>
-                <AlertDialogContent>
-                    <AlertDialogHeader>
-                        <AlertDialogTitle className="flex items-center gap-2">
-                            <KeyRound className="h-5 w-5 text-brand-blue" />
-                            Nouveau mot de passe
-                        </AlertDialogTitle>
-                        <AlertDialogDescription>
-                            Définir un nouveau mot de passe pour <strong>{passwordUser?.email}</strong>.<br />
-                            <span className="text-xs text-gray-400">Le mot de passe actuel ne peut pas être affiché (sécurité).</span>
-                        </AlertDialogDescription>
-                    </AlertDialogHeader>
-                    <div className="relative mt-2">
-                        <Input
-                            type={showNewPwd ? "text" : "password"}
-                            placeholder="Nouveau mot de passe"
-                            value={newPassword}
-                            onChange={(e) => setNewPassword(e.target.value)}
-                            className="pr-10"
-                        />
-                        <button
-                            type="button"
-                            className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-700"
-                            onClick={() => setShowNewPwd(!showNewPwd)}
-                        >
-                            {showNewPwd ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                        </button>
-                    </div>
-                    <AlertDialogFooter>
-                        <AlertDialogCancel onClick={() => setPasswordUser(null)}>Annuler</AlertDialogCancel>
-                        <AlertDialogAction
-                            onClick={handleSetPassword}
-                            disabled={settingPassword || !newPassword}
-                            className="bg-brand-blue hover:bg-brand-blue-dark text-white"
-                        >
-                            {settingPassword ? 'Enregistrement...' : 'Enregistrer'}
-                        </AlertDialogAction>
-                    </AlertDialogFooter>
-                </AlertDialogContent>
-            </AlertDialog>
 
             <AlertDialog
                 open={!!userToDelete}
