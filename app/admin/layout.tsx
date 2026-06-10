@@ -15,6 +15,8 @@ import { useAuth } from "@/contexts/auth-context";
 //  undefined → pas de restriction supplémentaire (ex. /admin dashboard)
 
 const ROUTE_PERMISSIONS: { pattern: RegExp; roles: string[] }[] = [
+  // Tableau de bord (admin uniquement)
+  { pattern: /^\/admin\/?$/, roles: ["admin"] },
   // Commandes / Vente
   { pattern: /^\/admin\/commandes/, roles: ["admin", "sales"] },
   { pattern: /^\/admin\/bons-commande/, roles: ["admin", "sales"] },
@@ -97,10 +99,14 @@ export default function AdminLayout({
             page.
           </p>
           <Button
-            onClick={() => router.push("/admin")}
+            onClick={() => {
+              if (user?.role === "purchasing") router.push("/admin/produits");
+              else if (user?.role === "sales") router.push("/admin/commandes");
+              else router.push("/admin");
+            }}
             className="bg-[#FF8C00] hover:bg-[#CC7000] text-white w-full"
           >
-            Retour au tableau de bord
+            Retour à l&apos;accueil
           </Button>
           <Button
             variant="outline"

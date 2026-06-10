@@ -104,7 +104,6 @@ const MENU_ADMIN: MenuItem[] = [
 ];
 
 const MENU_PURCHASING: MenuItem[] = [
-  { title: "Tableau de bord", href: "/admin", icon: LayoutDashboard },
   {
     title: "Produits",
     icon: Package,
@@ -141,7 +140,6 @@ const MENU_PURCHASING: MenuItem[] = [
 ];
 
 const MENU_SALES: MenuItem[] = [
-  { title: "Tableau de bord", href: "/admin", icon: LayoutDashboard },
   {
     title: "Commandes",
     icon: ShoppingCart,

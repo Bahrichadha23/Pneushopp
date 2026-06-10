@@ -24,14 +24,19 @@ import {
   AlertTriangle,
   Eye,
   X as XIcon,
+  FileDown,
 } from "lucide-react";
 import { API_URL } from "@/lib/config";
+import ExcelJS from "exceljs";
 
 type PendingOrder = {
   id: string;
   numericId: number;
   client: string;
   email: string;
+  phone: string;
+  address: string;
+  company: string;
   total: number;
   items: any[]; // or number if you only store length
   date: string;
@@ -106,7 +111,12 @@ export default function PendingOrdersPage() {
         (o.shipping_address?.first_name || o.shipping_address?.firstName || "") +
         " " +
         (o.shipping_address?.last_name || o.shipping_address?.lastName || ""),
-      email: o.user?.email || "",
+      email: o.shipping_address?.email || o.user?.email || "",
+      phone: o.shipping_address?.phone || "",
+      address: [o.shipping_address?.address, o.shipping_address?.city, o.shipping_address?.postal_code]
+        .filter(Boolean)
+        .join(", "),
+      company: o.shipping_address?.company || "",
       total: parseFloat(o.total_amount), // convert to number
       items: o.items || [], // keep as array
       date: new Date(o.created_at).toLocaleDateString("fr-FR"),
@@ -180,6 +190,63 @@ export default function PendingOrdersPage() {
     });
   };
 
+  const exportColumns = [
+    { header: "ID Commande", key: "id", width: 18 },
+    { header: "Client", key: "client", width: 25 },
+    { header: "Email", key: "email", width: 28 },
+    { header: "Téléphone", key: "phone", width: 16 },
+    { header: "Adresse", key: "address", width: 35 },
+    { header: "Entreprise", key: "company", width: 20 },
+    { header: "Articles", key: "items", width: 10 },
+    { header: "Total", key: "total", width: 14 },
+    { header: "Date", key: "date", width: 14 },
+  ];
+
+  const buildExportRows = () =>
+    filteredOrders.map((order) => ({
+      id: order.id,
+      client: order.client,
+      email: order.email,
+      phone: order.phone,
+      address: order.address,
+      company: order.company,
+      items: order.items.length,
+      total: order.total,
+      date: order.date,
+    }));
+
+  const handleExportExcel = async () => {
+    const wb = new ExcelJS.Workbook();
+    const ws = wb.addWorksheet("Commandes en attente");
+    ws.columns = exportColumns;
+    ws.getRow(1).font = { bold: true, color: { argb: "FFFFFFFF" } };
+    ws.getRow(1).fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FF1E293B" } };
+
+    buildExportRows().forEach((row) => ws.addRow(row));
+
+    const date = new Date().toLocaleDateString("fr-FR").replace(/\//g, "-");
+    const buffer = await wb.xlsx.writeBuffer();
+    const blob = new Blob([buffer], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url; a.download = `Commandes_en_attente_${date}.xlsx`; a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const handleExportCsv = () => {
+    const headers = exportColumns.map((c) => c.header);
+    const rows = buildExportRows().map((row) =>
+      exportColumns.map((c) => `"${String((row as any)[c.key] ?? "").replace(/"/g, '""')}"`).join(";")
+    );
+    const csv = [headers.join(";"), ...rows].join("\n");
+    const blob = new Blob(["﻿" + csv], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    const date = new Date().toLocaleDateString("fr-FR").replace(/\//g, "-");
+    a.href = url; a.download = `Commandes_en_attente_${date}.csv`; a.click();
+    URL.revokeObjectURL(url);
+  };
+
   const filteredOrders = orders.filter(
     (order) =>
       order.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -231,13 +298,23 @@ export default function PendingOrdersPage() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <h1 className="text-2xl font-bold text-gray-900">
           Commandes en attente
         </h1>
-        <Badge variant="secondary" className="text-sm">
-          {filteredOrders.length} commandes
-        </Badge>
+        <div className="flex items-center gap-2">
+          <Badge variant="secondary" className="text-sm">
+            {filteredOrders.length} commandes
+          </Badge>
+          <Button size="sm" onClick={handleExportExcel} className="gap-2 bg-[#0066CC] hover:bg-[#004C99] text-white border-0">
+            <FileDown className="h-4 w-4" />
+            Excel
+          </Button>
+          <Button size="sm" onClick={handleExportCsv} variant="outline" className="gap-2">
+            <FileDown className="h-4 w-4" />
+            CSV
+          </Button>
+        </div>
       </div>
 
       {/* Quick stats */}
@@ -364,7 +441,6 @@ export default function PendingOrdersPage() {
                 <TableRow>
                   <TableHead>ID Commande</TableHead>
                   <TableHead>Client</TableHead>
-                  <TableHead>Email</TableHead>
                   <TableHead>Articles</TableHead>
                   <TableHead>Total</TableHead>
                   <TableHead>Date</TableHead>
@@ -376,9 +452,6 @@ export default function PendingOrdersPage() {
                   <TableRow key={order.id}>
                     <TableCell className="font-medium">{order.id}</TableCell>
                     <TableCell>{order.client}</TableCell>
-                    <TableCell className="truncate max-w-[150px]">
-                      {order.email}
-                    </TableCell>
                     <TableCell>{order.items.length} articles</TableCell>
                     <TableCell className="font-medium">
                       {formatCurrency(order.total)}
@@ -441,11 +514,22 @@ export default function PendingOrdersPage() {
                   <p className="text-[11px] text-gray-400 uppercase font-semibold mb-1">Client</p>
                   <p className="font-medium text-gray-800">{selectedOrder.client || "—"}</p>
                   <p className="text-xs text-gray-500 truncate">{selectedOrder.email}</p>
+                  {selectedOrder.company && (
+                    <p className="text-xs text-gray-500 truncate">{selectedOrder.company}</p>
+                  )}
                 </div>
                 <div className="rounded-lg border bg-gray-50 px-3 py-2">
                   <p className="text-[11px] text-gray-400 uppercase font-semibold mb-1">Date</p>
                   <p className="font-medium text-gray-800">{selectedOrder.date}</p>
                   <p className="text-xs text-gray-500">{selectedOrder.items.length} article{selectedOrder.items.length > 1 ? "s" : ""}</p>
+                </div>
+                <div className="rounded-lg border bg-gray-50 px-3 py-2 col-span-2">
+                  <p className="text-[11px] text-gray-400 uppercase font-semibold mb-1">Téléphone</p>
+                  <p className="font-medium text-gray-800">{selectedOrder.phone || "—"}</p>
+                </div>
+                <div className="rounded-lg border bg-gray-50 px-3 py-2 col-span-2">
+                  <p className="text-[11px] text-gray-400 uppercase font-semibold mb-1">Adresse</p>
+                  <p className="font-medium text-gray-800">{selectedOrder.address || "—"}</p>
                 </div>
               </div>
 
