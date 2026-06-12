@@ -622,7 +622,7 @@ export function PaymentForm({ onSubmit, onBack, totalPrice }: PaymentFormProps) 
                 </div>
                 {/* Montant payé en TPE */}
                 <div>
-                  <Label className={`text-sm font-semibold ${tpeChecked ? "text-blue-700" : "text-gray-400"}`}>
+                  <Label className={`text-sm font-semibold ${tpeChecked ? "text-yellow-700" : "text-gray-400"}`}>
                     Montant payé TPE
                   </Label>
                   <div className="mt-1 flex">
@@ -636,9 +636,9 @@ export function PaymentForm({ onSubmit, onBack, totalPrice }: PaymentFormProps) 
                         setCashOnDeliveryMontantInput(e.target.value);
                         if (especesChecked) setEspecesMontantInput(formatAmount(Math.max(totalPrice - v, 0)));
                       }}
-                      className={`rounded-r-none ${tpeChecked ? "border-blue-200 bg-blue-50" : "border-gray-200 bg-gray-100 text-gray-400"}`}
+                      className={`rounded-r-none ${tpeChecked ? "border-yellow-200 bg-yellow-50" : "border-gray-200 bg-gray-100 text-gray-400"}`}
                     />
-                    <span className={`inline-flex items-center px-3 border border-l-0 rounded-r-md text-sm ${tpeChecked ? "bg-blue-100 text-blue-700 border-blue-200" : "bg-gray-100 text-gray-400 border-gray-200"}`}>DT</span>
+                    <span className={`inline-flex items-center px-3 border border-l-0 rounded-r-md text-sm ${tpeChecked ? "bg-yellow-100 text-yellow-700 border-yellow-200" : "bg-gray-100 text-gray-400 border-gray-200"}`}>DT</span>
                   </div>
                 </div>
               </div>

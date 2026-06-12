@@ -477,7 +477,7 @@ export default function PayerFactureModal({ order, onClose, onPaid }: PayerFactu
                   </div>
                 </div>
                 <div>
-                  <Label className={`text-sm font-semibold ${hasMode("cash_on_delivery") ? "text-blue-700" : "text-gray-400"}`}>
+                  <Label className={`text-sm font-semibold ${hasMode("cash_on_delivery") ? "text-yellow-700" : "text-gray-400"}`}>
                     Montant payé TPE
                   </Label>
                   <div className="mt-1 flex">
@@ -486,9 +486,9 @@ export default function PayerFactureModal({ order, onClose, onPaid }: PayerFactu
                       value={hasMode("cash_on_delivery") ? getAmountInput("cash_on_delivery") : ""}
                       disabled={!hasMode("cash_on_delivery")}
                       onChange={(e) => handleAmountChange("cash_on_delivery", e.target.value)}
-                      className={`rounded-r-none ${hasMode("cash_on_delivery") ? "border-blue-200 bg-blue-50" : "border-gray-200 bg-gray-100 text-gray-400"}`}
+                      className={`rounded-r-none ${hasMode("cash_on_delivery") ? "border-yellow-200 bg-yellow-50" : "border-gray-200 bg-gray-100 text-gray-400"}`}
                     />
-                    <span className={`inline-flex items-center px-3 border border-l-0 rounded-r-md text-sm ${hasMode("cash_on_delivery") ? "bg-blue-100 text-blue-700 border-blue-200" : "bg-gray-100 text-gray-400 border-gray-200"}`}>DT</span>
+                    <span className={`inline-flex items-center px-3 border border-l-0 rounded-r-md text-sm ${hasMode("cash_on_delivery") ? "bg-yellow-100 text-yellow-700 border-yellow-200" : "bg-gray-100 text-gray-400 border-gray-200"}`}>DT</span>
                   </div>
                 </div>
               </div>
