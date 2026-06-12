@@ -51,6 +51,7 @@ export const fetchOrders = async (): Promise<AdminOrder[]> => {
     updatedAt: new Date(o.updated_at),
     trackingNumber: o.tracking_number,
     notes: o.notes || "",
+    commercial: o.commercial || "",
 
     warrantyInfo: o.warranty_accepted
       ? {

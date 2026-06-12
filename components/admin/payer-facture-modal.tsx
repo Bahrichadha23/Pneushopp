@@ -32,6 +32,15 @@ const LETTRE_CHEQUE_BANKS = [
   "Autres",
 ];
 
+const COMMERCIAUX = [
+  "Zeineb Assali",
+  "Khawla",
+  "Zeineb",
+  "Amal",
+  "Sonia",
+  "Amara",
+];
+
 export const PAYMENT_LABELS: Record<string, string> = {
   card: "Carte bancaire",
   cash_on_delivery: "TPE à la livraison",
@@ -152,6 +161,9 @@ export default function PayerFactureModal({ order, onClose, onPaid }: PayerFactu
   const [codAuthNumber, setCodAuthNumber] = useState("");
   const [codBankName, setCodBankName] = useState("");
 
+  // Vendeur en charge de la commande (affiché sur la facture)
+  const [vendeur, setVendeur] = useState(order.commercial || "");
+
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
 
@@ -163,6 +175,11 @@ export default function PayerFactureModal({ order, onClose, onPaid }: PayerFactu
 
     if (selectedModes.length === 0) {
       setError("Veuillez sélectionner au moins un mode de paiement.");
+      return;
+    }
+
+    if (!vendeur) {
+      setError("Veuillez sélectionner le vendeur qui a pris en charge cette commande.");
       return;
     }
 
@@ -187,6 +204,7 @@ export default function PayerFactureModal({ order, onClose, onPaid }: PayerFactu
       const payload: Record<string, any> = {
         payment_status: remainingTotal <= 0.001 ? "paid" : "pending",
         payment_method: selectedModes.length > 1 ? "mixed" : selectedModes[0],
+        commercial: vendeur,
       };
 
       if (hasMode("bank_transfer")) {
@@ -341,6 +359,26 @@ export default function PayerFactureModal({ order, onClose, onPaid }: PayerFactu
                 </span>
               </p>
             )}
+          </div>
+
+          {/* Vendeur en charge de la commande */}
+          <div>
+            <Label className="text-sm font-semibold text-slate-600 mb-1 block">
+              Vendeur en charge de cette commande *
+            </Label>
+            <select
+              value={vendeur}
+              onChange={(e) => setVendeur(e.target.value)}
+              className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+            >
+              <option value="">— Choisir —</option>
+              {COMMERCIAUX.map((c) => (
+                <option key={c} value={c}>{c}</option>
+              ))}
+            </select>
+            <p className="text-xs text-slate-400 mt-1">
+              Le nom du vendeur sera affiché sur la facture et dans la trésorerie.
+            </p>
           </div>
 
           {/* Sélection du/des mode(s) de paiement (par défaut = mode du client) */}

@@ -22,6 +22,7 @@ export interface Order {
   trackingNumber?: string
   notes?: string
   warrantyInfo?: WarrantyInfo
+  commercial?: string
 }
 
 export interface OrderItem {

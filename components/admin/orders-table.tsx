@@ -76,6 +76,9 @@ export async function handleDownloadInvoice(order: any, mode: "download" | "prin
       margin,
       y + 5
     );
+    if (order.commercial) {
+      pdf.text(`Vendeur : ${order.commercial}`, margin, y + 10);
+    }
 
     // Client box (rounded)
     const boxX = pageWidth - 68;

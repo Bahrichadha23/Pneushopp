@@ -334,7 +334,7 @@ export default function ClientsPage() {
                     </TableCell>
                     <TableCell>{client.dateInscription}</TableCell>
                     <TableCell className="text-center">
-                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-[#FBF5E0] text-brand-gold">{client.totalCommandes}</span>
+                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-700">{client.totalCommandes}</span>
                     </TableCell>
                     <TableCell className="font-medium text-brand-gold">
                       {formatCurrency(client.montantTotal)}

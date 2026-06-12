@@ -458,7 +458,7 @@ export default function TresoreriePage() {
             paymentMethod: o.payment_method || "",
             paymentStatus: o.payment_status || "pending",
             orderStatus: o.status || "pending",
-            utilisateur: o.user?.email || o.user?.username || "",
+            utilisateur: o.commercial || o.user?.email || o.user?.username || "",
             caisse: "Tk",
             valeur: invoiceTotal,
             totalAmount: invoiceTotal,
