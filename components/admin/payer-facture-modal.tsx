@@ -432,7 +432,7 @@ export default function PayerFactureModal({ order, onClose, onPaid }: PayerFactu
                     type="checkbox"
                     checked={hasMode("especes")}
                     onChange={() => toggleMode("especes")}
-                    className="h-4 w-4 rounded text-yellow-500"
+                    className="h-4 w-4 rounded accent-yellow-500"
                   />
                   <Banknote className="h-4 w-4" />
                   <span className="text-sm font-semibold">Espèces</span>
@@ -446,7 +446,7 @@ export default function PayerFactureModal({ order, onClose, onPaid }: PayerFactu
                     type="checkbox"
                     checked={hasMode("cash_on_delivery")}
                     onChange={() => toggleMode("cash_on_delivery")}
-                    className="h-4 w-4 rounded text-yellow-500"
+                    className="h-4 w-4 rounded accent-yellow-500"
                   />
                   <CreditCard className="h-4 w-4" />
                   <span className="text-sm font-semibold">TPE</span>
@@ -681,7 +681,7 @@ export default function PayerFactureModal({ order, onClose, onPaid }: PayerFactu
               size="sm"
               onClick={handleSubmit}
               disabled={submitting}
-              className="bg-[#0066CC] hover:bg-[#004E9E] text-white border-0"
+              className="bg-yellow-500 hover:bg-yellow-600 text-black border-0"
             >
               {submitting ? "Enregistrement..." : "Confirmer le paiement"}
             </Button>
