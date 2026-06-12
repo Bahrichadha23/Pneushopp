@@ -381,42 +381,110 @@ export default function PayerFactureModal({ order, onClose, onPaid }: PayerFactu
             </div>
           </div>
 
-          {/* ── Espèces ── */}
-          {hasMode("especes") && (
-            <div className="space-y-3 p-3 bg-gray-50 rounded-lg">
-              <p className="text-sm font-semibold text-slate-700 flex items-center gap-2">
-                <Banknote className="h-4 w-4" /> Espèces
-              </p>
-              {renderAmountField("especes")}
-            </div>
-          )}
+          {/* ── Espèces / TPE (paiement à la livraison) ── */}
+          {(hasMode("especes") || hasMode("cash_on_delivery")) && (
+            <div className="space-y-3 p-3 border-2 border-yellow-400 rounded-lg bg-white">
+              <div className="flex flex-wrap gap-3">
+                <label
+                  className={`flex items-center gap-2 px-4 py-2 rounded-lg border-2 cursor-pointer transition-all ${
+                    hasMode("especes") ? "border-yellow-500 bg-white text-black font-semibold" : "border-gray-200 bg-white hover:border-yellow-400 text-gray-600"
+                  }`}
+                >
+                  <input
+                    type="checkbox"
+                    checked={hasMode("especes")}
+                    onChange={() => toggleMode("especes")}
+                    className="h-4 w-4 rounded text-yellow-500"
+                  />
+                  <Banknote className="h-4 w-4" />
+                  <span className="text-sm font-semibold">Espèces</span>
+                </label>
+                <label
+                  className={`flex items-center gap-2 px-4 py-2 rounded-lg border-2 cursor-pointer transition-all ${
+                    hasMode("cash_on_delivery") ? "border-yellow-500 bg-white text-black font-semibold" : "border-gray-200 bg-white hover:border-yellow-400 text-gray-600"
+                  }`}
+                >
+                  <input
+                    type="checkbox"
+                    checked={hasMode("cash_on_delivery")}
+                    onChange={() => toggleMode("cash_on_delivery")}
+                    className="h-4 w-4 rounded text-yellow-500"
+                  />
+                  <CreditCard className="h-4 w-4" />
+                  <span className="text-sm font-semibold">TPE</span>
+                </label>
+              </div>
 
-          {/* ── TPE à la livraison ── */}
-          {hasMode("cash_on_delivery") && (
-            <div className="space-y-3 p-3 bg-gray-50 rounded-lg">
-              <p className="text-sm font-semibold text-slate-700 flex items-center gap-2">
-                <Truck className="h-4 w-4" /> TPE à la livraison
-              </p>
-              {renderAmountField("cash_on_delivery")}
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-3 gap-4">
                 <div>
-                  <Label className="text-sm font-semibold">N° Autorisation</Label>
-                  <Input value={codAuthNumber} onChange={(e) => setCodAuthNumber(e.target.value)} />
+                  <Label className="text-sm font-semibold">Total</Label>
+                  <div className="mt-1 flex">
+                    <Input readOnly value={formatAmount(total)} className="rounded-r-none bg-white" />
+                    <span className="inline-flex items-center px-3 border border-l-0 rounded-r-md bg-gray-100 text-sm text-gray-600">DT</span>
+                  </div>
                 </div>
                 <div>
-                  <Label className="text-sm font-semibold">Banque</Label>
-                  <select
-                    value={codBankName}
-                    onChange={(e) => setCodBankName(e.target.value)}
-                    className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-                  >
-                    <option value="">Sélectionner...</option>
-                    {BANK_OPTIONS.map((b) => (
-                      <option key={b} value={b}>{b}</option>
-                    ))}
-                  </select>
+                  <Label className={`text-sm font-semibold ${hasMode("especes") ? "text-yellow-700" : "text-gray-400"}`}>
+                    Montant payé Espèces
+                  </Label>
+                  <div className="mt-1 flex">
+                    <Input
+                      type="text" inputMode="decimal" placeholder="0,00"
+                      value={hasMode("especes") ? getAmountInput("especes") : ""}
+                      disabled={!hasMode("especes")}
+                      onChange={(e) => handleAmountChange("especes", e.target.value)}
+                      className={`rounded-r-none ${hasMode("especes") ? "border-yellow-200 bg-yellow-50" : "border-gray-200 bg-gray-100 text-gray-400"}`}
+                    />
+                    <span className={`inline-flex items-center px-3 border border-l-0 rounded-r-md text-sm ${hasMode("especes") ? "bg-yellow-100 text-yellow-700 border-yellow-200" : "bg-gray-100 text-gray-400 border-gray-200"}`}>DT</span>
+                  </div>
+                </div>
+                <div>
+                  <Label className={`text-sm font-semibold ${hasMode("cash_on_delivery") ? "text-blue-700" : "text-gray-400"}`}>
+                    Montant payé TPE
+                  </Label>
+                  <div className="mt-1 flex">
+                    <Input
+                      type="text" inputMode="decimal" placeholder="0,00"
+                      value={hasMode("cash_on_delivery") ? getAmountInput("cash_on_delivery") : ""}
+                      disabled={!hasMode("cash_on_delivery")}
+                      onChange={(e) => handleAmountChange("cash_on_delivery", e.target.value)}
+                      className={`rounded-r-none ${hasMode("cash_on_delivery") ? "border-blue-200 bg-blue-50" : "border-gray-200 bg-gray-100 text-gray-400"}`}
+                    />
+                    <span className={`inline-flex items-center px-3 border border-l-0 rounded-r-md text-sm ${hasMode("cash_on_delivery") ? "bg-blue-100 text-blue-700 border-blue-200" : "bg-gray-100 text-gray-400 border-gray-200"}`}>DT</span>
+                  </div>
                 </div>
               </div>
+
+              {hasMode("cash_on_delivery") && (
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <Label className="text-sm font-semibold">N° Autorisation TPE</Label>
+                    <Input value={codAuthNumber} onChange={(e) => setCodAuthNumber(e.target.value)} />
+                  </div>
+                  <div>
+                    <Label className="text-sm font-semibold">Banque</Label>
+                    <select
+                      value={codBankName}
+                      onChange={(e) => setCodBankName(e.target.value)}
+                      className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                    >
+                      <option value="">Sélectionner...</option>
+                      {BANK_OPTIONS.map((b) => (
+                        <option key={b} value={b}>{b}</option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+              )}
+
+              <div>
+                <Label className="text-sm font-semibold">Remarque</Label>
+                <Textarea rows={2} value={remarque} onChange={(e) => setRemarque(e.target.value)} className="mt-1 resize-y" placeholder="Ajouter une remarque..." />
+              </div>
+
+              <p className="text-xs text-slate-400 flex items-center gap-1">
+                Possibilité de paiement avec plusieurs méthodes
+              </p>
             </div>
           )}
 
@@ -558,7 +626,7 @@ export default function PayerFactureModal({ order, onClose, onPaid }: PayerFactu
           )}
 
           {/* Remarque générale */}
-          {!onlyCard && (
+          {!onlyCard && !hasMode("especes") && !hasMode("cash_on_delivery") && (
             <div>
               <Label className="text-sm font-semibold">Remarque</Label>
               <Textarea rows={2} value={remarque} onChange={(e) => setRemarque(e.target.value)} className="mt-1 resize-y" />
