@@ -48,6 +48,8 @@ const ACTION_ICONS: Record<string, React.ReactNode> = {
   delete_product:  <Trash2 className="h-4 w-4" />,
   update_price:    <DollarSign className="h-4 w-4" />,
   dot_sale:        <Tag className="h-4 w-4" />,
+  apply_promotion:  <Tag className="h-4 w-4" />,
+  remove_promotion: <Tag className="h-4 w-4" />,
   other:           <Activity className="h-4 w-4" />,
 };
 
@@ -72,6 +74,8 @@ const ACTION_COLORS: Record<string, string> = {
   delete_product:  "bg-black text-white",
   update_price:    "bg-brand-orange text-black",
   dot_sale:        "bg-yellow-200 text-yellow-900",
+  apply_promotion:  "bg-yellow-200 text-yellow-900",
+  remove_promotion: "bg-gray-200 text-gray-800",
   other:           "bg-gray-100 text-gray-700",
 };
 
@@ -89,6 +93,7 @@ const FILTER_GROUPS = [
   { value: "create_delivery,update_delivery", label: "Livraisons" },
   { value: "add_stock,adjust_stock,dot_sale", label: "Stock" },
   { value: "add_product,update_product,delete_product,update_price", label: "Articles" },
+  { value: "apply_promotion,remove_promotion", label: "Promotions" },
   { value: "create_purchase", label: "Achats" },
   { value: "sav_update", label: "SAV" },
   { value: "create_user,update_user,delete_user,toggle_user", label: "Utilisateurs" },

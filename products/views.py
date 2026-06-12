@@ -148,6 +148,7 @@ def set_promotion(request):
 
     products = Product.objects.filter(id__in=ids)
     updated = []
+    names = []
 
     for product in products:
         if remove:
@@ -168,6 +169,21 @@ def set_promotion(request):
             product.promotion_end_date = end_date or None
         product.save()
         updated.append(product.id)
+        names.append(product.name)
+
+    from accounts.activity import log_activity
+    if remove:
+        log_activity(
+            request.user, 'remove_promotion',
+            f"Retrait de la promotion sur {len(updated)} produit(s) : {', '.join(names[:5])}" + (f" (+{len(names)-5} autres)" if len(names) > 5 else ""),
+            request=request,
+        )
+    else:
+        log_activity(
+            request.user, 'apply_promotion',
+            f"Promotion -{discount}% ({label or 'sans label'}) appliquée à {len(updated)} produit(s) : {', '.join(names[:5])}" + (f" (+{len(names)-5} autres)" if len(names) > 5 else ""),
+            request=request,
+        )
 
     return Response({
         'updated': len(updated),

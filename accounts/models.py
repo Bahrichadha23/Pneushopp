@@ -81,6 +81,8 @@ class UserActivityLog(models.Model):
         ('delete_product', 'Suppression article'),
         ('update_price', 'Modification prix'),
         ('dot_sale', 'Vente DOT'),
+        ('apply_promotion', 'Application promotion'),
+        ('remove_promotion', 'Retrait promotion'),
         ('other', 'Autre'),
     ]
 
