@@ -408,7 +408,7 @@ export default function PayerFactureModal({ order, onClose, onPaid }: PayerFactu
           {/* ── Espèces / TPE (paiement à la livraison) ── */}
           {(hasMode("especes") || hasMode("cash_on_delivery")) && (
             <div className="space-y-3 p-3 border-2 border-yellow-400 rounded-lg bg-white">
-              <div className="flex flex-wrap gap-3">
+              <div className="flex flex-wrap items-center justify-center gap-3">
                 <label
                   className={`flex items-center gap-2 px-4 py-2 rounded-lg border-2 cursor-pointer transition-all ${
                     hasMode("especes") ? "border-yellow-500 bg-yellow-400 text-black font-semibold" : "border-gray-200 bg-white hover:border-yellow-400 text-gray-600"

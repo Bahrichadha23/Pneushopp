@@ -61,6 +61,20 @@ class OrderDetailView(generics.RetrieveUpdateDestroyAPIView):
             except Exception as e:
                 print(f'[ORDER UPDATE] Failed to auto-create BDC/Delivery: {e}')
 
+        # ── Synchroniser le statut de livraison avec le statut de commande ──
+        ORDER_TO_DELIVERY_STATUS = {
+            'processing': 'prepare',
+            'shipped': 'en_route',
+            'delivered': 'livre',
+        }
+        if order.status != old_status and order.status in ORDER_TO_DELIVERY_STATUS:
+            try:
+                Delivery.objects.filter(order=order).update(
+                    statut=ORDER_TO_DELIVERY_STATUS[order.status]
+                )
+            except Exception as e:
+                print(f'[ORDER UPDATE] Failed to sync delivery status: {e}')
+
         try:
             send_order_status_update_email(order)
         except Exception as e:
@@ -270,6 +284,7 @@ class DeliveryViewSet(viewsets.ModelViewSet):
             pass
 
     def perform_update(self, serializer):
+        old_statut = self.get_object().statut
         instance = serializer.save()
         # Synchroniser date_livraison → date_livraison_prevue sur la commande et le bon de commande
         if instance.date_livraison:
@@ -281,6 +296,20 @@ class DeliveryViewSet(viewsets.ModelViewSet):
                 PurchaseOrder.objects.filter(pk=instance.purchase_order_id).update(
                     date_livraison_prevue=instance.date_livraison
                 )
+
+        # ── Synchroniser le statut de commande avec le statut de livraison ──
+        DELIVERY_TO_ORDER_STATUS = {
+            'en_route': 'shipped',
+            'livre': 'delivered',
+        }
+        if instance.statut != old_statut and instance.statut in DELIVERY_TO_ORDER_STATUS and instance.order_id:
+            try:
+                order = Order.objects.get(pk=instance.order_id)
+                if order.status not in ('delivered', 'cancelled'):
+                    order.status = DELIVERY_TO_ORDER_STATUS[instance.statut]
+                    order.save(update_fields=['status'])
+            except Order.DoesNotExist:
+                pass
         try:
             ref = instance.numero_suivi or f'#{instance.id}'
             log_activity(self.request.user, 'update_delivery',

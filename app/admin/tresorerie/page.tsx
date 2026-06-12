@@ -883,6 +883,7 @@ export default function TresoreriePage() {
                 className="w-full rounded border border-slate-300 px-2 py-2 text-sm"
               >
                 <option value="all">Toutes les dates</option>
+                <option value="today">Aujourd'hui</option>
                 <option value="this_week">Cette semaine</option>
                 <option value="this_month">Ce mois</option>
                 <option value="this_year">Cette année</option>

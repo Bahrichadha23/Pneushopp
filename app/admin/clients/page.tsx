@@ -198,13 +198,13 @@ export default function ClientsPage() {
           </CardContent>
         </Card>
 
-        <Card className="border-emerald-300/50">
+        <Card className="border-[#9B2226]/30">
           <CardHeader className="flex justify-between items-center">
             <CardTitle className="text-sm font-medium">Particuliers</CardTitle>
-            <Users className="h-4 w-4 text-emerald-600" />
+            <Users className="h-4 w-4 text-[#9B2226]" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-emerald-600">
+            <div className="text-2xl font-bold text-[#9B2226]">
               {particuliers}
             </div>
           </CardContent>

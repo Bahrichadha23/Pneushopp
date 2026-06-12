@@ -269,7 +269,7 @@ export default function ProductForm({
         </CardHeader>
         <CardContent className="space-y-1.5">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
-            <div>
+            <div className="col-span-2 md:col-span-2">
               <Label htmlFor="name" className="mb-1 text-base">
                 Nom du produit *
               </Label>

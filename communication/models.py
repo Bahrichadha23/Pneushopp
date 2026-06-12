@@ -54,6 +54,7 @@ class MessageComment(models.Model):
     )
     content = models.TextField()
     is_developer = models.BooleanField(default=False)
+    attachment = models.FileField(upload_to='support_attachments/', null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:

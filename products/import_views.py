@@ -47,7 +47,7 @@ BRAND_CANONICAL: dict[str, str] = {
     'pirelli': 'Pirelli',
     'continental': 'Continental',
     'bridgestone': 'Bridgestone',
-    'goodyear': 'Goodyear', 'good year': 'Goodyear', 'good-year': 'Goodyear',
+    'goodyear': 'Good Year', 'good year': 'Good Year', 'good-year': 'Good Year',
     'dunlop': 'Dunlop',
     'hankook': 'Hankook',
     'kleber': 'Kleber', 'kléber': 'Kleber',

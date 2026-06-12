@@ -21,9 +21,8 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Eye, Edit, Truck, Search, Package, Download, X, Check, Ban, Loader2, Calendar } from "lucide-react";
+import { Eye, Edit, Truck, Search, Download, X, Check, Ban, Loader2, Calendar } from "lucide-react";
 import { API_URL } from "@/lib/config";
-import { createPurchaseOrder } from "@/lib/services/purchase-order";
 import { motion, AnimatePresence } from "framer-motion";
 interface OrdersTableProps {
   orders: Order[];
@@ -371,57 +370,6 @@ export default function OrdersTable({
   const [confirmingDot, setConfirmingDot] = useState(false);
   const [dotConfirmError, setDotConfirmError] = useState<string | null>(null);
   const [preFilledFromPrep, setPreFilledFromPrep] = useState(false);
-  const [creatingPurchaseOrder, setCreatingPurchaseOrder] = useState<
-    string | null
-  >(null);
-  const [purchaseOrderCreated, setPurchaseOrderCreated] = useState<Set<string>>(
-    () => {
-      // Load from localStorage on initial mount
-      if (typeof window !== "undefined") {
-        const saved = localStorage.getItem("purchaseOrderCreated");
-        if (saved) {
-          try {
-            return new Set(JSON.parse(saved));
-          } catch (e) {
-            return new Set();
-          }
-        }
-      }
-      return new Set();
-    }
-  );
-
-  // Save to localStorage whenever purchaseOrderCreated changes
-  useEffect(() => {
-    if (typeof window !== "undefined") {
-      localStorage.setItem(
-        "purchaseOrderCreated",
-        JSON.stringify(Array.from(purchaseOrderCreated))
-      );
-    }
-  }, [purchaseOrderCreated]);
-
-  const handleCreatePurchaseOrder = async (order: Order) => {
-    if (creatingPurchaseOrder) return;
-
-    setCreatingPurchaseOrder(order.id);
-
-    try {
-      const result = await createPurchaseOrder(order);
-      if (result.success) {
-        alert(result.message);
-        // Mark this order as having a purchase order created
-        setPurchaseOrderCreated((prev) => new Set(prev).add(order.id));
-      } else {
-        alert(result.message || "Erreur lors de la création");
-      }
-    } catch (error) {
-      alert("Erreur lors de la création du bon de commande");
-    } finally {
-      setCreatingPurchaseOrder(null);
-    }
-  };
-
   const handleOpenDotConfirm = async (order: Order) => {
     setDotConfirmOrder(order);
     setDotConfirmError(null);
@@ -731,35 +679,6 @@ export default function OrdersTable({
                         </Button>
                       )}
 
-                      {order.status === "processing" && (
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => handleCreatePurchaseOrder(order)}
-                          disabled={
-                            creatingPurchaseOrder === order.id ||
-                            purchaseOrderCreated.has(order.id)
-                          }
-                          title={
-                            purchaseOrderCreated.has(order.id)
-                              ? "Bon de commande déjà créé"
-                              : "Créer bon de commande"
-                          }
-                        >
-                          {creatingPurchaseOrder === order.id ? (
-                            <div className="h-4 w-4 animate-spin rounded-full border-2 border-gray-300 border-t-gray-600" />
-                          ) : (
-                            <Package
-                              className={`h-4 w-4 ${
-                                purchaseOrderCreated.has(order.id)
-                                  ? "text-brand-gold"
-                                  : ""
-                              }`}
-                            />
-                          )}
-                        </Button>
-                      )}
-
                     </div>
                   </TableCell>
                 </TableRow>
@@ -831,34 +750,6 @@ export default function OrdersTable({
                   </Button>
                 )}
 
-                {order.status === "processing" && (
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => handleCreatePurchaseOrder(order)}
-                    disabled={
-                      creatingPurchaseOrder === order.id ||
-                      purchaseOrderCreated.has(order.id)
-                    }
-                    title={
-                      purchaseOrderCreated.has(order.id)
-                        ? "Bon de commande déjà créé"
-                        : "Créer bon de commande"
-                    }
-                  >
-                    {creatingPurchaseOrder === order.id ? (
-                      <div className="h-4 w-4 animate-spin rounded-full border-2 border-gray-300 border-t-gray-600" />
-                    ) : (
-                      <Package
-                        className={`h-4 w-4 ${
-                          purchaseOrderCreated.has(order.id)
-                            ? "text-brand-gold"
-                            : ""
-                        }`}
-                      />
-                    )}
-                  </Button>
-                )}
               </div>
             </div>
           </React.Fragment>

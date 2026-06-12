@@ -7,7 +7,7 @@ class MessageCommentSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = MessageComment
-        fields = ['id', 'message', 'author', 'author_name', 'content', 'is_developer', 'created_at']
+        fields = ['id', 'message', 'author', 'author_name', 'content', 'is_developer', 'attachment', 'created_at']
         read_only_fields = ['author', 'is_developer', 'created_at']
 
     def get_author_name(self, obj):

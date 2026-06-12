@@ -2,6 +2,7 @@
 import { useEffect, useState, useRef } from "react";
 import { useAuth } from "@/contexts/auth-context";
 import apiClient from "@/lib/api-client";
+import { API_URL } from "@/lib/config";
 import {
   MessageSquare,
   Plus,
@@ -15,6 +16,8 @@ import {
   Tag,
   User,
   Calendar,
+  Paperclip,
+  X,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -35,7 +38,15 @@ interface Comment {
   author_name: string;
   content: string;
   is_developer: boolean;
+  attachment: string | null;
   created_at: string;
+}
+
+function mediaUrl(path: string): string {
+  if (!path) return "";
+  if (path.startsWith("http")) return path;
+  const base = API_URL.replace(/\/api\/?$/, "");
+  return `${base}${path.startsWith("/") ? "" : "/"}${path}`;
 }
 
 interface Message {
@@ -112,6 +123,7 @@ export default function CommunicationPage() {
   // Expanded message state
   const [expanded, setExpanded] = useState<number | null>(null);
   const [commentDraft, setCommentDraft] = useState<Record<number, string>>({});
+  const [commentFile, setCommentFile] = useState<Record<number, File | null>>({});
   const [sendingComment, setSendingComment] = useState<number | null>(null);
 
   // ── Fetch messages ─────────────────────────────────────────────────────────
@@ -182,13 +194,26 @@ export default function CommunicationPage() {
   // ── Post comment ───────────────────────────────────────────────────────────
   const handleSendComment = async (messageId: number) => {
     const text = (commentDraft[messageId] || "").trim();
-    if (!text) return;
+    const file = commentFile[messageId];
+    if (!text && !file) return;
     setSendingComment(messageId);
     try {
-      await apiClient.post(`/communication/messages/${messageId}/comments/`, {
-        content: text,
-      });
+      if (file) {
+        const formData = new FormData();
+        formData.append("content", text);
+        formData.append("attachment", file);
+        await apiClient.post(
+          `/communication/messages/${messageId}/comments/`,
+          formData,
+          { headers: { "Content-Type": "multipart/form-data" } }
+        );
+      } else {
+        await apiClient.post(`/communication/messages/${messageId}/comments/`, {
+          content: text,
+        });
+      }
       setCommentDraft((d) => ({ ...d, [messageId]: "" }));
+      setCommentFile((f) => ({ ...f, [messageId]: null }));
       fetchMessages();
     } catch (err) {
       console.error("Erreur envoi commentaire", err);
@@ -363,6 +388,10 @@ export default function CommunicationPage() {
               onCommentChange={(val) =>
                 setCommentDraft((d) => ({ ...d, [msg.id]: val }))
               }
+              commentFile={commentFile[msg.id] ?? null}
+              onCommentFileChange={(file) =>
+                setCommentFile((f) => ({ ...f, [msg.id]: file }))
+              }
               onSendComment={handleSendComment}
               sendingComment={sendingComment === msg.id}
             />
@@ -384,6 +413,8 @@ interface CardProps {
   onDelete: (id: number) => void;
   commentDraft: string;
   onCommentChange: (val: string) => void;
+  commentFile: File | null;
+  onCommentFileChange: (file: File | null) => void;
   onSendComment: (id: number) => void;
   sendingComment: boolean;
 }
@@ -398,6 +429,8 @@ function MessageCard({
   onDelete,
   commentDraft,
   onCommentChange,
+  commentFile,
+  onCommentFileChange,
   onSendComment,
   sendingComment,
 }: CardProps) {
@@ -560,35 +593,73 @@ function MessageCard({
                         {fmtDate(c.created_at)}
                       </span>
                     </div>
-                    <p className="text-gray-700 whitespace-pre-wrap">
-                      {c.content}
-                    </p>
+                    {c.content && (
+                      <p className="text-gray-700 whitespace-pre-wrap">
+                        {c.content}
+                      </p>
+                    )}
+                    {c.attachment && (
+                      <a
+                        href={mediaUrl(c.attachment)}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="mt-1 inline-flex items-center gap-1 text-xs text-[#FF8C00] hover:underline"
+                      >
+                        <Paperclip className="w-3 h-3" />
+                        Pièce jointe
+                      </a>
+                    )}
                   </div>
                 ))}
               </div>
             )}
 
             {/* Comment input */}
-            <div className="flex gap-2 mt-2">
-              <Textarea
-                rows={2}
-                placeholder="Écrire un commentaire..."
-                value={commentDraft}
-                onChange={(e) => onCommentChange(e.target.value)}
-                className="text-sm resize-none"
-              />
-              <Button
-                size="sm"
-                disabled={sendingComment || !commentDraft.trim()}
-                onClick={() => onSendComment(msg.id)}
-                className="self-end bg-[#FF8C00] hover:bg-[#CC7000] text-white"
-              >
-                {sendingComment ? (
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                ) : (
-                  <Send className="w-4 h-4" />
-                )}
-              </Button>
+            <div className="space-y-2 mt-2">
+              {commentFile && (
+                <div className="flex items-center gap-2 text-xs text-gray-600 bg-gray-50 border border-gray-200 rounded px-2 py-1 w-fit">
+                  <Paperclip className="w-3 h-3" />
+                  <span className="truncate max-w-[200px]">{commentFile.name}</span>
+                  <button
+                    type="button"
+                    onClick={() => onCommentFileChange(null)}
+                    className="text-gray-400 hover:text-gray-700"
+                  >
+                    <X className="w-3 h-3" />
+                  </button>
+                </div>
+              )}
+              <div className="flex gap-2">
+                <Textarea
+                  rows={2}
+                  placeholder="Écrire un commentaire..."
+                  value={commentDraft}
+                  onChange={(e) => onCommentChange(e.target.value)}
+                  className="text-sm resize-none"
+                />
+                <label className="self-end inline-flex items-center justify-center h-9 w-9 rounded-md border border-gray-200 text-gray-500 hover:bg-gray-50 cursor-pointer">
+                  <Paperclip className="w-4 h-4" />
+                  <input
+                    type="file"
+                    className="hidden"
+                    onChange={(e) =>
+                      onCommentFileChange(e.target.files?.[0] ?? null)
+                    }
+                  />
+                </label>
+                <Button
+                  size="sm"
+                  disabled={sendingComment || (!commentDraft.trim() && !commentFile)}
+                  onClick={() => onSendComment(msg.id)}
+                  className="self-end bg-[#FF8C00] hover:bg-[#CC7000] text-white"
+                >
+                  {sendingComment ? (
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                  ) : (
+                    <Send className="w-4 h-4" />
+                  )}
+                </Button>
+              </div>
             </div>
           </div>
         </div>

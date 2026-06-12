@@ -19,7 +19,6 @@ const ROUTE_PERMISSIONS: { pattern: RegExp; roles: string[] }[] = [
   { pattern: /^\/admin\/?$/, roles: ["admin"] },
   // Commandes / Vente
   { pattern: /^\/admin\/commandes/, roles: ["admin", "sales"] },
-  { pattern: /^\/admin\/bons-commande/, roles: ["admin", "sales"] },
   { pattern: /^\/admin\/factures/, roles: ["admin", "sales"] },
   { pattern: /^\/admin\/livraisons/, roles: ["admin", "sales"] },
   { pattern: /^\/admin\/tresorerie/, roles: ["admin", "sales"] },
