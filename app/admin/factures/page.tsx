@@ -9,9 +9,10 @@ import type { Order } from "@/types/admin";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Download, Search, FileText, FileDown, CreditCard, Printer } from "lucide-react";
+import { Download, Search, FileText, FileDown, CreditCard, Printer, FilePlus } from "lucide-react";
 import ExcelJS from "exceljs";
 import PayerFactureModal, { PAYMENT_LABELS } from "@/components/admin/payer-facture-modal";
+import SaisirFactureModal from "@/components/admin/saisir-facture-modal";
 import {
   Table,
   TableBody,
@@ -60,6 +61,7 @@ export default function FacturesPage() {
   const [searchPaymentStatus, setSearchPaymentStatus] = useState("");
   const [downloading, setDownloading] = useState<string | null>(null);
   const [payingOrder, setPayingOrder] = useState<Order | null>(null);
+  const [showSaisirFacture, setShowSaisirFacture] = useState(false);
 
   // Role guard
   useEffect(() => {
@@ -68,11 +70,16 @@ export default function FacturesPage() {
     }
   }, [user]);
 
-  useEffect(() => {
+  const loadOrders = () => {
+    setLoading(true);
     fetchOrders()
       .then((data) => setOrders(data))
       .catch((err) => console.error("Failed to fetch orders:", err))
       .finally(() => setLoading(false));
+  };
+
+  useEffect(() => {
+    loadOrders();
   }, []);
 
   // Seules les commandes confirmées après assignation DOT apparaissent ici
@@ -226,10 +233,16 @@ export default function FacturesPage() {
             </p>
           </div>
         </div>
-        <Button onClick={handleExportExcel} className="gap-2 bg-[#0066CC] hover:bg-[#004C99] text-white border-0">
-          <FileDown className="h-4 w-4" />
-          Exporter l'historique (Excel)
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button onClick={() => setShowSaisirFacture(true)} className="gap-2 bg-[#FF8C00] hover:bg-[#E67E00] text-white border-0">
+            <FilePlus className="h-4 w-4" />
+            Saisir une facture
+          </Button>
+          <Button onClick={handleExportExcel} className="gap-2 bg-[#0066CC] hover:bg-[#004C99] text-white border-0">
+            <FileDown className="h-4 w-4" />
+            Exporter l'historique (Excel)
+          </Button>
+        </div>
       </div>
 
       {/* Search filters */}
@@ -469,6 +482,16 @@ export default function FacturesPage() {
               )
             );
             setPayingOrder(null);
+          }}
+        />
+      )}
+
+      {showSaisirFacture && (
+        <SaisirFactureModal
+          onClose={() => setShowSaisirFacture(false)}
+          onCreated={() => {
+            setShowSaisirFacture(false);
+            loadOrders();
           }}
         />
       )}
