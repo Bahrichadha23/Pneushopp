@@ -654,18 +654,6 @@ export default function TresoreriePage() {
     [filteredRecords]
   );
 
-  // Sauvegarde du commercial via PATCH
-  const handleCommercialChange = async (recordId: string, value: string) => {
-    // Mise à jour optimiste locale
-    setRecords((prev) =>
-      prev.map((r) => (r.id === recordId ? { ...r, commercial: value } : r))
-    );
-    try {
-      await apiClient.patch(`/orders/${recordId}/`, { commercial: value });
-    } catch (err) {
-      console.error("Erreur sauvegarde commercial", err);
-    }
-  };
 
   const handlePaymentStatusChange = async (recordId: string, newStatus: string) => {
     setRecords((prev) =>
@@ -1248,18 +1236,9 @@ export default function TresoreriePage() {
                           {record.remarque || "-"}
                         </div>
                       </td>
-                      {/* Colonne Commercial */}
+                      {/* Colonne Commercial (auto, compte connecté lors du paiement) */}
                       <td className="px-2 py-2 align-top whitespace-nowrap">
-                        <select
-                          value={record.commercial}
-                          onChange={(e) => handleCommercialChange(record.id, e.target.value)}
-                          className="w-36 rounded border border-slate-300 bg-white px-1.5 py-1 text-xs focus:outline-none focus:ring-1 focus:ring-brand-orange"
-                        >
-                          <option value="">— Choisir —</option>
-                          {COMMERCIAUX.map((c) => (
-                            <option key={c} value={c}>{c}</option>
-                          ))}
-                        </select>
+                        <span className="text-xs text-slate-700">{record.commercial || "—"}</span>
                       </td>
                       <td className="px-2 py-2 align-top whitespace-nowrap">
                         <select

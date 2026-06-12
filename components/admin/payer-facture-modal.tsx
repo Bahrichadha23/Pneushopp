@@ -8,6 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import apiClient from "@/lib/api-client";
 import type { Order } from "@/types/admin";
 import { CreditCard, Building, Truck, Receipt, Banknote, X } from "lucide-react";
+import { useAuth } from "@/contexts/auth-context";
 
 const BANK_OPTIONS = [
   "QNB",
@@ -32,14 +33,6 @@ const LETTRE_CHEQUE_BANKS = [
   "Autres",
 ];
 
-const COMMERCIAUX = [
-  "Zeineb Assali",
-  "Khawla",
-  "Zeineb",
-  "Amal",
-  "Sonia",
-  "Amara",
-];
 
 export const PAYMENT_LABELS: Record<string, string> = {
   card: "Carte bancaire",
@@ -161,8 +154,13 @@ export default function PayerFactureModal({ order, onClose, onPaid }: PayerFactu
   const [codAuthNumber, setCodAuthNumber] = useState("");
   const [codBankName, setCodBankName] = useState("");
 
-  // Vendeur en charge de la commande (affiché sur la facture)
-  const [vendeur, setVendeur] = useState(order.commercial || "");
+  // Vendeur en charge de la commande (affiché sur la facture) — auto-rempli avec l'utilisateur connecté
+  const { user } = useAuth();
+  const currentUserName =
+    (user?.firstName || user?.lastName)
+      ? `${user?.firstName || ""} ${user?.lastName || ""}`.trim()
+      : user?.email || "";
+  const vendeur = order.commercial || currentUserName;
 
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
@@ -175,11 +173,6 @@ export default function PayerFactureModal({ order, onClose, onPaid }: PayerFactu
 
     if (selectedModes.length === 0) {
       setError("Veuillez sélectionner au moins un mode de paiement.");
-      return;
-    }
-
-    if (!vendeur) {
-      setError("Veuillez sélectionner le vendeur qui a pris en charge cette commande.");
       return;
     }
 
@@ -361,23 +354,16 @@ export default function PayerFactureModal({ order, onClose, onPaid }: PayerFactu
             )}
           </div>
 
-          {/* Vendeur en charge de la commande */}
+          {/* Vendeur en charge de la commande (auto, compte connecté) */}
           <div>
             <Label className="text-sm font-semibold text-slate-600 mb-1 block">
-              Vendeur en charge de cette commande *
+              Vendeur en charge de cette commande
             </Label>
-            <select
-              value={vendeur}
-              onChange={(e) => setVendeur(e.target.value)}
-              className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-            >
-              <option value="">— Choisir —</option>
-              {COMMERCIAUX.map((c) => (
-                <option key={c} value={c}>{c}</option>
-              ))}
-            </select>
+            <div className="w-full rounded-md border border-input bg-slate-50 px-3 py-2 text-sm text-slate-700">
+              {vendeur || "—"}
+            </div>
             <p className="text-xs text-slate-400 mt-1">
-              Le nom du vendeur sera affiché sur la facture et dans la trésorerie.
+              Enregistré automatiquement avec le compte connecté. Affiché sur la facture et dans la trésorerie.
             </p>
           </div>
 
