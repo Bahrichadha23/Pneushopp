@@ -486,7 +486,7 @@ export default function ProductForm({
                 <SelectTrigger
                   className={`w-full ${errors.speedRating ? "border-red-500" : ""}`}
                 >
-                  <SelectValue placeholder="Sélectionner" />
+                  <SelectValue placeholder="" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="H">H (210 km/h)</SelectItem>
