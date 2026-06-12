@@ -412,7 +412,7 @@ export default function PayerFactureModal({ order, onClose, onPaid }: PayerFactu
                       className="h-4 w-4 accent-yellow-500"
                     />
                     <Icon className="h-4 w-4 text-gray-500 shrink-0" />
-                    <span className="text-sm font-medium text-slate-700">{label}</span>
+                    <span className={`text-sm font-medium ${selectedModes.includes(id) ? "text-yellow-700" : "text-slate-700"}`}>{label}</span>
                   </label>
                 );
               })}
@@ -432,7 +432,7 @@ export default function PayerFactureModal({ order, onClose, onPaid }: PayerFactu
                     type="checkbox"
                     checked={hasMode("especes")}
                     onChange={() => toggleMode("especes")}
-                    className="h-4 w-4 rounded accent-yellow-500"
+                    className="h-4 w-4 rounded accent-black"
                   />
                   <Banknote className="h-4 w-4" />
                   <span className="text-sm font-semibold">Espèces</span>
@@ -446,7 +446,7 @@ export default function PayerFactureModal({ order, onClose, onPaid }: PayerFactu
                     type="checkbox"
                     checked={hasMode("cash_on_delivery")}
                     onChange={() => toggleMode("cash_on_delivery")}
-                    className="h-4 w-4 rounded accent-yellow-500"
+                    className="h-4 w-4 rounded accent-black"
                   />
                   <CreditCard className="h-4 w-4" />
                   <span className="text-sm font-semibold">TPE</span>
