@@ -643,6 +643,72 @@ def add_dot_batch(request, product_id):
         return Response({'error': str(e)}, status=500)
 
 
+@api_view(['POST'])
+@permission_classes([IsAdminOrPurchasing])
+def adjust_dot_batch(request, product_id):
+    """Adjust (increase/decrease) the quantity of an existing DOT batch — manual correction."""
+    from .models import StockBatch, StockMovement
+    from django.db import transaction
+
+    batch_id = request.data.get('batch_id')
+    try:
+        delta = int(request.data.get('delta', 0))
+    except (ValueError, TypeError):
+        return Response({'error': 'Quantite invalide'}, status=400)
+
+    if not batch_id:
+        return Response({'error': 'batch_id requis'}, status=400)
+    if delta == 0:
+        return Response({'error': 'Quantite invalide'}, status=400)
+
+    try:
+        with transaction.atomic():
+            batch = StockBatch.objects.select_for_update().get(id=batch_id, product_id=product_id)
+            if delta < 0 and batch.quantity < -delta:
+                return Response(
+                    {'error': f'Stock insuffisant dans ce lot ({batch.quantity} disponible(s))'},
+                    status=400,
+                )
+            batch.quantity += delta
+            batch.save()
+
+            product = batch.product
+            product.stock = max(0, product.stock + delta)
+            product.save()
+
+        try:
+            StockMovement.objects.create(
+                product=product,
+                product_name=product.name,
+                type='in' if delta > 0 else 'out',
+                quantity=delta,
+                reason='ajustement_manuel',
+                reference=f'DOT:{batch.dot}'[:100],
+                created_by=request.user if request.user.is_authenticated else None,
+            )
+        except Exception as log_err:
+            print(f'[ADJUST_BATCH] StockMovement log failed (non-critical): {log_err}')
+
+        try:
+            from accounts.activity import log_activity
+            log_activity(
+                request.user,
+                'stock_adjustment',
+                f'Ajustement stock : {product.brand} {product.name} ({product.size}) — '
+                f'DOT {batch.dot} : {"+" if delta > 0 else ""}{delta}',
+                request=request,
+                extra={'product_id': product.id, 'batch_id': batch_id, 'dot': batch.dot, 'delta': delta},
+            )
+        except Exception:
+            pass
+
+        return Response({'success': True, 'new_stock': product.stock, 'batch_quantity': batch.quantity})
+    except StockBatch.DoesNotExist:
+        return Response({'error': 'Lot introuvable'}, status=404)
+    except Exception as e:
+        return Response({'error': str(e)}, status=500)
+
+
 @api_view(['GET'])
 @permission_classes([IsAdminOrPurchasing])
 def customer_search(request):

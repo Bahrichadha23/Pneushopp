@@ -78,6 +78,10 @@ function DotPanel({
   const [addEmplacement, setAddEmplacement] = useState("");
   const [adding, setAdding] = useState(false);
 
+  /* adjust-batch (correction +/-) state */
+  const [adjustingId, setAdjustingId] = useState<number | null>(null);
+  const [adjustError, setAdjustError] = useState("");
+
   const token = () => localStorage.getItem("access_token");
 
   /* ── load batches ── */
@@ -271,6 +275,25 @@ function DotPanel({
     finally { setAdding(false); }
   }
 
+  /* ── adjust batch quantity (correction +/-) ── */
+  async function handleAdjust(batch: DotBatch, delta: number) {
+    if (delta < 0 && batch.quantity + delta < 0) return;
+    setAdjustingId(batch.id); setAdjustError("");
+    try {
+      const r = await fetch(`${API_URL}/admin/products/${product.id}/adjust-dot-batch/`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token()}`, "Content-Type": "application/json" },
+        body: JSON.stringify({ batch_id: batch.id, delta }),
+      });
+      const data = await r.json();
+      if (!r.ok) throw new Error(data.error || "Erreur");
+      onStockChanged(product.id, data.new_stock ?? (totalStock + delta));
+      await loadBatches();
+    } catch (e: any) {
+      setAdjustError(e.message);
+    } finally { setAdjustingId(null); }
+  }
+
   function dotAge(dotDate: string | null) {
     if (!dotDate) return null;
     const months = Math.floor((Date.now() - new Date(dotDate).getTime()) / (1000 * 60 * 60 * 24 * 30));
@@ -322,6 +345,12 @@ function DotPanel({
         {error && (
           <div className="bg-red-50 border border-red-200 text-brand-red rounded-lg p-3 flex items-center gap-2 text-sm">
             <AlertCircle className="h-4 w-4 flex-shrink-0" />{error}
+          </div>
+        )}
+
+        {adjustError && (
+          <div className="bg-red-50 border border-red-200 text-brand-red rounded-lg p-3 flex items-center gap-2 text-sm">
+            <AlertCircle className="h-4 w-4 flex-shrink-0" />{adjustError}
           </div>
         )}
 
@@ -379,11 +408,29 @@ function DotPanel({
                       </div>
                     </div>
 
-                    {/* Quantity */}
+                    {/* Quantity + correction +/- */}
                     <div className="text-right flex-shrink-0 mr-2">
-                      <span className={`text-xl font-bold ${isFirst ? "text-brand-gold" : "text-gray-700"}`}>
-                        {batch.quantity}
-                      </span>
+                      <div className="flex items-center gap-1.5 justify-end">
+                        <button
+                          onClick={() => handleAdjust(batch, -1)}
+                          disabled={adjustingId === batch.id || batch.quantity <= 0}
+                          title="Diminuer la quantité de ce lot"
+                          className="w-6 h-6 rounded-full border border-gray-300 bg-white flex items-center justify-center hover:bg-gray-100 disabled:opacity-40"
+                        >
+                          <Minus className="h-3 w-3" />
+                        </button>
+                        <span className={`text-xl font-bold ${isFirst ? "text-brand-gold" : "text-gray-700"}`}>
+                          {batch.quantity}
+                        </span>
+                        <button
+                          onClick={() => handleAdjust(batch, 1)}
+                          disabled={adjustingId === batch.id}
+                          title="Augmenter la quantité de ce lot"
+                          className="w-6 h-6 rounded-full border border-gray-300 bg-white flex items-center justify-center hover:bg-gray-100 disabled:opacity-40"
+                        >
+                          <Plus className="h-3 w-3" />
+                        </button>
+                      </div>
                       <p className="text-[10px] text-gray-400">unité(s)</p>
                     </div>
 
@@ -553,6 +600,76 @@ function DotPanel({
             })}
           </div>
         )}
+
+        {/* Ajouter un nouveau lot DOT */}
+        <div className="border-2 border-dashed border-gray-300 rounded-xl overflow-hidden">
+          {!showAdd ? (
+            <button
+              onClick={() => setShowAdd(true)}
+              className="w-full flex items-center justify-center gap-2 px-4 py-3 text-sm font-semibold text-gray-600 hover:bg-gray-50 transition-colors"
+            >
+              <Plus className="h-4 w-4" /> Ajouter un nouveau pneu (DOT / emplacement / quantité)
+            </button>
+          ) : (
+            <div className="p-4 space-y-3 bg-gray-50">
+              <div className="flex items-center justify-between">
+                <p className="text-xs font-semibold text-gray-700 uppercase tracking-wide">Nouveau lot</p>
+                <button onClick={() => { setShowAdd(false); setAddDot(""); setAddQty(1); setAddEmplacement(""); }} className="text-gray-400 hover:text-gray-600">
+                  <X className="h-4 w-4" />
+                </button>
+              </div>
+
+              <div className="flex items-center gap-3">
+                <label className="text-xs font-medium text-gray-700 w-24 flex-shrink-0">DOT</label>
+                <input
+                  type="text" value={addDot}
+                  onChange={(e) => setAddDot(e.target.value)}
+                  placeholder="ex: 2324"
+                  className="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-yellow-500"
+                />
+              </div>
+
+              <div className="flex items-center gap-3">
+                <label className="text-xs font-medium text-gray-700 w-24 flex-shrink-0">Emplacement</label>
+                <input
+                  type="text" value={addEmplacement}
+                  onChange={(e) => setAddEmplacement(e.target.value)}
+                  placeholder="ex: Dépôt A"
+                  className="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-yellow-500"
+                />
+              </div>
+
+              <div className="flex items-center gap-3">
+                <label className="text-xs font-medium text-gray-700 w-24 flex-shrink-0">Quantité</label>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => setAddQty((q) => Math.max(1, q - 1))}
+                    className="w-7 h-7 rounded-full border border-gray-300 bg-white flex items-center justify-center hover:bg-gray-100 text-sm font-bold"
+                  >−</button>
+                  <input
+                    type="number" min={1} value={addQty}
+                    onChange={(e) => { const v = parseInt(e.target.value); if (!isNaN(v)) setAddQty(Math.max(1, v)); }}
+                    className="w-14 text-center border border-gray-300 rounded px-1 py-1 text-sm font-bold focus:outline-none focus:ring-2 focus:ring-yellow-500"
+                  />
+                  <button
+                    onClick={() => setAddQty((q) => q + 1)}
+                    className="w-7 h-7 rounded-full border border-gray-300 bg-white flex items-center justify-center hover:bg-gray-100 text-sm font-bold"
+                  >+</button>
+                </div>
+              </div>
+
+              <Button
+                onClick={handleAddBatch}
+                disabled={adding || !addDot || addQty < 1}
+                className="w-full bg-gray-700 hover:bg-gray-800 text-white font-bold shadow-sm"
+              >
+                {adding
+                  ? <><Loader2 className="h-4 w-4 animate-spin mr-2" />Ajout…</>
+                  : <><Plus className="h-4 w-4 mr-2" />Ajouter ce lot</>}
+              </Button>
+            </div>
+          )}
+        </div>
 
       </div>
 
@@ -1023,18 +1140,9 @@ export default function StockManagementPage() {
   const [brandFilter, setBrandFilter] = useState<string | null>(null);
   const [dotPanel, setDotPanel] = useState<AdminProduct | null>(null);
 
-  // Action modal: vendre ou diminuer stock
-  const [actionModal, setActionModal] = useState<{ isOpen: boolean; product: AdminProduct | null }>({
-    isOpen: false, product: null,
-  });
-
   const [statusPanel, setStatusPanel] = useState<{
     isOpen: boolean; product: AdminProduct | null; minStock: number; maxStock: number;
   }>({ isOpen: false, product: null, minStock: 5, maxStock: 100 });
-
-  const [confirmation, setConfirmation] = useState<{
-    isOpen: boolean; productId: number | null; change: number; productName: string;
-  }>({ isOpen: false, productId: null, change: 0, productName: "" });
 
   const [pagination, setPagination] = useState({ page: 1, limit: 20, total: 0 });
   const [showOrderPrep, setShowOrderPrep] = useState(false);
@@ -1201,26 +1309,6 @@ export default function StockManagementPage() {
     } catch (err) { console.error("Échec mise à jour seuils:", err); }
   };
 
-  const openConfirmation = (id: number, change: number) => {
-    const item = stock.find((p) => p.id === id);
-    if (!item) return;
-    setConfirmation({ isOpen: true, productId: id, change, productName: item.name });
-  };
-
-  const updateStock = async (id: number, change: number) => {
-    const item = stock.find((p) => p.id === id);
-    if (!item) return;
-    const newStock = Math.max(0, Number(item.stock) + change);
-    try {
-      const response = await fetch(`${API_URL}/admin/products/${id}/`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json", Authorization: `Bearer ${localStorage.getItem("access_token")}` },
-        body: JSON.stringify({ stock: newStock }),
-      });
-      if (!response.ok) throw new Error("Erreur");
-      setStock((prev) => prev.map((p) => p.id === id ? { ...p, stock: newStock } : p));
-    } catch (err) { console.error("❌ Échec:", err); }
-  };
 
   // Unique brands extracted from loaded page (for quick-filter chips)
   const brands = useMemo(() => [...new Set(stock.map(i => i.brand).filter(Boolean))].sort(), [stock]);
@@ -1419,8 +1507,7 @@ export default function StockManagementPage() {
                 <th className="px-2 py-2 text-xs font-semibold text-gray-600">Statut</th>
                 <th className="px-2 py-2 text-xs font-semibold text-gray-600">Min/Max</th>
                 <th className="px-2 py-2 text-xs font-semibold text-gray-600">Prix vente</th>
-                <th className="px-2 py-2 text-center text-xs font-semibold text-gray-600">DOT</th>
-                <th className="px-2 py-2 text-xs font-semibold text-gray-600">Actions</th>
+                <th className="px-2 py-2 text-center text-xs font-semibold text-gray-600">Stock DOT</th>
               </tr>
             </thead>
             <tbody>
@@ -1451,31 +1538,8 @@ export default function StockManagementPage() {
                         onClick={() => setDotPanel(item)}
                         className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-xs font-semibold bg-white text-[#0066CC] border border-[#0066CC]/40 hover:bg-[#E3F0FF] transition-colors"
                       >
-                        <Calendar className="h-3 w-3" /> DOT
+                        <Calendar className="h-3 w-3" /> Modifier
                       </button>
-                    </td>
-                    <td className="px-2 py-2">
-                      <div className="flex items-center gap-1.5">
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          className="h-7 w-7 p-0 rounded-full bg-white text-gray-600 border-gray-200 shadow-sm hover:bg-gray-50 disabled:opacity-50"
-                          onClick={() => setActionModal({ isOpen: true, product: item })}
-                          disabled={item.stock <= 0}
-                          title="Vendre ou diminuer le stock"
-                        >
-                          <Minus className="h-3 w-3" />
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          className="h-7 w-7 p-0 rounded-full bg-white text-gray-600 border-gray-200 shadow-sm hover:bg-gray-50 disabled:opacity-50"
-                          onClick={() => openConfirmation(item.id, 1)}
-                          disabled={item.stock >= item.stockMax}
-                        >
-                          <Plus className="h-3 w-3" />
-                        </Button>
-                      </div>
                     </td>
                   </tr>
                 );
@@ -1483,57 +1547,6 @@ export default function StockManagementPage() {
             </tbody>
           </table>
         </div>
-
-        {/* ── Action modal : Vendre ou Diminuer ── */}
-        <AnimatePresence>
-          {actionModal.isOpen && actionModal.product && (
-            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-              className="fixed inset-0 bg-black/50 flex items-center justify-center z-50"
-              onClick={() => setActionModal({ isOpen: false, product: null })}>
-              <motion.div initial={{ scale: 0.92, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}
-                exit={{ scale: 0.92, opacity: 0 }} onClick={(e) => e.stopPropagation()}
-                className="bg-white rounded-2xl shadow-2xl p-6 w-full max-w-sm mx-4">
-                <div className="flex items-center justify-between mb-1">
-                  <h2 className="text-base font-bold text-gray-900">Que souhaitez-vous faire ?</h2>
-                  <button onClick={() => setActionModal({ isOpen: false, product: null })} className="text-gray-400 hover:text-gray-600">
-                    <X className="h-4 w-4" />
-                  </button>
-                </div>
-                <p className="text-xs text-gray-500 mb-5 line-clamp-2">{actionModal.product.brand} · {actionModal.product.name} · {actionModal.product.size}</p>
-
-                <div className="grid grid-cols-2 gap-3">
-                  {/* Vendre */}
-                  <button
-                    onClick={() => {
-                      const p = actionModal.product!;
-                      setActionModal({ isOpen: false, product: null });
-                      setDotPanel(p);
-                    }}
-                    className="flex flex-col items-center gap-2 p-4 rounded-xl border-2 border-yellow-500 bg-yellow-50 hover:bg-yellow-100 transition-colors text-center"
-                  >
-                    <span className="text-2xl">🛒</span>
-                    <span className="font-bold text-yellow-600 text-sm">Vendre</span>
-                    <span className="text-[11px] text-yellow-700">Choisir le lot DOT et le client</span>
-                  </button>
-
-                  {/* Diminuer stock */}
-                  <button
-                    onClick={() => {
-                      const p = actionModal.product!;
-                      setActionModal({ isOpen: false, product: null });
-                      openConfirmation(p.id, -1);
-                    }}
-                    className="flex flex-col items-center gap-2 p-4 rounded-xl border-2 border-gray-300 bg-gray-50 hover:bg-gray-100 transition-colors text-center"
-                  >
-                    <span className="text-2xl">✏️</span>
-                    <span className="font-bold text-gray-700 text-sm">Correction</span>
-                    <span className="text-[11px] text-gray-500">Diminuer le stock manuellement</span>
-                  </button>
-                </div>
-              </motion.div>
-            </motion.div>
-          )}
-        </AnimatePresence>
 
         {/* Panneau Préparer commande */}
         <AnimatePresence>
@@ -1602,32 +1615,6 @@ export default function StockManagementPage() {
                 <div className="flex gap-3 justify-end">
                   <Button onClick={closeStatusPanel} className="bg-gray-100 hover:bg-gray-200 text-gray-700 border-0">Annuler</Button>
                   <Button onClick={handleStatusPanelConfirm} className="bg-yellow-500 hover:bg-yellow-600 text-white border-0">Confirmer</Button>
-                </div>
-              </motion.div>
-            </motion.div>
-          )}
-        </AnimatePresence>
-
-        {/* Confirmation Dialog */}
-        <AnimatePresence>
-          {confirmation.isOpen && (
-            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-              className="fixed inset-0 bg-black/50 flex items-center justify-center z-50"
-              onClick={() => setConfirmation({ isOpen: false, productId: null, change: 0, productName: "" })}>
-              <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}
-                exit={{ scale: 0.9, opacity: 0 }} onClick={(e) => e.stopPropagation()}
-                className="bg-white rounded-lg shadow-lg p-6 max-w-sm w-full mx-4">
-                <div className="flex items-center justify-between mb-2">
-                  <h2 className="text-lg font-semibold">Confirmer</h2>
-                  <button onClick={() => setConfirmation({ isOpen: false, productId: null, change: 0, productName: "" })}><X className="h-5 w-5 text-gray-400" /></button>
-                </div>
-                <p className="text-gray-600 mb-4">
-                  {confirmation.change > 0 ? "Augmenter" : "Diminuer"} le stock de <strong>{confirmation.productName}</strong> de <strong>{Math.abs(confirmation.change)}</strong> unité(s) ?
-                </p>
-                <div className="flex gap-3 justify-end">
-                  <Button onClick={() => setConfirmation({ isOpen: false, productId: null, change: 0, productName: "" })} className="bg-gray-100 hover:bg-gray-200 text-gray-700 border-0">Non</Button>
-                  <Button onClick={async () => { await updateStock(confirmation.productId!, confirmation.change); setConfirmation({ isOpen: false, productId: null, change: 0, productName: "" }); }}
-                    className="bg-yellow-500 hover:bg-yellow-600 text-white border-0">Oui</Button>
                 </div>
               </motion.div>
             </motion.div>

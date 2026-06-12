@@ -11,6 +11,7 @@ urlpatterns = [
     path('products/<int:product_id>/dot-batches/', admin_views.product_dot_batches, name='product_dot_batches'),
     path('products/<int:product_id>/consume-dot-batch/', admin_views.consume_dot_batch, name='consume_dot_batch'),
     path('products/<int:product_id>/add-dot-batch/', admin_views.add_dot_batch, name='add_dot_batch'),
+    path('products/<int:product_id>/adjust-dot-batch/', admin_views.adjust_dot_batch, name='adjust_dot_batch'),
     path('customers/', admin_views.customer_search, name='customer_search'),
     path('categories/', admin_views.AdminCategoryListCreateView.as_view(), name='category_list_create'),
     path('categories/<int:pk>/', admin_views.AdminCategoryDetailView.as_view(), name='category_detail'),
