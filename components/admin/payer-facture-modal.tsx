@@ -409,7 +409,7 @@ export default function PayerFactureModal({ order, onClose, onPaid }: PayerFactu
                       checked={selectedModes.includes(id)}
                       onChange={() => !isCriDisabled && toggleMode(id)}
                       disabled={isCriDisabled}
-                      className="h-4 w-4 text-yellow-500"
+                      className="h-4 w-4 accent-yellow-500"
                     />
                     <Icon className="h-4 w-4 text-gray-500 shrink-0" />
                     <span className="text-sm font-medium text-slate-700">{label}</span>
