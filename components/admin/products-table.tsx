@@ -1,6 +1,7 @@
 ﻿// Tableau de gestion des produits avec filtres avancés
 "use client";
 import { useState } from "react";
+import { useAuth } from "@/contexts/auth-context";
 import type { Product } from "@/types/product";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -44,6 +45,8 @@ export default function ProductsTable({
   onDeleteProduct,
   onUpdateStock,
 }: ProductsTableProps) {
+  const { user } = useAuth();
+  const canEdit = user?.role === "admin";
   const [searchTerm, setSearchTerm] = useState("");
   const [categoryFilter, setCategoryFilter] = useState<string>("all");
   const [brandFilter, setBrandFilter] = useState<string>("all");
@@ -434,9 +437,10 @@ export default function ProductsTable({
                       <Button
                         variant="ghost"
                         size="icon"
-                        onClick={() => onEditProduct(product.id)}
-                        title="Modifier"
-                        className="text-[#0066CC] hover:text-[#004E9E] hover:bg-[#E3F0FF]"
+                        onClick={() => canEdit && onEditProduct(product.id)}
+                        disabled={!canEdit}
+                        title={canEdit ? "Modifier" : "Réservé à l'administrateur"}
+                        className={canEdit ? "text-[#0066CC] hover:text-[#004E9E] hover:bg-[#E3F0FF]" : "text-gray-300 cursor-not-allowed"}
                       >
                         <Edit className="h-4 w-4" />
                       </Button>

@@ -23,6 +23,9 @@ class MessageListCreateView(generics.ListCreateAPIView):
         user = self.request.user
         queryset = Message.objects.select_related('author', 'done_by').prefetch_related('comments')
 
+        if getattr(user, 'role', '') != 'admin' and not getattr(user, 'is_superuser', False):
+            queryset = queryset.filter(author=user)
+
         status_param = self.request.query_params.get('status')
         priority = self.request.query_params.get('priority')
 
@@ -47,6 +50,13 @@ class MessageDetailView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Message.objects.select_related('author', 'done_by').prefetch_related('comments__author')
     serializer_class = MessageSerializer
     permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        user = self.request.user
+        queryset = super().get_queryset()
+        if getattr(user, 'role', '') != 'admin' and not getattr(user, 'is_superuser', False):
+            queryset = queryset.filter(author=user)
+        return queryset
 
     def perform_update(self, serializer):
         data = serializer.validated_data

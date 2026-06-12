@@ -136,6 +136,7 @@ const MENU_PURCHASING: MenuItem[] = [
       { title: "Bons de livraison achat/facture", href: "/admin/achats/commandes", icon: ClipboardList },
     ],
   },
+  { title: "Promotions",        href: "/admin/promotions", icon: Tag },
   { title: "Support", href: "/admin/communication", icon: MessageSquare },
 ];
 
@@ -154,7 +155,6 @@ const MENU_SALES: MenuItem[] = [
     ],
   },
   { title: "Avoirs / Retours",  href: "/admin/avoir",      icon: RotateCcw },
-  { title: "Promotions",        href: "/admin/promotions", icon: Tag },
   { title: "Trésorerie Vente",  href: "/admin/tresorerie", icon: Wallet },
   { title: "Clients",           href: "/admin/clients",    icon: Users },
   { title: "Support",           href: "/admin/communication", icon: MessageSquare },

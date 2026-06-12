@@ -100,7 +100,7 @@ export default function AchatsPage() {
   const { user } = useAuth();
   const router = useRouter();
 
-  if (user && user.role !== "admin" && user.role !== "responsable_achats") {
+  if (user && user.role !== "admin" && user.role !== "purchasing") {
     router.push("/admin");
     return null;
   }

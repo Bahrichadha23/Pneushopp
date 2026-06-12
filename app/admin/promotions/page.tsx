@@ -39,7 +39,7 @@ export default function PromotionsPage() {
   const [applying, setApplying] = useState(false);
 
   useEffect(() => {
-    if (user && !["admin", "sales"].includes(user.role)) router.push("/admin");
+    if (user && !["admin", "purchasing"].includes(user.role)) router.push("/admin");
   }, [user]);
 
   const loadProducts = useCallback(async () => {
