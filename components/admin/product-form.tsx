@@ -484,7 +484,7 @@ export default function ProductForm({
                 }
               >
                 <SelectTrigger
-                  className={errors.speedRating ? "border-red-500" : ""}
+                  className={`w-full ${errors.speedRating ? "border-red-500" : ""}`}
                 >
                   <SelectValue placeholder="Sélectionner" />
                 </SelectTrigger>
@@ -517,7 +517,7 @@ export default function ProductForm({
                   handleSpecificationChange("specialty", value)
                 }
               >
-                <SelectTrigger>
+                <SelectTrigger className="w-full">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
