@@ -94,12 +94,17 @@ export default function PayerFactureModal({ order, onClose, onPaid }: PayerFactu
         setAmounts((prevAmounts) => {
           const amts = { ...prevAmounts };
           if (isAdding) {
-            const others = payableModes(next).filter((m) => m !== id);
-            const sumOthers = others.reduce(
-              (s, m) => s + (amts[m] !== undefined ? parseAmount(amts[m]) : total),
-              0
-            );
-            amts[id] = formatAmount(Math.max(total - sumOthers, 0));
+            if (id === "cri") {
+              // CRI = 1% du montant de la facture
+              amts[id] = formatAmount(Math.round(total * 0.01 * 100) / 100);
+            } else {
+              const others = payableModes(next).filter((m) => m !== id);
+              const sumOthers = others.reduce(
+                (s, m) => s + (amts[m] !== undefined ? parseAmount(amts[m]) : total),
+                0
+              );
+              amts[id] = formatAmount(Math.max(total - sumOthers, 0));
+            }
           } else {
             delete amts[id];
           }
@@ -347,23 +352,32 @@ export default function PayerFactureModal({ order, onClose, onPaid }: PayerFactu
               Sélectionnez plusieurs modes si le client a payé en plusieurs fois / de plusieurs façons.
             </p>
             <div className="grid grid-cols-2 gap-2">
-              {MODE_OPTIONS.filter((m) => m.id !== "check").map(({ id, label, Icon }) => (
-                <label
-                  key={id}
-                  className={`flex items-center gap-2 px-3 py-2 border rounded-lg cursor-pointer transition-colors ${
-                    selectedModes.includes(id) ? "border-2 border-yellow-400" : "border-gray-200 hover:bg-gray-50"
-                  }`}
-                >
-                  <input
-                    type="checkbox"
-                    checked={selectedModes.includes(id)}
-                    onChange={() => toggleMode(id)}
-                    className="h-4 w-4 text-yellow-500"
-                  />
-                  <Icon className="h-4 w-4 text-gray-500 shrink-0" />
-                  <span className="text-sm font-medium text-slate-700">{label}</span>
-                </label>
-              ))}
+              {MODE_OPTIONS.filter((m) => m.id !== "check").map(({ id, label, Icon }) => {
+                const isCriDisabled = id === "cri" && total <= 1000;
+                return (
+                  <label
+                    key={id}
+                    className={`flex items-center gap-2 px-3 py-2 border rounded-lg transition-colors ${
+                      isCriDisabled
+                        ? "opacity-40 cursor-not-allowed border-gray-200 bg-gray-50"
+                        : selectedModes.includes(id)
+                        ? "border-2 border-yellow-400 cursor-pointer"
+                        : "border-gray-200 hover:bg-gray-50 cursor-pointer"
+                    }`}
+                    title={isCriDisabled ? "Le paiement CRI n'est possible que pour les commandes dépassant 1000 DT." : undefined}
+                  >
+                    <input
+                      type="checkbox"
+                      checked={selectedModes.includes(id)}
+                      onChange={() => !isCriDisabled && toggleMode(id)}
+                      disabled={isCriDisabled}
+                      className="h-4 w-4 text-yellow-500"
+                    />
+                    <Icon className="h-4 w-4 text-gray-500 shrink-0" />
+                    <span className="text-sm font-medium text-slate-700">{label}</span>
+                  </label>
+                );
+              })}
             </div>
           </div>
 

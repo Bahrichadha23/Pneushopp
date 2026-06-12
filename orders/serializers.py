@@ -23,6 +23,24 @@ class OrderSerializer(serializers.ModelSerializer):
         model = Order
         fields = '__all__'
 
+    def validate(self, attrs):
+        from decimal import Decimal
+
+        cri_amount = attrs.get('cri_amount_paid')
+        if cri_amount is not None and Decimal(str(cri_amount)) > 0:
+            total = attrs.get('total_amount')
+            if total is None and self.instance is not None:
+                total = self.instance.total_amount
+            total = Decimal(str(total or 0))
+            if total <= Decimal('1000'):
+                raise serializers.ValidationError({
+                    'cri_amount_paid': "Le paiement CRI n'est possible que pour les commandes dépassant 1000 DT."
+                })
+            # CRI = 1% du montant de la commande
+            attrs['cri_amount_paid'] = (total * Decimal('0.01')).quantize(Decimal('0.001'))
+
+        return attrs
+
     def create(self, validated_data):
         from django.utils import timezone
         from decimal import Decimal
