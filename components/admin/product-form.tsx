@@ -390,7 +390,7 @@ export default function ProductForm({
         <CardContent className="space-y-1.5">
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-2">
             <div>
-              <Label htmlFor="width" className="mb-1 text-base">
+              <Label htmlFor="width" className="mb-1 text-base flex items-end min-h-[2.75rem]">
                 Largeur *
               </Label>
               <Input
@@ -411,7 +411,7 @@ export default function ProductForm({
             </div>
 
             <div>
-              <Label htmlFor="height" className="mb-1 text-base">
+              <Label htmlFor="height" className="mb-1 text-base flex items-end min-h-[2.75rem]">
                 Hauteur *
               </Label>
               <Input
@@ -432,7 +432,7 @@ export default function ProductForm({
             </div>
 
             <div>
-              <Label htmlFor="diameter" className="mb-1 text-base">
+              <Label htmlFor="diameter" className="mb-1 text-base flex items-end min-h-[2.75rem]">
                 Diamètre *
               </Label>
               <Input
@@ -453,7 +453,7 @@ export default function ProductForm({
             </div>
 
             <div>
-              <Label htmlFor="loadIndex" className="mb-1 text-base">
+              <Label htmlFor="loadIndex" className="mb-1 text-base flex items-end min-h-[2.75rem]">
                 Indice charge *
               </Label>
               <Input
@@ -474,7 +474,7 @@ export default function ProductForm({
             </div>
 
             <div>
-              <Label htmlFor="speedRating" className="mb-1 text-base">
+              <Label htmlFor="speedRating" className="mb-1 text-base flex items-end min-h-[2.75rem]">
                 Indice vitesse *
               </Label>
               <Select
@@ -508,7 +508,7 @@ export default function ProductForm({
             {/* Saison supprimée */}
 
             <div>
-              <Label htmlFor="specialty" className="mb-1 text-base">
+              <Label htmlFor="specialty" className="mb-1 text-base flex items-end min-h-[2.75rem]">
                 Spécialité
               </Label>
               <Select
