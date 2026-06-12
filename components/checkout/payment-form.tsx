@@ -565,7 +565,7 @@ export function PaymentForm({ onSubmit, onBack, totalPrice }: PaymentFormProps) 
               <div className="flex items-center justify-center gap-4">
                 {/* Espèces */}
                 <label className={`flex items-center gap-2 px-4 py-2 rounded-lg border-2 cursor-pointer transition-all ${
-                  especesChecked ? "border-yellow-500 bg-white text-black font-semibold" : "border-gray-200 bg-white hover:border-yellow-400 text-gray-600"
+                  especesChecked ? "border-yellow-500 bg-yellow-400 text-black font-semibold" : "border-gray-200 bg-white hover:border-yellow-400 text-gray-600"
                 }`}>
                   <input
                     type="checkbox"
@@ -578,7 +578,7 @@ export function PaymentForm({ onSubmit, onBack, totalPrice }: PaymentFormProps) 
                 </label>
                 {/* TPE */}
                 <label className={`flex items-center gap-2 px-4 py-2 rounded-lg border-2 cursor-pointer transition-all ${
-                  tpeChecked ? "border-yellow-500 bg-white text-black font-semibold" : "border-gray-200 bg-white hover:border-yellow-400 text-gray-600"
+                  tpeChecked ? "border-yellow-500 bg-yellow-400 text-black font-semibold" : "border-gray-200 bg-white hover:border-yellow-400 text-gray-600"
                 }`}>
                   <input
                     type="checkbox"
@@ -933,7 +933,7 @@ export function PaymentForm({ onSubmit, onBack, totalPrice }: PaymentFormProps) 
             {!showWarrantyButtons ? (
               <Button
                 type="submit"
-                className={`flex-1 ${!canContinue ? "opacity-50 cursor-not-allowed" : ""}`}
+                className={`flex-1 bg-yellow-500 hover:bg-yellow-600 text-black ${!canContinue ? "opacity-50 cursor-not-allowed" : ""}`}
                 disabled={!canContinue}
               >
                 Continuer
