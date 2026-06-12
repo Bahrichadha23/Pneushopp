@@ -451,7 +451,7 @@ export default function ProductsPage() {
 
       {/* Product Form Dialog */}
       <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
-        <DialogContent className="w-full max-w-[60vw] max-h-[90vh] overflow-y-auto">
+        <DialogContent className="w-full max-w-[60vw] sm:max-w-[60vw] max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>
               {editingProduct ? "Fiche article" : "Nouveau produit"}
