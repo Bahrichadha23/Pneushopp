@@ -161,7 +161,8 @@ export async function handleDownloadInvoice(order: any, mode: "download" | "prin
   // === Table Rows ===
   let totalHT = 0,
     totalRemise = 0,
-    totalTVA = 0;
+    totalTVA = 0,
+    totalQty = 0;
   let currentRow = 0;
 
   const addRow = (item?: any, isEmpty = false) => {
@@ -218,6 +219,7 @@ export async function handleDownloadInvoice(order: any, mode: "download" | "prin
       totalHT += montantHT;
       totalRemise += (unitHT - unitHT * (1 - remise / 100)) * qty;
       totalTVA += montantTVA;
+      totalQty += qty;
 
       let x = margin;
       pdf.text(tireSpec, x, y + 5);
@@ -272,7 +274,7 @@ export async function handleDownloadInvoice(order: any, mode: "download" | "prin
 
   y += 10; // space after last row
 
-  const deliveryCost = Number(order.deliveryCost || 0);
+  const deliveryCost = Number(order.deliveryCost || 0) * Math.max(totalQty, 1);
   const netHT = totalHT - totalRemise + deliveryCost;
   const totalTTC = netHT + totalTVA + 1;
 

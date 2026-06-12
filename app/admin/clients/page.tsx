@@ -174,17 +174,17 @@ export default function ClientsPage() {
 
       {/* Stats */}
       <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
-        <Card>
+        <Card className="border-[#0066CC]/30">
           <CardHeader className="flex justify-between items-center">
             <CardTitle className="text-sm font-medium">Total clients</CardTitle>
-            <Users className="h-4 w-4 text-gray-500" />
+            <Users className="h-4 w-4 text-[#0066CC]" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{clients.length}</div>
+            <div className="text-2xl font-bold text-[#0066CC]">{clients.length}</div>
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="border-[#A68823]/30">
           <CardHeader className="flex justify-between items-center">
             <CardTitle className="text-sm font-medium">
               Professionnels
@@ -192,25 +192,25 @@ export default function ClientsPage() {
             <Star className="h-4 w-4 text-yellow-500" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-gray-800">
+            <div className="text-2xl font-bold text-brand-gold">
               {professionnels}
             </div>
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="border-emerald-300/50">
           <CardHeader className="flex justify-between items-center">
             <CardTitle className="text-sm font-medium">Particuliers</CardTitle>
-            <Users className="h-4 w-4 text-gray-500" />
+            <Users className="h-4 w-4 text-emerald-600" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-gray-800">
+            <div className="text-2xl font-bold text-emerald-600">
               {particuliers}
             </div>
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="border-[#A68823]/30">
           <CardHeader className="flex justify-between items-center">
             <CardTitle className="text-sm font-medium">CA Total</CardTitle>
             <span className="h-4 w-4 text-brand-gold font-bold">DT</span>
@@ -334,7 +334,7 @@ export default function ClientsPage() {
                     </TableCell>
                     <TableCell>{client.dateInscription}</TableCell>
                     <TableCell className="text-center">
-                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-[#E3F0FF] text-[#0066CC]">{client.totalCommandes}</span>
+                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-[#FBF5E0] text-brand-gold">{client.totalCommandes}</span>
                     </TableCell>
                     <TableCell className="font-medium text-brand-gold">
                       {formatCurrency(client.montantTotal)}

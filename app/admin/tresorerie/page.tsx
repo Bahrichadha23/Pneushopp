@@ -401,6 +401,21 @@ export default function TresoreriePage() {
             dueDate = new Date(o.created_at);
           }
 
+          // Montant total facture = total commande + frais de livraison
+          // multiplié par la quantité d'articles + timbre fiscal (1.000 DT)
+          const itemsQty = (o.items || []).reduce(
+            (s: number, it: any) => s + Number(it.quantity || 0),
+            0
+          );
+          const deliveryCostBase = parseFloat(o.delivery_cost || "0");
+          const deliveryCostTotal = deliveryCostBase * Math.max(itemsQty, 1);
+          const timbreFiscal = 1;
+          const invoiceTotal =
+            parseFloat(o.total_amount || "0") -
+            deliveryCostBase +
+            deliveryCostTotal +
+            timbreFiscal;
+
           const firstName = o.shipping_address?.first_name || "";
           const lastName = o.shipping_address?.last_name || "";
           const fullName = `${firstName} ${lastName}`.trim() || "N/A";
@@ -445,8 +460,8 @@ export default function TresoreriePage() {
             orderStatus: o.status || "pending",
             utilisateur: o.user?.email || o.user?.username || "",
             caisse: "Tk",
-            valeur: parseFloat(o.total_amount || "0"),
-            totalAmount: parseFloat(o.total_amount || "0"),
+            valeur: invoiceTotal,
+            totalAmount: invoiceTotal,
             items: (o.items || []).map((item: any) => ({
               product_name: item.product_name || "-",
               quantity: Number(item.quantity || 0),

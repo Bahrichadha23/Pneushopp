@@ -48,8 +48,8 @@ const MODE_OPTIONS = [
   { id: "card", label: "Carte bancaire", Icon: CreditCard },
   { id: "bank_transfer", label: "Virement bancaire", Icon: Building },
   { id: "especes", label: "Espèces", Icon: Banknote },
-  { id: "cash_on_delivery", label: "TPE à la livraison", Icon: Truck },
   { id: "cri", label: "Paiement CRI", Icon: Receipt },
+  { id: "cash_on_delivery", label: "TPE à la livraison", Icon: Truck },
   { id: "lettre_de_change", label: "Lettre de change", Icon: Receipt },
   { id: "cheque", label: "Chèque", Icon: Receipt },
   { id: "check", label: "Chèque", Icon: Receipt },
@@ -110,26 +110,10 @@ export default function PayerFactureModal({ order, onClose, onPaid }: PayerFactu
     });
   };
 
-  // Met à jour le montant d'un mode et répercute automatiquement le reste
-  // sur le(s) autre(s) mode(s) sélectionné(s) (ex: 100 espèces -> 292 reste sur TPE)
+  // Met à jour le montant d'un mode. Chaque mode garde son propre montant ;
+  // le reste global est calculé séparément (total - somme des montants saisis).
   const handleAmountChange = (id: string, value: string) => {
-    setAmounts((prev) => {
-      const next = { ...prev, [id]: value };
-      const others = payableModes(selectedModes).filter((m) => m !== id);
-      if (others.length > 0) {
-        const entered = parseAmount(value);
-        const remaining = Math.max(total - entered, 0);
-        if (others.length === 1) {
-          next[others[0]] = formatAmount(remaining);
-        } else {
-          const share = remaining / others.length;
-          others.forEach((m) => {
-            next[m] = formatAmount(share);
-          });
-        }
-      }
-      return next;
-    });
+    setAmounts((prev) => ({ ...prev, [id]: value }));
   };
 
   const sumEntered = payableModes(selectedModes).reduce((s, m) => s + getAmount(m), 0);
@@ -196,7 +180,7 @@ export default function PayerFactureModal({ order, onClose, onPaid }: PayerFactu
     setSubmitting(true);
     try {
       const payload: Record<string, any> = {
-        payment_status: "paid",
+        payment_status: remainingTotal <= 0.001 ? "paid" : "pending",
         payment_method: selectedModes.length > 1 ? "mixed" : selectedModes[0],
       };
 
@@ -207,7 +191,7 @@ export default function PayerFactureModal({ order, onClose, onPaid }: PayerFactu
           transfer_holder_name: transferHolderName,
           transfer_bank_name: bankName,
           transfer_amount_paid: montant,
-          transfer_remaining: Math.max(total - montant, 0),
+          transfer_remaining: remainingTotal,
           transfer_remarque: remarque || undefined,
         });
       }
@@ -221,7 +205,7 @@ export default function PayerFactureModal({ order, onClose, onPaid }: PayerFactu
           lettre_rib: lettreRib,
           lettre_lieu: lettreLieu,
           lettre_amount_paid: montant,
-          lettre_remaining: Math.max(total - montant, 0),
+          lettre_remaining: remainingTotal,
           lettre_remarque: remarque || undefined,
         });
       }
@@ -233,7 +217,7 @@ export default function PayerFactureModal({ order, onClose, onPaid }: PayerFactu
           cheque_name: chequeName,
           cheque_bank_name: chequeBankName,
           cheque_amount_paid: montant,
-          cheque_remaining: Math.max(total - montant, 0),
+          cheque_remaining: remainingTotal,
           cheque_remarque: remarque || undefined,
         });
       }
@@ -243,7 +227,7 @@ export default function PayerFactureModal({ order, onClose, onPaid }: PayerFactu
           cod_authorization_number: codAuthNumber,
           cod_bank_name: codBankName,
           cod_amount_paid: montant,
-          cod_remaining: Math.max(total - montant, 0),
+          cod_remaining: remainingTotal,
           cod_remarque: remarque || undefined,
         });
       }
@@ -258,7 +242,7 @@ export default function PayerFactureModal({ order, onClose, onPaid }: PayerFactu
         const montant = getAmount("cri");
         Object.assign(payload, {
           cri_amount_paid: montant,
-          cri_remaining: Math.max(total - montant, 0),
+          cri_remaining: remainingTotal,
           cri_remarque: remarque || undefined,
         });
       }
