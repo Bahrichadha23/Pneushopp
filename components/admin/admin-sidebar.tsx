@@ -270,7 +270,7 @@ export default function AdminSidebar({
           className={`flex items-center justify-between gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-150 cursor-pointer
             ${level > 0 ? "pl-8" : ""}
             ${active
-              ? "bg-yellow-400 text-white shadow-lg shadow-yellow-400/20"
+              ? "bg-[#FEC70B] text-white shadow-lg shadow-[#FEC70B]/20"
               : "text-gray-400 hover:text-white hover:bg-white/8"
             }`}
         >
@@ -317,7 +317,7 @@ export default function AdminSidebar({
             <div>
               <p className="text-sm leading-tight font-bold">
                 <span className="text-white">Pneu</span>
-                <span className="text-yellow-400">Shop</span>
+                <span className="text-[#FEC70B]">Shop</span>
               </p>
               <p className="text-gray-500 text-xs">Back-office</p>
             </div>
@@ -327,8 +327,8 @@ export default function AdminSidebar({
         {/* ── Profil utilisateur (sous le logo) ── */}
         <div className="flex-shrink-0 px-4 py-3 border-b border-white/8">
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-full bg-yellow-400/20 border border-yellow-400/40 flex items-center justify-center flex-shrink-0">
-              <span className="text-yellow-400 text-sm font-bold uppercase">
+            <div className="w-9 h-9 rounded-full bg-[#FEC70B]/20 border border-[#FEC70B]/40 flex items-center justify-center flex-shrink-0">
+              <span className="text-[#FEC70B] text-sm font-bold uppercase">
                 {user?.first_name?.[0] ?? user?.email?.[0] ?? "?"}
               </span>
             </div>
