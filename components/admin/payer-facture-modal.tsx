@@ -117,10 +117,19 @@ export default function PayerFactureModal({ order, onClose, onPaid }: PayerFactu
     });
   };
 
-  // Met à jour le montant d'un mode. Chaque mode garde son propre montant ;
-  // le reste global est calculé séparément (total - somme des montants saisis).
+  // Met à jour le montant d'un mode. Si exactement un autre mode de paiement
+  // est sélectionné, son montant est automatiquement ajusté pour compléter le total
+  // (ex : especes + TPE, especes + chèque, etc.).
   const handleAmountChange = (id: string, value: string) => {
-    setAmounts((prev) => ({ ...prev, [id]: value }));
+    setAmounts((prev) => {
+      const next = { ...prev, [id]: value };
+      const others = payableModes(selectedModes).filter((m) => m !== id);
+      if (others.length === 1) {
+        const entered = parseAmount(value);
+        next[others[0]] = formatAmount(Math.max(total - entered, 0));
+      }
+      return next;
+    });
   };
 
   const sumEntered = payableModes(selectedModes).reduce((s, m) => s + getAmount(m), 0);

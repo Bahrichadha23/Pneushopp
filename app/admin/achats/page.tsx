@@ -1050,7 +1050,7 @@ export default function AchatsPage() {
                   <TableHeader>
                     <TableRow>
                       <TableHead>Désignation</TableHead>
-                      <TableHead className="text-right">Prix</TableHead>
+                      <TableHead className="text-right">Prix (HT)</TableHead>
                       <TableHead className="text-right">Remise %</TableHead>
                       <TableHead className="text-right">Quantité</TableHead>
                       <TableHead className="text-center">DOT</TableHead>
@@ -1224,7 +1224,7 @@ export default function AchatsPage() {
             <div className="flex gap-2 pt-4">
               <Button
                 onClick={handleSave}
-                className="bg-[#0066CC] hover:bg-[#004E9E] text-white flex-1 border-0"
+                className="bg-brand-orange hover:bg-brand-orange-dark text-white flex-1 border-0"
                 disabled={items.length === 0 || !supplier}
               >
                 <Save className="h-4 w-4 mr-2" />
@@ -1232,7 +1232,7 @@ export default function AchatsPage() {
               </Button>
               <Button
                 variant="outline"
-                className="bg-red-600 hover:bg-red-700 text-white flex-1 border-0"
+                className="bg-brand-red hover:bg-brand-red-dark text-white flex-1 border-0"
                 onClick={handleClear}
               >
                 <X className="h-4 w-4 mr-2" />

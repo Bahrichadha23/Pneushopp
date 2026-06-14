@@ -168,6 +168,29 @@ export function PaymentForm({ onSubmit, onBack, totalPrice }: PaymentFormProps) 
   const chequeMontantNum = Math.min(Math.max(parseAmount(chequeMontantInput), 0), totalPrice);
   const cashOnDeliveryMontantNum = Math.min(Math.max(parseAmount(cashOnDeliveryMontantInput), 0), totalPrice);
 
+  // Auto-remplissage du montant restant : si exactement 2 modes de paiement
+  // payables sont sélectionnés (ex: especes + cheque), saisir un montant dans
+  // l'un remplit automatiquement l'autre avec le reste du total.
+  const PAYABLE_SETTERS: Record<string, (v: string) => void> = {
+    especes: setEspecesMontantInput,
+    tpe: setCashOnDeliveryMontantInput,
+    bank_transfer: setBankMontantInput,
+    lettre_de_change: setLettreMontantInput,
+    cheque: setChequeMontantInput,
+  };
+  const isActivePayable = (id: string) => {
+    if (id === "especes") return especesChecked;
+    if (id === "tpe") return tpeChecked;
+    return isSelected(id);
+  };
+  const autoFillOther = (currentId: string, enteredValue: number) => {
+    const active = Object.keys(PAYABLE_SETTERS).filter(isActivePayable);
+    if (active.length === 2) {
+      const other = active.find((id) => id !== currentId);
+      if (other) PAYABLE_SETTERS[other](formatAmount(Math.max(totalPrice - enteredValue, 0)));
+    }
+  };
+
   const especesMontantNum = Math.min(Math.max(parseAmount(especesMontantInput), 0), totalPrice);
   const deliveryMontantNum = Math.min(Math.max(parseAmount(deliveryMontantInput), 0), totalPrice);
   const tpeMontantNum = Math.min(Math.max(parseAmount(cashOnDeliveryMontantInput), 0), totalPrice);
@@ -611,9 +634,9 @@ export function PaymentForm({ onSubmit, onBack, totalPrice }: PaymentFormProps) 
                       disabled={!especesChecked}
                       onChange={(e) => {
                         const v = parseAmount(e.target.value);
-                        if (v > totalPrice) { setEspecesMontantInput(formatAmount(totalPrice)); if (tpeChecked) setCashOnDeliveryMontantInput("0,00"); return; }
+                        if (v > totalPrice) { setEspecesMontantInput(formatAmount(totalPrice)); autoFillOther("especes", totalPrice); return; }
                         setEspecesMontantInput(e.target.value);
-                        if (tpeChecked) setCashOnDeliveryMontantInput(formatAmount(Math.max(totalPrice - v, 0)));
+                        autoFillOther("especes", v);
                       }}
                       className={`rounded-r-none ${especesChecked ? "border-yellow-200 bg-yellow-50" : "border-gray-200 bg-gray-100 text-gray-400"}`}
                     />
@@ -632,9 +655,9 @@ export function PaymentForm({ onSubmit, onBack, totalPrice }: PaymentFormProps) 
                       disabled={!tpeChecked}
                       onChange={(e) => {
                         const v = parseAmount(e.target.value);
-                        if (v > totalPrice) { setCashOnDeliveryMontantInput(formatAmount(totalPrice)); if (especesChecked) setEspecesMontantInput("0,00"); return; }
+                        if (v > totalPrice) { setCashOnDeliveryMontantInput(formatAmount(totalPrice)); autoFillOther("tpe", totalPrice); return; }
                         setCashOnDeliveryMontantInput(e.target.value);
-                        if (especesChecked) setEspecesMontantInput(formatAmount(Math.max(totalPrice - v, 0)));
+                        autoFillOther("tpe", v);
                       }}
                       className={`rounded-r-none ${tpeChecked ? "border-yellow-200 bg-yellow-50" : "border-gray-200 bg-gray-100 text-gray-400"}`}
                     />
@@ -676,8 +699,9 @@ export function PaymentForm({ onSubmit, onBack, totalPrice }: PaymentFormProps) 
                       value={bankMontantInput}
                       onChange={(e) => {
                         const v = parseAmount(e.target.value);
-                        if (v > totalPrice) { setBankMontantInput(formatAmount(totalPrice)); return; }
+                        if (v > totalPrice) { setBankMontantInput(formatAmount(totalPrice)); autoFillOther("bank_transfer", totalPrice); return; }
                         setBankMontantInput(e.target.value);
+                        autoFillOther("bank_transfer", v);
                       }}
                       className="rounded-r-none border-yellow-200 bg-yellow-50"
                     />
@@ -797,8 +821,9 @@ export function PaymentForm({ onSubmit, onBack, totalPrice }: PaymentFormProps) 
                       value={lettreMontantInput}
                       onChange={(e) => {
                         const v = parseAmount(e.target.value);
-                        if (v > totalPrice) { setLettreMontantInput(formatAmount(totalPrice)); return; }
+                        if (v > totalPrice) { setLettreMontantInput(formatAmount(totalPrice)); autoFillOther("lettre_de_change", totalPrice); return; }
                         setLettreMontantInput(e.target.value);
+                        autoFillOther("lettre_de_change", v);
                       }}
                       className="rounded-r-none border-yellow-200 bg-yellow-50"
                     />
@@ -877,8 +902,9 @@ export function PaymentForm({ onSubmit, onBack, totalPrice }: PaymentFormProps) 
                       value={chequeMontantInput}
                       onChange={(e) => {
                         const v = parseAmount(e.target.value);
-                        if (v > totalPrice) { setChequeMontantInput(formatAmount(totalPrice)); return; }
+                        if (v > totalPrice) { setChequeMontantInput(formatAmount(totalPrice)); autoFillOther("cheque", totalPrice); return; }
                         setChequeMontantInput(e.target.value);
+                        autoFillOther("cheque", v);
                       }}
                       className="rounded-r-none border-yellow-200 bg-yellow-50"
                     />
