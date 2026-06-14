@@ -477,22 +477,22 @@ export function PaymentForm({ onSubmit, onBack, totalPrice }: PaymentFormProps) 
                   <div key="delivery" className="border rounded-lg overflow-hidden">
                     {/* Ligne parente */}
                     <label
-                      className={`flex items-center space-x-3 p-3 transition-colors cursor-pointer ${
+                      className={`flex items-center space-x-3 p-3 border-2 transition-colors cursor-pointer ${
                         deliveryExpanded
-                          ? "border-2 border-yellow-400"
-                          : "hover:bg-gray-50"
+                          ? "border-yellow-500 bg-yellow-400"
+                          : "border-gray-200 hover:bg-gray-50"
                       }`}
                     >
                       <input
                         type="checkbox"
                         checked={deliveryExpanded}
                         onChange={toggleDeliveryParent}
-                        className="h-4 w-4 rounded border-gray-300 text-yellow-500 accent-yellow-500 focus:ring-yellow-400"
+                        className="h-4 w-4 rounded border-gray-300 text-yellow-500 accent-black focus:ring-yellow-400"
                       />
                       <Truck className="h-5 w-5 text-gray-500 shrink-0" />
-                      <span className={`flex-1 text-sm font-medium ${deliveryExpanded ? "text-yellow-700" : "text-slate-700"}`}>Paiement à la livraison</span>
+                      <span className={`flex-1 text-sm font-medium ${deliveryExpanded ? "text-black font-semibold" : "text-slate-700"}`}>Paiement à la livraison</span>
                       {isDeliverySelected && (
-                        <span className="text-xs text-yellow-700 font-semibold">
+                        <span className="text-xs text-black font-semibold">
                           {[especesChecked && "Espèces", tpeChecked && "TPE"].filter(Boolean).join(" + ")}
                         </span>
                       )}
@@ -505,11 +505,11 @@ export function PaymentForm({ onSubmit, onBack, totalPrice }: PaymentFormProps) 
               return (
                 <label
                   key={id}
-                  className={`flex items-center space-x-3 p-3 border rounded-lg transition-colors ${
+                  className={`flex items-center space-x-3 p-3 border-2 rounded-lg transition-colors ${
                     isItemDisabled
                       ? "opacity-40 cursor-not-allowed pointer-events-none border-gray-200 bg-gray-50"
                       : isSelected(id)
-                      ? "border-2 border-yellow-400 cursor-pointer"
+                      ? "border-yellow-500 bg-yellow-400 cursor-pointer"
                       : "border-gray-200 hover:bg-gray-50 cursor-pointer"
                   }`}
                 >
@@ -518,10 +518,10 @@ export function PaymentForm({ onSubmit, onBack, totalPrice }: PaymentFormProps) 
                     checked={isSelected(id)}
                     onChange={() => !isItemDisabled && toggleType(id)}
                     disabled={isItemDisabled}
-                    className="h-4 w-4 rounded border-gray-300 text-yellow-500 accent-yellow-500 focus:ring-yellow-400"
+                    className="h-4 w-4 rounded border-gray-300 text-yellow-500 accent-black focus:ring-yellow-400"
                   />
                   <Icon className="h-5 w-5 text-gray-500 shrink-0" />
-                  <span className={`flex-1 text-sm font-medium ${isSelected(id) ? "text-yellow-700" : "text-slate-700"}`}>{label}</span>
+                  <span className={`flex-1 text-sm font-medium ${isSelected(id) ? "text-black font-semibold" : "text-slate-700"}`}>{label}</span>
                   {isCriDisabled && (
                     <span className="text-xs text-gray-400 italic">Disponible pour commandes &gt; 1000 DT</span>
                   )}

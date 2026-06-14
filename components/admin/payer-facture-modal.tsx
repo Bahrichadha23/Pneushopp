@@ -390,11 +390,11 @@ export default function PayerFactureModal({ order, onClose, onPaid }: PayerFactu
                 return (
                   <label
                     key={id}
-                    className={`flex items-center gap-2 px-3 py-2 border rounded-lg transition-colors ${
+                    className={`flex items-center gap-2 px-3 py-2 border-2 rounded-lg transition-colors ${
                       isCriDisabled
                         ? "opacity-40 cursor-not-allowed border-gray-200 bg-gray-50"
                         : selectedModes.includes(id)
-                        ? "border-2 border-yellow-400 cursor-pointer"
+                        ? "border-yellow-500 bg-yellow-400 cursor-pointer"
                         : "border-gray-200 hover:bg-gray-50 cursor-pointer"
                     }`}
                     title={isCriDisabled ? "Le paiement CRI n'est possible que pour les commandes dépassant 1000 DT." : undefined}
@@ -404,10 +404,10 @@ export default function PayerFactureModal({ order, onClose, onPaid }: PayerFactu
                       checked={selectedModes.includes(id)}
                       onChange={() => !isCriDisabled && toggleMode(id)}
                       disabled={isCriDisabled}
-                      className="h-4 w-4 accent-yellow-500"
+                      className="h-4 w-4 accent-black"
                     />
                     <Icon className="h-4 w-4 text-gray-500 shrink-0" />
-                    <span className={`text-sm font-medium ${selectedModes.includes(id) ? "text-yellow-700" : "text-slate-700"}`}>{label}</span>
+                    <span className={`text-sm font-medium ${selectedModes.includes(id) ? "text-black font-semibold" : "text-slate-700"}`}>{label}</span>
                   </label>
                 );
               })}
