@@ -62,7 +62,6 @@ export async function handleDownloadInvoice(order: any, mode: "download" | "prin
   };
 
   let y = 50.8; // 2 inches top margin (1 inch = 25.4 mm)
-  let page = 1;
 
   // === Header ===
   const addHeader = () => {
@@ -117,8 +116,6 @@ export async function handleDownloadInvoice(order: any, mode: "download" | "prin
       pdf.setFontSize(8);
       pdf.setTextColor(0, 0, 0);
     }
-    pdf.setFontSize(7);
-    pdf.text(`Page ${page}`, margin, pageHeight - 10);
     // Ensure table starts AFTER the client box (boxY + boxH + margin)
     const boxBottom = boxY + boxH + 8;
     y = Math.max(y + 30, boxBottom);
@@ -208,7 +205,6 @@ export async function handleDownloadInvoice(order: any, mode: "download" | "prin
     // === Page break check BEFORE drawing anything ===
     if (y + h > pageHeight - 50) {
       pdf.addPage();
-      page++;
       y = 20;
       addHeader();
       drawTableHeader();
@@ -320,7 +316,7 @@ export async function handleDownloadInvoice(order: any, mode: "download" | "prin
   });
 
   pdf.setFont("helvetica", "italic");
-  pdf.text("Cachet et Signature", margin + 5, pageHeight - 20);
+  pdf.text("Cachet et Signature", margin + 5, boxY + 5);
 
   const invoiceFileName = `fps${(order.orderNumber || "").replace(/^CPS/i, "")}.pdf`;
 
