@@ -54,6 +54,7 @@ class Product(models.Model):
     fabrication_date = models.DateField('Date de fabrication', null=True, blank=True)
     promotion_label = models.CharField('Label promotion', max_length=50, blank=True, null=True)
     promotion_end_date = models.DateField('Fin de promotion', null=True, blank=True)
+    import_job = models.ForeignKey('ImportJob', on_delete=models.SET_NULL, null=True, blank=True, related_name='products', verbose_name="Fichier d'import")
 
     class Meta:
         verbose_name = 'Produit'
@@ -242,6 +243,7 @@ class StockBatch(models.Model):
 
 class ImportJob(models.Model):
     STATUS_CHOICES = [
+        ('uploaded', 'Téléversé'),
         ('queued', 'En attente'),
         ('running', 'En cours'),
         ('done', 'Terminé'),
@@ -252,6 +254,7 @@ class ImportJob(models.Model):
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='queued')
     original_filename = models.CharField(max_length=255, blank=True)
     file_path = models.CharField(max_length=500, blank=True)
+    file_hash = models.CharField(max_length=64, blank=True, db_index=True)
     total_rows = models.PositiveIntegerField(default=0)
     created_count = models.PositiveIntegerField(default=0)
     error_count = models.PositiveIntegerField(default=0)

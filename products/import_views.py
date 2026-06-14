@@ -1,5 +1,7 @@
 import re
 import io
+import os
+import uuid
 import hashlib
 import openpyxl
 import urllib.request
@@ -373,30 +375,15 @@ def _status_to_frontend(db_status: str) -> str:
     }.get(db_status, db_status)
 
 
-@api_view(['POST'])
-@permission_classes([IsAuthenticated])
-def import_excel(request):
+def _run_import_job(job: 'ImportJob', content: bytes, filename: str):
     """
-    POST /api/products/import/excel/
-    Accepts a multipart file upload, parses the Excel, creates products,
-    and returns a job_id with status.
+    Core import processing: parses the Excel content and creates/updates
+    products, attaching `import_job=job` to newly-created products so they
+    can later be removed if the import file itself is deleted.
+    Mutates `job` (status, counts, etc.) and saves it.
     """
-    file = request.FILES.get('file')
-    if not file:
-        return Response({'error': 'Aucun fichier fourni.'}, status=400)
-
-    ext = file.name.lower().rsplit('.', 1)[-1] if '.' in file.name else ''
-    if ext not in ('xlsx', 'xls'):
-        return Response({'error': 'Format invalide. Seuls .xlsx et .xls sont acceptés.'}, status=400)
-
     # Clear the per-request image cache so hashes don't bleed between imports
     _image_cache.clear()
-
-    job = ImportJob.objects.create(
-        original_filename=file.name,
-        status='running',
-        started_at=timezone.now(),
-    )
 
     errors = []
     created_count = 0
@@ -405,8 +392,7 @@ def import_excel(request):
     total_rows = 0
 
     try:
-        content = file.read()
-        rows = parse_excel_file(content, file.name)
+        rows = parse_excel_file(content, filename)
         total_rows = len(rows)
         job.total_rows = total_rows
         job.save(update_fields=['total_rows'])
@@ -481,6 +467,7 @@ def import_excel(request):
                         image_2=image_url2 or None,
                         image_3=image_url3 or None,
                         is_active=True,
+                        import_job=job,
                     )
                     created_names.append(product_data['name'])
                 created_count += 1
@@ -502,10 +489,38 @@ def import_excel(request):
         job.message = str(e)
         job.finished_at = timezone.now()
         job.save()
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def import_excel(request):
+    """
+    POST /api/products/import/excel/
+    Accepts a multipart file upload, parses the Excel, creates products,
+    and returns a job_id with status. Legacy single-shot endpoint.
+    """
+    file = request.FILES.get('file')
+    if not file:
+        return Response({'error': 'Aucun fichier fourni.'}, status=400)
+
+    ext = file.name.lower().rsplit('.', 1)[-1] if '.' in file.name else ''
+    if ext not in ('xlsx', 'xls'):
+        return Response({'error': 'Format invalide. Seuls .xlsx et .xls sont acceptés.'}, status=400)
+
+    job = ImportJob.objects.create(
+        original_filename=file.name,
+        status='running',
+        started_at=timezone.now(),
+    )
+
+    content = file.read()
+    _run_import_job(job, content, file.name)
+
+    if job.status == 'failed':
         return Response({
             'job_id': str(job.id),
             'status': 'failed',
-            'message': str(e),
+            'message': job.message,
         }, status=500)
 
     return Response({
@@ -514,6 +529,140 @@ def import_excel(request):
         'message': job.message,
         'status_endpoint': f'/api/products/import/status/{job.id}/',
     }, status=201)
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def upload_import_file(request):
+    """
+    POST /api/products/import/upload/
+    Stores the Excel file without processing it yet. Returns the file entry
+    so the frontend can show it in the list with "Importer" / "Supprimer" actions.
+    Rejects duplicates (same file content already uploaded and not deleted).
+    """
+    file = request.FILES.get('file')
+    if not file:
+        return Response({'error': 'Aucun fichier fourni.'}, status=400)
+
+    ext = file.name.lower().rsplit('.', 1)[-1] if '.' in file.name else ''
+    if ext not in ('xlsx', 'xls'):
+        return Response({'error': 'Format invalide. Seuls .xlsx et .xls sont acceptés.'}, status=400)
+
+    content = file.read()
+    file_hash = hashlib.md5(content).hexdigest()
+
+    if ImportJob.objects.filter(file_hash=file_hash).exists():
+        return Response({'error': 'Ce fichier a déjà été importé précédemment. Veuillez sélectionner un fichier différent.'}, status=409)
+
+    import os
+    from django.conf import settings
+    imports_dir = os.path.join(settings.MEDIA_ROOT, 'imports')
+    os.makedirs(imports_dir, exist_ok=True)
+    stored_name = f'{uuid.uuid4()}_{file.name}'
+    stored_path = os.path.join(imports_dir, stored_name)
+    with open(stored_path, 'wb') as f:
+        f.write(content)
+
+    job = ImportJob.objects.create(
+        original_filename=file.name,
+        status='uploaded',
+        file_path=stored_path,
+        file_hash=file_hash,
+    )
+
+    return Response(_job_to_file_entry(job), status=201)
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def list_import_files(request):
+    """
+    GET /api/products/import/files/
+    Lists all uploaded import files with their status.
+    """
+    jobs = ImportJob.objects.exclude(file_path='').order_by('-created_at')
+    return Response([_job_to_file_entry(j) for j in jobs])
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def run_import_file(request, job_id):
+    """
+    POST /api/products/import/files/<job_id>/run/
+    Processes a previously-uploaded file and creates/updates products.
+    """
+    try:
+        job = ImportJob.objects.get(id=job_id)
+    except ImportJob.DoesNotExist:
+        return Response({'error': 'Fichier introuvable.'}, status=404)
+
+    if not job.file_path or not os.path.exists(job.file_path):
+        return Response({'error': 'Le fichier stocké est introuvable.'}, status=404)
+
+    job.status = 'running'
+    job.started_at = timezone.now()
+    job.save(update_fields=['status', 'started_at'])
+
+    with open(job.file_path, 'rb') as f:
+        content = f.read()
+
+    _run_import_job(job, content, job.original_filename)
+
+    if job.status == 'failed':
+        return Response({
+            'job_id': str(job.id),
+            'status': 'failed',
+            'message': job.message,
+        }, status=500)
+
+    return Response({
+        'job_id': str(job.id),
+        'status': _status_to_frontend(job.status),
+        'message': job.message,
+        'status_endpoint': f'/api/products/import/status/{job.id}/',
+    }, status=200)
+
+
+@api_view(['DELETE'])
+@permission_classes([IsAuthenticated])
+def delete_import_file(request, job_id):
+    """
+    DELETE /api/products/import/files/<job_id>/
+    Removes the uploaded file, the import job, and any products that were
+    created by this import (front + back + database).
+    """
+    try:
+        job = ImportJob.objects.get(id=job_id)
+    except ImportJob.DoesNotExist:
+        return Response({'error': 'Fichier introuvable.'}, status=404)
+
+    deleted_products = job.products.count()
+    job.products.all().delete()
+
+    if job.file_path and os.path.exists(job.file_path):
+        try:
+            os.remove(job.file_path)
+        except OSError:
+            pass
+
+    job.delete()
+
+    return Response({'message': f'Fichier supprimé. {deleted_products} produit(s) retiré(s) du catalogue.'}, status=200)
+
+
+def _job_to_file_entry(job: 'ImportJob') -> dict:
+    return {
+        'job_id': str(job.id),
+        'filename': job.original_filename,
+        'status': _status_to_frontend(job.status),
+        'created_at': job.created_at.isoformat(),
+        'summary': {
+            'total_rows': job.total_rows,
+            'created': job.created_count,
+            'errors': job.error_count,
+        },
+        'message': job.message,
+    }
 
 
 @api_view(['GET'])

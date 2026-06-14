@@ -61,45 +61,37 @@ interface LiveSummary {
 
 type NoticeType = "success" | "info" | "error";
 
-interface ImportedFileEntry {
-  name: string;
-  size: number;
-  date: string; // ISO
+interface ImportFileEntry {
+  job_id: string;
+  filename: string;
+  status: "uploaded" | "queued" | "processing" | "completed" | "failed";
+  created_at: string;
+  summary: {
+    total_rows: number;
+    created: number;
+    errors: number;
+  };
+  message: string;
 }
 
 export default function ImportPage() {
-  const [file, setFile] = useState<File | null>(null);
+  const [files, setFiles] = useState<ImportFileEntry[]>([]);
   const [isUploading, setIsUploading] = useState(false);
   const [isPolling, setIsPolling] = useState(false);
+  const [activeJobId, setActiveJobId] = useState<string | null>(null);
   const [jobStatus, setJobStatus] = useState<
     "queued" | "processing" | "completed" | "failed" | null
   >(null);
   const [jobMessage, setJobMessage] = useState<string | null>(null);
   const [liveSummary, setLiveSummary] = useState<LiveSummary | null>(null);
   const [uploadProgress, setUploadProgress] = useState(0);
-  const [importResult, setImportResult] = useState<ImportResult | null>(() => {
-    // Charger le dernier résultat depuis localStorage au montage
-    if (typeof window === "undefined") return null;
-    try {
-      const saved = localStorage.getItem("lastImportResult");
-      return saved ? JSON.parse(saved) : null;
-    } catch { return null; }
-  });
+  const [importResult, setImportResult] = useState<ImportResult | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [importHistory, setImportHistory] = useState<ImportedFileEntry[]>(() => {
-    if (typeof window === "undefined") return [];
-    try {
-      const saved = localStorage.getItem("importHistory");
-      return saved ? JSON.parse(saved) : [];
-    } catch { return []; }
-  });
   const [notice, setNotice] = useState<{ type: NoticeType; text: string } | null>(
     null
   );
   const isMountedRef = useRef(true);
   const processingNotifiedRef = useRef(false);
-  const currentFileKeyRef = useRef<string | null>(null);
-  const currentImportedFileRef = useRef<{ name: string; size: number } | null>(null);
   const { user } = useAuth();
   const router = useRouter();
 
@@ -131,7 +123,20 @@ export default function ImportPage() {
     return null;
   })();
 
+  const fetchFiles = async () => {
+    try {
+      const token = localStorage.getItem("access_token");
+      const res = await fetch(`${API_URL}/products/import/files/`, {
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+      });
+      if (!res.ok) return;
+      const data: ImportFileEntry[] = await res.json();
+      if (isMountedRef.current) setFiles(data);
+    } catch {}
+  };
+
   useEffect(() => {
+    fetchFiles();
     return () => {
       isMountedRef.current = false;
     };
@@ -142,32 +147,39 @@ export default function ImportPage() {
     router.push("/admin"); // or show "Access Denied"
     return null;
   }
-  const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
+
+  const handleFileSelect = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = event.target.files?.[0];
+    const input = event.target;
     if (!selectedFile) return;
 
-    const input = event.target;
-
-    // Vérifier si ce fichier a déjà été importé — dans ce cas, on le refuse
-    // immédiatement (mesure de sécurité contre les doublons et les erreurs de fichier)
-    try {
-      const imported: string[] = JSON.parse(localStorage.getItem("importedFilenames") || "[]");
-      const fileKey = `${selectedFile.name}__${selectedFile.size}`;
-      if (imported.includes(fileKey)) {
-        setFile(null);
-        setError(`Le fichier "${selectedFile.name}" a déjà été importé précédemment. Il a été refusé pour éviter un doublon — veuillez sélectionner un fichier différent.`);
-        showNotice("error", "Fichier refusé : ce fichier a déjà été importé.");
-        if (input) input.value = "";
-        return;
-      }
-    } catch {}
-
-    setFile(selectedFile);
+    setIsUploading(true);
     setError(null);
-    // Ne pas effacer importResult ici — il reste visible jusqu'au prochain import
-    setJobStatus(null);
-    setJobMessage(null);
-    setLiveSummary(null);
+
+    try {
+      const formData = new FormData();
+      formData.append("file", selectedFile);
+      const token = localStorage.getItem("access_token");
+      const response = await fetch(`${API_URL}/products/import/upload/`, {
+        method: "POST",
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+        body: formData,
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || "Le téléversement a échoué");
+      }
+
+      await fetchFiles();
+      showNotice("success", `Fichier "${selectedFile.name}" ajouté à la liste. Cliquez sur "Importer" pour l'extraire.`);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Une erreur est survenue pendant le téléversement");
+      showNotice("error", err instanceof Error ? err.message : "Le téléversement a échoué");
+    } finally {
+      setIsUploading(false);
+      if (input) input.value = "";
+    }
   };
 
   const sleep = (ms: number) =>
@@ -250,38 +262,9 @@ export default function ImportPage() {
           errors: statusData.errors || [],
         };
         setImportResult(result);
-        // Persister dans localStorage pour survivre aux navigations
-        try { localStorage.setItem("lastImportResult", JSON.stringify(result)); } catch {}
-        // Mémoriser le fichier comme déjà importé pour éviter les doublons
-        try {
-          if (currentFileKeyRef.current) {
-            const imported: string[] = JSON.parse(localStorage.getItem("importedFilenames") || "[]");
-            if (!imported.includes(currentFileKeyRef.current)) {
-              imported.push(currentFileKeyRef.current);
-              localStorage.setItem("importedFilenames", JSON.stringify(imported));
-            }
-          }
-        } catch {}
-        // Ajouter le fichier à l'historique des imports (visible à l'écran)
-        try {
-          if (currentImportedFileRef.current) {
-            const entry: ImportedFileEntry = {
-              name: currentImportedFileRef.current.name,
-              size: currentImportedFileRef.current.size,
-              date: new Date().toISOString(),
-            };
-            setImportHistory((prev) => {
-              const updated = [entry, ...prev].slice(0, 50);
-              try { localStorage.setItem("importHistory", JSON.stringify(updated)); } catch {}
-              return updated;
-            });
-          }
-        } catch {}
         setIsPolling(false);
-        setFile(null);
-        // Reset the file input so the same file can be re-imported if needed
-        const fileInput = document.getElementById('file-upload') as HTMLInputElement;
-        if (fileInput) fileInput.value = '';
+        setActiveJobId(null);
+        await fetchFiles();
         return;
       }
 
@@ -297,54 +280,24 @@ export default function ImportPage() {
     throw new Error("L'import prend trop de temps. Veuillez réessayer dans un moment.");
   };
 
-  const handleImport = async () => {
-    if (!file) return;
-
-    // Vérification de doublon
-    try {
-      const imported: string[] = JSON.parse(localStorage.getItem("importedFilenames") || "[]");
-      const fileKey = `${file.name}__${file.size}`;
-      if (imported.includes(fileKey)) {
-        setError("Ce fichier a déjà été importé. Veuillez utiliser un fichier différent.");
-        return;
-      }
-    } catch {}
-
+  const handleRunImport = async (jobId: string) => {
+    setActiveJobId(jobId);
     setIsUploading(true);
     setUploadProgress(0);
     setError(null);
     setImportResult(null);
-    try { localStorage.removeItem("lastImportResult"); } catch {}
     setJobStatus(null);
     setJobMessage(null);
     setLiveSummary(null);
     setNotice(null);
     processingNotifiedRef.current = false;
-    currentFileKeyRef.current = `${file.name}__${file.size}`;
-    currentImportedFileRef.current = { name: file.name, size: file.size };
-
-    let progressInterval: ReturnType<typeof setInterval> | null = null;
 
     try {
-      const formData = new FormData();
-      formData.append("file", file);
-
-      // Simulate progress
-      progressInterval = setInterval(() => {
-        setUploadProgress((prev) => Math.min(prev + 10, 90));
-      }, 200);
-
       const token = localStorage.getItem("access_token");
-      const response = await fetch(`${API_URL}/products/import/excel/`, {
+      const response = await fetch(`${API_URL}/products/import/files/${jobId}/run/`, {
         method: "POST",
         headers: token ? { Authorization: `Bearer ${token}` } : {},
-        body: formData,
       });
-
-      if (progressInterval) {
-        clearInterval(progressInterval);
-      }
-      setUploadProgress(100);
 
       if (!response.ok) {
         const errorData = await response.json();
@@ -352,30 +305,46 @@ export default function ImportPage() {
       }
 
       const result: ImportStartResponse = await response.json();
-
-      if (!result.job_id) {
-        throw new Error("Aucun identifiant de job reçu du serveur");
-      }
-
       setJobStatus(result.status);
-      setJobMessage(result.message || "Import en file d'attente");
+      setJobMessage(result.message || "Import en cours");
       setUploadProgress(15);
-      showNotice("success", "Fichier téléversé avec succès. Traitement en file d'attente côté serveur.");
+      await fetchFiles();
 
-      await pollImportStatus(result.job_id);
+      await pollImportStatus(jobId);
     } catch (err) {
       setError(
         err instanceof Error ? err.message : "Une erreur est survenue pendant l'import"
       );
       setJobStatus("failed");
       showNotice("error", "Un problème est survenu pendant l'import. Vérifiez les erreurs affichées.");
+      await fetchFiles();
     } finally {
-      if (progressInterval) {
-        clearInterval(progressInterval);
-      }
       setIsUploading(false);
       setIsPolling(false);
+      setActiveJobId(null);
       setTimeout(() => setUploadProgress(0), 1000);
+    }
+  };
+
+  const handleDeleteFile = async (jobId: string, filename: string) => {
+    if (!confirm(`Supprimer le fichier "${filename}" ? Les produits créés à partir de ce fichier seront retirés du catalogue (front et back).`)) {
+      return;
+    }
+    try {
+      const token = localStorage.getItem("access_token");
+      const response = await fetch(`${API_URL}/products/import/files/${jobId}/`, {
+        method: "DELETE",
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+      });
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || "La suppression a échoué");
+      }
+      const data = await response.json();
+      showNotice("success", data.message || "Fichier supprimé.");
+      await fetchFiles();
+    } catch (err) {
+      showNotice("error", err instanceof Error ? err.message : "La suppression a échoué");
     }
   };
 
@@ -562,10 +531,7 @@ export default function ImportPage() {
                 <p className="text-sm text-yellow-700 mt-1">{importResult.message}</p>
               </div>
               <button
-                onClick={() => {
-                  setImportResult(null);
-                  try { localStorage.removeItem("lastImportResult"); } catch {}
-                }}
+                onClick={() => setImportResult(null)}
                 className="text-gray-400 hover:text-gray-600 text-xl leading-none ml-4"
                 title="Fermer"
               >✕</button>
@@ -642,68 +608,6 @@ export default function ImportPage() {
         </Card>
       )}
 
-      {/* Historique des fichiers importés — mesure de sécurité pour vérifier qu'on ne réimporte pas le même fichier par erreur */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center justify-between">
-            <span className="flex items-center">
-              <History className="h-5 w-5 mr-2" />
-              Fichiers déjà importés ({importHistory.length})
-            </span>
-            {importHistory.length > 0 && (
-              <button
-                onClick={() => {
-                  setImportHistory([]);
-                  try {
-                    localStorage.removeItem("importHistory");
-                    localStorage.removeItem("importedFilenames");
-                  } catch {}
-                }}
-                className="text-xs text-gray-400 hover:text-gray-600 underline"
-              >
-                Vider l'historique
-              </button>
-            )}
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          {importHistory.length === 0 ? (
-            <p className="text-sm text-gray-400">Aucun fichier importé pour le moment.</p>
-          ) : (
-            <div className="border rounded-lg overflow-hidden max-h-64 overflow-y-auto">
-              <table className="w-full text-sm">
-                <thead className="bg-gray-50 sticky top-0">
-                  <tr>
-                    <th className="text-left px-4 py-2 text-gray-600 font-medium w-10">#</th>
-                    <th className="text-left px-4 py-2 text-gray-600 font-medium">Nom du fichier</th>
-                    <th className="text-left px-4 py-2 text-gray-600 font-medium">Taille</th>
-                    <th className="text-left px-4 py-2 text-gray-600 font-medium">Date d'import</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {importHistory.map((entry, i) => (
-                    <tr key={`${entry.name}-${entry.size}-${entry.date}`} className={i % 2 === 0 ? "bg-white" : "bg-gray-50"}>
-                      <td className="px-4 py-2 text-gray-400">{i + 1}</td>
-                      <td className="px-4 py-2 text-gray-800 flex items-center gap-2">
-                        <FileSpreadsheet className="h-4 w-4 text-yellow-600 flex-shrink-0" />
-                        {entry.name}
-                      </td>
-                      <td className="px-4 py-2 text-gray-600">{(entry.size / 1024 / 1024).toFixed(2)} MB</td>
-                      <td className="px-4 py-2 text-gray-600">
-                        {new Date(entry.date).toLocaleString("fr-FR", {
-                          day: "2-digit", month: "2-digit", year: "numeric",
-                          hour: "2-digit", minute: "2-digit",
-                        })}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
-        </CardContent>
-      </Card>
-
       {/* File Upload */}
       <Card>
         <CardHeader>
@@ -719,7 +623,7 @@ export default function ImportPage() {
               <div className="mt-4">
                 <label htmlFor="file-upload" className="cursor-pointer">
                   <span className="mt-2 block text-sm font-medium text-gray-900">
-                    Cliquez pour sélectionner un fichier Excel
+                    {isUploading && !activeJobId ? "Téléversement en cours..." : "Cliquez pour sélectionner un fichier Excel"}
                   </span>
                   <input
                     id="file-upload"
@@ -728,76 +632,112 @@ export default function ImportPage() {
                     accept=".xlsx,.xls"
                     className="sr-only"
                     onChange={handleFileSelect}
+                    disabled={isUploading || isPolling}
                   />
                 </label>
                 <p className="mt-1 text-sm text-gray-500">
-                  Ou glissez-déposez votre fichier ici
+                  Le fichier apparaîtra dans la liste ci-dessous. Cliquez ensuite sur "Importer" pour l'extraire.
                 </p>
               </div>
             </div>
           </div>
+        </CardContent>
+      </Card>
 
-          {file && (
-            <div className="space-y-3">
-              <p className="text-xs text-gray-500">
-                Vérifiez bien qu'il s'agit du bon fichier avant de confirmer — cette étape est une mesure de sécurité pour éviter toute erreur d'import.
-              </p>
-              <div className="border rounded-lg overflow-hidden">
-                <table className="w-full text-sm">
-                  <thead className="bg-gray-50">
-                    <tr>
-                      <th className="text-left px-4 py-2 text-gray-600 font-medium">Fichier sélectionné</th>
-                      <th className="text-left px-4 py-2 text-gray-600 font-medium">Taille</th>
-                      <th className="text-right px-4 py-2 text-gray-600 font-medium">Action</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr className="bg-yellow-50">
-                      <td className="px-4 py-3">
-                        <div className="flex items-center gap-3">
-                          <FileSpreadsheet className="h-6 w-6 text-yellow-600 flex-shrink-0" />
-                          <span className="font-semibold text-yellow-800">{file.name}</span>
-                        </div>
-                      </td>
-                      <td className="px-4 py-3 text-yellow-700">
-                        {(file.size / 1024 / 1024).toFixed(2)} MB
-                      </td>
-                      <td className="px-4 py-3 text-right">
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          disabled={isUploading || isPolling}
-                          onClick={() => {
-                            setFile(null);
-                            // reset the file input
-                            const input = document.getElementById("file-upload") as HTMLInputElement;
-                            if (input) input.value = "";
-                          }}
-                          title="Retirer ce fichier"
-                          className="text-red-500 hover:text-red-700 hover:bg-red-50"
-                        >
-                          <X className="h-4 w-4" />
-                        </Button>
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
-              <div className="flex justify-end">
-                <Button
-                  onClick={handleImport}
-                  disabled={isUploading || isPolling}
-                  className="bg-yellow-500 hover:bg-yellow-600 text-black gap-2"
-                >
-                  <CheckCircle className="h-4 w-4" />
-                  {isUploading || isPolling ? "Import en cours..." : "Confirmer et importer"}
-                </Button>
-              </div>
+      {/* Liste des fichiers uploadés */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center">
+            <History className="h-5 w-5 mr-2" />
+            Fichiers ({files.length})
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          {files.length === 0 ? (
+            <p className="text-sm text-gray-400">Aucun fichier téléversé pour le moment.</p>
+          ) : (
+            <div className="border rounded-lg overflow-hidden">
+              <table className="w-full text-sm">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th className="text-left px-4 py-2 text-gray-600 font-medium">Nom du fichier</th>
+                    <th className="text-left px-4 py-2 text-gray-600 font-medium">Statut</th>
+                    <th className="text-left px-4 py-2 text-gray-600 font-medium">Date</th>
+                    <th className="text-right px-4 py-2 text-gray-600 font-medium">Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {files.map((f, i) => {
+                    const isActive = activeJobId === f.job_id;
+                    const statusLabel: Record<string, string> = {
+                      uploaded: "En attente d'import",
+                      queued: "En file d'attente",
+                      processing: "Import en cours...",
+                      completed: "Importé",
+                      failed: "Échec",
+                    };
+                    const statusClass: Record<string, string> = {
+                      uploaded: "text-gray-600",
+                      queued: "text-yellow-600",
+                      processing: "text-yellow-600",
+                      completed: "text-green-600",
+                      failed: "text-red-600",
+                    };
+                    return (
+                      <tr key={f.job_id} className={i % 2 === 0 ? "bg-white" : "bg-gray-50"}>
+                        <td className="px-4 py-3">
+                          <div className="flex items-center gap-2">
+                            <FileSpreadsheet className="h-5 w-5 text-yellow-600 flex-shrink-0" />
+                            <span className="font-medium text-gray-800">{f.filename}</span>
+                          </div>
+                        </td>
+                        <td className={`px-4 py-3 font-medium ${statusClass[isActive && isPolling ? "processing" : f.status] || "text-gray-600"}`}>
+                          {isActive && isPolling ? statusLabel.processing : (statusLabel[f.status] || f.status)}
+                          {f.status === "completed" && (
+                            <div className="text-xs text-gray-500 mt-0.5">
+                              {f.summary.created} produit(s), {f.summary.errors} erreur(s)
+                            </div>
+                          )}
+                        </td>
+                        <td className="px-4 py-3 text-gray-600">
+                          {new Date(f.created_at).toLocaleString("fr-FR", {
+                            day: "2-digit", month: "2-digit", year: "numeric",
+                            hour: "2-digit", minute: "2-digit",
+                          })}
+                        </td>
+                        <td className="px-4 py-3 text-right">
+                          <div className="flex justify-end gap-2">
+                            <Button
+                              size="sm"
+                              onClick={() => handleRunImport(f.job_id)}
+                              disabled={isUploading || isPolling}
+                              className="bg-yellow-500 hover:bg-yellow-600 text-black gap-1"
+                            >
+                              <CheckCircle className="h-4 w-4" />
+                              Importer
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => handleDeleteFile(f.job_id, f.filename)}
+                              disabled={isUploading || isPolling}
+                              className="text-red-600 hover:text-red-700 hover:bg-red-50 border-red-200 gap-1"
+                            >
+                              <X className="h-4 w-4" />
+                              Supprimer
+                            </Button>
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
             </div>
           )}
 
-          {(isUploading || isPolling) && (
-            <div className="space-y-2">
+          {(isUploading || isPolling) && activeJobId && (
+            <div className="space-y-2 mt-4">
               <div className="flex justify-between text-sm">
                 <span>
                   {jobStatus === "queued"
@@ -807,11 +747,6 @@ export default function ImportPage() {
                 <span>{uploadProgress}%</span>
               </div>
               <Progress value={uploadProgress} className="w-full" />
-              {jobStatus && (
-                <div className="text-xs text-gray-600">
-                  Statut: <strong>{jobStatus}</strong>
-                </div>
-              )}
               {liveSummary && liveSummary.total_rows > 0 && (
                 <div className="text-xs text-gray-600">
                   Produits créés en direct: <strong>{liveSummary.created}</strong>
