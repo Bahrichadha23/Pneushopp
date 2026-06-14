@@ -361,6 +361,17 @@ export default function OrdersTable({
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [deliveryInfoOrder, setDeliveryInfoOrder] = useState<Order | null>(null);
   const [updatingDeliveryStatus, setUpdatingDeliveryStatus] = useState(false);
+  const [updatingOrderId, setUpdatingOrderId] = useState<string | null>(null);
+
+  const handleStatusClick = async (orderId: string, status: Order["status"]) => {
+    if (updatingOrderId) return;
+    setUpdatingOrderId(orderId);
+    try {
+      await onUpdateStatus(orderId, status);
+    } finally {
+      setUpdatingOrderId(null);
+    }
+  };
 
   // DOT confirmation modal state
   const [dotConfirmOrder, setDotConfirmOrder] = useState<Order | null>(null);
@@ -661,7 +672,8 @@ export default function OrdersTable({
                         <Button
                           size="sm"
                           className="bg-[#9B2226] hover:bg-[#730019] text-white h-7 px-3 text-xs gap-1 border-0"
-                          onClick={() => onUpdateStatus(order.id, "cancelled")}
+                          onClick={() => handleStatusClick(order.id, "cancelled")}
+                          disabled={updatingOrderId === order.id}
                           title="Annuler la commande"
                         >
                           <Ban className="h-3 w-3" /> Annuler
@@ -723,7 +735,8 @@ export default function OrdersTable({
                   <Button
                     size="sm"
                     className="bg-[#0066CC] hover:bg-[#004C99] text-white h-7 px-3 text-xs gap-1 border-0"
-                    onClick={() => onUpdateStatus(order.id, "confirmed")}
+                    onClick={() => handleStatusClick(order.id, "confirmed")}
+                    disabled={updatingOrderId === order.id}
                   >
                     <Check className="h-3 w-3" /> Confirmer
                   </Button>
@@ -733,7 +746,8 @@ export default function OrdersTable({
                   <Button
                     size="sm"
                     className="bg-[#9B2226] hover:bg-[#730019] text-white h-7 px-3 text-xs gap-1 border-0"
-                    onClick={() => onUpdateStatus(order.id, "cancelled")}
+                    onClick={() => handleStatusClick(order.id, "cancelled")}
+                    disabled={updatingOrderId === order.id}
                   >
                     <Ban className="h-3 w-3" /> Annuler
                   </Button>

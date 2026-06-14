@@ -18,11 +18,16 @@ class OrderDetailView(generics.RetrieveUpdateDestroyAPIView):
         from accounts.email_utils import send_order_status_update_email, send_delivery_invoice_email
         from decimal import Decimal
         from django.utils import timezone
-        old_order = self.get_object()
-        old_status = old_order.status
-        old_delivery_cost = old_order.delivery_cost or Decimal('0')
+        from django.db import transaction
 
-        order = serializer.save()
+        # Lock the order row to serialize concurrent PATCH requests (e.g. double-click
+        # on "Confirmer") and prevent the same status transition from being processed twice.
+        with transaction.atomic():
+            old_order = Order.objects.select_for_update().get(pk=self.get_object().pk)
+            old_status = old_order.status
+            old_delivery_cost = old_order.delivery_cost or Decimal('0')
+
+            order = serializer.save()
 
         # Si les frais de livraison ont changé → recalculer le total_amount
         new_delivery_cost = order.delivery_cost or Decimal('0')
@@ -55,7 +60,7 @@ class OrderDetailView(generics.RetrieveUpdateDestroyAPIView):
                 print(f'[ORDER CONFIRM] Failed to decrement stock: {e}')
 
         # ── Auto-création BDC + Livraison à la confirmation ──────────────
-        if order.status == 'processing' and old_status not in ('processing', 'shipped', 'delivered', 'cancelled'):
+        if order.status in ('processing', 'shipped', 'delivered') and old_status not in ('processing', 'shipped', 'delivered', 'cancelled'):
             try:
                 self._auto_create_bdc_and_delivery(order)
             except Exception as e:
@@ -154,12 +159,19 @@ class OrderDetailView(generics.RetrieveUpdateDestroyAPIView):
             client_name = f'{first} {last}'.strip() or order.user.email
             tracking = order.tracking_number or f'TRK-{order.id:06d}'
 
+            ORDER_TO_DELIVERY_STATUS = {
+                'processing': 'prepare',
+                'shipped': 'en_route',
+                'delivered': 'livre',
+            }
+            initial_statut = ORDER_TO_DELIVERY_STATUS.get(order.status, 'prepare')
+
             delivery = Delivery.objects.create(
                 order=order,
                 client=client_name,
                 adresse=adresse_str or 'Non renseignée',
                 transporteur='',
-                statut='prepare',
+                statut=initial_statut,
                 numero_suivi=tracking,
                 colis=sum(item.quantity for item in order.items.all()),
             )

@@ -65,6 +65,7 @@ export default function PendingOrdersPage() {
     action: null,
     deliveryCost: 0,
   });
+  const [confirming, setConfirming] = useState(false);
   const { user } = useAuth();
   const router = useRouter();
 
@@ -157,18 +158,23 @@ export default function PendingOrdersPage() {
   };
 
   const handleConfirm = async () => {
-    if (!confirmation.orderId || !confirmation.action) return;
+    if (!confirmation.orderId || !confirmation.action || confirming) return;
 
-    if (confirmation.action === "approve") {
-      // When approving, send delivery_cost along with status
-      await updateOrderStatusWithDelivery(
-        confirmation.orderId,
-        "processing",
-        confirmation.deliveryCost || 0
-      );
-    } else {
-      // When rejecting, just update status
-      await updateOrderStatus(confirmation.orderId, "cancelled");
+    setConfirming(true);
+    try {
+      if (confirmation.action === "approve") {
+        // When approving, send delivery_cost along with status
+        await updateOrderStatusWithDelivery(
+          confirmation.orderId,
+          "processing",
+          confirmation.deliveryCost || 0
+        );
+      } else {
+        // When rejecting, just update status
+        await updateOrderStatus(confirmation.orderId, "cancelled");
+      }
+    } finally {
+      setConfirming(false);
     }
 
     setConfirmation({
@@ -651,13 +657,14 @@ export default function PendingOrdersPage() {
                 </Button>
                 <Button
                   onClick={handleConfirm}
+                  disabled={confirming}
                   className={
                     confirmation.action === "approve"
                       ? "bg-brand-orange hover:bg-brand-orange-dark text-black font-semibold"
                       : "bg-brand-red hover:bg-brand-red text-white"
                   }
                 >
-                  Oui
+                  {confirming ? "..." : "Oui"}
                 </Button>
               </div>
             </motion.div>
