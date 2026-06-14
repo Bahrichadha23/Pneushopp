@@ -260,6 +260,7 @@ export default function PayerFactureModal({ order, onClose, onPaid }: PayerFactu
         const montant = getAmount("especes");
         Object.assign(payload, {
           especes_amount_paid: montant,
+          especes_remaining: remainingTotal,
           especes_remarque: remarque || undefined,
         });
       }

@@ -1089,6 +1089,20 @@ export default function TresoreriePage() {
           </div>
 
           <div
+            ref={bottomScrollRef}
+            onScroll={() =>
+              syncHorizontalScroll(bottomScrollRef.current, tableScrollRef.current)
+            }
+            className="w-full overflow-x-auto rounded border border-slate-200 bg-slate-50"
+            style={{ scrollbarGutter: "stable both-edges" }}
+            aria-label="Table horizontal scrollbar"
+          >
+            <div className="flex h-6 min-w-[1500px] items-center px-3 text-[11px] font-medium text-slate-500">
+              Faites défiler horizontalement pour voir toutes les colonnes
+            </div>
+          </div>
+
+          <div
             ref={tableScrollRef}
             onScroll={() =>
               syncHorizontalScroll(tableScrollRef.current, bottomScrollRef.current)
@@ -1281,20 +1295,6 @@ export default function TresoreriePage() {
                 )}
               </tbody>
             </table>
-          </div>
-
-          <div
-            ref={bottomScrollRef}
-            onScroll={() =>
-              syncHorizontalScroll(bottomScrollRef.current, tableScrollRef.current)
-            }
-            className="w-full overflow-x-auto rounded border border-slate-200 bg-slate-50"
-            style={{ scrollbarGutter: "stable both-edges" }}
-            aria-label="Table horizontal scrollbar"
-          >
-            <div className="flex h-6 min-w-[1500px] items-center px-3 text-[11px] font-medium text-slate-500">
-              Faites défiler horizontalement pour voir toutes les colonnes
-            </div>
           </div>
         </div>
       </div>

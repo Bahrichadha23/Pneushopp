@@ -9,7 +9,7 @@ import type { Order } from "@/types/admin";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Download, Search, FileText, FileDown, CreditCard, Printer, FilePlus } from "lucide-react";
+import { Download, Search, FileText, FileDown, CreditCard, Printer, FilePlus, Eye, X } from "lucide-react";
 import ExcelJS from "exceljs";
 import PayerFactureModal, { PAYMENT_LABELS } from "@/components/admin/payer-facture-modal";
 import SaisirFactureModal from "@/components/admin/saisir-facture-modal";
@@ -47,6 +47,34 @@ const STATUS_CLASSES: Partial<Record<Order["status"], string>> = {
 // Statut de paiement affiché : Payée / Non payée
 const isPaid = (order: Order) => order.paymentStatus === "paid";
 
+// Montant total payé, en agrégeant tous les modes pour les paiements multi-modalités
+const getPaidAmount = (order: Order): number => {
+  const total = order.totalAmount + (order.deliveryCost || 0);
+  const pd = order.paymentDetails;
+  if (!pd) return isPaid(order) ? total : 0;
+
+  if (order.paymentMethod === "mixed") {
+    return (
+      (pd.especesAmountPaid || 0) +
+      (pd.criAmountPaid || 0) +
+      (pd.transferAmountPaid || 0) +
+      (pd.chequeAmountPaid || 0) +
+      (pd.lettreAmountPaid || 0) +
+      (pd.codAmountPaid || 0)
+    );
+  }
+  if (order.paymentMethod === "cri") return pd.criAmountPaid || 0;
+  if (order.paymentMethod === "bank_transfer") return pd.transferAmountPaid || 0;
+  if (order.paymentMethod === "lettre_de_change") return pd.lettreAmountPaid || 0;
+  if (order.paymentMethod === "cheque" || order.paymentMethod === "check") return pd.chequeAmountPaid || 0;
+  if (order.paymentMethod === "cash_on_delivery") return pd.codAmountPaid || 0;
+  if (order.paymentMethod === "especes") return pd.especesAmountPaid || total;
+  return isPaid(order) ? total : 0;
+};
+
+const getRemainingAmount = (order: Order): number =>
+  Math.max(order.totalAmount + (order.deliveryCost || 0) - getPaidAmount(order), 0);
+
 const fps = (n: string) => (n || "").replace(/^CPS/i, "FPS");
 
 export default function FacturesPage() {
@@ -62,6 +90,7 @@ export default function FacturesPage() {
   const [downloading, setDownloading] = useState<string | null>(null);
   const [payingOrder, setPayingOrder] = useState<Order | null>(null);
   const [showSaisirFacture, setShowSaisirFacture] = useState(false);
+  const [viewingOrder, setViewingOrder] = useState<Order | null>(null);
 
   // Role guard
   useEffect(() => {
@@ -353,6 +382,15 @@ export default function FacturesPage() {
                       <div className="flex justify-end gap-2">
                         <Button
                           size="sm"
+                          variant="outline"
+                          onClick={() => setViewingOrder(order)}
+                          className="gap-2"
+                          title="Voir les détails de la facture et du paiement"
+                        >
+                          <Eye className="w-4 h-4" />
+                        </Button>
+                        <Button
+                          size="sm"
                           onClick={() => handleDownload(order)}
                           disabled={downloading === order.id}
                           className="gap-2 bg-[#FF8C00] hover:bg-[#E67E00] text-white border-0"
@@ -428,6 +466,15 @@ export default function FacturesPage() {
                     <Button
                       variant="outline"
                       size="sm"
+                      onClick={() => setViewingOrder(order)}
+                      className="gap-2"
+                      title="Voir les détails de la facture et du paiement"
+                    >
+                      <Eye className="w-4 h-4" />
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
                       onClick={() => handleDownload(order)}
                       disabled={downloading === order.id}
                       className="gap-2"
@@ -470,6 +517,188 @@ export default function FacturesPage() {
           </div>
         </>
       )}
+
+      {viewingOrder && (() => {
+        const pd = viewingOrder.paymentDetails;
+        const total = viewingOrder.totalAmount + (viewingOrder.deliveryCost || 0);
+        const paid = getPaidAmount(viewingOrder);
+        const remaining = getRemainingAmount(viewingOrder);
+        return (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-3">
+            <div className="max-h-[92vh] w-full max-w-3xl overflow-auto rounded-lg bg-white shadow-2xl text-xs">
+              <div className="sticky top-0 flex items-center justify-between border-b bg-slate-800 px-4 py-2.5">
+                <h2 className="text-sm font-semibold text-white">
+                  Facture #{fps(viewingOrder.orderNumber)}
+                </h2>
+                <button onClick={() => setViewingOrder(null)} className="text-slate-300 hover:text-white">
+                  <X className="h-4 w-4" />
+                </button>
+              </div>
+
+              <div className="p-4 space-y-3">
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="rounded border border-slate-200">
+                    <div className="bg-slate-100 px-2 py-1 text-[11px] font-semibold uppercase tracking-wide text-slate-600">Facture</div>
+                    <div className="px-2 py-1.5 space-y-0.5 text-slate-700">
+                      <div className="flex gap-1"><span className="font-semibold w-28 shrink-0">N° Facture :</span><span>{fps(viewingOrder.orderNumber)}</span></div>
+                      <div className="flex gap-1"><span className="font-semibold w-28 shrink-0">Date :</span><span>{formatDate(viewingOrder.createdAt)}</span></div>
+                      <div className="flex gap-1"><span className="font-semibold w-28 shrink-0">Méthode :</span><span>{PAYMENT_LABELS[viewingOrder.paymentMethod] || viewingOrder.paymentMethod || "-"}</span></div>
+                      <div className="flex gap-1"><span className="font-semibold w-28 shrink-0">Statut :</span><span>{isPaid(viewingOrder) ? "Payée" : "Non payée"}</span></div>
+                      {viewingOrder.commercial && (
+                        <div className="flex gap-1"><span className="font-semibold w-28 shrink-0">Commercial :</span><span>{viewingOrder.commercial}</span></div>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="rounded border border-slate-200">
+                    <div className="bg-slate-100 px-2 py-1 text-[11px] font-semibold uppercase tracking-wide text-slate-600">Client</div>
+                    <div className="px-2 py-1.5 space-y-0.5 text-slate-700">
+                      <div className="flex gap-1"><span className="font-semibold w-20 shrink-0">Nom :</span><span>{viewingOrder.customerName || "-"}</span></div>
+                      <div className="flex gap-1"><span className="font-semibold w-20 shrink-0">Tél :</span><span>{viewingOrder.customerPhone || "-"}</span></div>
+                      <div className="flex gap-1"><span className="font-semibold w-20 shrink-0">Email :</span><span>{viewingOrder.customerEmail || "-"}</span></div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="rounded border border-slate-200 overflow-hidden">
+                  <table className="w-full text-xs">
+                    <thead>
+                      <tr className="bg-slate-100 text-slate-600">
+                        <th className="px-2 py-1.5 text-left font-semibold w-8">#</th>
+                        <th className="px-2 py-1.5 text-left font-semibold">Désignation</th>
+                        <th className="px-2 py-1.5 text-right font-semibold w-14">Qté</th>
+                        <th className="px-2 py-1.5 text-right font-semibold w-24">P.U. TTC</th>
+                        <th className="px-2 py-1.5 text-right font-semibold w-24">Total TTC</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {(viewingOrder.items || []).length === 0 ? (
+                        <tr><td colSpan={5} className="px-2 py-3 text-center text-slate-400">Aucun article</td></tr>
+                      ) : (
+                        viewingOrder.items.map((item, index) => (
+                          <tr key={`${viewingOrder.id}-${index}`} className={index % 2 === 0 ? "bg-white" : "bg-slate-50"}>
+                            <td className="px-2 py-1 text-slate-500">{index + 1}</td>
+                            <td className="px-2 py-1">{item.productName}</td>
+                            <td className="px-2 py-1 text-right">{item.quantity}</td>
+                            <td className="px-2 py-1 text-right">{formatCurrency(item.unitPrice)}</td>
+                            <td className="px-2 py-1 text-right font-medium">{formatCurrency(item.totalPrice)}</td>
+                          </tr>
+                        ))
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  {/* Détails paiement */}
+                  <div className="rounded border border-slate-200">
+                    <div className="bg-slate-100 px-2 py-1 text-[11px] font-semibold uppercase tracking-wide text-slate-600">Détails Paiement</div>
+                    <div className="px-2 py-1.5 space-y-0.5 text-slate-700">
+                      {!pd ? (
+                        <div className="text-slate-400 italic">Aucune information de paiement</div>
+                      ) : viewingOrder.paymentMethod === "mixed" ? (
+                        <>
+                          {pd.especesAmountPaid > 0 && (<>
+                            <div className="font-semibold text-slate-500 mt-1">Espèces</div>
+                            <div><span className="font-semibold">Montant :</span> {formatCurrency(pd.especesAmountPaid)}</div>
+                            {pd.especesRemarque && <div><span className="font-semibold">Remarque :</span> {pd.especesRemarque}</div>}
+                          </>)}
+                          {pd.codAmountPaid > 0 && (<>
+                            <div className="font-semibold text-slate-500 mt-1">TPE à la livraison</div>
+                            <div><span className="font-semibold">N° Auth :</span> {pd.codAuthorizationNumber || "-"}</div>
+                            <div><span className="font-semibold">Banque :</span> {pd.codBankName || "-"}</div>
+                            <div><span className="font-semibold">Montant :</span> {formatCurrency(pd.codAmountPaid)}</div>
+                          </>)}
+                          {pd.transferAmountPaid > 0 && (<>
+                            <div className="font-semibold text-slate-500 mt-1">Virement</div>
+                            <div><span className="font-semibold">N° Virement :</span> {pd.transferNumber || "-"}</div>
+                            <div><span className="font-semibold">Banque :</span> {pd.transferBankName || "-"}</div>
+                            <div><span className="font-semibold">Titulaire :</span> {pd.transferHolderName || "-"}</div>
+                            <div><span className="font-semibold">Montant :</span> {formatCurrency(pd.transferAmountPaid)}</div>
+                          </>)}
+                          {pd.chequeAmountPaid > 0 && (<>
+                            <div className="font-semibold text-slate-500 mt-1">Chèque</div>
+                            <div><span className="font-semibold">N° Chèque :</span> {pd.chequeNumber || "-"}</div>
+                            <div><span className="font-semibold">Date :</span> {pd.chequeDate || "-"}</div>
+                            <div><span className="font-semibold">Banque :</span> {pd.chequeBankName || "-"}</div>
+                            <div><span className="font-semibold">Montant :</span> {formatCurrency(pd.chequeAmountPaid)}</div>
+                          </>)}
+                          {pd.lettreAmountPaid > 0 && (<>
+                            <div className="font-semibold text-slate-500 mt-1">Lettre de change</div>
+                            <div><span className="font-semibold">N° Lettre :</span> {pd.lettreNumber || "-"}</div>
+                            <div><span className="font-semibold">Date :</span> {pd.lettreDate || "-"}</div>
+                            <div><span className="font-semibold">Banque :</span> {pd.lettreBankName || "-"}</div>
+                            <div><span className="font-semibold">Montant :</span> {formatCurrency(pd.lettreAmountPaid)}</div>
+                          </>)}
+                          {pd.criAmountPaid > 0 && (<>
+                            <div className="font-semibold text-slate-500 mt-1">CRI</div>
+                            <div><span className="font-semibold">Montant :</span> {formatCurrency(pd.criAmountPaid)}</div>
+                            {pd.criRemarque && <div><span className="font-semibold">Remarque :</span> {pd.criRemarque}</div>}
+                          </>)}
+                        </>
+                      ) : viewingOrder.paymentMethod === "bank_transfer" ? (
+                        <>
+                          <div><span className="font-semibold">N° Virement :</span> {pd.transferNumber || "-"}</div>
+                          <div><span className="font-semibold">Banque :</span> {pd.transferBankName || "-"}</div>
+                          <div><span className="font-semibold">Titulaire :</span> {pd.transferHolderName || "-"}</div>
+                        </>
+                      ) : viewingOrder.paymentMethod === "lettre_de_change" ? (
+                        <>
+                          <div><span className="font-semibold">N° Lettre :</span> {pd.lettreNumber || "-"}</div>
+                          <div><span className="font-semibold">Date :</span> {pd.lettreDate || "-"}</div>
+                          <div><span className="font-semibold">Banque :</span> {pd.lettreBankName || "-"}</div>
+                          <div><span className="font-semibold">RIB :</span> {pd.lettreRib || "-"}</div>
+                          <div><span className="font-semibold">Lieu :</span> {pd.lettreLieu || "-"}</div>
+                        </>
+                      ) : (viewingOrder.paymentMethod === "cheque" || viewingOrder.paymentMethod === "check") ? (
+                        <>
+                          <div><span className="font-semibold">N° Chèque :</span> {pd.chequeNumber || "-"}</div>
+                          <div><span className="font-semibold">Date :</span> {pd.chequeDate || "-"}</div>
+                          <div><span className="font-semibold">Banque :</span> {pd.chequeBankName || "-"}</div>
+                        </>
+                      ) : viewingOrder.paymentMethod === "cash_on_delivery" ? (
+                        <>
+                          <div><span className="font-semibold">N° Autorisation :</span> {pd.codAuthorizationNumber || "-"}</div>
+                          <div><span className="font-semibold">Banque :</span> {pd.codBankName || "-"}</div>
+                        </>
+                      ) : viewingOrder.paymentMethod === "cri" ? (
+                        <div><span className="font-semibold">Remarque :</span> {pd.criRemarque || "-"}</div>
+                      ) : viewingOrder.paymentMethod === "especes" ? (
+                        <div>Paiement en espèces{pd.especesRemarque ? ` — ${pd.especesRemarque}` : ""}</div>
+                      ) : (
+                        <div>{PAYMENT_LABELS[viewingOrder.paymentMethod] || viewingOrder.paymentMethod || "-"}</div>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Totaux */}
+                  <div className="rounded border border-slate-200">
+                    <div className="bg-slate-100 px-2 py-1 text-[11px] font-semibold uppercase tracking-wide text-slate-600">Totaux</div>
+                    <div className="px-2 py-1.5 space-y-1 text-slate-700">
+                      <div className="flex justify-between">
+                        <span>Montant Facture</span>
+                        <span className="font-semibold">{formatCurrency(total)}</span>
+                      </div>
+                      <div className="flex justify-between text-green-700">
+                        <span>Montant Payé</span>
+                        <span className="font-semibold">{formatCurrency(paid)}</span>
+                      </div>
+                      <div className="flex justify-between border-t pt-1 text-slate-700">
+                        <span className="font-semibold">Reste à payer</span>
+                        <span className="font-bold">{formatCurrency(remaining)}</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex justify-end gap-2 border-t pt-2">
+                  <Button size="sm" onClick={() => setViewingOrder(null)} className="bg-gray-100 hover:bg-gray-200 text-gray-700 border-0">Fermer</Button>
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
 
       {payingOrder && (
         <PayerFactureModal

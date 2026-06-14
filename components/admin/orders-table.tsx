@@ -315,8 +315,64 @@ export async function handleDownloadInvoice(order: any, mode: "download" | "prin
     totalY += totalRowH;
   });
 
+  // === Mode de règlement (incl. détail multi-modalités) ===
+  const PAYMENT_LABELS: Record<string, string> = {
+    card: "Carte de crédit",
+    cash_on_delivery: "TPE à la livraison",
+    especes: "Espèces",
+    bank_transfer: "Virement",
+    cri: "CRI",
+    cheque: "Chèque",
+    check: "Chèque",
+    lettre_de_change: "Lettre de change",
+    mixed: "Multi-modalités",
+  };
+
+  const pd = order.paymentDetails || {};
+  const paymentLines: string[] = [];
+  if (order.paymentMethod === "mixed") {
+    if (pd.especesAmountPaid > 0) paymentLines.push(`Espèces : ${pd.especesAmountPaid.toFixed(3)} DT`);
+    if (pd.codAmountPaid > 0) paymentLines.push(`TPE à la livraison : ${pd.codAmountPaid.toFixed(3)} DT`);
+    if (pd.transferAmountPaid > 0) paymentLines.push(`Virement : ${pd.transferAmountPaid.toFixed(3)} DT`);
+    if (pd.chequeAmountPaid > 0) paymentLines.push(`Chèque : ${pd.chequeAmountPaid.toFixed(3)} DT`);
+    if (pd.lettreAmountPaid > 0) paymentLines.push(`Lettre de change : ${pd.lettreAmountPaid.toFixed(3)} DT`);
+    if (pd.criAmountPaid > 0) paymentLines.push(`CRI : ${pd.criAmountPaid.toFixed(3)} DT`);
+  } else {
+    const amountByMethod: Record<string, number | undefined> = {
+      especes: pd.especesAmountPaid,
+      cash_on_delivery: pd.codAmountPaid,
+      bank_transfer: pd.transferAmountPaid,
+      cheque: pd.chequeAmountPaid,
+      check: pd.chequeAmountPaid,
+      lettre_de_change: pd.lettreAmountPaid,
+      cri: pd.criAmountPaid,
+    };
+    const amount = amountByMethod[order.paymentMethod];
+    const label = PAYMENT_LABELS[order.paymentMethod] || order.paymentMethod || "-";
+    paymentLines.push(amount ? `${label} : ${amount.toFixed(3)} DT` : label);
+  }
+  const totalPaid = paymentLines.length
+    ? (pd.especesAmountPaid || 0) + (pd.codAmountPaid || 0) + (pd.transferAmountPaid || 0) +
+      (pd.chequeAmountPaid || 0) + (pd.lettreAmountPaid || 0) + (pd.criAmountPaid || 0)
+    : 0;
+
+  pdf.setFont("helvetica", "bold");
+  pdf.setFontSize(8);
+  pdf.text("Mode de règlement", margin + 5, boxY + 5);
+  pdf.setFont("helvetica", "normal");
+  let payY = boxY + 10;
+  paymentLines.forEach((line) => {
+    pdf.text(line, margin + 5, payY);
+    payY += 5;
+  });
+  if (order.paymentMethod === "mixed") {
+    pdf.setFont("helvetica", "bold");
+    pdf.text(`Total réglé : ${totalPaid.toFixed(3)} DT`, margin + 5, payY);
+    payY += 5;
+  }
+
   pdf.setFont("helvetica", "italic");
-  pdf.text("Cachet et Signature", margin + 5, boxY + 5);
+  pdf.text("Cachet et Signature", margin + 5, payY + 10);
 
   const invoiceFileName = `fps${(order.orderNumber || "").replace(/^CPS/i, "")}.pdf`;
 

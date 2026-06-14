@@ -13,7 +13,7 @@ export interface Order {
   deliveryCost?: number
   status: "pending" | "confirmed" | "processing" | "shipped" | "delivered" | "cancelled"
   paymentStatus: "pending" | "paid" | "failed" | "refunded"
-  paymentMethod: "card" | "cash" | "transfer" | "check"
+  paymentMethod: string
   shippingAddress: Address
   billingAddress: Address
   createdAt: Date
@@ -23,6 +23,43 @@ export interface Order {
   notes?: string
   warrantyInfo?: WarrantyInfo
   commercial?: string
+  paymentDetails?: PaymentDetails
+}
+
+export interface PaymentDetails {
+  especesAmountPaid: number
+  especesRemaining: number
+  especesRemarque: string
+  criAmountPaid: number
+  criRemaining: number
+  criRemarque: string
+  transferAmountPaid: number
+  transferRemaining: number
+  transferNumber: string
+  transferHolderName: string
+  transferBankName: string
+  transferRemarque: string
+  lettreAmountPaid: number
+  lettreRemaining: number
+  lettreNumber: string
+  lettreDate: string
+  lettreName: string
+  lettreBankName: string
+  lettreRib: string
+  lettreLieu: string
+  lettreRemarque: string
+  chequeAmountPaid: number
+  chequeRemaining: number
+  chequeNumber: string
+  chequeDate: string
+  chequeName: string
+  chequeBankName: string
+  chequeRemarque: string
+  codAmountPaid: number
+  codRemaining: number
+  codAuthorizationNumber: string
+  codBankName: string
+  codRemarque: string
 }
 
 export interface OrderItem {

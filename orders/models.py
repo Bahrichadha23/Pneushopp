@@ -88,6 +88,11 @@ class Order(models.Model):
     cod_remaining = models.DecimalField(max_digits=10, decimal_places=3, default=0, blank=True, null=True)
     cod_remarque = models.TextField(blank=True, null=True)
 
+    # Especes (cash)
+    especes_amount_paid = models.DecimalField(max_digits=10, decimal_places=3, default=0, blank=True, null=True)
+    especes_remaining = models.DecimalField(max_digits=10, decimal_places=3, default=0, blank=True, null=True)
+    especes_remarque = models.TextField(blank=True, null=True)
+
     commercial = models.CharField(max_length=255, blank=True, null=True)
 
     def __str__(self):
