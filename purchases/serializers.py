@@ -151,6 +151,11 @@ class PurchaseOrderCreateSerializer(serializers.Serializer):
             # Update stock + fabrication_date + emplacement
             if product:
                 product.stock = product.stock + quantity
+                # Le prix saisi à l'achat est le prix d'achat (HT) ; le prix de
+                # vente affiché (catalogue, front, back) = prix d'achat * 1.15 * 1.19
+                if unit_price > 0:
+                    product.purchase_price = unit_price
+                    product.price = unit_price * 1.15 * 1.19
                 if fab_date:
                     product.fabrication_date = fab_date
                     print(f'[DATE] DOT updated: {product.name} → {dot_str} ({fab_date})')

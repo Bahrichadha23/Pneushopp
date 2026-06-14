@@ -433,11 +433,13 @@ def import_excel(request):
                 any_image = bool(image_url or image_url2 or image_url3)
 
                 if existing:
-                    # Update price, description and images — do NOT touch stock (stock managed via Achats)
-                    existing.price = product_data['price']
+                    # Le prix de la colonne Excel est le prix d'achat (HT) ; le prix de
+                    # vente affiché (catalogue, front, back) = prix d'achat * 1.15 * 1.19
+                    existing.purchase_price = product_data['price']
+                    existing.price = round(product_data['price'] * 1.15 * 1.19, 3)
                     if product_data['description']:
                         existing.description = product_data['description']
-                    update_fields = ['price', 'updated_at']
+                    update_fields = ['price', 'purchase_price', 'updated_at']
                     if product_data['description']:
                         update_fields.append('description')
                     if not existing.image and image_url:
@@ -467,7 +469,8 @@ def import_excel(request):
                         name=product_data['name'],
                         slug=slug,
                         description=product_data['description'],
-                        price=product_data['price'],
+                        price=round(product_data['price'] * 1.15 * 1.19, 3),
+                        purchase_price=product_data['price'],
                         brand=product_data['brand'],
                         size=product_data['size'],
                         season=product_data['season'],
