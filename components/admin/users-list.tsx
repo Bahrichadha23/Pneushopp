@@ -275,6 +275,7 @@ interface User {
     totalCommandes: number;
     montantTotal: number;
     derniereCommande: string;
+    plain_password?: string;
 }
 
 export function UsersList() {

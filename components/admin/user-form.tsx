@@ -284,6 +284,12 @@ export function UserForm({ onSubmit, isLoading, initialData }: UserFormProps) {
                     setValue(key as keyof UserFormValues, value);
                 }
             });
+            // Pré-remplit le mot de passe actuel (visible via l'icône oeil) en mode édition
+            const plainPassword = (initialData as any).plain_password;
+            if (plainPassword) {
+                setValue('password', plainPassword);
+                setValue('password_confirm', plainPassword);
+            }
         }
     }, [initialData, setValue]);
 
