@@ -103,6 +103,13 @@ const MENU_ADMIN: MenuItem[] = [
 
 const MENU_PURCHASING: MenuItem[] = [
   {
+    title: "Commandes",
+    icon: ShoppingCart,
+    children: [
+      { title: "Livraisons", href: "/admin/livraisons", icon: Truck },
+    ],
+  },
+  {
     title: "Produits",
     icon: Package,
     children: [
@@ -152,6 +159,23 @@ const MENU_SALES: MenuItem[] = [
     ],
   },
   { title: "Avoirs / Retours",  href: "/admin/avoir",      icon: RotateCcw },
+  {
+    title: "Produits",
+    icon: Package,
+    children: [
+      { title: "Catalogue produits", href: "/admin/produits", icon: Package },
+      { title: "Gestion stock", href: "/admin/stock", icon: Store },
+      { title: "Mouvements stock", href: "/admin/stock/mouvements", icon: TrendingUp },
+    ],
+  },
+  {
+    title: "Gestion des Produits",
+    icon: Upload,
+    children: [
+      { title: "Importer un fichier Excel", href: "/admin/import", icon: Upload },
+      { title: "Ajouter un produit", href: "/admin/add-product", icon: Package },
+    ],
+  },
   { title: "Trésorerie Vente",  href: "/admin/tresorerie", icon: Wallet },
   { title: "Clients",           href: "/admin/clients",    icon: Users },
   { title: "Support",           href: "/admin/communication", icon: MessageSquare },

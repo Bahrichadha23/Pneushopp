@@ -1152,7 +1152,7 @@ export default function StockManagementPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  if (user && user.role !== "admin" && user.role !== "purchasing") {
+  if (user && user.role !== "admin" && user.role !== "purchasing" && user.role !== "sales") {
     router.push("/admin"); return null;
   }
 

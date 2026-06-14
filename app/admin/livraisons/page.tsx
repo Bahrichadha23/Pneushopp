@@ -260,7 +260,7 @@ export default function DeliveriesPage() {
   const { user } = useAuth();
   const router   = useRouter();
 
-  if (user && user.role !== "admin" && user.role !== "sales") {
+  if (user && user.role !== "admin" && user.role !== "sales" && user.role !== "purchasing") {
     router.push("/admin");
     return null;
   }

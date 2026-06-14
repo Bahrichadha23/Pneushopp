@@ -18,7 +18,7 @@ export default function AddProductPage() {
   const [success, setSuccess] = useState(false);
 
   // Redirect if not authorized
-  if (user && user.role !== "admin" && user.role !== "purchasing") {
+  if (user && user.role !== "admin" && user.role !== "purchasing" && user.role !== "sales") {
     router.push("/admin");
     return null;
   }

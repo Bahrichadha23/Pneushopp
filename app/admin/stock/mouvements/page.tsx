@@ -13,8 +13,8 @@ export default function StockMovementsPage() {
   const { user } = useAuth();
   const router = useRouter();
 
-  // Only allow admin or purchasing
-  if (user && user.role !== "admin" && user.role !== "purchasing") {
+  // Only allow admin, purchasing or sales
+  if (user && user.role !== "admin" && user.role !== "purchasing" && user.role !== "sales") {
     router.push("/admin"); // or show "Access Denied"
     return null;
   }

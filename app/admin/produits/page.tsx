@@ -93,7 +93,7 @@ export default function ProductsPage() {
   const router = useRouter();
 
   // Only allow admin
-  if (user && user.role !== "admin" && user.role !== "purchasing") {
+  if (user && user.role !== "admin" && user.role !== "purchasing" && user.role !== "sales") {
     router.push("/admin"); // or show "Access Denied"
     return null;
   }
